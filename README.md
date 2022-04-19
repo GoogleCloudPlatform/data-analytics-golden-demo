@@ -15,7 +15,7 @@ You can deploy this to a new project or an existing project.
 
 ### To deploy to New Project (Preferred method)
 1. Open a Google Cloud Shell: http://shell.cloud.google.com/ 
-2. Type: git clone https://github.com/GoogleCloudPlatform/enterprise-data-analytics-demo
+2. Type: git clone https://github.com/GoogleCloudPlatform/enterprise-data-analytics-demo.git
 3. Switch the prompt to the directory: cd enterprise-data-analytics-demo
 4. Run the deployment script: source deploy.sh  
 5. Authorize the login (a popup will appear)
