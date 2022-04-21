@@ -33,19 +33,20 @@
 
 # Required software (cloud shell has this installed):
 #   - gcloud
-#   - gcloud beta  (sudo gcloud components install beta)
+#   - gcloud beta (sudo gcloud components install beta)
 #   - terraform
 #   - .jq (command line JSON parser)
-#   - kubectrl (sudo gcloud components install kubectl) to Trigger the Airflow 2 DAG (currently commented out, not installed on Cloud Shell by default)
+#   - kubectrl (sudo gcloud components install kubectl) to Trigger the Airflow 2 DAG (This is not installed on Cloud Shell by default)
 #   - curl
 #
 # Author: Adam Paternostro
 # Terraform for Google: https://registry.terraform.io/providers/hashicorp/google/latest/docs
 ####################################################################################
 
-# Login to GCP (make sure you are in the correct browser, this is your Admin account or an IT admin)
-# This command is not needed when running from a Cloud Shell
-# gcloud auth login "myaccount@google.com"
+# Login to GCP by running BOTH below gcloud auth commands (you only need to do this once which is why they are commented out)
+#      These command are not needed when running from a Cloud Shell
+# gcloud auth login
+# gcloud auth application-default login
 
 # Get the account name who logged in above 
 gcp_account_name=$(gcloud auth list --filter=status:ACTIVE --format="value(account)")

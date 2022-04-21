@@ -26,8 +26,10 @@
 
 
 # Login to GCP (make sure you are in the correct browser, this is your Admin account or an IT admin)
-# This command is not needed when running from a Cloud Shell
-# gcloud auth login "myaccount@google.com"
+# Login to GCP by running BOTH below gcloud auth commands (you only need to do this once which is why they are commented out)
+#      These command are not needed when running from a Cloud Shell
+# gcloud auth login
+# gcloud auth application-default login
 
 # Get the account name who logged in above 
 gcp_account_name=$(gcloud auth list --filter=status:ACTIVE --format="value(account)")
