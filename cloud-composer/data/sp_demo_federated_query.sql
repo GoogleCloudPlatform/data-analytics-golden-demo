@@ -42,7 +42,7 @@ EXECUTE IMMEDIATE """
 SELECT *
   FROM EXTERNAL_QUERY(
       'projects/{{ params.project_id }}/locations/{{ params.region }}/connections/bq_spanner_connection',
-      'SELECT *  FROM weather WHERE station_id=\'USW00094728\'');
+      "SELECT *  FROM weather WHERE station_id='USW00094728'");
 """;
 
 -- Query data in Spanner and JOIN to BigQuery Data
@@ -57,7 +57,7 @@ WITH WeatherData AS
         max_celsius_temp
   FROM EXTERNAL_QUERY(
       'projects/{{ params.project_id }}/locations/{{ params.region }}/connections/bq_spanner_connection',
-      'SELECT *  FROM weather WHERE station_id=\'USW00094728\' AND station_date BETWEEN \'2020-01-01\' AND \'2020-01-31\'')
+      "SELECT *  FROM weather WHERE station_id='USW00094728' AND station_date BETWEEN '2020-01-01' AND '2020-01-31'")
 )
 , TaxiData AS
 (
