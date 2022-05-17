@@ -15,7 +15,9 @@
 ####################################################################################
 
 # Author:  Adam Paternostro
-# Summary: Convert the download CSV Taxi data to Parquet, CSV and JSON formats in a partitioned structure
+# Summary: Opens the taxi parquet files and renames the fields as well as partitions the data.
+
+# Note: NYC changes from CSV to Parquet format, this file has been updated on 05/16/2022
 
 from pyspark.sql.dataframe import DataFrame
 from pyspark.sql import SparkSession
@@ -26,10 +28,10 @@ import time
 import sys
 
 
-def ConvertTaxiData(sourceYellowCSV, sourceGreenCSV, destination):
-    print("ConvertTaxiData: sourceYellowCSV: ",sourceYellowCSV)
-    print("ConvertTaxiData: sourceGreenCSV:  ",sourceGreenCSV)
-    print("ConvertTaxiData: destination:     ",destination)
+def ConvertTaxiData(sourceYellow, sourceGreen, destination):
+    print("ConvertTaxiData: sourceYellow: ",sourceYellow)
+    print("ConvertTaxiData: sourceGreen:  ",sourceGreen)
+    print("ConvertTaxiData: destination:  ",destination)
 
     spark = SparkSession \
         .builder \
@@ -44,6 +46,30 @@ def ConvertTaxiData(sourceYellowCSV, sourceGreenCSV, destination):
     # 2021 VendorID,tpep_pickup_datetime,tpep_dropoff_datetime,passenger_count,trip_distance,RatecodeID,store_and_fwd_flag,PULocationID,DOLocationID,payment_type,fare_amount,extra,mta_tax,tip_amount,tolls_amount,improvement_surcharge,total_amount,congestion_surcharge
     # 2020 VendorID,tpep_pickup_datetime,tpep_dropoff_datetime,passenger_count,trip_distance,RatecodeID,store_and_fwd_flag,PULocationID,DOLocationID,payment_type,fare_amount,extra,mta_tax,tip_amount,tolls_amount,improvement_surcharge,total_amount,congestion_surcharge
     # 2019 VendorID,tpep_pickup_datetime,tpep_dropoff_datetime,passenger_count,trip_distance,RatecodeID,store_and_fwd_flag,PULocationID,DOLocationID,payment_type,fare_amount,extra,mta_tax,tip_amount,tolls_amount,improvement_surcharge,total_amount,congestion_surcharge
+
+    """
+    RENAME: VendorID	INTEGER	NULLABLE		
+    RENAME: tpep_pickup_datetime	TIMESTAMP	NULLABLE		
+    RENAME: tpep_dropoff_datetime	TIMESTAMP	NULLABLE		
+    RENAME: passenger_count	FLOAT	NULLABLE		
+    RENAME: trip_distance	FLOAT	NULLABLE		
+    RENAME: RatecodeID	FLOAT	NULLABLE		
+    RENAME: store_and_fwd_flag	STRING	NULLABLE		
+    PULocationID	INTEGER	NULLABLE		
+    DOLocationID	INTEGER	NULLABLE		
+    RENAME: payment_type	INTEGER	NULLABLE		
+    RENAME: fare_amount	FLOAT	NULLABLE		
+    RENAME: (Surcharge) extra	FLOAT	NULLABLE		
+    RENAME: mta_tax	FLOAT	NULLABLE		
+    RENAME: tip_amount	FLOAT	NULLABLE		
+    RENAME: tolls_amount	FLOAT	NULLABLE		
+    RENAME: improvement_surcharge	FLOAT	NULLABLE		
+    RENAME: total_amount	FLOAT	NULLABLE		
+    RENAME: congestion_surcharge	FLOAT	NULLABLE		
+    NEW: airport_fee	INTEGER	NULLABLE		
+    """
+
+    """
     yellowSchema = StructType([
         StructField('Vendor_Id', IntegerType(), True),
         StructField('Pickup_DateTime', TimestampType(), True),
@@ -64,13 +90,82 @@ def ConvertTaxiData(sourceYellowCSV, sourceGreenCSV, destination):
         StructField('Total_Amount', DoubleType(), True),
         StructField('Congestion_Surcharge', DoubleType(), True)
         ])
+    """
 
-    df = spark.read.format("csv") \
-        .option("header", True) \
-        .schema(yellowSchema) \
-        .load(sourceYellowCSV)
+    df_source = spark.read.parquet(sourceYellow)
 
-    df_with_partition_cols = df \
+    # Change datatypes (FLOAT to INT)
+    df_source = df_source \
+        .withColumn("NEW_Passenger_Count",col("passenger_count").cast(IntegerType())) \
+        .withColumn("NEW_Rate_Code_Id",col("RatecodeID").cast(IntegerType()))
+
+    # Drop columns
+    # airport_fee: causes issues since the datatype id INT for 2019 and FLOAT for 2020+
+    df_source = df_source \
+        .drop("airport_fee") \
+        .drop("passenger_count") \
+        .drop("RatecodeID")  
+
+    df_rename = df_source.withColumnRenamed("VendorID", "Vendor_Id") \
+        .withColumnRenamed("tpep_pickup_datetime", "Pickup_DateTime") \
+        .withColumnRenamed("tpep_dropoff_datetime", "Dropoff_DateTime") \
+        .withColumnRenamed("NEW_Passenger_Count", "Passenger_Count") \
+        .withColumnRenamed("trip_distance", "Trip_Distance") \
+        .withColumnRenamed("NEW_Rate_Code_Id", "Rate_Code_Id") \
+        .withColumnRenamed("store_and_fwd_flag", "Store_And_Forward") \
+        .withColumnRenamed("payment_type", "Payment_Type_Id") \
+        .withColumnRenamed("fare_amount", "Fare_Amount") \
+        .withColumnRenamed("extra", "Surcharge") \
+        .withColumnRenamed("mta_tax", "MTA_Tax") \
+        .withColumnRenamed("tip_amount", "Tip_Amount") \
+        .withColumnRenamed("tolls_amount", "Tolls_Amount") \
+        .withColumnRenamed("improvement_surcharge", "Improvement_Surcharge") \
+        .withColumnRenamed("total_amount", "Total_Amount") \
+        .withColumnRenamed("congestion_surcharge", "Congestion_Surcharge")
+
+    df_new_column_order = df_rename.select( \
+        'Vendor_Id', \
+        'Pickup_DateTime', \
+        'Dropoff_DateTime', \
+        'Passenger_Count', \
+        'Trip_Distance', \
+        'Rate_Code_Id', \
+        'Store_And_Forward', \
+        'PULocationID', \
+        'DOLocationID', \
+        'Payment_Type_Id', \
+        'Fare_Amount', \
+        'Surcharge', \
+        'MTA_Tax', \
+        'Tip_Amount', \
+        'Tolls_Amount', \
+        'Improvement_Surcharge', \
+        'Total_Amount', \
+        'Congestion_Surcharge' \
+        )
+    """
+    df_new_column_order = df_rename \
+        .withColumn("Vendor_Id",col("Vendor_Id")) \
+        .withColumn("Pickup_DateTime",col("Pickup_DateTime")) \
+        .withColumn("Dropoff_DateTime",col("Dropoff_DateTime")) \
+        .withColumn("Passenger_Count",col("Passenger_Count")) \
+        .withColumn("Trip_Distance",col("Trip_Distance")) \
+        .withColumn("Rate_Code_Id",col("Rate_Code_Id")) \
+        .withColumn("Store_And_Forward",col("Store_And_Forward")) \
+        .withColumn("PULocationID",col("PULocationID")) \
+        .withColumn("DOLocationID",col("DOLocationID")) \
+        .withColumn("Payment_Type_Id",col("Payment_Type_Id")) \
+        .withColumn("Fare_Amount",col("Fare_Amount")) \
+        .withColumn("Surcharge",col("Surcharge")) \
+        .withColumn("MTA_Tax",col("MTA_Tax")) \
+        .withColumn("Tip_Amount",col("Tip_Amount")) \
+        .withColumn("Tolls_Amount",col("Tolls_Amount")) \
+        .withColumn("Improvement_Surcharge",col("Improvement_Surcharge")) \
+        .withColumn("Total_Amount",col("Total_Amount")) \
+        .withColumn("Congestion_Surcharge",col("Congestion_Surcharge"))
+    """
+
+    df_with_partition_cols = df_new_column_order \
         .withColumn("year",  year      (col("Pickup_DateTime"))) \
         .withColumn("month", month     (col("Pickup_DateTime"))) \
         .filter(year(col("Pickup_DateTime")).isin (2019,2020,2021))
@@ -112,6 +207,31 @@ def ConvertTaxiData(sourceYellowCSV, sourceGreenCSV, destination):
     # 2021 VendorID,lpep_pickup_datetime,lpep_dropoff_datetime,store_and_fwd_flag,RatecodeID,PULocationID,DOLocationID,passenger_count,trip_distance,fare_amount,extra,mta_tax,tip_amount,tolls_amount,ehail_fee,improvement_surcharge,total_amount,payment_type,trip_type,congestion_surcharge
     # 2020 VendorID,lpep_pickup_datetime,lpep_dropoff_datetime,store_and_fwd_flag,RatecodeID,PULocationID,DOLocationID,passenger_count,trip_distance,fare_amount,extra,mta_tax,tip_amount,tolls_amount,ehail_fee,improvement_surcharge,total_amount,payment_type,trip_type,congestion_surcharge
     # 2019 VendorID,lpep_pickup_datetime,lpep_dropoff_datetime,store_and_fwd_flag,RatecodeID,PULocationID,DOLocationID,passenger_count,trip_distance,fare_amount,extra,mta_tax,tip_amount,tolls_amount,ehail_fee,improvement_surcharge,total_amount,payment_type,trip_type,congestion_surcharge
+    
+    """
+    VendorID	INTEGER	NULLABLE		
+    lpep_pickup_datetime	TIMESTAMP	NULLABLE		
+    lpep_dropoff_datetime	TIMESTAMP	NULLABLE		
+    store_and_fwd_flag	STRING	NULLABLE		
+    RatecodeID	FLOAT	NULLABLE		
+    PULocationID	INTEGER	NULLABLE		
+    DOLocationID	INTEGER	NULLABLE		
+    passenger_count	FLOAT	NULLABLE		
+    trip_distance	FLOAT	NULLABLE		
+    fare_amount	FLOAT	NULLABLE		
+    extra	FLOAT	NULLABLE		
+    mta_tax	FLOAT	NULLABLE		
+    tip_amount	FLOAT	NULLABLE		
+    tolls_amount	FLOAT	NULLABLE		
+    ehail_fee	FLOAT	NULLABLE		
+    improvement_surcharge	FLOAT	NULLABLE		
+    total_amount	FLOAT	NULLABLE		
+    payment_type	FLOAT	NULLABLE		
+    trip_type	FLOAT	NULLABLE		
+    congestion_surcharge	FLOAT	NULLABLE
+    """
+
+    """
     greenSchema = StructType([
         StructField('Vendor_Id', IntegerType(), True),
         StructField('Pickup_DateTime', TimestampType(), True),
@@ -134,13 +254,89 @@ def ConvertTaxiData(sourceYellowCSV, sourceGreenCSV, destination):
         StructField('Trip_Type', StringType(), True),
         StructField('Congestion_Surcharge', DoubleType(), True)
         ])
+    """
 
-    df = spark.read.format("csv") \
-        .option("header", True) \
-        .schema(greenSchema) \
-        .load(sourceGreenCSV)
+    df_source = spark.read.parquet(sourceGreen)
+    
+    # Change datatypes (FLOAT to INT)
+    df_source = df_source \
+        .withColumn("NEW_Passenger_Count",col("passenger_count").cast(IntegerType())) \
+        .withColumn("NEW_Rate_Code_Id",col("RatecodeID").cast(IntegerType())) \
+        .withColumn("NEW_Payment_Type_Id",col("payment_type").cast(IntegerType()))
+            
 
-    df_with_partition_cols = df \
+    # Drop columns
+    df_source = df_source \
+        .drop("passenger_count") \
+        .drop("RatecodeID")
+     
+    df_rename = df_source.withColumnRenamed("VendorID", "Vendor_Id") \
+        .withColumnRenamed("lpep_pickup_datetime", "Pickup_DateTime") \
+        .withColumnRenamed("lpep_dropoff_datetime", "Dropoff_DateTime") \
+        .withColumnRenamed("store_and_fwd_flag", "Store_And_Forward") \
+        .withColumnRenamed("NEW_Passenger_Count", "Passenger_Count") \
+        .withColumnRenamed("trip_distance", "Trip_Distance") \
+        .withColumnRenamed("NEW_Rate_Code_Id", "Rate_Code_Id") \
+        .withColumnRenamed("fare_amount", "Fare_Amount") \
+        .withColumnRenamed("extra", "Surcharge") \
+        .withColumnRenamed( "mta_tax", "MTA_Tax") \
+        .withColumnRenamed("tip_amount", "Tip_Amount") \
+        .withColumnRenamed("tolls_amount", "Tolls_Amount") \
+        .withColumnRenamed("ehail_fee", "Ehail_Fee") \
+        .withColumnRenamed("improvement_surcharge", "Improvement_Surcharge") \
+        .withColumnRenamed("total_amount", "Total_Amount") \
+        .withColumnRenamed("NEW_Payment_Type_Id", "Payment_Type_Id") \
+        .withColumnRenamed("trip_type", "Trip_Type") \
+        .withColumnRenamed("congestion_surcharge", "Congestion_Surcharge")
+
+    df_new_column_order = df_rename.select( \
+        'Vendor_Id', \
+        'Pickup_DateTime', \
+        'Dropoff_DateTime', \
+        'Store_And_Forward', \
+        'Rate_Code_Id', \
+        'PULocationID', \
+        'DOLocationID', \
+        'Passenger_Count', \
+        'Trip_Distance', \
+        'Fare_Amount', \
+        'Surcharge', \
+        'MTA_Tax', \
+        'Tip_Amount', \
+        'Tolls_Amount', \
+        'Ehail_Fee', \
+        'Improvement_Surcharge', \
+        'Total_Amount', \
+        'Payment_Type_Id', \
+        'Trip_Type', \
+        'Congestion_Surcharge' \
+    )
+
+    """
+    df_new_column_order = df_rename \
+        .withColumn("Vendor_Id",col("Vendor_Id")) \
+        .withColumn("Pickup_DateTime",col("Pickup_DateTime")) \
+        .withColumn("Dropoff_DateTime",col("Dropoff_DateTime")) \
+        .withColumn("Store_And_Forward",col("Store_And_Forward")) \
+        .withColumn("Rate_Code_Id",col("Rate_Code_Id")) \
+        .withColumn("PULocationID",col("PULocationID")) \
+        .withColumn("DOLocationID",col("DOLocationID")) \
+        .withColumn("Passenger_Count",col("Passenger_Count")) \
+        .withColumn("Trip_Distance",col("Trip_Distance")) \
+        .withColumn("Fare_Amount",col("Fare_Amount")) \
+        .withColumn("Surcharge",col("Surcharge")) \
+        .withColumn("MTA_Tax",col("MTA_Tax")) \
+        .withColumn("Tip_Amount",col("Tip_Amount")) \
+        .withColumn("Tolls_Amount",col("Tolls_Amount")) \
+        .withColumn("Ehail_Fee",col("Ehail_Fee")) \
+        .withColumn("Improvement_Surcharge",col("Improvement_Surcharge")) \
+        .withColumn("Total_Amount",col("Total_Amount")) \
+        .withColumn("Payment_Type_Id",col("Payment_Type_Id")) \
+        .withColumn("Trip_Type",col("Trip_Type")) \
+        .withColumn("Congestion_Surcharge",col("Congestion_Surcharge")) 
+    """
+
+    df_with_partition_cols = df_new_column_order \
         .withColumn("year",  year      (col("Pickup_DateTime"))) \
         .withColumn("month", month     (col("Pickup_DateTime"))) \
         .filter(year(col("Pickup_DateTime")).isin (2019,2020,2021))
@@ -258,15 +454,15 @@ def ConvertTaxiData(sourceYellowCSV, sourceGreenCSV, destination):
 # convert_taxi_to_parquet gs://big-query-demo-09/test-taxi/yellow gs://big-query-demo-09/test-taxi/green gs://big-query-demo-09/test-taxi-output
 if __name__ == "__main__":
     if len(sys.argv) != 4:
-        print("Usage: convert_taxi_to_parquet sourceYellowCSV sourceGreenCSV destination")
+        print("Usage: convert_taxi_to_parquet sourceYellow sourceGreen destination")
         sys.exit(-1)
 
-    sourceYellowCSV = sys.argv[1]
-    sourceGreenCSV  = sys.argv[2]
-    destination     = sys.argv[3]
+    sourceYellow = sys.argv[1]
+    sourceGreen  = sys.argv[2]
+    destination  = sys.argv[3]
 
     print ("BEGIN: Main")
-    ConvertTaxiData(sourceYellowCSV, sourceGreenCSV, destination)
+    ConvertTaxiData(sourceYellow, sourceGreen, destination)
     print ("END: Main")
 
 # Sample run 
@@ -274,6 +470,6 @@ if __name__ == "__main__":
 #    --cluster "testcluster" \
 #    --region="us-west2" \
 #    gs://big-query-demo-09/pyspark-code/convert_taxi_to_parquet.py \
-#    -- gs://big-query-demo-09/test-taxi/yellow/*/*.csv \
-#       gs://big-query-demo-09/test-taxi/green/*/*.csv \
+#    -- gs://big-query-demo-09/test-taxi/yellow/*/*.parquet \
+#       gs://big-query-demo-09/test-taxi/green/*/*.parquet \
 #       gs://big-query-demo-09/test-taxi/dest/

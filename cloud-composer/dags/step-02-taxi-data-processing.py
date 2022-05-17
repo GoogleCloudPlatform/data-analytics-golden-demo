@@ -47,21 +47,22 @@ default_args = {
 }
 
 project_id               = os.environ['GCP_PROJECT'] 
-bucket_name              = os.environ['ENV_MAIN_BUCKET'] 
-pyspark_code             = "gs://" + bucket_name + "/pyspark-code/convert_taxi_to_parquet.py"
+raw_bucket_name          = os.environ['ENV_MAIN_BUCKET'] 
+processed_bucket_name    = os.environ['ENV_MAIN_BUCKET'] 
+pyspark_code             = "gs://" + raw_bucket_name + "/pyspark-code/convert_taxi_to_parquet.py"
 region                   = os.environ['ENV_REGION'] 
 zone                     = os.environ['ENV_ZONE'] 
-yellow_source            = "gs://" + bucket_name + "/raw/taxi-data/yellow/*/*.csv"
-green_source             = "gs://" + bucket_name + "/raw/taxi-data/green/*/*.csv"
-destination              = "gs://" + bucket_name + "/processed/taxi-data/"
+yellow_source            = "gs://" + raw_bucket_name + "/raw/taxi-data/yellow/*/*.parquet"
+green_source             = "gs://" + raw_bucket_name + "/raw/taxi-data/green/*/*.parquet"
+destination              = "gs://" + processed_bucket_name + "/processed/taxi-data/"
 dataproc_bucket          = os.environ['ENV_DATAPROC_BUCKET'] 
 dataproc_subnet          = os.environ['ENV_DATAPROC_SUBNET'] 
 dataproc_service_account = os.environ['ENV_DATAPROC_SERVICE_ACCOUNT'] 
 
 # For small test run
-#yellow_source   = "gs://big-query-demo-09/test-taxi/yellow/*.csv"
-#green_source    = "gs://big-query-demo-09/test-taxi/green/*.csv"
-#destination     = "gs://big-query-demo-09/test-taxi/dest/"
+# yellow_source   = "gs://big-query-demo-09/test-taxi/yellow/*.parquet"
+# green_source    = "gs://big-query-demo-09/test-taxi/green/*.parquet"
+# destination     = "gs://big-query-demo-09/test-taxi/dest/"
 
 # https://cloud.google.com/dataproc/docs/reference/rest/v1/ClusterConfig
 CLUSTER_CONFIG = {

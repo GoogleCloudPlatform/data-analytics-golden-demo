@@ -43,8 +43,8 @@ default_args = {
     'dagrun_timeout' : timedelta(minutes=60),
 }
 
-project_id      = os.environ['GCP_PROJECT'] 
-bucket_name     = os.environ['ENV_MAIN_BUCKET'] 
+project_id            = os.environ['GCP_PROJECT'] 
+raw_bucket_name       = os.environ['ENV_MAIN_BUCKET'] 
 
 
 # Download Taxi data from the internet
@@ -63,11 +63,11 @@ def DownloadFile(url):
 
 
 # https://cloud.google.com/storage/docs/uploading-objects#prereq-code-samples
-def upload_blob(project, bucket_name, source_file_name, destination_blob_name):
+def upload_blob(project, raw_bucket_name, source_file_name, destination_blob_name):
     """Uploads a file to the bucket."""
     # The ID of your GCS bucket
     # project = your GCP projec id
-    # bucket_name = "your-bucket-name" 
+    # raw_bucket_name = "your-bucket-name" 
     # The path to your file to upload
     # source_file_name = "local/path/to/file"
     # The ID of your GCS object
@@ -75,12 +75,12 @@ def upload_blob(project, bucket_name, source_file_name, destination_blob_name):
 
     print ("Begin: upload_blob")
     print ("project: ", project)
-    print ("bucket_name: ", bucket_name)
+    print ("raw_bucket_name: ", raw_bucket_name)
     print ("source_file_name: ", source_file_name)
     print ("destination_blob_name: ", destination_blob_name)
 
     storage_client = storage.Client(project=project)
-    bucket = storage_client.bucket(bucket_name)
+    bucket = storage_client.bucket(raw_bucket_name)
     blob = bucket.blob(destination_blob_name)
 
     blob.upload_from_filename(filename=source_file_name)
@@ -90,8 +90,8 @@ def upload_blob(project, bucket_name, source_file_name, destination_blob_name):
 
 
 
-# python3 download-taxi-data.py "big-query-demo-09" "big-query-demo-09" "yellow" "2021" "https://s3.amazonaws.com/nyc-tlc/trip+data/yellow_tripdata_2021-01.csv"
-def download_and_upload_to_gcs(project, bucket_name, color, year, url):
+# python3 download-taxi-data.py "big-query-demo-09" "big-query-demo-09" "yellow" "2021" "https://s3.amazonaws.com/nyc-tlc/trip+data/yellow_tripdata_2021-01.parquet"
+def download_and_upload_to_gcs(project, raw_bucket_name, color, year, url):
     print ("Begin: download_and_upload_to_gcs")
     for month_index in range(12):
         downloadURL = url.replace("{COLOR}",color).replace("{YEAR}",year).replace("{MONTH}",str.format("%02d" % (month_index+1,)))
@@ -99,7 +99,7 @@ def download_and_upload_to_gcs(project, bucket_name, color, year, url):
         try:
             source_file_name = DownloadFile(downloadURL)
             destination_blob_name = "raw/taxi-data/" + color + "/" + year + "/" + source_file_name
-            upload_blob(project, bucket_name, source_file_name, destination_blob_name)
+            upload_blob(project, raw_bucket_name, source_file_name, destination_blob_name)
             os.remove(source_file_name)
         except Exception as e: 
             print(e)
@@ -117,10 +117,10 @@ with airflow.DAG('step-01-taxi-data-download',
         task_id='download_yellow_2021',
         python_callable= download_and_upload_to_gcs,
         op_kwargs = { "project" : project_id, 
-                        "bucket_name" : bucket_name, 
+                        "raw_bucket_name" : raw_bucket_name, 
                         "color" : "yellow", 
                         "year" : "2021", 
-                        "url" : "https://s3.amazonaws.com/nyc-tlc/trip+data/{COLOR}_tripdata_{YEAR}-{MONTH}.csv" },
+                        "url" : "https://s3.amazonaws.com/nyc-tlc/trip+data/{COLOR}_tripdata_{YEAR}-{MONTH}.parquet" },
         execution_timeout=timedelta(minutes=30),
         dag=dag,
         )
@@ -129,10 +129,10 @@ with airflow.DAG('step-01-taxi-data-download',
         task_id='download_green_2021',
         python_callable= download_and_upload_to_gcs,
         op_kwargs = { "project" : project_id, 
-                        "bucket_name" : bucket_name, 
+                        "raw_bucket_name" : raw_bucket_name, 
                         "color" : "green", 
                         "year" : "2021", 
-                        "url" : "https://s3.amazonaws.com/nyc-tlc/trip+data/{COLOR}_tripdata_{YEAR}-{MONTH}.csv" },
+                        "url" : "https://s3.amazonaws.com/nyc-tlc/trip+data/{COLOR}_tripdata_{YEAR}-{MONTH}.parquet" },
         execution_timeout=timedelta(minutes=30),
         dag=dag,
         )
@@ -141,10 +141,10 @@ with airflow.DAG('step-01-taxi-data-download',
         task_id='download_yellow_2020',
         python_callable= download_and_upload_to_gcs,
         op_kwargs = { "project" : project_id, 
-                        "bucket_name" : bucket_name, 
+                        "raw_bucket_name" : raw_bucket_name, 
                         "color" : "yellow", 
                         "year" : "2020", 
-                        "url" : "https://s3.amazonaws.com/nyc-tlc/trip+data/{COLOR}_tripdata_{YEAR}-{MONTH}.csv" },
+                        "url" : "https://s3.amazonaws.com/nyc-tlc/trip+data/{COLOR}_tripdata_{YEAR}-{MONTH}.parquet" },
         execution_timeout=timedelta(minutes=30),
         dag=dag,
         )
@@ -153,10 +153,10 @@ with airflow.DAG('step-01-taxi-data-download',
         task_id='download_green_2020',
         python_callable= download_and_upload_to_gcs,
         op_kwargs = { "project" : project_id, 
-                        "bucket_name" : bucket_name, 
+                        "raw_bucket_name" : raw_bucket_name, 
                         "color" : "green", 
                         "year" : "2020", 
-                        "url" : "https://s3.amazonaws.com/nyc-tlc/trip+data/{COLOR}_tripdata_{YEAR}-{MONTH}.csv" },
+                        "url" : "https://s3.amazonaws.com/nyc-tlc/trip+data/{COLOR}_tripdata_{YEAR}-{MONTH}.parquet" },
         execution_timeout=timedelta(minutes=30),
         dag=dag,
         )
@@ -165,10 +165,10 @@ with airflow.DAG('step-01-taxi-data-download',
         task_id='download_yellow_2019',
         python_callable= download_and_upload_to_gcs,
         op_kwargs = { "project" : project_id, 
-                        "bucket_name" : bucket_name, 
+                        "raw_bucket_name" : raw_bucket_name, 
                         "color" : "yellow", 
                         "year" : "2019", 
-                        "url" : "https://s3.amazonaws.com/nyc-tlc/trip+data/{COLOR}_tripdata_{YEAR}-{MONTH}.csv" },
+                        "url" : "https://s3.amazonaws.com/nyc-tlc/trip+data/{COLOR}_tripdata_{YEAR}-{MONTH}.parquet" },
         execution_timeout=timedelta(minutes=30),
         dag=dag,
         )
@@ -177,10 +177,10 @@ with airflow.DAG('step-01-taxi-data-download',
         task_id='download_green_2019',
         python_callable= download_and_upload_to_gcs,
         op_kwargs = { "project" : project_id, 
-                        "bucket_name" : bucket_name, 
+                        "raw_bucket_name" : raw_bucket_name, 
                         "color" : "green", 
                         "year" : "2019", 
-                        "url" : "https://s3.amazonaws.com/nyc-tlc/trip+data/{COLOR}_tripdata_{YEAR}-{MONTH}.csv" },
+                        "url" : "https://s3.amazonaws.com/nyc-tlc/trip+data/{COLOR}_tripdata_{YEAR}-{MONTH}.parquet" },
         execution_timeout=timedelta(minutes=30),
         dag=dag,
         )
