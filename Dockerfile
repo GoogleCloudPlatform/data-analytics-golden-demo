@@ -19,9 +19,9 @@
 #         This allows you to test your Terraform as close as possible as the internal processes
 # Software:                       Install Docker
 # Build Image:                    docker build -t terraform-deploy-image .
-# Run Image Locally (Bash):       docker run -it --entrypoint /bin/bash -v $PWD:$PWD -w $PWD/terraform-local terraform-deploy-image
-# Run Image Locally (Terraform):  docker run -it --entrypoint terraform -v $PWD:$PWD -w $PWD/terraform-local terraform-deploy-image init
-#                                 docker run -it --entrypoint terraform -v $PWD:$PWD -w $PWD/terraform-local terraform-deploy-image validate
+# Run Image Locally (Bash):       docker run -it --entrypoint /bin/bash -v $PWD:$PWD -w $PWD/terraform terraform-deploy-image
+# Run Image Locally (Terraform):  docker run -it --entrypoint terraform -v $PWD:$PWD -w $PWD/terraform terraform-deploy-image init
+#                                 docker run -it --entrypoint terraform -v $PWD:$PWD -w $PWD/terraform terraform-deploy-image validate
 ####################################################################################
 
 FROM debian:stable-slim

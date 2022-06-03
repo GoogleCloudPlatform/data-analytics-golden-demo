@@ -323,6 +323,26 @@ resource "time_sleep" "enable_api_dataflow_time_delay" {
 }
 
 
+# Analytics Hub
+resource "google_project_service" "enable_api_analyticshub" {
+  project                    = var.project_id
+  service                    = "analyticshub.googleapis.com"
+  disable_dependent_services = true
+  disable_on_destroy         = true
+  depends_on                 = [time_sleep.enable_api_bigquerystorage_time_delay,
+                                time_sleep.enable_api_bigquerydatatransfer_time_delay,
+                                time_sleep.enable_api_bigqueryconnection_time_delay]
+  timeouts {
+    create = "15m"
+  }
+}
+
+resource "time_sleep" "enable_api_analyticshub_time_delay" {
+  depends_on      = [google_project_service.enable_api_analyticshub]
+  create_duration = "5s"
+}
+
+
 
 #-----------------------------------------------------------------------------------
 # Overall Time Deplay for API Enable Commands (You must update this if you add a new API above)

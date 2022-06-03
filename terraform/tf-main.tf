@@ -25,7 +25,7 @@
 #     terraform apply -var-file="../terraform.tfvars.json"
 #
 #  2. If you have a GCP project already created you would run just by passing in the parameters.
-#     Review the script sample-create-google-project.sh to see the requirements of what is
+#     Review the script deploy-use-existing-project.sh to see the requirements of what is
 #     required items and permissions.
 #     terraform apply \
 #       -var="gcp_account_name=${gcp_account_name}" \
@@ -58,12 +58,6 @@ terraform {
 ####################################################################################
 # Variables (Set in the ../terraform.tfvars.json file) or passed viw command line
 ####################################################################################
-variable "README" {
-  type        = string
-  description = "Not Used (declared to prevent warnings)"
-  default     = ""
-}
-
 
 # CONDITIONS: (Always Required)
 variable "gcp_account_name" {
@@ -79,7 +73,7 @@ variable "gcp_account_name" {
 # CONDITIONS: (Always Required)
 variable "project_id" {
   type        = string
-  description = "The GCP Project Id/Name or the Prefix of a name to generate (e.g. bigquery-demo-xxxxxxxxxx)."
+  description = "The GCP Project Id/Name or the Prefix of a name to generate (e.g. data-analytics-demo-xxxxxxxxxx)."
   validation {
     condition     = length(var.project_id) > 0
     error_message = "The project_id is required."
@@ -95,7 +89,7 @@ variable "project_number" {
 }
 
 
-# CONDITIONS: (Only If) you have a service account doing the deployment (from devOps)
+# CONDITIONS: (Only If) you have a service account doing the deployment (from DevOps)
 variable "deployment_service_account_name" {
   type        = string
   description = "The name of the service account that is doing the deployment.  If empty then the script is creatign a service account."
@@ -126,7 +120,7 @@ variable "billing_account" {
 # CONDITIONS: (Optional) unless you want a different region/zone
 variable "region" {
   type        = string
-  description = "The GCP region to deploy.  Note: BigQuery will be in a specific region not a multiregion (e.g. us)"
+  description = "The GCP region to deploy."
   default     = "us-west2"
   validation {
     condition     = length(var.region) > 0
@@ -153,6 +147,23 @@ variable "spanner_config" {
     error_message = "The spanner_config is required."
   }
 }
+
+variable "bigquery_region" {
+  type        = string
+  description = "The GCP region to deploy BigQuery.  This should either match the region or be 'us' or 'eu'.  This also affects the GCS bucket and Data Catalog."
+  default     = "us"
+  validation {
+    condition     = length(var.bigquery_region) > 0
+    error_message = "The region is required."
+  }
+}
+
+variable "omni_dataset" {
+  type        = string
+  description = "The full path project_id.dataset_id to the OMNI data."
+  default     = "OMNI.DATASET"
+}
+
 
 
 ####################################################################################
@@ -216,27 +227,22 @@ module "project" {
 
 
 module "service-account" {
-  # This creates a service account to run the "resources" Terraform script only if a project_number was NOT provided
-  # It is assumed if a project was created then a service account for deployment was created and this script will be running as that
-  # You will need to set the following in your bash shell
-  # export GOOGLE_IMPERSONATE_SERVICE_ACCOUNT=YOUR_SERVICE_ACCOUNT@YOUR_PROJECT.iam.gserviceaccount.com
-  count                 = var.project_number == "" ? 1 : 0
+  # This creates a service account to run portions of the following deploy by impersonating this account
   source                = "../terraform-modules/service-account"
   project_id            = local.local_project_id
   org_id                = var.org_id
   impersonation_account = local.local_impersonation_account 
   gcp_account_name      = var.gcp_account_name
 
-  #impersonation_account = "user:${var.gcp_account_name}"
-
   depends_on = [
     module.project
   ]
 }
 
-# This has to be run as the current user since if you run as the service account you get 
-# Error: Error when reading or editing Project Service : Request `List Project Services bigquery-demo-4kljxj1jd5` 
-# returned error: Failed to list enabled services for project bigquery-demo-4kljxj1jd5: googleapi: 
+# This has to be run as the current user or deploying service account
+# You are not able to run using service account impersonation or you get the below message:
+# Error: Error when reading or editing Project Service : Request `List Project Services data-analytics-demo-4kljxj1jd5` 
+# returned error: Failed to list enabled services for project data-analytics-demo-4kljxj1jd5: googleapi: 
 # Error 403: Service Usage API has not been used in project 182999489528 before or it is disabled. 
 module "service-usage" {
   # Run this as the currently logged in user or the service account executing the TF script
@@ -250,15 +256,12 @@ module "service-usage" {
 }
 
 
+# Enable all the cloud APIs that will be used
 module "apis" {
   source = "../terraform-modules/apis"
 
-  ############## IMPORTANT! IMPORTANT! IMPORTANT! IMPORTANT! ##############
-  # This is different between the terraform/tf-main.tf and the terraform-local/tf-main.tf entry points
-  # NOTE: Terraform cannot have this as a conditional statement
-  # google = deployment_service_account_name == "" ? google.service_principal_impersonation : google
-  # providers = { google = google.service_principal_impersonation }
-  ############## IMPORTANT! IMPORTANT! IMPORTANT! IMPORTANT! ##############
+  # Use Service Account Impersonation for this step. 
+  providers = { google = google.service_principal_impersonation }
 
   project_id = local.local_project_id
 
@@ -275,12 +278,9 @@ module "org-policies" {
   count  = var.project_number == "" ? 1 : 0
   source = "../terraform-modules/org-policies"
 
-  ############## IMPORTANT! IMPORTANT! IMPORTANT! IMPORTANT! ##############
-  # This is different between the terraform/tf-main.tf and the terraform-local/tf-main.tf entry points
-  # NOTE: Terraform cannot have this as a conditional statement
-  # google = deployment_service_account_name == "" ? google.service_principal_impersonation : google
-  # providers = { google = google.service_principal_impersonation }
-  ############## IMPORTANT! IMPORTANT! IMPORTANT! IMPORTANT! ##############
+  # Use Service Account Impersonation for this step. 
+  # NOTE: This step must be done using a service account (a user account cannot change these policies)
+  providers = { google = google.service_principal_impersonation }
 
   project_id = local.local_project_id
 
@@ -294,16 +294,14 @@ module "org-policies" {
 
 
 # Uses the "Old" Org Policies methods (for when a project is created in advance)
+# This is used since the method you cannot specify a project and some orgs deploy with a 
+# cloud build account that is in a different domain/org
 module "org-policies-deprecated" {
   count  = var.project_number == "" ? 0 : 1
   source = "../terraform-modules/org-policies-deprecated"
 
-  ############## IMPORTANT! IMPORTANT! IMPORTANT! IMPORTANT! ##############
-  # This is different between the terraform/tf-main.tf and the terraform-local/tf-main.tf entry points
-  # NOTE: Terraform cannot have this as a conditional statement
-  # google = deployment_service_account_name == "" ? google.service_principal_impersonation : google
-  # providers = { google = google.service_principal_impersonation }
-  ############## IMPORTANT! IMPORTANT! IMPORTANT! IMPORTANT! ##############
+  # Use Service Account Impersonation for this step. 
+  providers = { google = google.service_principal_impersonation }
 
   project_id = local.local_project_id
 
@@ -319,12 +317,8 @@ module "org-policies-deprecated" {
 module "resources" {
   source = "../terraform-modules/resources"
 
-  ############## IMPORTANT! IMPORTANT! IMPORTANT! IMPORTANT! ##############
-  # This is the only difference between the terraform/tf-main.tf and the terraform-local/tf-main.tf
-  # NOTE: Terraform cannot have this as a conditional statement
-  # google = deployment_service_account_name == "" ? google.service_principal_impersonation : google
-  # providers = { google = google.service_principal_impersonation }
-  ############## IMPORTANT! IMPORTANT! IMPORTANT! IMPORTANT! ##############
+  # Use Service Account Impersonation for this step. 
+  providers = { google = google.service_principal_impersonation }
 
   gcp_account_name                = var.gcp_account_name
   project_id                      = local.local_project_id
@@ -335,6 +329,7 @@ module "resources" {
   random_extension                = random_string.project_random.result
   project_number                  = var.project_number == "" ? module.project[0].output-project-number : var.project_number
   deployment_service_account_name = var.deployment_service_account_name
+  bigquery_region                 = var.bigquery_region
 
   depends_on = [
     module.project,
@@ -343,6 +338,38 @@ module "resources" {
     module.apis,
     module.org-policies,
     module.org-policies-deprecated,
+  ]
+}
+
+
+####################################################################################
+# Deploy BigQuery stored procedures / sql scripts
+###################################################################################
+module "sql-scripts" {
+  source = "../terraform-modules/sql-scripts"
+
+  # Use Service Account Impersonation for this step. 
+  providers = { google = google.service_principal_impersonation }
+
+  gcp_account_name                = var.gcp_account_name
+  project_id                      = local.local_project_id
+  region                          = var.region
+  zone                            = var.zone
+  storage_bucket                  = local.local_storage_bucket
+  random_extension                = random_string.project_random.result
+  project_number                  = var.project_number == "" ? module.project[0].output-project-number : var.project_number
+  deployment_service_account_name = var.deployment_service_account_name
+  bigquery_region                 = var.bigquery_region
+  omni_dataset                    = var.omni_dataset
+
+  depends_on = [
+    module.project,
+    module.service-account,
+    module.service-usage,
+    module.apis,
+    module.org-policies,
+    module.org-policies-deprecated,
+    module.resources
   ]
 }
 
@@ -373,7 +400,8 @@ EOF
     module.apis,
     module.org-policies,
     module.org-policies-deprecated,
-    module.resources
+    module.resources,
+    module.sql-scripts
   ]
 }
 
@@ -402,7 +430,8 @@ EOF
     module.apis,
     module.org-policies,
     module.org-policies-deprecated,
-    module.resources
+    module.resources,
+    module.sql-scripts
   ]
 }
 
@@ -420,7 +449,7 @@ else
     gcloud auth activate-service-account "${var.deployment_service_account_name}" --key-file="$${GOOGLE_APPLICATION_CREDENTIALS}" --project="${var.project_id}"
     gcloud config set account "${var.deployment_service_account_name}"
 fi  
-gsutil cp ../dataproc/* gs://${local.local_storage_bucket}/pyspark-code/
+gsutil cp ../dataproc/* gs://raw-${local.local_storage_bucket}/pyspark-code/
 EOF
   }
   depends_on = [
@@ -430,10 +459,39 @@ EOF
     module.apis,
     module.org-policies,
     module.org-policies-deprecated,
-    module.resources
+    module.resources,
+    module.sql-scripts
   ]
 }
 
+
+# Upload the Dataflow scripts
+resource "null_resource" "deploy_dataflow_scripts" {
+  provisioner "local-exec" {
+    interpreter = ["/bin/bash", "-c"]
+    command     = <<EOF
+if [ -z "$${GOOGLE_APPLICATION_CREDENTIALS}" ]
+then
+    echo "We are not running in a local docker container.  No need to login."
+else
+    echo "We are running in local docker container. Logging in."
+    gcloud auth activate-service-account "${var.deployment_service_account_name}" --key-file="$${GOOGLE_APPLICATION_CREDENTIALS}" --project="${var.project_id}"
+    gcloud config set account "${var.deployment_service_account_name}"
+fi  
+gsutil cp ../dataflow/* gs://raw-${local.local_storage_bucket}/dataflow/
+EOF
+  }
+  depends_on = [
+    module.project,
+    module.service-account,
+    module.service-usage,
+    module.apis,
+    module.org-policies,
+    module.org-policies-deprecated,
+    module.resources,
+    module.sql-scripts
+  ]
+}
 
 # Replace the Bucket Name in the Jupyter notebooks
 resource "null_resource" "deploy_vertex_notebooks" {
@@ -447,16 +505,17 @@ else
     echo "We are running in local docker container. Logging in."
     gcloud auth activate-service-account "${var.deployment_service_account_name}" --key-file="$${GOOGLE_APPLICATION_CREDENTIALS}" --project="${var.project_id}"
     gcloud config set account "${var.deployment_service_account_name}"
-fi     
+fi
 find ../notebooks -type f -name "*.ipynb" -print0 | while IFS= read -r -d '' file; do
     echo "Notebook Replacing: $${file}"
     searchString="../notebooks/"
     replaceString="../notebooks-with-substitution/"
     destFile=$(echo "$${file//$searchString/$replaceString}")
     echo "destFile: $${destFile}"
-    sed "s/REPLACE-BUCKET-NAME/${local.local_storage_bucket}/g" "$${file}" > "$${destFile}"
+    sed "s/REPLACE-BUCKET-NAME/processed-${local.local_storage_bucket}/g" "$${file}" > "$${destFile}.tmp"
+    sed "s/REPLACE-PROJECT-ID/${local.local_project_id}/g" "$${destFile}.tmp" > "$${destFile}"
 done
-gsutil cp ../notebooks-with-substitution/*.ipynb gs://${local.local_storage_bucket}/notebooks/
+gsutil cp ../notebooks-with-substitution/*.ipynb gs://processed-${local.local_storage_bucket}/notebooks/
 EOF
   }
   depends_on = [
@@ -466,7 +525,47 @@ EOF
     module.apis,
     module.org-policies,
     module.org-policies-deprecated,
-    module.resources
+    module.resources,
+    module.sql-scripts
+  ]
+}
+
+
+# Replace the Bucket Name in the Jupyter notebooks
+resource "null_resource" "deploy_bigspark" {
+  provisioner "local-exec" {
+    interpreter = ["/bin/bash", "-c"]
+    command     = <<EOF
+if [ -z "$${GOOGLE_APPLICATION_CREDENTIALS}" ]
+then
+    echo "We are not running in a local docker container.  No need to login."
+else
+    echo "We are running in local docker container. Logging in."
+    gcloud auth activate-service-account "${var.deployment_service_account_name}" --key-file="$${GOOGLE_APPLICATION_CREDENTIALS}" --project="${var.project_id}"
+    gcloud config set account "${var.deployment_service_account_name}"
+fi
+find ../bigspark -type f -name "*.py" -print0 | while IFS= read -r -d '' file; do
+    echo "BigSpark Replacing: $${file}"
+    searchString="../bigspark/"
+    replaceString="../bigspark-with-substitution/"
+    destFile=$(echo "$${file//$searchString/$replaceString}")
+    echo "destFile: $${destFile}"
+    sed "s/REPLACE-BUCKET-NAME/raw-${local.local_storage_bucket}/g" "$${file}" > "$${destFile}.tmp"
+    sed "s/REPLACE-PROJECT-ID/${local.local_project_id}/g" "$${destFile}.tmp" > "$${destFile}"
+done
+gsutil cp ../bigspark-with-substitution/*.py gs://raw-${local.local_storage_bucket}/bigspark/
+gsutil cp ../bigspark/*.csv gs://raw-${local.local_storage_bucket}/bigspark/
+EOF
+  }
+  depends_on = [
+    module.project,
+    module.service-account,
+    module.service-usage,
+    module.apis,
+    module.org-policies,
+    module.org-policies-deprecated,
+    module.resources,
+    module.sql-scripts
   ]
 }
 
@@ -481,6 +580,7 @@ resource "time_sleep" "wait_for_airflow_dag_sync" {
     module.org-policies,
     module.org-policies-deprecated,
     module.resources,
+    module.sql-scripts,
     null_resource.deploy_airflow_dags,
     null_resource.deploy_airflow_dags_data
   ]
@@ -512,6 +612,7 @@ EOF
     module.org-policies,
     module.org-policies-deprecated,
     module.resources,
+    module.sql-scripts,
     null_resource.deploy_airflow_dags,
     null_resource.deploy_airflow_dags_data,
     time_sleep.wait_for_airflow_dag_sync

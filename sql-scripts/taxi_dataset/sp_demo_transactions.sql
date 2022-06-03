@@ -1,7 +1,3 @@
-CREATE OR REPLACE PROCEDURE `{{ params.project_id }}.{{ params.dataset_id }}.sp_demo_transactions`()
-OPTIONS(strict_mode=FALSE)
-BEGIN
-
 /*##################################################################################
 # Copyright 2022 Google LLC
 #
@@ -43,14 +39,14 @@ Clean up / Reset script:
 BEGIN
 BEGIN TRANSACTION;
   SELECT COUNT(*)
-    FROM `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips`;
+    FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips`;
 
   DELETE   
-    FROM `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips`
+    FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips`
    WHERE Pickup_DateTime BETWEEN '2021-01-25'AND '2021-02-10';
 
   SELECT COUNT(*)
-    FROM `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips`;
+    FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips`;
 
   -- Trigger an error.
   SELECT 1/0;
@@ -61,7 +57,5 @@ EXCEPTION WHEN ERROR THEN
   SELECT @@error.message;
   ROLLBACK TRANSACTION;
   SELECT COUNT(*)
-    FROM `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips`;
+    FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips`;
 END;
-
-END -- Stored Procedure

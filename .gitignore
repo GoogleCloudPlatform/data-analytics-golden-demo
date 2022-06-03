@@ -6,6 +6,10 @@ errors.txt
 key-file-*.json
 
 notebooks-with-substitution/*.ipynb
+notebooks-with-substitution/*.tmp
+
+bigspark-with-substitution/*.py
+bigspark-with-substitution/*.tmp
 
 terraform/.terraform/*
 terraform/.terraform.lock.hcl
@@ -13,10 +17,5 @@ terraform/terraform.tfstate
 terraform/.terraform.tfstate.lock.info
 terraform/terraform.tfstate.backup
 terraform/tf-output.json
-
-terraform-local/.terraform/*
-terraform-local/.terraform.lock.hcl
-terraform-local/terraform.tfstate
-terraform-local/.terraform.tfstate.lock.info
-terraform-local/terraform.tfstate.backup
-terraform-local/tf-output.json
+temp.sql
+deploy-omni.sh

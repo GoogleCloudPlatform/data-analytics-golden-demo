@@ -24,25 +24,17 @@
 #          (not your main one) and delete the Data Transfer Service.  You can always run the data
 #          transfer service via the cloud console.
 
-# NOTE: You will need to run this command after the first time this DAG is run and fails.
-#       The service account is not created until DTS is run?
-# gcloud iam service-accounts add-iam-policy-binding \
-# composer-service-account@{{ params.project_id }}.iam.gserviceaccount.com \
-# --member='serviceAccount:service-{{ params.project_number }}@gcp-sa-bigquerydatatransfer.iam.gserviceaccount.com' \
-# --role='roles/iam.serviceAccountTokenCreator'
-
 
 # [START dag]
-from google.cloud import storage
 from datetime import datetime, timedelta
+from airflow.operators import bash_operator
+from airflow.utils import trigger_rule
+from airflow.operators.python_operator import PythonOperator
 import requests
 import sys
 import os
 import logging
 import airflow
-from airflow.operators import bash_operator
-from airflow.utils import trigger_rule
-from airflow.operators.python_operator import PythonOperator
 import google.auth
 import google.auth.transport.requests
 
@@ -55,34 +47,25 @@ default_args = {
     'email': None,
     'email_on_failure': False,
     'email_on_retry': False,
-    'retries': 1,
+    'retries': 0,
     'retry_delay': timedelta(minutes=5),
     'dagrun_timeout' : timedelta(minutes=60),
 }
 
-project_id       = os.environ['GCP_PROJECT'] 
-bucket_name      = os.environ['ENV_MAIN_BUCKET'] 
-region           = os.environ['ENV_REGION'] 
-gcp_account_name = os.environ['ENV_GCP_ACCOUNT_NAME']
-dataset_id       = os.environ['ENV_DATASET_ID']
-params_list = { 
-    "project_id" : project_id,
-    "region": region,
-    "bucket_name": bucket_name,
-    "gcp_account_name": gcp_account_name,
-    "dataset_id": dataset_id
-    }
+project_id            = os.environ['GCP_PROJECT'] 
+bigquery_region       = os.environ['ENV_BIGQUERY_REGION'] 
+taxi_dataset_id       = os.environ['ENV_TAXI_DATASET_ID']
 
 
 # Detination dataset for the dataset copy
-dataset_copy_id=dataset_id + "_public_copy"
+dataset_copy_id=taxi_dataset_id + "_public_copy"
 
 
 # Create the destination dataset
 bq_create_dataset_command= \
     "bq mk " + \
     "--dataset " + \
-    "--location=\"" + region + "\" " + \
+    "--location=\"" + bigquery_region + "\" " + \
     dataset_copy_id
 
 
@@ -91,7 +74,7 @@ bq_copy_dataset_command= \
     "bq mk --transfer_config " + \
     "--project_id=\""+ project_id + "\" " + \
     "--data_source=cross_region_copy " + \
-    "--target_dataset=\"" + dataset_copy_id+ "\" " + \
+    "--target_dataset=\"" + dataset_copy_id + "\" " + \
     "--display_name=\"Copy Public NYC Taxi Data\" " + \
     "--no_auto_scheduling " + \
     "--params='" + \
@@ -108,14 +91,14 @@ bq_copy_dataset_command= \
 # JQ is not installed on the Composer worker nodes.  Need to call via an API.
 
 #bq_start_transfer_command= \
-#    "transfersJSON=$(bq ls --transfer_config --transfer_location=" + region + " --format=json) && \ " + \
+#    "transfersJSON=$(bq ls --transfer_config --transfer_location=" + bigquery_region + " --format=json) && \ " + \
 #    "transferConfigFilter=$(echo \"${transfersJSON}\" | jq '.[] | select(.displayName == \"Copy Public NYC Taxi Data\")') && \ " + \
 #    "transferConfig=$(echo \"${transferConfigFilter}\" | jq .name --raw-output) && \ " + \
 #    "bq mk --run_time=" + currentDataString + "T00:00:00.00Z --transfer_run ${transferConfig}"
 
 
 # Queries the data transfer service and after locating the dataset copy starts it
-def list_data_transfers(project_id, region):
+def list_data_transfers(project_id, bigquery_region):
     currentDataString=datetime.today().strftime('%Y-%m-%d') + "T00:00:00.00Z"
     bq_start_transfer_command="bq mk --run_time=" + currentDataString + " --transfer_run transferConfig"
 
@@ -127,7 +110,7 @@ def list_data_transfers(project_id, region):
     auth_header = {'Authorization' : "Bearer " + access_token }
 
     # call rest api with bearer token
-    uri="https://bigquerydatatransfer.googleapis.com/v1/projects/" + project_id + "/locations/" + region + "/transferConfigs"
+    uri="https://bigquerydatatransfer.googleapis.com/v1/projects/" + project_id + "/locations/" + bigquery_region + "/transferConfigs"
     
     try:
         response = requests.get(uri, headers=auth_header)
@@ -195,7 +178,7 @@ with airflow.DAG('sample-bigquery-data-transfer-service',
         task_id='start_transfer',
         python_callable= list_data_transfers,
         op_kwargs = { "project_id" : project_id, 
-                      "region" : region },
+                      "bigquery_region" : bigquery_region },
         execution_timeout=timedelta(minutes=1),
         dag=dag,
         )    

@@ -33,13 +33,31 @@
 
 # Set variables needed
 random_number=$(echo $RANDOM)
-project_id="bigquery-demo-${random_number}"
+project_id="data-analytics-demo-${random_number}"
 
 # Get the account name who logged in above 
 gcp_account_name=$(gcloud auth list --filter=status:ACTIVE --format="value(account)")
 
 # Get the Org Id (needed for org policies and creating the GCP project)
 org_id=$(gcloud organizations list --format="value(name)")
+if [ -z "${org_id}" ]
+then
+  echo "Org Id could not be automatically read."
+  echo "Open this link: https://console.cloud.google.com/cloud-resource-manager/ and copy your org id."
+  echo "Your org id will be in the format of xxxxxxxxxxxx"
+  read -p "Please enter your org id:" org_id
+else
+  org_id_length=$(echo -n "${org_id}" | wc -m)
+  org_id_length_int=$(expr ${org_id_length} + 0)
+  if [ ${org_id_length_int} != 12 ]
+  then
+    echo "You have more than one org id, please manually enter the correct one."
+    echo "Your org id will be in the format of xxxxxxxxxxxx"
+    read -p "Please enter your org id:" billing_account
+  else
+    echo "Org Id was automatically retreived."
+  fi
+fi
 
 # Get the Billing Account (needed for creating the GCP project)
 billing_account=$(gcloud beta billing accounts list --format="value(ACCOUNT_ID)")
@@ -50,8 +68,19 @@ then
   echo "Your billing account will be in the format of xxxxxx-xxxxxx-xxxxxx"
   read -p "Please enter your billing account:" billing_account
 else
-  echo "Billing Account was automatically retreived."
+  billing_account_length=$(echo -n "${billing_account}" | wc -m)
+  billing_account_length_int=$(expr ${billing_account_length} + 0)
+  if [ ${billing_account_length_int} != 20 ]
+  then
+    echo "You have more than one billing account, please manually enter the correct one."
+    echo "Your billing account will be in the format of xxxxxx-xxxxxx-xxxxxx"
+    read -p "Please enter your billing account:" billing_account
+  else
+    echo "Billing Account was automatically retreived."
+  fi
 fi
+
+
 
 echo "project_id:       ${project_id}"
 echo "gcp_account_name: ${gcp_account_name}"

@@ -42,24 +42,19 @@ default_args = {
     'email': None,
     'email_on_failure': False,
     'email_on_retry': False,
-    'retries': 1,
+    'retries': 0,
     'retry_delay': timedelta(minutes=5),
     'dagrun_timeout' : timedelta(minutes=60),
 }
 
 project_id          = os.environ['GCP_PROJECT'] 
-bucket_name         = os.environ['ENV_MAIN_BUCKET'] 
 region              = os.environ['ENV_REGION'] 
 gcp_account_name    = os.environ['ENV_GCP_ACCOUNT_NAME']
-dataset_id          = os.environ['ENV_DATASET_ID']
-spanner_instance_id = os.environ['ENV_SPANNER_INSTANCE_ID']
+
 params_list = { 
     "project_id" : project_id,
     "region": region,
-    "bucket_name": bucket_name,
     "gcp_account_name": gcp_account_name,
-    "dataset_id": dataset_id,
-    "spanner_instance_id" : spanner_instance_id,
     }
 
 

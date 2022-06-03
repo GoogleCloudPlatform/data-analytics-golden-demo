@@ -1,7 +1,3 @@
-CREATE OR REPLACE PROCEDURE `{{ params.project_id }}.{{ params.dataset_id }}.sp_demo_federated_query`()
-OPTIONS(strict_mode=FALSE)
-BEGIN
-
 /*##################################################################################
 # Copyright 2022 Google LLC
 #
@@ -41,10 +37,14 @@ Clean up / Reset script:
 EXECUTE IMMEDIATE """
 SELECT *
   FROM EXTERNAL_QUERY(
-      'projects/{{ params.project_id }}/locations/{{ params.region }}/connections/bq_spanner_connection',
+      'projects/${project_id}/locations/${region}/connections/bq_spanner_connection',
       "SELECT *  FROM weather WHERE station_id='USW00094728'");
 """;
 
+
+-- *******************************************************************************************
+-- This ONLY works when you are in the same Region (currently they are in different regions)
+-- *******************************************************************************************
 -- Query data in Spanner and JOIN to BigQuery Data
 -- Does weather affect taxi cab rides and fares?
 EXECUTE IMMEDIATE """
@@ -56,7 +56,7 @@ WITH WeatherData AS
         min_celsius_temp,
         max_celsius_temp
   FROM EXTERNAL_QUERY(
-      'projects/{{ params.project_id }}/locations/{{ params.region }}/connections/bq_spanner_connection',
+      'projects/${project_id}/locations/${region}/connections/bq_spanner_connection',
       "SELECT *  FROM weather WHERE station_id='USW00094728' AND station_date BETWEEN '2020-01-01' AND '2020-01-31'")
 )
 , TaxiData AS
@@ -67,7 +67,7 @@ SELECT CAST(Pickup_DateTime AS DATE) AS PickupDate,
        COUNT(1)           AS NumberOfTrips,
        AVG(Trip_Distance) AS AvgDistance,
        AVG(Fare_Amount)   AS AvgFareAmount
-  FROM `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips` AS taxi_trips
+  FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips` AS taxi_trips
   WHERE PartitionDate BETWEEN '2020-01-01' AND '2020-01-31'
   GROUP BY 1,2,3
  )
@@ -79,5 +79,3 @@ SELECT CAST(Pickup_DateTime AS DATE) AS PickupDate,
 ORDER BY TaxiData.WeekdayNumber;
 """;   
 
-
-END

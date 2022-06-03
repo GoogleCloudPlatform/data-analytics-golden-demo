@@ -50,25 +50,26 @@ default_args = {
     'dagrun_timeout' : timedelta(minutes=60),
 }
 
-project_id          = os.environ['GCP_PROJECT'] 
-bucket_name         = os.environ['ENV_MAIN_BUCKET'] 
-region              = os.environ['ENV_REGION'] 
-gcp_account_name    = os.environ['ENV_GCP_ACCOUNT_NAME']
-dataset_id          = os.environ['ENV_DATASET_ID']
-spanner_instance_id = os.environ['ENV_SPANNER_INSTANCE_ID']
+project_id            = os.environ['GCP_PROJECT'] 
+region                = os.environ['ENV_REGION'] 
+bigquery_region       = os.environ['ENV_BIGQUERY_REGION'] 
+spanner_instance_id   = os.environ['ENV_SPANNER_INSTANCE_ID']
+processed_bucket_name = os.environ['ENV_PROCESSED_BUCKET'] 
+raw_bucket_name       = os.environ['ENV_RAW_BUCKET'] 
+
 params_list = { 
     "project_id" : project_id,
     "region": region,
-    "bucket_name": bucket_name,
-    "gcp_account_name": gcp_account_name,
-    "dataset_id": dataset_id,
+    "bigquery_region" : bigquery_region,
+    "processed_bucket_name" : processed_bucket_name,
+    "raw_bucket_name" : raw_bucket_name,
     "spanner_instance_id" : spanner_instance_id,
     }
 
 sql="""
 EXPORT DATA
 OPTIONS(
-  uri='gs://{bucket_name}/spanner/weather/*.csv',
+  uri='gs://{processed_bucket_name}/spanner/weather/*.csv',
   format='CSV',
   overwrite=true,
   header=false,
@@ -133,7 +134,7 @@ SELECT id   AS station_id,
   FROM JustRainSnowMinMaxTempData
 PIVOT(MAX(value) FOR element IN ('SNOW','PRCP','TMIN','TMAX'))
 ORDER BY date;
-""".format(bucket_name=bucket_name)
+""".format(processed_bucket_name=processed_bucket_name)
 
 
 LOCAL_PATH_SPANNER_MANIFEST_FILE = "/home/airflow/gcs/data/spanner-manifest.json"
@@ -153,27 +154,28 @@ gcloud_load_weather_table=("gcloud dataflow jobs run importspannerweatherdata " 
   "--num-workers 1 " + \
   "--service-account-email \"dataflow-service-account@{project_id}.iam.gserviceaccount.com\" " + \
   "--worker-machine-type \"n1-standard-4\" " + \
-  "--staging-location gs://{bucket_name} " + \
+  "--staging-location gs://{raw_bucket_name} " + \
   "--network vpc-main " + \
   "--subnetwork regions/{region}/subnetworks/dataflow-subnet  " + \
   "--parameters " + \
   "instanceId={spanner_instance_id}," + \
   "databaseId=weather," + \
   "spannerProjectId={project_id}," + \
-  "importManifest=gs://{bucket_name}/spanner/weather/spanner-manifest.json").format(\
+  "importManifest=gs://{processed_bucket_name}/spanner/weather/spanner-manifest.json").format(\
     region=region,
-    bucket_name=bucket_name,
+    processed_bucket_name=processed_bucket_name,
+    raw_bucket_name=raw_bucket_name,
     project_id=project_id,
     spanner_instance_id=spanner_instance_id)
 
 
 # Creates a JSON file that is required for the Dataflow job that loads Spanner
-def write_spanner_manifest(bucket_name,file_path):
+def write_spanner_manifest(processed_bucket_name,file_path):
     spanner_template_json={
       "tables": [
         {
           "table_name": "weather",
-          "file_patterns": ["gs://" + bucket_name + "/spanner/weather/*.csv"],
+          "file_patterns": ["gs://" + processed_bucket_name + "/spanner/weather/*.csv"],
           "columns": [
             {"column_name": "station_id", "type_name": "STRING"},
             {"column_name": "station_date", "type_name": "DATE"},
@@ -212,14 +214,14 @@ with airflow.DAG('sample-bigquery-export-spanner-import',
     export_public_weather_data = bigquery_operator.BigQueryOperator(
         task_id='export_public_weather_data',
         sql=sql,
-        params=params_list,
+        location=bigquery_region,
         use_legacy_sql=False)
             
     # Save a template file locally and then upload to GCS (Spanner needs this for importing)
     write_spanner_manifest_file = PythonOperator(
         task_id='write_spanner_manifest_file',
         python_callable= write_spanner_manifest,
-        op_kwargs = { "bucket_name" : bucket_name, 
+        op_kwargs = { "processed_bucket_name" : processed_bucket_name, 
                       "file_path" :  LOCAL_PATH_SPANNER_MANIFEST_FILE},
         dag=dag,
         )    
@@ -228,7 +230,7 @@ with airflow.DAG('sample-bigquery-export-spanner-import',
         task_id="upload_spanner_manifest_file",
         src=LOCAL_PATH_SPANNER_MANIFEST_FILE,
         dst=BUCKET_RELATIVE_PATH,
-        bucket=bucket_name,
+        bucket=processed_bucket_name,
     )
 
     # Delete all records from the spanner table (to avoid dups)

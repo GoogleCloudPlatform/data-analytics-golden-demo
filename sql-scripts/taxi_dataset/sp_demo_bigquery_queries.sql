@@ -1,7 +1,3 @@
-CREATE OR REPLACE PROCEDURE `{{ params.project_id }}.{{ params.dataset_id }}.sp_demo_bigquery_queries`()
-OPTIONS(strict_mode=FALSE)
-BEGIN
-
 /*##################################################################################
 # Copyright 2022 Google LLC
 #
@@ -43,11 +39,11 @@ SELECT FORMAT_DATE("%w", Pickup_DateTime) AS WeekdayNumber,
        vendor.Vendor_Description,
        payment_type.Payment_Type_Description,
        SUM(taxi_trips.Total_Amount) AS high_value_trips
-  FROM `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips` AS taxi_trips
-       INNER JOIN `{{ params.project_id }}.{{ params.dataset_id }}.vendor` AS vendor 
+  FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips` AS taxi_trips
+       INNER JOIN `${project_id}.${bigquery_taxi_dataset}.vendor` AS vendor 
                ON taxi_trips.Vendor_Id = vendor.Vendor_Id
               AND taxi_trips.Pickup_DateTime BETWEEN '2020-01-01' AND '2020-06-01' 
-        LEFT JOIN `{{ params.project_id }}.{{ params.dataset_id }}.payment_type` AS payment_type
+        LEFT JOIN `${project_id}.${bigquery_taxi_dataset}.payment_type` AS payment_type
                ON taxi_trips.Payment_Type_Id = payment_type.Payment_Type_Id
 GROUP BY 1, 2, 3, 4
 HAVING SUM(taxi_trips.Total_Amount) > 50
@@ -65,7 +61,7 @@ SELECT CAST(Pickup_DateTime AS DATE) AS Pickup_Date,
                                  taxi_trips.Payment_Type_Id
                         ORDER BY taxi_trips.Passenger_Count DESC, 
                                  taxi_trips.Total_Amount DESC) AS Ranking
-  FROM `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips` AS taxi_trips
+  FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips` AS taxi_trips
  WHERE taxi_trips.Pickup_DateTime BETWEEN '2020-01-01' AND '2020-06-01' 
    AND taxi_trips.Payment_Type_Id IN (1,2)
 )
@@ -74,7 +70,7 @@ SELECT Pickup_Date,
        Passenger_Count,
        Total_Amount
   FROM TaxiDataRanking
-       INNER JOIN `{{ params.project_id }}.{{ params.dataset_id }}.payment_type` AS payment_type
+       INNER JOIN `${project_id}.${bigquery_taxi_dataset}.payment_type` AS payment_type
                ON TaxiDataRanking.Payment_Type_Id = payment_type.Payment_Type_Id
 WHERE Ranking = 1
 ORDER BY Pickup_Date, Payment_Type_Description;
@@ -92,7 +88,7 @@ SELECT FORMAT_DATE("%B", taxi_trips.Pickup_DateTime) AS MonthName,
          END AS PaymentDescription,
        taxi_trips.Passenger_Count,
        taxi_trips.Total_Amount
-  FROM `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips` AS taxi_trips
+  FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips` AS taxi_trips
  WHERE taxi_trips.Pickup_DateTime BETWEEN '2020-01-01' AND '2020-06-01' 
    AND Passenger_Count IS NOT NULL
    AND Payment_Type_Id IN (1,2,3,4)
@@ -119,7 +115,7 @@ SELECT FORMAT_DATE("%B", taxi_trips.Pickup_DateTime) AS MonthName,
             WHEN taxi_trips.Payment_Type_Id = 4 THEN 'Dispute'
          END AS PaymentDescription,
        SUM(taxi_trips.Total_Amount) AS Total_Amount
-  FROM `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips` AS taxi_trips
+  FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips` AS taxi_trips
  WHERE taxi_trips.Pickup_DateTime BETWEEN '2020-01-01' AND '2020-12-31' 
    AND Passenger_Count IS NOT NULL
    AND Payment_Type_Id IN (1,2,3,4)
@@ -142,7 +138,7 @@ SELECT FORMAT_DATE("%B", Pickup_DateTime) AS MonthName,
        FORMAT_DATE("%m", Pickup_DateTime) AS MonthNumber,
        FORMAT_DATE("%A", Pickup_DateTime) AS WeekdayName,
        SUM(taxi_trips.Total_Amount) AS Total_Amount
-  FROM `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips` AS taxi_trips
+  FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips` AS taxi_trips
  WHERE taxi_trips.Pickup_DateTime BETWEEN '2020-01-01' AND '2020-12-31' 
    AND Payment_Type_Id IN (1,2,3,4)
  GROUP BY 1, 2, 3
@@ -159,5 +155,3 @@ SELECT MonthName,
  PIVOT(SUM(Total_Amount) FOR WeekdayName IN ('Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'))
 ORDER BY MonthNumber;
 
-
-END

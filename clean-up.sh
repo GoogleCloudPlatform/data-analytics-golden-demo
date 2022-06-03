@@ -35,12 +35,10 @@ rm ./terraform/terraform.tfstate
 rm ./terraform/terraform.tfstate.backup
 rm ./terraform/tf-output.json
 
-rm -r ./terraform-local/.terraform
-rm ./terraform-local/.terraform.lock.hcl
-rm ./terraform-local/terraform.tfstate
-rm ./terraform-local/terraform.tfstate.backup
-rm ./terraform-local/tf-output.json
-
 rm notebooks-with-substitution/*.ipynb
+rm notebooks-with-substitution/*.tmp
+
+rm bigspark-with-substitution/*.py
+rm bigspark-with-substitution/*.tmp
 
 #rm key-file-*.json

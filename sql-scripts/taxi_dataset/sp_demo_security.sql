@@ -1,7 +1,3 @@
-CREATE OR REPLACE PROCEDURE `{{ params.project_id }}.{{ params.dataset_id }}.sp_demo_security`()
-OPTIONS(strict_mode=FALSE)
-BEGIN
-
 /*##################################################################################
 # Copyright 2022 Google LLC
 #
@@ -37,16 +33,16 @@ Reference:
     - https://cloud.google.com/bigquery/docs/column-level-security
 
 Clean up / Reset script:
-    DROP VIEW  IF EXISTS `{{ params.project_id }}.{{ params.dataset_id }}.v_taxi_trips_passenger_amounts`;
-    DROP TABLE IF EXISTS  `{{ params.project_id }}.{{ params.dataset_id }}.user_vendor_security`;
-    DROP ALL ROW ACCESS POLICIES ON `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips`;
+    DROP VIEW  IF EXISTS `${project_id}.${bigquery_taxi_dataset}.v_taxi_trips_passenger_amounts`;
+    DROP TABLE IF EXISTS  `${project_id}.${bigquery_taxi_dataset}.user_vendor_security`;
+    DROP ALL ROW ACCESS POLICIES ON `${project_id}.${bigquery_taxi_dataset}.taxi_trips`;
 */
 
 -- Query 1: BigQuery allows security to be placed at a Dataset level
 -- Permissions can be set for users, groups, and service accounts on datasets
 GRANT `roles/bigquery.dataViewer`
-   ON SCHEMA `{{ params.project_id }}.{{ params.dataset_id }}`
-   TO "user:{{ params.gcp_account_name }}";
+   ON SCHEMA `${project_id}.${bigquery_taxi_dataset}`
+   TO "user:${gcp_account_name}";
 
 -- To View in the BigQuery UI
 -- 1. Open dataset
@@ -58,45 +54,45 @@ GRANT `roles/bigquery.dataViewer`
 
 -- Query 2: Remove the previously granted permissions (note since you are an admin it does not do much in the demo)
 REVOKE `roles/bigquery.dataViewer`
-    ON SCHEMA `{{ params.project_id }}.{{ params.dataset_id }}`
-    FROM "user:{{ params.gcp_account_name }}";
+    ON SCHEMA `${project_id}.${bigquery_taxi_dataset}`
+    FROM "user:${gcp_account_name}";
 
 -- Query 3: Table permissions
 -- Tables can have access as well as Views
 GRANT `roles/bigquery.dataViewer`
-    ON TABLE `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips`
-    TO "user:{{ params.gcp_account_name }}";
+    ON TABLE `${project_id}.${bigquery_taxi_dataset}.taxi_trips`
+    TO "user:${gcp_account_name}";
 
 -- Query 4: Revoke table
 REVOKE `roles/bigquery.dataViewer`
-    ON TABLE `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips`
-    FROM "user:{{ params.gcp_account_name }}";
+    ON TABLE `${project_id}.${bigquery_taxi_dataset}.taxi_trips`
+    FROM "user:${gcp_account_name}";
 
 
 -- Query 5: Create a table to be used in an authorized view. This table holds for each user their 
 --          allow access to certain "Vendor Ids"
-CREATE OR REPLACE TABLE `{{ params.project_id }}.{{ params.dataset_id }}.user_vendor_security`
+CREATE OR REPLACE TABLE `${project_id}.${bigquery_taxi_dataset}.user_vendor_security`
 (
     user_id   STRING,
     Vendor_Id INTEGER
 ); 
 
 -- Query 6:  Insert "you" as a test
-INSERT INTO `{{ params.project_id }}.{{ params.dataset_id }}.user_vendor_security` (user_id, Vendor_Id)
-VALUES ('{{ params.gcp_account_name }}', 1);
+INSERT INTO `${project_id}.${bigquery_taxi_dataset}.user_vendor_security` (user_id, Vendor_Id)
+VALUES ('${gcp_account_name}', 1);
 
 -- Query 5:  Create the view that joins to the new table and filters based upon SESSION_USER()
-CREATE OR REPLACE VIEW `{{ params.project_id }}.{{ params.dataset_id }}.v_taxi_trips_passenger_amounts` AS
+CREATE OR REPLACE VIEW `${project_id}.${bigquery_taxi_dataset}.v_taxi_trips_passenger_amounts` AS
 SELECT vendor.Vendor_Id,
         Vendor_Description, 
         CAST(Pickup_DateTime AS DATE) AS Pickup_Date,
         Passenger_Count, 
         Total_Amount
-  FROM `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips` AS taxi_trips
-        INNER JOIN `{{ params.project_id }}.{{ params.dataset_id }}.user_vendor_security` AS user_vendor_security
+  FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips` AS taxi_trips
+        INNER JOIN `${project_id}.${bigquery_taxi_dataset}.user_vendor_security` AS user_vendor_security
                 ON user_vendor_security.user_id = SESSION_USER()
                AND taxi_trips.Vendor_Id = user_vendor_security.Vendor_Id
-        INNER JOIN `{{ params.project_id }}.{{ params.dataset_id }}.vendor` AS vendor
+        INNER JOIN `${project_id}.${bigquery_taxi_dataset}.vendor` AS vendor
                 ON taxi_trips.Vendor_Id = vendor.Vendor_Id;
 
 -- Query 6:  Run a SELECT against the view.  You will only see Vendors Id of 1
@@ -109,7 +105,7 @@ WITH RankingData AS
            Passenger_Count,
            Total_Amount,
            ROW_NUMBER() OVER (PARTITION BY Vendor_Id, Pickup_Date ORDER BY Total_Amount DESC) AS ranking
-      FROM `{{ params.project_id }}.{{ params.dataset_id }}.v_taxi_trips_passenger_amounts`
+      FROM `${project_id}.${bigquery_taxi_dataset}.v_taxi_trips_passenger_amounts`
      WHERE Pickup_Date BETWEEN '2021-01-01' AND '2021-02-01'
 )
 SELECT * EXCEPT (ranking) -- hide the ranking column
@@ -121,36 +117,36 @@ SELECT * EXCEPT (ranking) -- hide the ranking column
 -- Query 6:  Use Row Level Access Policy to do table row filtering
 --           These policies can be stacked, are used by materialize views and other security pass through
 CREATE OR REPLACE ROW ACCESS POLICY rap_taxi_trips_admin_mta_tax
-    ON `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips`
-    GRANT TO ("user:{{ params.gcp_account_name }}") -- This also works for groups: "group:tax-collectors@altostrat.com"
+    ON `${project_id}.${bigquery_taxi_dataset}.taxi_trips`
+    GRANT TO ("user:${gcp_account_name}") -- This also works for groups: "group:tax-collectors@altostrat.com"
 FILTER USING (MTA_Tax > 0);
 
 -- Query 6: This will only show Vendor ID of 1
 SELECT * 
-   FROM `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips` 
+   FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips` 
  LIMIT 50;
 
 -- Query 7: Apply another filter 
 -- Filter again (filters will cascade, in a non-demo, you would be setting this for different groups of users)
 CREATE OR REPLACE ROW ACCESS POLICY rap_taxi_trips_admin_mta_tax_vendor_2
-    ON `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips`
-    GRANT TO ("user:{{ params.gcp_account_name }}")
+    ON `${project_id}.${bigquery_taxi_dataset}.taxi_trips`
+    GRANT TO ("user:${gcp_account_name}")
 FILTER USING (Vendor_Id = 2 OR PULocationID = 182); 
 
 -- Query 8: Show the results
 SELECT * 
-  FROM `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips` 
+  FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips` 
  LIMIT 50;
 
 -- Query 9: Remove this so the rest of the demo works
-DROP ROW ACCESS POLICY rap_taxi_trips_admin_mta_tax_vendor_2 ON `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips`;
-DROP ALL ROW ACCESS POLICIES ON `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips`;
+DROP ROW ACCESS POLICY rap_taxi_trips_admin_mta_tax_vendor_2 ON `${project_id}.${bigquery_taxi_dataset}.taxi_trips`;
+DROP ALL ROW ACCESS POLICIES ON `${project_id}.${bigquery_taxi_dataset}.taxi_trips`;
 
 
 -- Column Level Security
 -- Populate the taxi Trips w/Column Level security
 -- Since some fields are protected just the ones with access are populated
-INSERT INTO `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips_with_col_sec` 
+INSERT INTO `${project_id}.${bigquery_taxi_dataset}.taxi_trips_with_col_sec` 
 (
         Vendor_Id,
         Pickup_DateTime,
@@ -186,15 +182,15 @@ SELECT
         Improvement_Surcharge,
         Payment_Type_Id,
         Congestion_Surcharge
-   FROM `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips`;
+   FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips`;
 
 
 
 -- Error: Selecting columns w/o access
--- Access Denied: BigQuery BigQuery: User does not have permission to access policy tag "Business Critical : High security" on columns {{ params.project_id }}.{{ params.dataset_id }}.taxi_trips_with_col_sec.Tip_Amount, {{ params.project_id }}.{{ params.dataset_id }}.taxi_trips_with_col_sec.Total_Amount.
-SELECT * FROM `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips_with_col_sec` LIMIT 1000;
+-- Access Denied: BigQuery BigQuery: User does not have permission to access policy tag "Business Critical : High security" on columns ${project_id}.${bigquery_taxi_dataset}.taxi_trips_with_col_sec.Tip_Amount, ${project_id}.${bigquery_taxi_dataset}.taxi_trips_with_col_sec.Total_Amount.
+SELECT * FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips_with_col_sec` LIMIT 1000;
 
 -- Valid
-SELECT * EXCEPT(Tip_Amount, Total_Amount) FROM `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips_with_col_sec` LIMIT 1000;
+SELECT * EXCEPT(Tip_Amount, Total_Amount) FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips_with_col_sec` LIMIT 1000;
 
-END
+

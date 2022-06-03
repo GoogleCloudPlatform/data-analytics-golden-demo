@@ -44,8 +44,49 @@ random_number=$(echo $RANDOM)
 project_id="terraform-${random_number}"
 project_name="terraform"
 gcp_account_name=$(gcloud auth list --filter=status:ACTIVE --format="value(account)")
+
+# Get the Org Id (needed for org policies and creating the GCP project)
 org_id=$(gcloud organizations list --format="value(name)")
+if [ -z "${org_id}" ]
+then
+  echo "Org Id could not be automatically read."
+  echo "Open this link: https://console.cloud.google.com/cloud-resource-manager/ and copy your org id."
+  echo "Your org id will be in the format of xxxxxxxxxxxx"
+  read -p "Please enter your org id:" org_id
+else
+  org_id_length=$(echo -n "${org_id}" | wc -m)
+  org_id_length_int=$(expr ${org_id_length} + 0)
+  if [ ${org_id_length_int} != 12 ]
+  then
+    echo "You have more than one org id, please manually enter the correct one."
+    echo "Your org id will be in the format of xxxxxxxxxxxx"
+    read -p "Please enter your org id:" billing_account
+  else
+    echo "Org Id was automatically retreived."
+  fi
+fi
+
+# Get the Billing Account (needed for creating the GCP project)
 billing_account=$(gcloud beta billing accounts list --format="value(ACCOUNT_ID)")
+if [ -z "${billing_account}" ]
+then
+  echo "Billing Account could not be automatically read."
+  echo "Open this link: https://console.cloud.google.com/billing/ and copy your billing account."
+  echo "Your billing account will be in the format of xxxxxx-xxxxxx-xxxxxx"
+  read -p "Please enter your billing account:" billing_account
+else
+  billing_account_length=$(echo -n "${billing_account}" | wc -m)
+  billing_account_length_int=$(expr ${billing_account_length} + 0)
+  if [ ${billing_account_length_int} != 20 ]
+  then
+    echo "You have more than one billing account, please manually enter the correct one."
+    echo "Your billing account will be in the format of xxxxxx-xxxxxx-xxxxxx"
+    read -p "Please enter your billing account:" billing_account
+  else
+    echo "Billing Account was automatically retreived."
+  fi
+fi
+
 
 echo "project_id:       ${project_id}"
 echo "gcp_account_name: ${gcp_account_name}"
@@ -93,10 +134,12 @@ gcloud services enable compute.googleapis.com --project=${project_id}
 gcloud services enable serviceusage.googleapis.com --project=${project_id}
 
 # These are needed since their APIs are called (even though we call to a different project)
-gcloud services enable bigquerydatatransfer.googleapis.com --project=${project_id}  
-gcloud services enable container.googleapis.com --project=${project_id} 
-gcloud services enable spanner.googleapis.com --project=${project_id} 
-
+# This using Curl and cannot impersonate
+gcloud services enable bigquerydatatransfer.googleapis.com --project=${project_id}
+# This could use impersonation if the gcloud command logged in and impersonated
+# The gcloud login above the line "gcloud composer environments run" in tf-main.tf
+gcloud services disable container.googleapis.com --project=Terraform
+# gcloud services enable spanner.googleapis.com --project=${project_id} 
 
 # Read the key-file contents so we can disable
 deployment_service_account_name=$(cat $keyFile | jq .client_email --raw-output)

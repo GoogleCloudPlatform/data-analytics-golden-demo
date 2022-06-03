@@ -1,7 +1,3 @@
-CREATE OR REPLACE PROCEDURE `{{ params.project_id }}.{{ params.dataset_id }}.sp_demo_machine_learning_tip_amounts`()
-OPTIONS(strict_mode=FALSE)
-BEGIN
-
 /*##################################################################################
 # Copyright 2022 Google LLC
 #
@@ -36,8 +32,8 @@ Reference:
     - https://cloud.google.com/bigquery-ml/docs/linear-regression-tutorial
 
 Clean up / Reset script:
-    DROP TABLE IF EXISTS `{{ params.project_id }}.{{ params.dataset_id }}.train_model_predict_tip_v1`;
-    DROP MODEL IF EXISTS `{{ params.project_id }}.{{ params.dataset_id }}.model_predict_tip_v1`;
+    DROP TABLE IF EXISTS `${project_id}.${bigquery_taxi_dataset}.train_model_predict_tip_v1`;
+    DROP MODEL IF EXISTS `${project_id}.${bigquery_taxi_dataset}.model_predict_tip_v1`;
 */
 
 
@@ -45,7 +41,7 @@ Clean up / Reset script:
 -- Limit the amount of data, so training does not take a long time
 -- Bucket the tip amounts into 25 cent increments (except for the high values)
 -- You can do this with a view or other syntax, but in this example the data will be scored and updated.
-CREATE OR REPLACE TABLE `{{ params.project_id }}.{{ params.dataset_id }}.train_model_predict_tip_v1` AS 
+CREATE OR REPLACE TABLE `${project_id}.${bigquery_taxi_dataset}.train_model_predict_tip_v1` AS 
 SELECT GENERATE_UUID() AS generated_primary_key, -- so we can match our scoring data
        CONCAT(CAST(PULocationID AS STRING),'-',CAST(DOLocationID AS STRING)) AS Trip,     
        FORMAT_DATE("%A", Pickup_DateTime) AS WeekdayName,
@@ -73,7 +69,7 @@ SELECT GENERATE_UUID() AS generated_primary_key, -- so we can match our scoring 
         CAST(NULL AS FLOAT64) AS predicted_tip_amount,
         CAST(NULL AS BOOLEAN) AS predicted_anomoly
 
-   FROM `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips` AS taxi_trips
+   FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips` AS taxi_trips
   WHERE TaxiCompany = 'Yellow'
     AND (PULocationID = 161 AND DOLocationID = 237)
     AND Fare_Amount  > 0 
@@ -89,22 +85,22 @@ SELECT GENERATE_UUID() AS generated_primary_key, -- so we can match our scoring 
 -- Create a model
 -- Suffix the model with _v1 in case you develop many models
 -- Query complete (19.2 sec elapsed, 12.1 MB (ML) processed) 
-CREATE OR REPLACE MODEL `{{ params.project_id }}.{{ params.dataset_id }}.model_predict_tip_v1`
+CREATE OR REPLACE MODEL `${project_id}.${bigquery_taxi_dataset}.model_predict_tip_v1`
 OPTIONS(
   MODEL_TYPE = 'linear_reg',
   INPUT_LABEL_COLS = ['Tip']
 ) AS
 SELECT *  EXCEPT(generated_primary_key, Tip_Amount, predicted_tip_amount, predicted_anomoly)
-  FROM `{{ params.project_id }}.{{ params.dataset_id }}.train_model_predict_tip_v1`;
+  FROM `${project_id}.${bigquery_taxi_dataset}.train_model_predict_tip_v1`;
 
 
 -- NOTE: These commmands are dynamice.  strict_mode still checks for models existing
 -- Score all the data with the predicted tip amount
 EXECUTE IMMEDIATE """
-UPDATE `{{ params.project_id }}.{{ params.dataset_id }}.train_model_predict_tip_v1` AS train_model_predict_tip_v1
+UPDATE `${project_id}.${bigquery_taxi_dataset}.train_model_predict_tip_v1` AS train_model_predict_tip_v1
    SET predicted_tip_amount = CAST(ScoredData.predicted_Tip AS NUMERIC)
   FROM (SELECT *
-         FROM ML.PREDICT (MODEL `{{ params.project_id }}.{{ params.dataset_id }}.model_predict_tip_v1`,
+         FROM ML.PREDICT (MODEL `${project_id}.${bigquery_taxi_dataset}.model_predict_tip_v1`,
              (SELECT generated_primary_key, -- for matching to source data
                      Trip,
                      WeekdayName,
@@ -112,7 +108,7 @@ UPDATE `{{ params.project_id }}.{{ params.dataset_id }}.train_model_predict_tip_
                      DurationMinutes,
                      Fare_Amount,
                      Passenger_Count
-               FROM `{{ params.project_id }}.{{ params.dataset_id }}.train_model_predict_tip_v1`))) AS ScoredData
+               FROM `${project_id}.${bigquery_taxi_dataset}.train_model_predict_tip_v1`))) AS ScoredData
  WHERE ScoredData.generated_primary_key = train_model_predict_tip_v1.generated_primary_key;
 """;
 
@@ -126,7 +122,7 @@ SELECT WeekdayName,
        predicted_tip_amount,
        predicted_tip_amount - Tip_Amount                AS TipPredictionDifference,
        (predicted_tip_amount - Tip_Amount) / Tip_Amount AS TipPredictionDifferencePct
-  FROM `{{ params.project_id }}.{{ params.dataset_id }}.train_model_predict_tip_v1`
+  FROM `${project_id}.${bigquery_taxi_dataset}.train_model_predict_tip_v1`
  LIMIT 1000;
 
 
@@ -140,7 +136,7 @@ SELECT WeekdayName,
        predicted_tip_amount,
        predicted_tip_amount - Tip_Amount                AS TipPredictionDifference,
        (predicted_tip_amount - Tip_Amount) / Tip_Amount AS TipPredictionDifferencePct
-  FROM `{{ params.project_id }}.{{ params.dataset_id }}.train_model_predict_tip_v1`
+  FROM `${project_id}.${bigquery_taxi_dataset}.train_model_predict_tip_v1`
  WHERE (predicted_tip_amount - Tip_Amount) / Tip_Amount  > 1
  LIMIT 1000;
 
@@ -154,8 +150,6 @@ SELECT WeekdayName,
 -- 6: 493
 -- 7: 473
 SELECT count(*)
-  FROM `{{ params.project_id }}.{{ params.dataset_id }}.train_model_predict_tip_v1`
+  FROM `${project_id}.${bigquery_taxi_dataset}.train_model_predict_tip_v1`
  WHERE (predicted_tip_amount - Tip_Amount) / Tip_Amount  > 7;
 
-
-END

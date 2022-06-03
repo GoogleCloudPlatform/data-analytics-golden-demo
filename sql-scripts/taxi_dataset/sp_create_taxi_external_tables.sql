@@ -1,7 +1,3 @@
-CREATE OR REPLACE PROCEDURE `{{ params.project_id }}.{{ params.dataset_id }}.sp_create_external_taxi_tables`()
-OPTIONS(strict_mode=FALSE)
-BEGIN
-
 /*##################################################################################
 # Copyright 2022 Google LLC
 #
@@ -36,29 +32,29 @@ References:
     - https://cloud.google.com/bigquery/docs/hive-partitioned-queries-gcs
 
 Clean up / Reset script:
-    DROP EXTERNAL TABLE IF EXISTS `{{ params.project_id }}.{{ params.dataset_id }}.ext_green_trips_parquet`;
-    DROP EXTERNAL TABLE IF EXISTS `{{ params.project_id }}.{{ params.dataset_id }}.ext_yellow_trips_csv`;
-    DROP EXTERNAL TABLE IF EXISTS `{{ params.project_id }}.{{ params.dataset_id }}.ext_yellow_trips_json`;
-    DROP EXTERNAL TABLE IF EXISTS `{{ params.project_id }}.{{ params.dataset_id }}.ext_yellow_trips_parquet`;
-    DROP EXTERNAL TABLE IF EXISTS `{{ params.project_id }}.{{ params.dataset_id }}.ext_vendor`;
-    DROP EXTERNAL TABLE IF EXISTS `{{ params.project_id }}.{{ params.dataset_id }}.ext_rate_code`;
-    DROP EXTERNAL TABLE IF EXISTS `{{ params.project_id }}.{{ params.dataset_id }}.ext_payment_type`;
-    DROP EXTERNAL TABLE IF EXISTS `{{ params.project_id }}.{{ params.dataset_id }}.ext_trip_type`;
+    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${bigquery_taxi_dataset}.ext_green_trips_parquet`;
+    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${bigquery_taxi_dataset}.ext_yellow_trips_csv`;
+    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${bigquery_taxi_dataset}.ext_yellow_trips_json`;
+    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${bigquery_taxi_dataset}.ext_yellow_trips_parquet`;
+    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${bigquery_taxi_dataset}.ext_vendor`;
+    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${bigquery_taxi_dataset}.ext_rate_code`;
+    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${bigquery_taxi_dataset}.ext_payment_type`;
+    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${bigquery_taxi_dataset}.ext_trip_type`;
 */
 
-CREATE OR REPLACE EXTERNAL TABLE `{{ params.project_id }}.{{ params.dataset_id }}.ext_green_trips_parquet`
+CREATE OR REPLACE EXTERNAL TABLE `${project_id}.${bigquery_taxi_dataset}.ext_green_trips_parquet`
 WITH PARTITION COLUMNS (
     year  INTEGER, -- column order must match the external path
     month INTEGER
 )
 OPTIONS (
     format = "PARQUET",
-    hive_partition_uri_prefix = "gs://{{ params.bucket_name }}/processed/taxi-data/green/trips_table/parquet/",
-    uris = ['gs://{{ params.bucket_name }}/processed/taxi-data/green/trips_table/parquet/*.parquet']
+    hive_partition_uri_prefix = "gs://${bucket_name}/processed/taxi-data/green/trips_table/parquet/",
+    uris = ['gs://${bucket_name}/processed/taxi-data/green/trips_table/parquet/*.parquet']
 );
 
 
-CREATE OR REPLACE EXTERNAL TABLE `{{ params.project_id }}.{{ params.dataset_id }}.ext_yellow_trips_csv`
+CREATE OR REPLACE EXTERNAL TABLE `${project_id}.${bigquery_taxi_dataset}.ext_yellow_trips_csv`
 (
     Vendor_Id	            INTEGER,
     Pickup_DateTime	        TIMESTAMP,
@@ -88,12 +84,12 @@ OPTIONS (
     format = "CSV",
     field_delimiter = ',',
     skip_leading_rows = 1,
-    hive_partition_uri_prefix = "gs://{{ params.bucket_name }}/processed/taxi-data/yellow/trips_table/csv/",
-    uris = ['gs://{{ params.bucket_name }}/processed/taxi-data/yellow/trips_table/csv/*.csv']
+    hive_partition_uri_prefix = "gs://${bucket_name}/processed/taxi-data/yellow/trips_table/csv/",
+    uris = ['gs://${bucket_name}/processed/taxi-data/yellow/trips_table/csv/*.csv']
 );
 
 
- CREATE OR REPLACE EXTERNAL TABLE `{{ params.project_id }}.{{ params.dataset_id }}.ext_yellow_trips_json`
+ CREATE OR REPLACE EXTERNAL TABLE `${project_id}.${bigquery_taxi_dataset}.ext_yellow_trips_json`
 (
     Vendor_Id	            INTEGER,
     Pickup_DateTime	        TIMESTAMP,
@@ -121,73 +117,71 @@ WITH PARTITION COLUMNS (
 )
 OPTIONS (
     format = "JSON",
-    hive_partition_uri_prefix = "gs://{{ params.bucket_name }}/processed/taxi-data/yellow/trips_table/json/",
-    uris = ['gs://{{ params.bucket_name }}/processed/taxi-data/yellow/trips_table/json/*.json']
+    hive_partition_uri_prefix = "gs://${bucket_name}/processed/taxi-data/yellow/trips_table/json/",
+    uris = ['gs://${bucket_name}/processed/taxi-data/yellow/trips_table/json/*.json']
 );
 
 
 
-CREATE OR REPLACE EXTERNAL TABLE `{{ params.project_id }}.{{ params.dataset_id }}.ext_yellow_trips_parquet`
+CREATE OR REPLACE EXTERNAL TABLE `${project_id}.${bigquery_taxi_dataset}.ext_yellow_trips_parquet`
 WITH PARTITION COLUMNS (
     year  INTEGER, -- column order must match the external path
     month INTEGER
 )
 OPTIONS (
     format = "PARQUET",
-    hive_partition_uri_prefix = "gs://{{ params.bucket_name }}/processed/taxi-data/yellow/trips_table/parquet/",
-    uris = ['gs://{{ params.bucket_name }}/processed/taxi-data/yellow/trips_table/parquet/*.parquet']
+    hive_partition_uri_prefix = "gs://${bucket_name}/processed/taxi-data/yellow/trips_table/parquet/",
+    uris = ['gs://${bucket_name}/processed/taxi-data/yellow/trips_table/parquet/*.parquet']
 );
 
 
-CREATE OR REPLACE EXTERNAL TABLE `{{ params.project_id }}.{{ params.dataset_id }}.ext_vendor`
+CREATE OR REPLACE EXTERNAL TABLE `${project_id}.${bigquery_taxi_dataset}.ext_vendor`
     OPTIONS (
     format = "PARQUET",
-    uris = ['gs://{{ params.bucket_name }}/processed/taxi-data/vendor_table/*.parquet']
+    uris = ['gs://${bucket_name}/processed/taxi-data/vendor_table/*.parquet']
 );
 
 
-CREATE OR REPLACE EXTERNAL TABLE `{{ params.project_id }}.{{ params.dataset_id }}.ext_rate_code`
+CREATE OR REPLACE EXTERNAL TABLE `${project_id}.${bigquery_taxi_dataset}.ext_rate_code`
     OPTIONS (
     format = "PARQUET",
-    uris = ['gs://{{ params.bucket_name }}/processed/taxi-data/rate_code_table/*.parquet']
+    uris = ['gs://${bucket_name}/processed/taxi-data/rate_code_table/*.parquet']
 );
 
 
-CREATE OR REPLACE EXTERNAL TABLE `{{ params.project_id }}.{{ params.dataset_id }}.ext_payment_type`
+CREATE OR REPLACE EXTERNAL TABLE `${project_id}.${bigquery_taxi_dataset}.ext_payment_type`
     OPTIONS (
     format = "PARQUET",
-    uris = ['gs://{{ params.bucket_name }}/processed/taxi-data/payment_type_table/*.parquet']
+    uris = ['gs://${bucket_name}/processed/taxi-data/payment_type_table/*.parquet']
 );
 
 
-CREATE OR REPLACE EXTERNAL TABLE `{{ params.project_id }}.{{ params.dataset_id }}.ext_trip_type`
+CREATE OR REPLACE EXTERNAL TABLE `${project_id}.${bigquery_taxi_dataset}.ext_trip_type`
     OPTIONS (
     format = "PARQUET",
-    uris = ['gs://{{ params.bucket_name }}/processed/taxi-data/trip_type_table/*.parquet']
+    uris = ['gs://${bucket_name}/processed/taxi-data/trip_type_table/*.parquet']
 );
 
 
 
 -- Query External Tables
 SELECT * 
-  FROM `{{ params.project_id }}.{{ params.dataset_id }}.ext_yellow_trips_csv` 
+  FROM `${project_id}.${bigquery_taxi_dataset}.ext_yellow_trips_csv` 
  WHERE year=2020
    AND month=1
  LIMIT 100;
 
 
 SELECT * 
-  FROM `{{ params.project_id }}.{{ params.dataset_id }}.ext_yellow_trips_json` 
+  FROM `${project_id}.${bigquery_taxi_dataset}.ext_yellow_trips_json` 
  WHERE year=2020
    AND month=1
  LIMIT 100;
 
 
  SELECT * 
-  FROM `{{ params.project_id }}.{{ params.dataset_id }}.ext_yellow_trips_parquet` 
+  FROM `${project_id}.${bigquery_taxi_dataset}.ext_yellow_trips_parquet` 
  WHERE year=2020
    AND month=1
  LIMIT 100;
 
-
-END

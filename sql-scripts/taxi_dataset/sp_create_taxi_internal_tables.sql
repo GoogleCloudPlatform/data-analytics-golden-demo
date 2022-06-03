@@ -1,7 +1,3 @@
-CREATE OR REPLACE PROCEDURE `{{ params.project_id }}.{{ params.dataset_id }}.sp_create_internal_taxi_tables`()
-OPTIONS(strict_mode=FALSE)
-BEGIN
-
 /*##################################################################################
 # Copyright 2022 Google LLC
 #
@@ -43,16 +39,16 @@ References:
     - https://cloud.google.com/bigquery/docs/clustered-tables
 
 Clean up / Reset script:
-    DROP TABLE IF EXISTS `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips`;
-    DROP TABLE IF EXISTS `{{ params.project_id }}.{{ params.dataset_id }}.vendor`;
-    DROP TABLE IF EXISTS `{{ params.project_id }}.{{ params.dataset_id }}.rate_code`;
-    DROP TABLE IF EXISTS `{{ params.project_id }}.{{ params.dataset_id }}.payment_type`;
-    DROP TABLE IF EXISTS `{{ params.project_id }}.{{ params.dataset_id }}.trip_type`;
+    DROP TABLE IF EXISTS `${project_id}.${bigquery_taxi_dataset}.taxi_trips`;
+    DROP TABLE IF EXISTS `${project_id}.${bigquery_taxi_dataset}.vendor`;
+    DROP TABLE IF EXISTS `${project_id}.${bigquery_taxi_dataset}.rate_code`;
+    DROP TABLE IF EXISTS `${project_id}.${bigquery_taxi_dataset}.payment_type`;
+    DROP TABLE IF EXISTS `${project_id}.${bigquery_taxi_dataset}.trip_type`;
 */
 
 
 -- Query: Show partitioning and clustering (by several columns)
-CREATE OR REPLACE TABLE `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips` 
+CREATE OR REPLACE TABLE `${project_id}.${bigquery_taxi_dataset}.taxi_trips` 
 (
     TaxiCompany             STRING,
     Vendor_Id	            INTEGER,	
@@ -102,7 +98,7 @@ AS SELECT
         SAFE_CAST(Trip_Type AS INTEGER),
         Ehail_Fee,
         DATE(year, month, 1) as PartitionDate
-   FROM `{{ params.project_id }}.{{ params.dataset_id }}.ext_green_trips_parquet`
+   FROM `${project_id}.${bigquery_taxi_dataset}.ext_green_trips_parquet`
 UNION ALL
    SELECT
         'Yellow' AS TaxiCompany, 
@@ -127,41 +123,40 @@ UNION ALL
         NULL AS Trip_Type,
         NULL AS Ehail_Fee,
         DATE(year, month, 1) as PartitionDate
-   FROM `{{ params.project_id }}.{{ params.dataset_id }}.ext_yellow_trips_parquet`;
+   FROM `${project_id}.${bigquery_taxi_dataset}.ext_yellow_trips_parquet`;
 
-CREATE OR REPLACE TABLE `{{ params.project_id }}.{{ params.dataset_id }}.vendor`
+CREATE OR REPLACE TABLE `${project_id}.${bigquery_taxi_dataset}.vendor`
 (
     Vendor_Id	        INTEGER,
     Vendor_Description  STRING
 ) AS
 SELECT Vendor_Id, Vendor_Description
-  FROM `{{ params.project_id }}.{{ params.dataset_id }}.ext_vendor`;
+  FROM `${project_id}.${bigquery_taxi_dataset}.ext_vendor`;
 
 
-CREATE OR REPLACE TABLE `{{ params.project_id }}.{{ params.dataset_id }}.rate_code`
+CREATE OR REPLACE TABLE `${project_id}.${bigquery_taxi_dataset}.rate_code`
 (
     Rate_Code_Id	        INTEGER,
     Rate_Code_Description   STRING
 ) AS
 SELECT Rate_Code_Id, Rate_Code_Description
-  FROM `{{ params.project_id }}.{{ params.dataset_id }}.ext_rate_code`;    
+  FROM `${project_id}.${bigquery_taxi_dataset}.ext_rate_code`;    
 
 
-CREATE OR REPLACE TABLE `{{ params.project_id }}.{{ params.dataset_id }}.payment_type`
+CREATE OR REPLACE TABLE `${project_id}.${bigquery_taxi_dataset}.payment_type`
 (
     Payment_Type_Id	            INTEGER,
     Payment_Type_Description    STRING
 ) AS
 SELECT Payment_Type_Id, Payment_Type_Description
-  FROM `{{ params.project_id }}.{{ params.dataset_id }}.ext_payment_type`;
+  FROM `${project_id}.${bigquery_taxi_dataset}.ext_payment_type`;
 
 
-CREATE OR REPLACE TABLE `{{ params.project_id }}.{{ params.dataset_id }}.trip_type`
+CREATE OR REPLACE TABLE `${project_id}.${bigquery_taxi_dataset}.trip_type`
 (
     Trip_Type_Id	       INTEGER,
     Trip_Type_Description  STRING
 ) AS
 SELECT Trip_Type_Id, Trip_Type_Description
-  FROM `{{ params.project_id }}.{{ params.dataset_id }}.ext_trip_type`;
+  FROM `${project_id}.${bigquery_taxi_dataset}.ext_trip_type`;
 
-END

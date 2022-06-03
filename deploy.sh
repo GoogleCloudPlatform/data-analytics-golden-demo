@@ -18,13 +18,13 @@
 
 ####################################################################################
 # README: This script will use "bash" to deploy the code
-#         This will run the "terraform-local" folder entrypoint (uses service account impersonation)
+#         This will run the "terraform" folder entrypoint (uses service account impersonation)
 #         This will create a new GCP project in Terraform
 # TO RUN: "source deploy.sh"
 ####################################################################################
 # 
 #
-# This script will then run the terraform-local script
+# This script will then run the terraform script
 # This script will deploy DAGs, dag data, pyspark and trigger the run-all-dag
 # This script needs an admin login so that the project and a service account can be created in the terraform script
 #
@@ -54,7 +54,24 @@ gcp_account_name=$(gcloud auth list --filter=status:ACTIVE --format="value(accou
 
 # Get the Org Id (needed for org policies and creating the GCP project)
 org_id=$(gcloud organizations list --format="value(name)")
-
+if [ -z "${org_id}" ]
+then
+  echo "Org Id could not be automatically read."
+  echo "Open this link: https://console.cloud.google.com/cloud-resource-manager/ and copy your org id."
+  echo "Your org id will be in the format of xxxxxxxxxxxx"
+  read -p "Please enter your org id:" org_id
+else
+  org_id_length=$(echo -n "${org_id}" | wc -m)
+  org_id_length_int=$(expr ${org_id_length} + 0)
+  if [ ${org_id_length_int} != 12 ]
+  then
+    echo "You have more than one org id, please manually enter the correct one."
+    echo "Your org id will be in the format of xxxxxxxxxxxx"
+    read -p "Please enter your org id:" billing_account
+  else
+    echo "Org Id was automatically retreived."
+  fi
+fi
 
 # Get the Billing Account (needed for creating the GCP project)
 billing_account=$(gcloud beta billing accounts list --format="value(ACCOUNT_ID)")
@@ -65,8 +82,18 @@ then
   echo "Your billing account will be in the format of xxxxxx-xxxxxx-xxxxxx"
   read -p "Please enter your billing account:" billing_account
 else
-  echo "Billing Account was automatically retreived."
-fi  
+  billing_account_length=$(echo -n "${billing_account}" | wc -m)
+  billing_account_length_int=$(expr ${billing_account_length} + 0)
+  if [ ${billing_account_length_int} != 20 ]
+  then
+    echo "You have more than one billing account, please manually enter the correct one."
+    echo "Your billing account will be in the format of xxxxxx-xxxxxx-xxxxxx"
+    read -p "Please enter your billing account:" billing_account
+  else
+    echo "Billing Account was automatically retreived."
+  fi
+fi
+
 
 
 echo "gcp_account_name: ${gcp_account_name}"
@@ -82,7 +109,7 @@ echo "*********************************************************"
 ####################################################################################
 # Deploy Terraform
 ####################################################################################
-cd "./terraform-local"
+cd "./terraform"
 
 # Initialize Terraform
 terraform init
@@ -90,21 +117,21 @@ terraform init
 # Validate
 terraform validate
 
-echo "terraform apply -var=\"gcp_account_name=${gcp_account_name}\" -var=\"org_id=${org_id}\" -var=\"billing_account=${billing_account}\" -var=\"project_id=bigquery-demo\""
+echo "terraform apply -var=\"gcp_account_name=${gcp_account_name}\" -var=\"org_id=${org_id}\" -var=\"billing_account=${billing_account}\" -var=\"project_id=data-analytics-demo\""
 
 # Run the Terraform Apply
 terraform apply \
   -var="gcp_account_name=${gcp_account_name}" \
   -var="org_id=${org_id}" \
   -var="billing_account=${billing_account}" \
-  -var="project_id=bigquery-demo"
+  -var="project_id=data-analytics-demo"
  
 # Write out the output variables (currently not used)
-terraform output -json > tf-output.json
+# terraform output -json > tf-output.json
 
 cd ..
 
-echo "terraform apply -var=\"gcp_account_name=${gcp_account_name}\" -var=\"org_id=${org_id}\" -var=\"billing_account=${billing_account}\" -var=\"project_id=bigquery-demo\""
+echo "terraform apply -var=\"gcp_account_name=${gcp_account_name}\" -var=\"org_id=${org_id}\" -var=\"billing_account=${billing_account}\" -var=\"project_id=data-analytics-demo\""
 
 echo "*********************************************************"
 echo "Done"

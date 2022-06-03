@@ -1,8 +1,3 @@
-
-CREATE OR REPLACE PROCEDURE `{{ params.project_id }}.{{ params.dataset_id }}.sp_demo_data_transfer_service`()
-OPTIONS(strict_mode=FALSE)
-BEGIN
-
 /*##################################################################################
 # Copyright 2022 Google LLC
 #
@@ -25,7 +20,7 @@ To run this:
   1. Run the Airflow DAG: sample-bigquery-data-transfer-service to create the dest dataset and data transfer service
   2. In the Cloud Console, click on the Data Transfer "Copy Public NYC Taxi Data" and view the transfer (wait until done)
   3. Run the below SQL statements
-  4. Optional: When done you can save on storage costs by running: bq rm -r --dataset "{{ params.project_id }}:{{ params.dataset_id }}_public_copy"
+  4. Optional: When done you can save on storage costs by running: bq rm -r --dataset "${project_id}:${bigquery_taxi_dataset}_public_copy"
 
 Use Cases:
     - Add more rows to the Yellow Taxi data to show scale
@@ -47,7 +42,7 @@ Clean up / Reset script:
 
 -- 2016 does not have the same fields (no pickup/dropoff ids, just lat/long)
 -- 2018 and below does not have the same fields 
-ALTER TABLE `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips`
+ALTER TABLE `${project_id}.${bigquery_taxi_dataset}.taxi_trips`
   ADD COLUMN IF NOT EXISTS PULocationGeo GEOGRAPHY,
   ADD COLUMN IF NOT EXISTS DOLocationGeo GEOGRAPHY,
   ADD COLUMN IF NOT EXISTS distance_between_service FLOAT64,
@@ -56,7 +51,7 @@ ALTER TABLE `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips`
 ----------------------------------------------------------------------
 -- GREEN
 ----------------------------------------------------------------------
-INSERT INTO `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips`
+INSERT INTO `${project_id}.${bigquery_taxi_dataset}.taxi_trips`
 (
     TaxiCompany,
     Vendor_Id,
@@ -103,10 +98,10 @@ SELECT 'Green' AS TaxiCompany,
        ehail_fee                                    AS Ehail_Fee,
        SAFE_CAST(trip_type            AS INTEGER)   AS Trip_Type,
        DATE(EXTRACT(YEAR FROM pickup_datetime), EXTRACT(MONTH FROM pickup_datetime), 1)  AS PartitionDate
-  FROM `{{ params.project_id }}.{{ params.dataset_id }}_public_copy.tlc_green_trips_2018`;
+  FROM `${project_id}.${bigquery_taxi_dataset}_public_copy.tlc_green_trips_2018`;
 
 
-INSERT INTO `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips`
+INSERT INTO `${project_id}.${bigquery_taxi_dataset}.taxi_trips`
 (
     TaxiCompany,
     Vendor_Id,
@@ -153,10 +148,10 @@ SELECT 'Green' AS TaxiCompany,
        ehail_fee                                    AS Ehail_Fee,
        SAFE_CAST(trip_type            AS INTEGER)   AS Trip_Type,
        DATE(EXTRACT(YEAR FROM pickup_datetime), EXTRACT(MONTH FROM pickup_datetime), 1)  AS PartitionDate
-  FROM `{{ params.project_id }}.{{ params.dataset_id }}_public_copy.tlc_green_trips_2017`;
+  FROM `${project_id}.${bigquery_taxi_dataset}_public_copy.tlc_green_trips_2017`;
 
 
-INSERT INTO `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips`
+INSERT INTO `${project_id}.${bigquery_taxi_dataset}.taxi_trips`
 (
     TaxiCompany,
     Vendor_Id,
@@ -222,10 +217,10 @@ SELECT 'Green' AS TaxiCompany,
              ELSE NULL
         END AS DOLocationGeo
 
-  FROM `{{ params.project_id }}.{{ params.dataset_id }}_public_copy.tlc_green_trips_2016`;
+  FROM `${project_id}.${bigquery_taxi_dataset}_public_copy.tlc_green_trips_2016`;
 
 
-INSERT INTO `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips`
+INSERT INTO `${project_id}.${bigquery_taxi_dataset}.taxi_trips`
 (
     TaxiCompany,
     Vendor_Id,
@@ -291,10 +286,10 @@ SELECT 'Green' AS TaxiCompany,
              ELSE NULL
         END AS DOLocationGeo
 
-  FROM `{{ params.project_id }}.{{ params.dataset_id }}_public_copy.tlc_green_trips_2015`;
+  FROM `${project_id}.${bigquery_taxi_dataset}_public_copy.tlc_green_trips_2015`;
 
 
-INSERT INTO `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips`
+INSERT INTO `${project_id}.${bigquery_taxi_dataset}.taxi_trips`
 (
     TaxiCompany,
     Vendor_Id,
@@ -360,14 +355,14 @@ SELECT 'Green' AS TaxiCompany,
              ELSE NULL
         END AS DOLocationGeo
 
-  FROM `{{ params.project_id }}.{{ params.dataset_id }}_public_copy.tlc_green_trips_2014`;
+  FROM `${project_id}.${bigquery_taxi_dataset}_public_copy.tlc_green_trips_2014`;
 
 
 
 ----------------------------------------------------------------------
 -- YELLOW
 ----------------------------------------------------------------------
-INSERT INTO `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips`
+INSERT INTO `${project_id}.${bigquery_taxi_dataset}.taxi_trips`
 (
     TaxiCompany,
     Vendor_Id,
@@ -410,10 +405,10 @@ SELECT 'Yellow' AS TaxiCompany,
        total_amount                                 AS Total_Amount,
        NULL                                         AS Congestion_Surcharge,
        DATE(EXTRACT(YEAR FROM pickup_datetime), EXTRACT(MONTH FROM pickup_datetime), 1)  AS PartitionDate
-  FROM `{{ params.project_id }}.{{ params.dataset_id }}_public_copy.tlc_yellow_trips_2018`;
+  FROM `${project_id}.${bigquery_taxi_dataset}_public_copy.tlc_yellow_trips_2018`;
 
 
-INSERT INTO `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips`
+INSERT INTO `${project_id}.${bigquery_taxi_dataset}.taxi_trips`
 (
     TaxiCompany,
     Vendor_Id,
@@ -456,11 +451,11 @@ SELECT 'Yellow' AS TaxiCompany,
        total_amount                                 AS Total_Amount,
        NULL                                         AS Congestion_Surcharge,
        DATE(EXTRACT(YEAR FROM pickup_datetime), EXTRACT(MONTH FROM pickup_datetime), 1)  AS PartitionDate
-  FROM `{{ params.project_id }}.{{ params.dataset_id }}_public_copy.tlc_yellow_trips_2017`;
+  FROM `${project_id}.${bigquery_taxi_dataset}_public_copy.tlc_yellow_trips_2017`;
 
 
 
-INSERT INTO `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips`
+INSERT INTO `${project_id}.${bigquery_taxi_dataset}.taxi_trips`
 (
     TaxiCompany,
     Vendor_Id,
@@ -521,10 +516,10 @@ SELECT 'Yellow' AS TaxiCompany,
              THEN ST_GeogPoint(dropoff_longitude,dropoff_latitude)
              ELSE NULL
         END AS DOLocationGeo
-  FROM `{{ params.project_id }}.{{ params.dataset_id }}_public_copy.tlc_yellow_trips_2016`;
+  FROM `${project_id}.${bigquery_taxi_dataset}_public_copy.tlc_yellow_trips_2016`;
 
 
-INSERT INTO `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips`
+INSERT INTO `${project_id}.${bigquery_taxi_dataset}.taxi_trips`
 (
     TaxiCompany,
     Vendor_Id,
@@ -585,13 +580,13 @@ SELECT 'Yellow' AS TaxiCompany,
              THEN ST_GeogPoint(dropoff_longitude,dropoff_latitude)
              ELSE NULL
         END AS DOLocationGeo
-  FROM `{{ params.project_id }}.{{ params.dataset_id }}_public_copy.tlc_yellow_trips_2015`;
+  FROM `${project_id}.${bigquery_taxi_dataset}_public_copy.tlc_yellow_trips_2015`;
 
 
 -- Show scale over 627,xxx,xxx records
 -- Query: Count the number of records
 SELECT COUNT(*) AS Cnt
-  FROM `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips` AS taxi_trips;
+  FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips` AS taxi_trips;
 
 
 -- Show the total amount per day of week (pivot) over 2015 to 2021 data
@@ -601,7 +596,7 @@ SELECT FORMAT_DATE("%B", Pickup_DateTime) AS MonthName,
        FORMAT_DATE("%m", Pickup_DateTime) AS MonthNumber,
        FORMAT_DATE("%A", Pickup_DateTime) AS WeekdayName,
        SUM(taxi_trips.Total_Amount) AS Total_Amount
-  FROM `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips` AS taxi_trips
+  FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips` AS taxi_trips
  WHERE taxi_trips.Pickup_DateTime BETWEEN '2015-01-01' AND '2021-12-31'   
    AND Payment_Type_Id IN (1,2,3,4)
  GROUP BY 1, 2, 3
@@ -628,7 +623,7 @@ SELECT CONCAT(FORMAT_DATE("%B", Pickup_DateTime),'-',EXTRACT(YEAR FROM Pickup_Da
        EXTRACT(YEAR FROM Pickup_DateTime) AS YearNbr,
        FORMAT_DATE("%A", Pickup_DateTime) AS WeekdayName,
        SUM(taxi_trips.Total_Amount) AS Total_Amount
-  FROM `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips` AS taxi_trips
+  FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips` AS taxi_trips
  WHERE taxi_trips.Pickup_DateTime BETWEEN '2015-01-01' AND '2021-12-31'
    AND Payment_Type_Id IN (1,2,3,4)
  GROUP BY 1, 2, 3, 4
@@ -645,5 +640,3 @@ SELECT MonthName,
  PIVOT(SUM(Total_Amount) FOR WeekdayName IN ('Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'))
 ORDER BY YearNbr DESC, MonthNumber;
 
-
-END

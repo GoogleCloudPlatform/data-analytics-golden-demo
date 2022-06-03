@@ -1,7 +1,3 @@
-CREATE OR REPLACE PROCEDURE `{{ params.project_id }}.{{ params.dataset_id }}.sp_demo_export_weather_data`()
-OPTIONS(strict_mode=FALSE)
-BEGIN
-
 /*##################################################################################
 # Copyright 2022 Google LLC
 #
@@ -52,7 +48,7 @@ SELECT * FROM `bigquery-public-data.ghcn_d.ghcnd_stations`  WHERE id = 'USW00094
 */
 EXPORT DATA
 OPTIONS(
-  uri='gs://{{ params.bucket_name }}/spanner/weather/*.csv',
+  uri='gs://${bucket_name}/spanner/weather/*.csv',
   format='CSV',
   overwrite=true,
   header=true,
@@ -118,5 +114,3 @@ SELECT id   AS station_id,
 PIVOT(MAX(value) FOR element IN ('SNOW','PRCP','TMIN','TMAX'))
 ORDER BY date;
 
-
-END

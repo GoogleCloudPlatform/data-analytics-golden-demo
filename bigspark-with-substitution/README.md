@@ -1,0 +1,2 @@
+- DO NOT PLACE FILES IN HERE
+- This is a placeholder directory for copying the BigSpark from the ./bigspark directory to this directory with token replacement for the GCS Bucket name

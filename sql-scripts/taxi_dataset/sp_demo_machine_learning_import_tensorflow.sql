@@ -1,7 +1,3 @@
-CREATE OR REPLACE PROCEDURE `{{ params.project_id }}.{{ params.dataset_id }}.sp_demo_machine_learning_import_tensorflow`()
-OPTIONS(strict_mode=FALSE)
-BEGIN
-
 /*##################################################################################
 # Copyright 2022 Google LLC
 #
@@ -36,21 +32,21 @@ Reference:
     - https://cloud.google.com/blog/products/data-analytics/bigquery-ml-unsupervised-anomaly-detection
 
 Clean up / Reset script:
-    DROP TABLE IF EXISTS `{{ params.project_id }}.{{ params.dataset_id }}.tensorflow_scoring`;
-    DROP MODEL IF EXISTS `{{ params.dataset_id }}.model_tf_dnn_fare`;
-    DROP MODEL IF EXISTS `{{ params.dataset_id }}.model_tf_linear_regression_fare`;
+    DROP TABLE IF EXISTS `${project_id}.${bigquery_taxi_dataset}.tensorflow_scoring`;
+    DROP MODEL IF EXISTS `${bigquery_taxi_dataset}.model_tf_dnn_fare`;
+    DROP MODEL IF EXISTS `${bigquery_taxi_dataset}.model_tf_linear_regression_fare`;
 */
 
 
 -- Training SQL from notebook 
-CREATE OR REPLACE TABLE `{{ params.project_id }}.{{ params.dataset_id }}.tensorflow_scoring` AS
+CREATE OR REPLACE TABLE `${project_id}.${bigquery_taxi_dataset}.tensorflow_scoring` AS
 SELECT GENERATE_UUID() AS generated_primary_key,
        Fare_Amount,
        Trip_Distance,
        DATETIME_DIFF(Dropoff_DateTime, Pickup_DateTime, MINUTE) AS Minutes,
        CAST(NULL AS FLOAT64) AS predicted_linear_reg,
        CAST(NULL AS FLOAT64) AS predicted_dnn
-  FROM `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips`
+  FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips`
  WHERE Pickup_DateTime BETWEEN '2020-01-01' AND '2020-01-31'  -- Small dataset
    AND DATETIME_DIFF(Dropoff_DateTime, Pickup_DateTime, MINUTE) BETWEEN 5 AND 60  -- Somewhat of a normal time
    AND Fare_Amount > 0
@@ -59,15 +55,15 @@ LIMIT 10000;  -- not too many so we are not here all day
 
 
 -- Import the tensor flow model from storage
-CREATE OR REPLACE MODEL {{ params.dataset_id }}.model_tf_linear_regression_fare
+CREATE OR REPLACE MODEL ${bigquery_taxi_dataset}.model_tf_linear_regression_fare
        OPTIONS (MODEL_TYPE='TENSORFLOW',
-       MODEL_PATH='gs://{{ params.project_id }}/tensorflow/taxi_fare_model/linear_regression/*');
+       MODEL_PATH='gs://${bucket_name}/tensorflow/taxi_fare_model/linear_regression/*');
 
 
 -- Run a prediction (note you can run the same prediction in your notebook and get the same result)
 EXECUTE IMMEDIATE """
 SELECT *
-  FROM ML.PREDICT(MODEL {{ params.dataset_id }}.model_tf_linear_regression_fare,
+  FROM ML.PREDICT(MODEL ${bigquery_taxi_dataset}.model_tf_linear_regression_fare,
      (
       SELECT [10.0,20.0] AS normalization_input
      ));
@@ -75,15 +71,15 @@ SELECT *
 
 
 -- Import the tensor flow model from storage
-CREATE OR REPLACE MODEL {{ params.dataset_id }}.model_tf_dnn_fare
+CREATE OR REPLACE MODEL ${bigquery_taxi_dataset}.model_tf_dnn_fare
        OPTIONS (MODEL_TYPE='TENSORFLOW',
-       MODEL_PATH='gs://{{ params.project_id }}/tensorflow/taxi_fare_model/dnn/*');
+       MODEL_PATH='gs://${bucket_name}/tensorflow/taxi_fare_model/dnn/*');
 
 
 -- Run a prediction (note you can run the same prediction in your notebook and get the same result)
 EXECUTE IMMEDIATE """
 SELECT *
-  FROM ML.PREDICT(MODEL {{ params.dataset_id }}.model_tf_dnn_fare,
+  FROM ML.PREDICT(MODEL ${bigquery_taxi_dataset}.model_tf_dnn_fare,
      (
       SELECT [10.0,20.0] AS normalization_input
      ));
@@ -93,13 +89,13 @@ SELECT *
 -- Score using the imported Linear Regression model
 -- NOTE: If you trained/exported your model several times you might see "dense" be called "dense2 or dense3, etc."
 EXECUTE IMMEDIATE """
-UPDATE `{{ params.project_id }}.{{ params.dataset_id }}.tensorflow_scoring` AS tensorflow_scoring
+UPDATE `${project_id}.${bigquery_taxi_dataset}.tensorflow_scoring` AS tensorflow_scoring
    SET predicted_linear_reg = CAST(ScoredData.dense AS FLOAT64)
   FROM (SELECT *
-         FROM ML.PREDICT (MODEL `{{ params.dataset_id }}.model_tf_linear_regression_fare`,
+         FROM ML.PREDICT (MODEL `${bigquery_taxi_dataset}.model_tf_linear_regression_fare`,
              (SELECT generated_primary_key, -- for matching to source data
                      [Trip_Distance, Minutes] AS normalization_input
-               FROM `{{ params.project_id }}.{{ params.dataset_id }}.tensorflow_scoring`))) AS ScoredData
+               FROM `${project_id}.${bigquery_taxi_dataset}.tensorflow_scoring`))) AS ScoredData
  WHERE ScoredData.generated_primary_key = tensorflow_scoring.generated_primary_key;
 """;
 
@@ -107,13 +103,13 @@ UPDATE `{{ params.project_id }}.{{ params.dataset_id }}.tensorflow_scoring` AS t
 -- Score using the imported Deep Neural Network model
 -- NOTE: If you trained/exported your model several times you might see "dense" be called "dense2 or dense3, etc."
 EXECUTE IMMEDIATE """
-UPDATE `{{ params.project_id }}.{{ params.dataset_id }}.tensorflow_scoring` AS tensorflow_scoring
+UPDATE `${project_id}.${bigquery_taxi_dataset}.tensorflow_scoring` AS tensorflow_scoring
    SET predicted_dnn = CAST(ScoredData.dense_3 AS FLOAT64)
   FROM (SELECT *
-         FROM ML.PREDICT (MODEL `{{ params.dataset_id }}.model_tf_dnn_fare`,
+         FROM ML.PREDICT (MODEL `${bigquery_taxi_dataset}.model_tf_dnn_fare`,
              (SELECT generated_primary_key, -- for matching to source data
                      [Trip_Distance, Minutes] AS normalization_input
-               FROM `{{ params.project_id }}.{{ params.dataset_id }}.tensorflow_scoring`))) AS ScoredData
+               FROM `${project_id}.${bigquery_taxi_dataset}.tensorflow_scoring`))) AS ScoredData
  WHERE ScoredData.generated_primary_key = tensorflow_scoring.generated_primary_key;
 """;
 
@@ -127,7 +123,5 @@ SELECT *,
             THEN 'Linear Reg Wins'
             ELSE 'DNN Wins'
         END AS Model_Winner
-  FROM `{{ params.project_id }}.{{ params.dataset_id }}.tensorflow_scoring`;
+  FROM `${project_id}.${bigquery_taxi_dataset}.tensorflow_scoring`;
 
-
-END

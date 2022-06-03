@@ -1,7 +1,3 @@
-CREATE OR REPLACE PROCEDURE `{{ params.project_id }}.{{ params.dataset_id }}.sp_demo_internal_external_table_join`()
-OPTIONS(strict_mode=FALSE)
-BEGIN
-
 /*##################################################################################
 # Copyright 2022 Google LLC
 #
@@ -42,12 +38,12 @@ SELECT ext_vendor.Vendor_Description,
         ext_payment_type.Payment_Type_Description,
         CAST(taxi_trips.Pickup_DateTime AS DATE)   AS Pickup_Date,
         taxi_trips.Total_Amount
-FROM `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips` AS taxi_trips
-        INNER JOIN `{{ params.project_id }}.{{ params.dataset_id }}.ext_vendor` AS ext_vendor
+FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips` AS taxi_trips
+        INNER JOIN `${project_id}.${bigquery_taxi_dataset}.ext_vendor` AS ext_vendor
                 ON taxi_trips.Vendor_Id = ext_vendor.Vendor_Id
-        INNER JOIN `{{ params.project_id }}.{{ params.dataset_id }}.ext_rate_code` AS ext_rate_code
+        INNER JOIN `${project_id}.${bigquery_taxi_dataset}.ext_rate_code` AS ext_rate_code
                 ON taxi_trips.Rate_Code_Id = ext_rate_code.Rate_Code_Id
-        INNER JOIN `{{ params.project_id }}.{{ params.dataset_id }}.ext_payment_type` AS ext_payment_type
+        INNER JOIN `${project_id}.${bigquery_taxi_dataset}.ext_payment_type` AS ext_payment_type
                 ON taxi_trips.Payment_Type_Id = ext_payment_type.Payment_Type_Id
 WHERE taxi_trips.Pickup_DateTime BETWEEN '2019-05-01' AND '2019-05-02';
 
@@ -59,13 +55,13 @@ SELECT vendor.Vendor_Description,
         payment_type.Payment_Type_Description,
         CAST(taxi_trips.Pickup_DateTime AS DATE)   AS Pickup_Date,
         taxi_trips.Total_Amount
-FROM `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips` AS taxi_trips
-        INNER JOIN `{{ params.project_id }}.{{ params.dataset_id }}.vendor` AS vendor
+FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips` AS taxi_trips
+        INNER JOIN `${project_id}.${bigquery_taxi_dataset}.vendor` AS vendor
                 ON taxi_trips.Vendor_Id = vendor.Vendor_Id
-        INNER JOIN `{{ params.project_id }}.{{ params.dataset_id }}.rate_code` AS rate_code
+        INNER JOIN `${project_id}.${bigquery_taxi_dataset}.rate_code` AS rate_code
                 ON taxi_trips.Rate_Code_Id = rate_code.Rate_Code_Id
-        INNER JOIN `{{ params.project_id }}.{{ params.dataset_id }}.payment_type` AS payment_type
+        INNER JOIN `${project_id}.${bigquery_taxi_dataset}.payment_type` AS payment_type
                 ON taxi_trips.Payment_Type_Id = payment_type.Payment_Type_Id
 WHERE taxi_trips.Pickup_DateTime BETWEEN '2019-05-01' AND '2019-05-02';
 
-END
+

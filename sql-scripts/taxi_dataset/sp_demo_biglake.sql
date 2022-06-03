@@ -1,7 +1,3 @@
-CREATE OR REPLACE PROCEDURE `{{ params.project_id }}.{{ params.dataset_id }}.sp_demo_biglake`()
-OPTIONS(strict_mode=FALSE)
-BEGIN
-
 /*##################################################################################
 # Copyright 2022 Google LLC
 #
@@ -35,8 +31,8 @@ Reference:
     - n/a
 
 Clean up / Reset script:
-    DROP ALL ROW ACCESS POLICIES ON `{{ params.project_id }}.{{ params.dataset_id }}.biglake_green_trips`;
-    DROP EXTERNAL TABLE IF EXISTS `{{ params.project_id }}.{{ params.dataset_id }}.biglake_green_trips`
+    DROP ALL ROW ACCESS POLICIES ON `${project_id}.${bigquery_taxi_dataset}.biglake_green_trips`;
+    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${bigquery_taxi_dataset}.biglake_green_trips`
 
 
 # CLI Commands
@@ -45,15 +41,15 @@ Clean up / Reset script:
 
 # Step 1: Create the connection
 bq mk --connection \
---location="{{ params.region }}" \
---project_id="{{ params.project_id }}" \
+--location="${bigquery_region}" \
+--project_id="${project_id}" \
 --connection_type=CLOUD_RESOURCE \
 biglake-connection
 
 # Step 2: A service account has been created, we need to get its name
 bq show --connection \
---location="{{ params.region }}" \
---project_id="{{ params.project_id }}" \
+--location="${bigquery_region}" \
+--project_id="${project_id}" \
 --format=json \
 biglake-connection > bq-connection.json
 
@@ -65,44 +61,44 @@ echo "biglake_service_account: ${biglake_service_account}"
 
 # Step 3: Add Storage Object Viewer permissions to this Service Account
 # Storage will be access via this service account (users do not need individual access) 
-gcloud projects add-iam-policy-binding "{{ params.project_id }}" \
+gcloud projects add-iam-policy-binding "${project_id}" \
 --member="serviceAccount:${biglake_service_account}" \
 --role='roles/storage.objectViewer'
+
+NOTE: You now need to wait a few minutes for thing to propagate
 
 */
 
 -- Query: Create an external table (this is some of the Green Taxi Trips data in Parquet format)
 -- Preview features, plus the connection might not have been created.
 EXECUTE IMMEDIATE """
-CREATE OR REPLACE EXTERNAL TABLE `{{ params.project_id }}.{{ params.dataset_id }}.biglake_green_trips`
-WITH CONNECTION `{{ params.project_id }}.{{ params.region }}.biglake-connection`
-OPTIONS(uris=['gs://{{ params.bucket_name }}/processed/taxi-data/green/trips_table/parquet/year=2019/month=1/*.parquet'], format="PARQUET")
+CREATE OR REPLACE EXTERNAL TABLE `${project_id}.${bigquery_taxi_dataset}.biglake_green_trips`
+WITH CONNECTION `${project_id}.${bigquery_region}.biglake-connection`
+OPTIONS(uris=['gs://${bucket_name}/processed/taxi-data/green/trips_table/parquet/year=2019/month=1/*.parquet'], format="PARQUET")
 """;
 
 -- See ALL the data
 SELECT *
-  FROM `{{ params.project_id }}.{{ params.dataset_id }}.biglake_green_trips`;
+  FROM `${project_id}.${bigquery_taxi_dataset}.biglake_green_trips`;
 
 
 -- Query: Create an access policy so the admin (you) can only see pick up locations of 244
 CREATE OR REPLACE ROW ACCESS POLICY rap_green_trips_pu_244
-    ON `{{ params.project_id }}.{{ params.dataset_id }}.biglake_green_trips`
-    GRANT TO ("user:{{ params.gcp_account_name }}") -- This also works for groups: "group:my-group@altostrat.com"
+    ON `${project_id}.${bigquery_taxi_dataset}.biglake_green_trips`
+    GRANT TO ("user:${gcp_account_name}") -- This also works for groups: "group:my-group@altostrat.com"
 FILTER USING (PULocationID = 244);
 
 
 -- See just the data you are allowed to see
 SELECT *
-  FROM `{{ params.project_id }}.{{ params.dataset_id }}.biglake_green_trips`;
+  FROM `${project_id}.${bigquery_taxi_dataset}.biglake_green_trips`;
 
 
 -- Drop the policy
-DROP ALL ROW ACCESS POLICIES ON `{{ params.project_id }}.{{ params.dataset_id }}.biglake_green_trips`;
+DROP ALL ROW ACCESS POLICIES ON `${project_id}.${bigquery_taxi_dataset}.biglake_green_trips`;
 
 
 -- See all the data
 SELECT *
-  FROM `{{ params.project_id }}.{{ params.dataset_id }}.biglake_green_trips`;
+  FROM `${project_id}.${bigquery_taxi_dataset}.biglake_green_trips`;
 
-
-END

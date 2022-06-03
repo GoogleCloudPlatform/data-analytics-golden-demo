@@ -43,6 +43,17 @@ variable "spanner_config" {}
 variable "random_extension" {}
 variable "project_number" {}
 variable "deployment_service_account_name" {}
+variable "bigquery_region" {}
+
+# Hardcoded
+variable "bigquery_taxi_dataset" {
+  type        = string
+  default     = "taxi_dataset"
+}
+variable "bigquery_thelook_ecommerce_dataset" {
+  type        = string
+  default     = "thelook_ecommerce"
+}
 
 
 ####################################################################################
@@ -50,10 +61,18 @@ variable "deployment_service_account_name" {}
 # This is your "Data Lake" bucket
 # If you are using Dataplex you should create a bucket per data lake zone (bronze, silver, gold, etc.)
 ####################################################################################
-resource "google_storage_bucket" "main_bucket" {
+resource "google_storage_bucket" "raw_bucket" {
   project                     = var.project_id
-  name                        = var.storage_bucket
-  location                    = var.region
+  name                        = "raw-${var.storage_bucket}"
+  location                    = var.bigquery_region
+  force_destroy               = true
+  uniform_bucket_level_access = true
+}
+
+resource "google_storage_bucket" "processed_bucket" {
+  project                     = var.project_id
+  name                        = "processed-${var.storage_bucket}"
+  location                    = var.bigquery_region
   force_destroy               = true
   uniform_bucket_level_access = true
 }
@@ -276,12 +295,11 @@ resource "google_project_iam_member" "composer_service_account_worker_role" {
 
 
 # The DAGs will be doing a lot of BQ automation
-# This role can be scaled down once the DAGs are created
+# This role can be scaled down once the DAGs are created (the DAGS do high level Owner automation - just for demo purposes)
 resource "google_project_iam_member" "composer_service_account_bq_admin_role" {
   # provider= google.service_principal_impersonation
   project  = var.project_id
-  role     = "roles/editor"
-  #"roles/bigquery.admin"
+  role     = "roles/owner"
   member = "serviceAccount:${google_service_account.composer_service_account.email}"
 
   depends_on = [
@@ -292,7 +310,7 @@ resource "google_project_iam_member" "composer_service_account_bq_admin_role" {
 
 resource "google_composer_environment" "composer_env" {
   project  = var.project_id
-  name     = "bigquery-demo-composer-2"
+  name     = "data-analytics-demo-composer-2"
   region   = var.region
 
   config {
@@ -302,15 +320,19 @@ resource "google_composer_environment" "composer_env" {
       #"composer-2.0.7-airflow-2.2.3"
 
       env_variables = {
-        ENV_MAIN_BUCKET              = var.storage_bucket,
+        ENV_RAW_BUCKET               = "raw-${var.storage_bucket}",
+        ENV_PROCESSED_BUCKET         = "processed-${var.storage_bucket}",
         ENV_REGION                   = var.region,
         ENV_ZONE                     = var.zone,
         ENV_DATAPROC_BUCKET          = "dataproc-${var.storage_bucket}",
         ENV_DATAPROC_SUBNET          = "projects/${var.project_id}/regions/${var.region}/subnetworks/dataproc-subnet",
         ENV_DATAPROC_SERVICE_ACCOUNT = "dataproc-service-account@${var.project_id}.iam.gserviceaccount.com",
         ENV_GCP_ACCOUNT_NAME         = "${var.gcp_account_name}",
-        ENV_DATASET_ID               = google_bigquery_dataset.taxi_dataset.dataset_id,
-        ENV_SPANNER_INSTANCE_ID      = google_spanner_instance.spanner_instance.name
+        ENV_TAXI_DATASET_ID          = google_bigquery_dataset.taxi_dataset.dataset_id,
+        ENV_SPANNER_INSTANCE_ID      = google_spanner_instance.spanner_instance.name,
+        ENV_BIGQUERY_REGION          = var.bigquery_region,
+        ENV_DATAFLOW_SUBNET          = "regions/${var.region}/subnetworks/dataflow-subnet",
+        ENV_DATAFLOW_SERVICE_ACCOUNT = "dataflow-service-account@${var.project_id}.iam.gserviceaccount.com",
       }
     }
 
@@ -366,10 +388,41 @@ resource "google_composer_environment" "composer_env" {
 ####################################################################################
 resource "google_bigquery_dataset" "taxi_dataset" {
   project       = var.project_id
-  dataset_id    = "taxi_dataset"
-  friendly_name = "taxi_dataset"
+  dataset_id    = var.bigquery_taxi_dataset
+  friendly_name = var.bigquery_taxi_dataset
   description   = "This contains the NYC taxi data"
-  location      = var.region
+  location      = var.bigquery_region
+}
+
+resource "google_bigquery_dataset" "thelook_ecommerce_dataset" {
+  project       = var.project_id
+  dataset_id    = var.bigquery_thelook_ecommerce_dataset
+  friendly_name = var.bigquery_thelook_ecommerce_dataset
+  description   = "This contains the Looker eCommerce data"
+  location      = var.bigquery_region
+}
+
+# Temp work bucket for BigSpark
+resource "google_storage_bucket" "bigspark_bucket" {
+  project                     = var.project_id
+  name                        = "bigspark-${var.storage_bucket}"
+  location                    = var.bigquery_region
+  force_destroy               = true
+  uniform_bucket_level_access = true
+}
+
+# Subnet for dataflow cluster
+resource "google_compute_subnetwork" "bigspark_subnet" {
+  project                  = var.project_id
+  name                     = "bigspark-subnet"
+  ip_cidr_range            = "10.5.0.0/16"
+  region                   = "us-central1" # var.region - must be in central during preview
+  network                  = google_compute_network.default_network.id
+  private_ip_google_access = true
+
+  depends_on = [
+    google_compute_network.default_network,
+  ]
 }
 
 ####################################################################################
@@ -377,7 +430,7 @@ resource "google_bigquery_dataset" "taxi_dataset" {
 ####################################################################################
 resource "google_data_catalog_taxonomy" "business_critical_taxonomy" {
   project  = var.project_id
-  region   = var.region
+  region   = var.bigquery_region
   # Must be unique accross your Org
   display_name           = "Business-Critical-${var.random_extension}"
   description            = "A collection of policy tags"
@@ -540,6 +593,78 @@ resource "google_bigquery_table" "default" {
         "names": ["${google_data_catalog_policy_tag.low_security_policy_tag.id}"]
       }
   }     
+]
+EOF
+  depends_on = [
+    google_data_catalog_taxonomy.business_critical_taxonomy,
+    google_data_catalog_policy_tag.low_security_policy_tag,
+    google_data_catalog_policy_tag.high_security_policy_tag,
+  ]
+}
+
+
+resource "google_bigquery_table" "taxi_trips_streaming" {
+  project    = var.project_id
+  dataset_id = google_bigquery_dataset.taxi_dataset.dataset_id
+  table_id   = "taxi_trips_streaming"
+
+  time_partitioning {
+    field = "timestamp"
+    type = "HOUR"
+  }  
+
+  schema = <<EOF
+[
+  {
+    "name": "ride_id",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "point_idx",
+    "type": "INTEGER",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "latitude",
+    "type": "FLOAT64",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "longitude",
+    "type": "FLOAT64",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "timestamp",
+    "type": "TIMESTAMP",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "meter_reading",
+    "type": "FLOAT64",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "meter_increment",
+    "type": "FLOAT64",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "ride_status",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "passenger_count",
+    "type": "INTEGER",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "product_id",
+    "type": "INTEGER",
+    "mode": "NULLABLE"
+  } 
 ]
 EOF
   depends_on = [

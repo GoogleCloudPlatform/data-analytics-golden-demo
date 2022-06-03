@@ -1,7 +1,3 @@
-CREATE OR REPLACE PROCEDURE `{{ params.project_id }}.{{ params.dataset_id }}.sp_demo_materialized_views_joins`()
-OPTIONS(strict_mode=FALSE)
-BEGIN
-
 /*##################################################################################
 # Copyright 2022 Google LLC
 #
@@ -34,8 +30,8 @@ Reference:
     - https://cloud.google.com/bigquery/docs/materialized-views
 
 Clean up / Reset script:
-    DROP MATERIALIZED VIEW IF EXISTS `{{ params.project_id }}.{{ params.dataset_id }}.mv_taxi_tips_totals`;
-    DROP MATERIALIZED VIEW IF EXISTS `{{ params.project_id }}.{{ params.dataset_id }}.mv_taxi_trips_by_location`;
+    DROP MATERIALIZED VIEW IF EXISTS `${project_id}.${bigquery_taxi_dataset}.mv_taxi_tips_totals`;
+    DROP MATERIALIZED VIEW IF EXISTS `${project_id}.${bigquery_taxi_dataset}.mv_taxi_trips_by_location`;
 */
 
 -- Query 1: Sum the yellow taxi data
@@ -50,8 +46,8 @@ SELECT vendor.Vendor_Description,
        SUM(taxi_trips.Improvement_Surcharge)      AS Total_Improvement_Surcharge,
        SUM(taxi_trips.Congestion_Surcharge)       AS Total_Congestion_Surcharge,
        SUM(taxi_trips.Total_Amount)               AS Total_Total_Amount 
-  FROM `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips` AS taxi_trips
-       INNER JOIN `{{ params.project_id }}.{{ params.dataset_id }}.vendor` AS vendor
+  FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips` AS taxi_trips
+       INNER JOIN `${project_id}.${bigquery_taxi_dataset}.vendor` AS vendor
                ON taxi_trips.Vendor_Id = vendor.Vendor_Id
  WHERE CAST(taxi_trips.Pickup_DateTime AS DATE) BETWEEN '2019-05-01' AND '2020-06-18'
  GROUP BY vendor.Vendor_Description, CAST(taxi_trips.Pickup_DateTime AS DATE);
@@ -60,9 +56,9 @@ SELECT vendor.Vendor_Description,
 
 -- Query 2:  Create a materialize view that does a JOIN
 -- Same set of data as Query 1
-DROP MATERIALIZED VIEW IF EXISTS `{{ params.project_id }}.{{ params.dataset_id }}.mv_taxi_tips_totals`;
+DROP MATERIALIZED VIEW IF EXISTS `${project_id}.${bigquery_taxi_dataset}.mv_taxi_tips_totals`;
 
-CREATE MATERIALIZED VIEW `{{ params.project_id }}.{{ params.dataset_id }}.mv_taxi_tips_totals` AS
+CREATE MATERIALIZED VIEW `${project_id}.${bigquery_taxi_dataset}.mv_taxi_tips_totals` AS
 SELECT vendor.Vendor_Description, 
        CAST(taxi_trips.Pickup_DateTime AS DATE)   AS Pickup_Date,
        SUM(taxi_trips.Fare_Amount)                AS Fare_Amount,
@@ -73,8 +69,8 @@ SELECT vendor.Vendor_Description,
        SUM(taxi_trips.Improvement_Surcharge)      AS Improvement_Surcharge,
        SUM(taxi_trips.Congestion_Surcharge)       AS Congestion_Surcharge,
        SUM(taxi_trips.Total_Amount)               AS Total_Amount 
-  FROM `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips` AS taxi_trips
-       INNER JOIN `{{ params.project_id }}.{{ params.dataset_id }}.vendor` AS vendor
+  FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips` AS taxi_trips
+       INNER JOIN `${project_id}.${bigquery_taxi_dataset}.vendor` AS vendor
                ON taxi_trips.Vendor_Id = vendor.Vendor_Id
 GROUP BY 1, 2;
 
@@ -97,7 +93,7 @@ SELECT Vendor_Description,
        SUM(Improvement_Surcharge)      AS Total_Improvement_Surcharge,
        SUM(Congestion_Surcharge)       AS Total_Congestion_Surcharge,
        SUM(Total_Amount)               AS Total_Total_Amount 
-  FROM `{{ params.project_id }}.{{ params.dataset_id }}.mv_taxi_tips_totals`
+  FROM `${project_id}.${bigquery_taxi_dataset}.mv_taxi_tips_totals`
  WHERE Pickup_Date BETWEEN '2019-06-01' AND '2020-06-27'
  GROUP BY 1,2;
 
@@ -105,7 +101,7 @@ SELECT Vendor_Description,
 -- Query 5: Same as Query 1 (with different dates to avoid caching)
 -- This statement will be re-written automatically by BigQuery to use the materialized view under the covers.
 -- Note the query time (e.g. Query complete (0.5 sec elapsed, 170 KB processed))
--- If you click on Execution details and looks at S03 Join+, you should see the READ is from "FROM {{ params.project_id }}.{{ params.dataset_id }}.mv_taxi_tips_totals"
+-- If you click on Execution details and looks at S03 Join+, you should see the READ is from "FROM ${project_id}.${bigquery_taxi_dataset}.mv_taxi_tips_totals"
 -- This means you can create materialized views and your users can benefit without having to find, alter and deploy their SQL statement to directly point at the materialized view.
 SELECT vendor.Vendor_Description, 
        CAST(taxi_trips.Pickup_DateTime AS DATE)   AS Pickup_Date,
@@ -117,8 +113,8 @@ SELECT vendor.Vendor_Description,
        SUM(taxi_trips.Improvement_Surcharge)      AS Total_Improvement_Surcharge,
        SUM(taxi_trips.Congestion_Surcharge)       AS Total_Congestion_Surcharge,
        SUM(taxi_trips.Total_Amount)               AS Total_Total_Amount 
-  FROM `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips` AS taxi_trips
-       INNER JOIN `{{ params.project_id }}.{{ params.dataset_id }}.vendor` AS vendor
+  FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips` AS taxi_trips
+       INNER JOIN `${project_id}.${bigquery_taxi_dataset}.vendor` AS vendor
                ON taxi_trips.Vendor_Id = vendor.Vendor_Id
  WHERE CAST(taxi_trips.Pickup_DateTime AS DATE) BETWEEN '2019-05-02' AND '2020-06-24'
  GROUP BY vendor.Vendor_Description, CAST(taxi_trips.Pickup_DateTime AS DATE);
@@ -131,19 +127,18 @@ SELECT vendor.Vendor_Description,
 ------------------------------------------------------------------------------
 
 -- Query: 
-DROP MATERIALIZED VIEW IF EXISTS `{{ params.project_id }}.{{ params.dataset_id }}.mv_taxi_trips_by_location`;
+DROP MATERIALIZED VIEW IF EXISTS `${project_id}.${bigquery_taxi_dataset}.mv_taxi_trips_by_location`;
 
-CREATE MATERIALIZED VIEW `{{ params.project_id }}.{{ params.dataset_id }}.mv_taxi_trips_by_location`
+CREATE MATERIALIZED VIEW `${project_id}.${bigquery_taxi_dataset}.mv_taxi_trips_by_location`
 CLUSTER BY PULocationID, DOLocationID
 AS SELECT *
-    FROM `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips` ;
+    FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips` ;
     
 CALL BQ.REFRESH_MATERIALIZED_VIEW("taxi_dataset.mv_taxi_trips_by_location");
 
 -- Test
 SELECT PULocationID, DOLocationID, Fare_Amount
-  FROM `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips` 
+  FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips` 
  WHERE PULocationID = 74
    AND DOLocationID = 233;
 
-END

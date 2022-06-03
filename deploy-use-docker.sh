@@ -18,14 +18,13 @@
 
 ####################################################################################
 # README: This script will use the standard docker container for deployment
-#         This will run the "terraform-local" folder entrypoint (uses service account impersonation)
+#         This will run the "terraform" folder entrypoint (uses service account impersonation)
 #         This will create a new GCP project in Terraform
 # NOTE:   You need to have run "souce deploy-terraform-seed-account.sh" to generate the Terraform Service Account
 # TO RUN: "source deploy-use-docker.sh"
 ####################################################################################
 
 
-# Login to GCP (make sure you are in the correct browser, this is your Admin account or an IT admin)
 # Login to GCP by running BOTH below gcloud auth commands (you only need to do this once which is why they are commented out)
 #      These command are not needed when running from a Cloud Shell
 # gcloud auth login
@@ -36,6 +35,24 @@ gcp_account_name=$(gcloud auth list --filter=status:ACTIVE --format="value(accou
 
 # Get the Org Id (needed for org policies and creating the GCP project)
 org_id=$(gcloud organizations list --format="value(name)")
+if [ -z "${org_id}" ]
+then
+  echo "Org Id could not be automatically read."
+  echo "Open this link: https://console.cloud.google.com/cloud-resource-manager/ and copy your org id."
+  echo "Your org id will be in the format of xxxxxxxxxxxx"
+  read -p "Please enter your org id:" org_id
+else
+  org_id_length=$(echo -n "${org_id}" | wc -m)
+  org_id_length_int=$(expr ${org_id_length} + 0)
+  if [ ${org_id_length_int} != 12 ]
+  then
+    echo "You have more than one org id, please manually enter the correct one."
+    echo "Your org id will be in the format of xxxxxxxxxxxx"
+    read -p "Please enter your org id:" billing_account
+  else
+    echo "Org Id was automatically retreived."
+  fi
+fi
 
 # Get the Billing Account (needed for creating the GCP project)
 billing_account=$(gcloud beta billing accounts list --format="value(ACCOUNT_ID)")
@@ -46,7 +63,16 @@ then
   echo "Your billing account will be in the format of xxxxxx-xxxxxx-xxxxxx"
   read -p "Please enter your billing account:" billing_account
 else
-  echo "Billing Account was automatically retreived."
+  billing_account_length=$(echo -n "${billing_account}" | wc -m)
+  billing_account_length_int=$(expr ${billing_account_length} + 0)
+  if [ ${billing_account_length_int} != 20 ]
+  then
+    echo "You have more than one billing account, please manually enter the correct one."
+    echo "Your billing account will be in the format of xxxxxx-xxxxxx-xxxxxx"
+    read -p "Please enter your billing account:" billing_account
+  else
+    echo "Billing Account was automatically retreived."
+  fi
 fi
 
 
@@ -93,27 +119,27 @@ echo "*********************************************************"
 ####################################################################################
 
 # Initialize Terraform
-docker run -it --entrypoint terraform -v $PWD:$PWD -w $PWD/terraform-local terraform-deploy-image init
+docker run -it --entrypoint terraform -v $PWD:$PWD -w $PWD/terraform terraform-deploy-image init
 
 # Validate
-docker run -it --entrypoint terraform -v $PWD:$PWD -w $PWD/terraform-local terraform-deploy-image validate 
+docker run -it --entrypoint terraform -v $PWD:$PWD -w $PWD/terraform terraform-deploy-image validate 
 
-echo "docker run -it --entrypoint terraform --volume $PWD:$PWD --workdir $PWD/terraform-local --env GOOGLE_APPLICATION_CREDENTIALS=\"${keyFile}\" terraform-deploy-image apply -var=\"gcp_account_name=${gcp_account_name}\" -var=\"project_id=bigquery-demo\" -var=\"billing_account=${billing_account}\" -var=\"org_id=${org_id}\" -var=\"deployment_service_account_name=${deployment_service_account_name}\""
+echo "docker run -it --entrypoint terraform --volume $PWD:$PWD --workdir $PWD/terraform --env GOOGLE_APPLICATION_CREDENTIALS=\"${keyFile}\" terraform-deploy-image apply -var=\"gcp_account_name=${gcp_account_name}\" -var=\"project_id=data-analytics-demo\" -var=\"billing_account=${billing_account}\" -var=\"org_id=${org_id}\" -var=\"deployment_service_account_name=${deployment_service_account_name}\""
 
 # Run the Terraform Apply
 docker run -it \
   --entrypoint terraform \
   --volume $PWD:$PWD \
-  --workdir $PWD/terraform-local \
+  --workdir $PWD/terraform \
   --env GOOGLE_APPLICATION_CREDENTIALS="${keyFile}" \
   terraform-deploy-image apply \
   -var="gcp_account_name=${gcp_account_name}" \
-  -var="project_id=bigquery-demo" \
+  -var="project_id=data-analytics-demo" \
   -var="billing_account=${billing_account}" \
   -var="org_id=${org_id}" \
   -var="deployment_service_account_name=${deployment_service_account_name}"
 
-echo "docker run -it --entrypoint terraform --volume $PWD:$PWD --workdir $PWD/terraform-local --env GOOGLE_APPLICATION_CREDENTIALS=\"${keyFile}\" terraform-deploy-image apply -var=\"gcp_account_name=${gcp_account_name}\" -var=\"project_id=bigquery-demo\" -var=\"billing_account=${billing_account}\" -var=\"org_id=${org_id}\" -var=\"deployment_service_account_name=${deployment_service_account_name}\""
+echo "docker run -it --entrypoint terraform --volume $PWD:$PWD --workdir $PWD/terraform --env GOOGLE_APPLICATION_CREDENTIALS=\"${keyFile}\" terraform-deploy-image apply -var=\"gcp_account_name=${gcp_account_name}\" -var=\"project_id=data-analytics-demo\" -var=\"billing_account=${billing_account}\" -var=\"org_id=${org_id}\" -var=\"deployment_service_account_name=${deployment_service_account_name}\""
 
 
 # Disable the key

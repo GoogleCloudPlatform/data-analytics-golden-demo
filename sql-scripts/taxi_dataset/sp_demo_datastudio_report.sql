@@ -1,8 +1,3 @@
-
-CREATE OR REPLACE PROCEDURE `{{ params.project_id }}.{{ params.dataset_id }}.sp_demo_datastudio_report`()
-OPTIONS(strict_mode=FALSE)
-BEGIN
-
 /*##################################################################################
 # Copyright 2022 Google LLC
 #
@@ -38,10 +33,37 @@ Description:
 Reference:
     - 
 Clean up / Reset script:
-    DROP TABLE IF EXISTS `{{ params.project_id }}.{{ params.dataset_id }}.datastudio_report`;
+    DROP TABLE IF EXISTS `${project_id}.${bigquery_taxi_dataset}.datastudio_report`;
 */
 
-CREATE OR REPLACE TABLE `{{ params.project_id }}.{{ params.dataset_id }}.datastudio_report` 
+/* Not used - You could use a materialized view for your reporting.  Or you can create the view and BigQuery can then use it under the covers (when you query the raw table)
+
+DROP MATERIALIZED VIEW IF EXISTS `${project_id}.${bigquery_taxi_dataset}.mv_datastudio_report` ;
+
+CREATE OR REPLACE MATERIALIZED VIEW `${project_id}.${bigquery_taxi_dataset}.mv_datastudio_report` 
+AS 
+SELECT taxi_trips.TaxiCompany,
+       EXTRACT(YEAR FROM  taxi_trips.Pickup_DateTime)            AS Year,
+       EXTRACT(WEEK FROM  Pickup_DateTime)                       AS WeekNumber,
+       CONCAT('Week ',FORMAT("%02d", 
+               EXTRACT(WEEK FROM taxi_trips. Pickup_DateTime)))  AS WeekName,
+       COUNT(1)                            AS NumberOfRides,
+       AVG(taxi_trips.Trip_Distance)                             AS AvgDistance,
+       SUM(taxi_trips.Fare_Amount)                               AS Total_Fare_Amount,
+       SUM(taxi_trips.Surcharge)                                 AS Total_Surcharge,
+       SUM(taxi_trips.MTA_Tax)                                   AS Total_MTA_Tax,
+       SUM(taxi_trips.Tolls_Amount)                              AS Total_Tolls_Amount,
+       SUM(taxi_trips.Improvement_Surcharge)                     AS Total_Improvement_Surcharge,
+       SUM(taxi_trips.Congestion_Surcharge)                      AS Total_Congestion_Surcharge,
+       SUM(taxi_trips.Tip_Amount)                                AS Total_Tip_Amount,
+       SUM(taxi_trips.Total_Amount)                              AS Total_Total_Amount
+  FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips` AS taxi_trips
+ WHERE taxi_trips.Payment_Type_Id IN (1,2,3,4)
+ GROUP BY 1, 2, 3, 4;
+*/
+
+
+CREATE OR REPLACE TABLE `${project_id}.${bigquery_taxi_dataset}.datastudio_report` 
 AS 
 WITH TaxiData AS
 (
@@ -61,7 +83,7 @@ SELECT TaxiCompany,
        SUM(Congestion_Surcharge)                   AS Total_Congestion_Surcharge,
        SUM(Tip_Amount)                             AS Total_Tip_Amount,
        SUM(Total_Amount)                           AS Total_Total_Amount
-  FROM `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips` AS taxi_trips
+  FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips` AS taxi_trips
  WHERE Pickup_DateTime BETWEEN '2015-01-01' AND '2021-12-31'  -- There is odd data in some of the source files from NYC
  GROUP BY 1, 2, 3, 4, 5
 ) 
@@ -136,32 +158,3 @@ SELECT TaxiCompany,
 SELECT *
   FROM PercentChange
 ORDER BY GroupPartition;
-
-
-/* Not used - You could use a materialized view for your reporting.  Or you can create the view and BigQuery can then use it under the covers (when you query the raw table)
-
-DROP MATERIALIZED VIEW IF EXISTS `{{ params.project_id }}.{{ params.dataset_id }}.mv_datastudio_report` ;
-
-CREATE OR REPLACE MATERIALIZED VIEW `{{ params.project_id }}.{{ params.dataset_id }}.mv_datastudio_report` 
-AS 
-SELECT taxi_trips.TaxiCompany,
-       EXTRACT(YEAR FROM  taxi_trips.Pickup_DateTime)            AS Year,
-       EXTRACT(WEEK FROM  Pickup_DateTime)                       AS WeekNumber,
-       CONCAT('Week ',FORMAT("%02d", 
-               EXTRACT(WEEK FROM taxi_trips. Pickup_DateTime)))  AS WeekName,
-       COUNT(1)                            AS NumberOfRides,
-       AVG(taxi_trips.Trip_Distance)                             AS AvgDistance,
-       SUM(taxi_trips.Fare_Amount)                               AS Total_Fare_Amount,
-       SUM(taxi_trips.Surcharge)                                 AS Total_Surcharge,
-       SUM(taxi_trips.MTA_Tax)                                   AS Total_MTA_Tax,
-       SUM(taxi_trips.Tolls_Amount)                              AS Total_Tolls_Amount,
-       SUM(taxi_trips.Improvement_Surcharge)                     AS Total_Improvement_Surcharge,
-       SUM(taxi_trips.Congestion_Surcharge)                      AS Total_Congestion_Surcharge,
-       SUM(taxi_trips.Tip_Amount)                                AS Total_Tip_Amount,
-       SUM(taxi_trips.Total_Amount)                              AS Total_Total_Amount
-  FROM `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips` AS taxi_trips
- WHERE taxi_trips.Payment_Type_Id IN (1,2,3,4)
- GROUP BY 1, 2, 3, 4;
-*/
-
-END

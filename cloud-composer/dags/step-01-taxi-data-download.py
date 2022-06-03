@@ -38,13 +38,13 @@ default_args = {
     'email': None,
     'email_on_failure': False,
     'email_on_retry': False,
-    'retries': 1,
+    'retries': 0,
     'retry_delay': timedelta(minutes=5),
     'dagrun_timeout' : timedelta(minutes=60),
 }
 
 project_id            = os.environ['GCP_PROJECT'] 
-raw_bucket_name       = os.environ['ENV_MAIN_BUCKET'] 
+raw_bucket_name       = os.environ['ENV_RAW_BUCKET'] 
 
 
 # Download Taxi data from the internet

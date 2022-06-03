@@ -1,7 +1,3 @@
-CREATE OR REPLACE PROCEDURE `{{ params.project_id }}.{{ params.dataset_id }}.sp_demo_bigquery_pricing`()
-OPTIONS(strict_mode=FALSE)
-BEGIN
-
 /*##################################################################################
 # Copyright 2022 Google LLC
 #
@@ -43,9 +39,9 @@ Reference:
     - Buy Flex Slots: https://cloud.google.com/bigquery/docs/reservations-get-started
 
 Clean up / Reset script:
-    DROP ASSIGNMENT  `{{ params.project_id }}.region-{{ params.region }}.demo-reservation-flex-100.demo-assignment-flex-100`;
-    DROP RESERVATION `{{ params.project_id }}.region-{{ params.region }}.demo-reservation-flex-100`;
-    DROP CAPACITY    `{{ params.project_id }}.region-{{ params.region }}.demo-commitment-flex-100`;
+    DROP ASSIGNMENT  `${project_id}.region-${bigquery_region}.demo-reservation-flex-100.demo-assignment-flex-100`;
+    DROP RESERVATION `${project_id}.region-${bigquery_region}.demo-reservation-flex-100`;
+    DROP CAPACITY    `${project_id}.region-${bigquery_region}.demo-commitment-flex-100`;
 */
 
 -- Query 1: Compute the price for the past 5 days per user using retail costs $5 per TB scanned
@@ -59,7 +55,7 @@ SELECT project_id,
        SUM(total_bytes_billed) AS total_bytes_billed,
        -- 5 / 1,099,511,627,776 = 0.00000000000454747350886464 ($5 per TB so cost per byte is 0.00000000000454747350886464)
        CAST(SUM(total_bytes_billed) AS BIGDECIMAL) * CAST(0.00000000000454747350886464 AS BIGDECIMAL) as est_cost
-  FROM `region-{{ params.region }}`.INFORMATION_SCHEMA.JOBS_BY_PROJECT
+  FROM `region-${bigquery_region}`.INFORMATION_SCHEMA.JOBS_BY_PROJECT
  WHERE creation_time BETWEEN TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 5 DAY) AND CURRENT_TIMESTAMP()
    AND end_time      BETWEEN TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 1 DAY) AND CURRENT_TIMESTAMP()
 GROUP BY project_id, user_email, job_type, reservation_id, EXTRACT(DATE FROM  creation_time);
@@ -70,14 +66,14 @@ GROUP BY project_id, user_email, job_type, reservation_id, EXTRACT(DATE FROM  cr
 -- You must DROP this to avoid getting charged for the slots! ($2,920 for a month)
 -- 100 slots for 1 hour is $4.00/hour.  This is fine for a demo.  You will only use for 5 minutes so not a large expense.
 -- You must wait 60 seconds in order to DROP this capacity
-CREATE CAPACITY `{{ params.project_id }}.region-{{ params.region }}.demo-commitment-flex-100`
+CREATE CAPACITY `${project_id}.region-${bigquery_region}.demo-commitment-flex-100`
     AS JSON """{
         "slot_count": 100,
         "plan": "FLEX"
         }""" ;
 
 -- Query 3: Create a Reservervation from the overall Capacity.  You can have many reservations for your capacity.
-CREATE RESERVATION `{{ params.project_id }}.region-{{ params.region }}.demo-reservation-flex-100`
+CREATE RESERVATION `${project_id}.region-${bigquery_region}.demo-reservation-flex-100`
     AS JSON """{
         "slot_capacity": 100
         }""";
@@ -86,9 +82,9 @@ CREATE RESERVATION `{{ params.project_id }}.region-{{ params.region }}.demo-rese
 -- Query 4: Assign the reservation to a project
 -- Assignments can be done at the project, folder or organization level.  This lets you create
 -- workload managements assigments for various divsions or workloads in your company 
-CREATE ASSIGNMENT `{{ params.project_id }}.region-{{ params.region }}.demo-reservation-flex-100.demo-assignment-flex-100`
+CREATE ASSIGNMENT `${project_id}.region-${bigquery_region}.demo-reservation-flex-100.demo-assignment-flex-100`
     AS JSON """{
-        "assignee": "projects/{{ params.project_id }}",
+        "assignee": "projects/${project_id}",
         "job_type": "QUERY"
         }""";
 
@@ -97,12 +93,12 @@ CREATE ASSIGNMENT `{{ params.project_id }}.region-{{ params.region }}.demo-reser
 -- When you create a reservation assignment, wait at least several minutes before running a query. 
 -- Both queries must return results in order to continue
 SELECT *
-  FROM `region-{{ params.region }}.INFORMATION_SCHEMA.CAPACITY_COMMITMENTS_BY_PROJECT`
- WHERE project_id = '{{ params.project_id }}';
+  FROM `region-${bigquery_region}.INFORMATION_SCHEMA.CAPACITY_COMMITMENTS_BY_PROJECT`
+ WHERE project_id = '${project_id}';
 
 SELECT *
-  FROM `region-{{ params.region }}.INFORMATION_SCHEMA.ASSIGNMENTS_BY_PROJECT`
- WHERE project_id = '{{ params.project_id }}';
+  FROM `region-${bigquery_region}.INFORMATION_SCHEMA.ASSIGNMENTS_BY_PROJECT`
+ WHERE project_id = '${project_id}';
 
 
 -- Query 6: Run any query just so we can then check the billing tables
@@ -110,8 +106,8 @@ SELECT taxi_trips.TaxiCompany,
        vendor.Vendor_Description, 
        CAST(taxi_trips.Pickup_DateTime AS DATE)   AS Pickup_Date,
         SUM(taxi_trips.Total_Amount)               AS Total_Total_Amount 
-  FROM `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips` AS taxi_trips
-       INNER JOIN `{{ params.project_id }}.{{ params.dataset_id }}.vendor` AS vendor
+  FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips` AS taxi_trips
+       INNER JOIN `${project_id}.${bigquery_taxi_dataset}.vendor` AS vendor
                ON taxi_trips.Vendor_Id = vendor.Vendor_Id
               AND CAST(taxi_trips.Pickup_DateTime AS DATE) BETWEEN '2019-05-01' AND '2020-06-20'
  GROUP BY taxi_trips.TaxiCompany, vendor.Vendor_Description, CAST(taxi_trips.Pickup_DateTime AS DATE);
@@ -127,7 +123,7 @@ SELECT project_id,
        SUM(total_bytes_billed) AS total_bytes_billed,
        -- 5 / 1,099,511,627,776 = 0.00000000000454747350886464 ($5 per TB so cost per byte is 0.00000000000454747350886464)
        CAST(SUM(total_bytes_billed) AS BIGDECIMAL) * CAST(0.00000000000454747350886464 AS BIGDECIMAL) as est_cost
-  FROM `region-{{ params.region }}`.INFORMATION_SCHEMA.JOBS_BY_PROJECT
+  FROM `region-${bigquery_region}`.INFORMATION_SCHEMA.JOBS_BY_PROJECT
  WHERE creation_time BETWEEN TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 5 DAY) AND CURRENT_TIMESTAMP()
    AND end_time      BETWEEN TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 1 DAY) AND CURRENT_TIMESTAMP()
  GROUP BY project_id, user_email, job_type, reservation_id, EXTRACT(DATE FROM  creation_time);
@@ -143,7 +139,7 @@ SELECT project_id,
        -- 5 / 1,099,511,627,776 = 0.00000000000454747350886464 ($5 per TB so cost per byte is 0.00000000000454747350886464)
        CAST(total_bytes_billed AS BIGDECIMAL) * CAST(0.00000000000454747350886464 AS BIGDECIMAL) as est_cost,
        query
-FROM `region-{{ params.region }}`.INFORMATION_SCHEMA.JOBS_BY_PROJECT
+FROM `region-${bigquery_region}`.INFORMATION_SCHEMA.JOBS_BY_PROJECT
 WHERE EXTRACT(DATE FROM  creation_time) BETWEEN  DATE_SUB(current_date(), INTERVAL 10 DAY)  AND  current_date()
 ORDER BY 7  DESC;
 
@@ -155,9 +151,7 @@ ORDER BY 7  DESC;
 -- ******************************************************************************************
 -- IMPORTANT!  IMPORTANT!  IMPORTANT!  IMPORTANT!  IMPORTANT!  IMPORTANT!  IMPORTANT!  
 -- ******************************************************************************************
-DROP ASSIGNMENT  `{{ params.project_id }}.region-{{ params.region }}.demo-reservation-flex-100.demo-assignment-flex-100`;
-DROP RESERVATION `{{ params.project_id }}.region-{{ params.region }}.demo-reservation-flex-100`;
-DROP CAPACITY    `{{ params.project_id }}.region-{{ params.region }}.demo-commitment-flex-100`;
+DROP ASSIGNMENT  `${project_id}.region-${bigquery_region}.demo-reservation-flex-100.demo-assignment-flex-100`;
+DROP RESERVATION `${project_id}.region-${bigquery_region}.demo-reservation-flex-100`;
+DROP CAPACITY    `${project_id}.region-${bigquery_region}.demo-commitment-flex-100`;
 
-
-END

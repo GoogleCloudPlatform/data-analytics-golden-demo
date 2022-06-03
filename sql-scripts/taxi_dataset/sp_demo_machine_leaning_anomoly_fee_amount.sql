@@ -1,7 +1,3 @@
-CREATE OR REPLACE PROCEDURE `{{ params.project_id }}.{{ params.dataset_id }}.sp_demo_machine_leaning_anomoly_fee_amount`()
-OPTIONS(strict_mode=FALSE)
-BEGIN
-
 /*##################################################################################
 # Copyright 2022 Google LLC
 #
@@ -39,9 +35,9 @@ Reference:
     - https://cloud.google.com/blog/products/data-analytics/bigquery-ml-unsupervised-anomaly-detection
 
 Clean up / Reset script:
-    DROP TABLE IF EXISTS `{{ params.project_id }}.{{ params.dataset_id }}.train_model_predict_anomoly`;
-    DROP MODEL IF EXISTS `{{ params.project_id }}.{{ params.dataset_id }}.model_predict_anomoly_v1`;
-    DROP MODEL IF EXISTS `{{ params.project_id }}.{{ params.dataset_id }}.model_predict_anomoly_v2`;    
+    DROP TABLE IF EXISTS `${project_id}.${bigquery_taxi_dataset}.train_model_predict_anomoly`;
+    DROP MODEL IF EXISTS `${project_id}.${bigquery_taxi_dataset}.model_predict_anomoly_v1`;
+    DROP MODEL IF EXISTS `${project_id}.${bigquery_taxi_dataset}.model_predict_anomoly_v2`;    
 */
 
 /*
@@ -55,7 +51,7 @@ Not modeling these:
 - Plus $1.00 rush hour surcharge from 4pm to 8pm on weekdays, excluding holidays.
 */
 
-CREATE OR REPLACE TABLE `{{ params.project_id }}.{{ params.dataset_id }}.train_model_predict_anomoly` AS 
+CREATE OR REPLACE TABLE `${project_id}.${bigquery_taxi_dataset}.train_model_predict_anomoly` AS 
 SELECT GENERATE_UUID() AS generated_primary_key, -- so we can match our scoring data
        CONCAT(CAST(PULocationID AS STRING),'-',CAST(DOLocationID AS STRING)) AS Trip,       
        TIMESTAMP_DIFF(Dropoff_DateTime, Pickup_DateTime, MINUTE) AS DurationMinutes,
@@ -69,7 +65,7 @@ SELECT GENERATE_UUID() AS generated_primary_key, -- so we can match our scoring 
        CAST(NULL AS FLOAT64) AS predicted_v2_normalized_distance,
        CAST(NULL AS INT)     AS predicted_v2_CENTROID_ID
 
-   FROM `{{ params.project_id }}.{{ params.dataset_id }}.taxi_trips` AS taxi_trips
+   FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips` AS taxi_trips
   WHERE taxi_trips.TaxiCompany = 'Yellow'
     AND (
           --(PULocationID = 264 AND DOLocationID = 264) OR
@@ -84,7 +80,7 @@ SELECT GENERATE_UUID() AS generated_primary_key, -- so we can match our scoring 
 
 
 -- VERSION 1: Train k-mean (for clustering and anomoly detection)
-CREATE OR REPLACE MODEL `{{ params.project_id }}.{{ params.dataset_id }}.model_predict_anomoly_v1`
+CREATE OR REPLACE MODEL `${project_id}.${bigquery_taxi_dataset}.model_predict_anomoly_v1`
 OPTIONS(
   MODEL_TYPE = 'kmeans',
   KMEANS_INIT_METHOD = 'kmeans++',
@@ -94,20 +90,20 @@ SELECT Trip,
        DurationMinutes,
        Trip_Distance,
        Fare_Amount
-  FROM `{{ params.project_id }}.{{ params.dataset_id }}.train_model_predict_anomoly`;
+  FROM `${project_id}.${bigquery_taxi_dataset}.train_model_predict_anomoly`;
 
 
 -- NOTE: These commmands are dynamic.  strict_mode still checks for models existing
 -- VERSION 1: Predict the Cluster
 EXECUTE IMMEDIATE """
 SELECT *
-  FROM ML.PREDICT (MODEL `{{ params.project_id }}.{{ params.dataset_id }}.model_predict_anomoly_v1`,
+  FROM ML.PREDICT (MODEL `${project_id}.${bigquery_taxi_dataset}.model_predict_anomoly_v1`,
                   (SELECT generated_primary_key,
                           Trip,
                           DurationMinutes,
                           Trip_Distance,
                           Fare_Amount
-                    FROM `{{ params.project_id }}.{{ params.dataset_id }}.train_model_predict_anomoly`
+                    FROM `${project_id}.${bigquery_taxi_dataset}.train_model_predict_anomoly`
                     LIMIT 1000
                    ));
 """;
@@ -115,14 +111,14 @@ SELECT *
 -- VERSION 1: Predict Anomolies
 EXECUTE IMMEDIATE """
 SELECT *
-  FROM ML.DETECT_ANOMALIES (MODEL `{{ params.project_id }}.{{ params.dataset_id }}.model_predict_anomoly_v1`,
+  FROM ML.DETECT_ANOMALIES (MODEL `${project_id}.${bigquery_taxi_dataset}.model_predict_anomoly_v1`,
                             STRUCT(.2 AS contamination),
                             (SELECT generated_primary_key,
                                     Trip,
                                     DurationMinutes,
                                     Trip_Distance,
                                     Fare_Amount
-                               FROM `{{ params.project_id }}.{{ params.dataset_id }}.train_model_predict_anomoly`
+                               FROM `${project_id}.${bigquery_taxi_dataset}.train_model_predict_anomoly`
                               LIMIT 1000
                             ))
  WHERE is_anomaly = TRUE;    
@@ -130,19 +126,19 @@ SELECT *
 
 -- VERSION 1: Score all the data (detect anomalies and set the normalized distence/centriod)
 EXECUTE IMMEDIATE """
-UPDATE `{{ params.project_id }}.{{ params.dataset_id }}.train_model_predict_anomoly` AS train_model_predict_anomoly
+UPDATE `${project_id}.${bigquery_taxi_dataset}.train_model_predict_anomoly` AS train_model_predict_anomoly
    SET predicted_v1_is_anomaly          = ScoredData.is_anomaly,
        predicted_v1_normalized_distance = ScoredData.normalized_distance,
        predicted_v1_CENTROID_ID         = CENTROID_ID
   FROM (SELECT *
-         FROM ML.DETECT_ANOMALIES (MODEL `{{ params.project_id }}.{{ params.dataset_id }}.model_predict_anomoly_v1`,
+         FROM ML.DETECT_ANOMALIES (MODEL `${project_id}.${bigquery_taxi_dataset}.model_predict_anomoly_v1`,
                                    STRUCT(.2 AS contamination),
                                    (SELECT generated_primary_key,  -- for matching to source data
                                            Trip,
                                            DurationMinutes,
                                            Trip_Distance,
                                            Fare_Amount
-                                      FROM `{{ params.project_id }}.{{ params.dataset_id }}.train_model_predict_anomoly`))) AS ScoredData
+                                      FROM `${project_id}.${bigquery_taxi_dataset}.train_model_predict_anomoly`))) AS ScoredData
  WHERE ScoredData.generated_primary_key = train_model_predict_anomoly.generated_primary_key;
 """;
 
@@ -151,7 +147,7 @@ UPDATE `{{ params.project_id }}.{{ params.dataset_id }}.train_model_predict_anom
 --------------------------------------------------------------------------------------------------
 
 -- VERSION 2: Train k-mean (for clustering and anomoly detection)
-CREATE OR REPLACE MODEL `{{ params.project_id }}.{{ params.dataset_id }}.model_predict_anomoly_v2`
+CREATE OR REPLACE MODEL `${project_id}.${bigquery_taxi_dataset}.model_predict_anomoly_v2`
 OPTIONS(
   MODEL_TYPE = 'kmeans',
   NUM_CLUSTERS = 10,                -- DIFFERENT
@@ -162,20 +158,20 @@ SELECT Trip,
        DurationMinutes,
        Trip_Distance,
        Fare_Amount
-  FROM `{{ params.project_id }}.{{ params.dataset_id }}.train_model_predict_anomoly`;
+  FROM `${project_id}.${bigquery_taxi_dataset}.train_model_predict_anomoly`;
 
 
 -- NOTE: These commmands are dynamice.  strict_mode still checks for models existing
 -- VERSION 2: Predict the Cluster
 EXECUTE IMMEDIATE """
 SELECT *
-  FROM ML.PREDICT (MODEL `{{ params.project_id }}.{{ params.dataset_id }}.model_predict_anomoly_v2`,
+  FROM ML.PREDICT (MODEL `${project_id}.${bigquery_taxi_dataset}.model_predict_anomoly_v2`,
                   (SELECT generated_primary_key,
                           Trip,
                           DurationMinutes,
                           Trip_Distance,
                           Fare_Amount
-                    FROM `{{ params.project_id }}.{{ params.dataset_id }}.train_model_predict_anomoly`
+                    FROM `${project_id}.${bigquery_taxi_dataset}.train_model_predict_anomoly`
                     LIMIT 1000
                    ));
 """;
@@ -183,14 +179,14 @@ SELECT *
 -- VERSION 2: Predict Anomolies
 EXECUTE IMMEDIATE """
 SELECT *
-  FROM ML.DETECT_ANOMALIES (MODEL `{{ params.project_id }}.{{ params.dataset_id }}.model_predict_anomoly_v2`,
+  FROM ML.DETECT_ANOMALIES (MODEL `${project_id}.${bigquery_taxi_dataset}.model_predict_anomoly_v2`,
                             STRUCT(.2 AS contamination),
                             (SELECT generated_primary_key,
                                     Trip,
                                     DurationMinutes,
                                     Trip_Distance,
                                     Fare_Amount
-                               FROM `{{ params.project_id }}.{{ params.dataset_id }}.train_model_predict_anomoly`
+                               FROM `${project_id}.${bigquery_taxi_dataset}.train_model_predict_anomoly`
                               LIMIT 1000
                             ))
  WHERE is_anomaly = TRUE;     
@@ -198,25 +194,25 @@ SELECT *
 
  -- VERSION 2: Score all the data (detect anomalies and set the normalized distence/centriod)
 EXECUTE IMMEDIATE """
-UPDATE `{{ params.project_id }}.{{ params.dataset_id }}.train_model_predict_anomoly` AS train_model_predict_anomoly
+UPDATE `${project_id}.${bigquery_taxi_dataset}.train_model_predict_anomoly` AS train_model_predict_anomoly
    SET predicted_v2_is_anomaly          = ScoredData.is_anomaly,
        predicted_v2_normalized_distance = ScoredData.normalized_distance,
        predicted_v2_CENTROID_ID         = CENTROID_ID
   FROM (SELECT *
-         FROM ML.DETECT_ANOMALIES (MODEL `{{ params.project_id }}.{{ params.dataset_id }}.model_predict_anomoly_v2`,
+         FROM ML.DETECT_ANOMALIES (MODEL `${project_id}.${bigquery_taxi_dataset}.model_predict_anomoly_v2`,
                                    STRUCT(.2 AS contamination),
                                    (SELECT generated_primary_key,  -- for matching to source data
                                            Trip,
                                            DurationMinutes,
                                            Trip_Distance,
                                            Fare_Amount
-                                      FROM `{{ params.project_id }}.{{ params.dataset_id }}.train_model_predict_anomoly`))) AS ScoredData
+                                      FROM `${project_id}.${bigquery_taxi_dataset}.train_model_predict_anomoly`))) AS ScoredData
  WHERE ScoredData.generated_primary_key = train_model_predict_anomoly.generated_primary_key;
 """;
 
 -- See the differences in the model predictions
 SELECT *
-  FROM `{{ params.project_id }}.{{ params.dataset_id }}.train_model_predict_anomoly`
+  FROM `${project_id}.${bigquery_taxi_dataset}.train_model_predict_anomoly`
  WHERE (
          predicted_v1_is_anomaly = TRUE
          OR
@@ -226,7 +222,7 @@ SELECT *
    
 -- Items you wwoudl want to investigate
 SELECT *
-  FROM `{{ params.project_id }}.{{ params.dataset_id }}.train_model_predict_anomoly`
+  FROM `${project_id}.${bigquery_taxi_dataset}.train_model_predict_anomoly`
  WHERE (
          predicted_v1_is_anomaly = TRUE
          OR
@@ -235,7 +231,7 @@ SELECT *
   AND Fare_Amount = 2.5 AND DurationMinutes = 1;
 
 SELECT *
-  FROM `{{ params.project_id }}.{{ params.dataset_id }}.train_model_predict_anomoly`
+  FROM `${project_id}.${bigquery_taxi_dataset}.train_model_predict_anomoly`
  WHERE (
          predicted_v1_is_anomaly = TRUE
          OR
@@ -245,8 +241,6 @@ SELECT *
    
 -- Export the model to storage
 -- You can then open the open in a notebook
-EXPORT MODEL `{{ params.project_id }}.{{ params.dataset_id }}.model_predict_anomoly_v2`
-OPTIONS(URI = 'gs://{{ params.bucket_name }}/tensorflow/predict_anomoly_v2/');
- 
+EXPORT MODEL `${project_id}.${bigquery_taxi_dataset}.model_predict_anomoly_v2`
+OPTIONS(URI = 'gs://${bucket_name}/tensorflow/predict_anomoly_v2/');
 
-END
