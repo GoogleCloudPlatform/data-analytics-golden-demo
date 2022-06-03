@@ -425,6 +425,24 @@ resource "google_compute_subnetwork" "bigspark_subnet" {
   ]
 }
 
+# Needed for BigSpark to Dataproc
+resource "google_compute_firewall" "bigspark_subnet_firewall_rule" {
+  project  = var.project_id
+  name     = "bigspark-firewall"
+  network  = google_compute_network.default_network.id
+
+  allow {
+    protocol = "all"
+  }
+
+  source_ranges = ["10.5.0.0/16"]
+
+  depends_on = [
+    google_compute_subnetwork.bigspark_subnet
+  ]
+}
+
+
 ####################################################################################
 # Data Catalog Taxonomy
 ####################################################################################
