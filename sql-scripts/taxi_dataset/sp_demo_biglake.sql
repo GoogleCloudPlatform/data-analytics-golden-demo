@@ -32,41 +32,8 @@ Reference:
 
 Clean up / Reset script:
     DROP ALL ROW ACCESS POLICIES ON `${project_id}.${bigquery_taxi_dataset}.biglake_green_trips`;
-    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${bigquery_taxi_dataset}.biglake_green_trips`
-
-
-# CLI Commands
-# NOTE: If you cloud shell is out of date then run this (only of out of data)
-# sudo apt-get update && sudo apt-get --only-upgrade install google-cloud-sdk-config-connector google-cloud-sdk-anthos-auth google-cloud-sdk-cloud-build-local google-cloud-sdk-app-engine-go kubectl google-cloud-sdk-datastore-emulator google-cloud-sdk-terraform-validator google-cloud-sdk-gke-gcloud-auth-plugin google-cloud-sdk-app-engine-python google-cloud-sdk-skaffold google-cloud-sdk-pubsub-emulator google-cloud-sdk-minikube google-cloud-sdk-spanner-emulator google-cloud-sdk-cbt google-cloud-sdk-app-engine-grpc google-cloud-sdk-kpt google-cloud-sdk google-cloud-sdk-local-extract google-cloud-sdk-firestore-emulator google-cloud-sdk-bigtable-emulator google-cloud-sdk-datalab google-cloud-sdk-app-engine-python-extras google-cloud-sdk-kubectl-oidc google-cloud-sdk-app-engine-java
-
-# Step 1: Create the connection
-bq mk --connection \
---location="${bigquery_region}" \
---project_id="${project_id}" \
---connection_type=CLOUD_RESOURCE \
-biglake-connection
-
-# Step 2: A service account has been created, we need to get its name
-bq show --connection \
---location="${bigquery_region}" \
---project_id="${project_id}" \
---format=json \
-biglake-connection > bq-connection.json
-
-bqOutputJsonFile="./bq-connection.json"
-bqOutputJson=$(cat $bqOutputJsonFile)
-biglake_service_account=$(echo "${bqOutputJson}" | jq .cloudResource.serviceAccountId --raw-output)
-
-echo "biglake_service_account: ${biglake_service_account}"
-
-# Step 3: Add Storage Object Viewer permissions to this Service Account
-# Storage will be access via this service account (users do not need individual access) 
-gcloud projects add-iam-policy-binding "${project_id}" \
---member="serviceAccount:${biglake_service_account}" \
---role='roles/storage.objectViewer'
-
-NOTE: You now need to wait a few minutes for thing to propagate
-
+    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${bigquery_taxi_dataset}.biglake_green_trips`;
+    
 */
 
 -- Query: Create an external table (this is some of the Green Taxi Trips data in Parquet format)

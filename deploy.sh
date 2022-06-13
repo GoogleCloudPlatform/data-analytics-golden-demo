@@ -125,6 +125,11 @@ terraform apply \
   -var="org_id=${org_id}" \
   -var="billing_account=${billing_account}" \
   -var="project_id=data-analytics-demo"
+
+# NOTE: To deploy for BQ OMNI you need to also include there arguments to the terraform apply
+#  -var="omni_dataset=gcp_project_name_setup_for_omni.my_dataset_name_for_omni" \
+#  -var="omni_aws_connection=aws-us-east-1.my_connection_name" \
+#  -var="omni_aws_s3_bucket_name=my_bucket_name"
  
 # Write out the output variables (currently not used)
 # terraform output -json > tf-output.json

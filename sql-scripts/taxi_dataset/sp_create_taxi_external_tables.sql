@@ -89,7 +89,7 @@ OPTIONS (
 );
 
 
- CREATE OR REPLACE EXTERNAL TABLE `${project_id}.${bigquery_taxi_dataset}.ext_yellow_trips_json`
+CREATE OR REPLACE EXTERNAL TABLE `${project_id}.${bigquery_taxi_dataset}.ext_yellow_trips_json`
 (
     Vendor_Id	            INTEGER,
     Pickup_DateTime	        TIMESTAMP,

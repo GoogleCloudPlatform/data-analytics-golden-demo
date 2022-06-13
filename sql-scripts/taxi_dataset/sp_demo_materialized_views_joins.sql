@@ -129,6 +129,13 @@ SELECT vendor.Vendor_Description,
 -- Query: 
 DROP MATERIALIZED VIEW IF EXISTS `${project_id}.${bigquery_taxi_dataset}.mv_taxi_trips_by_location`;
 
+-- Test (without materialized view)
+-- Look at Job Information and Bytes processed
+SELECT PULocationID, DOLocationID, Fare_Amount
+  FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips` 
+ WHERE PULocationID = 74
+   AND DOLocationID = 233;
+
 CREATE MATERIALIZED VIEW `${project_id}.${bigquery_taxi_dataset}.mv_taxi_trips_by_location`
 CLUSTER BY PULocationID, DOLocationID
 AS SELECT *
@@ -136,7 +143,8 @@ AS SELECT *
     
 CALL BQ.REFRESH_MATERIALIZED_VIEW("taxi_dataset.mv_taxi_trips_by_location");
 
--- Test
+-- Test (with materialized view)
+-- Look at Job Information and Bytes processed (should be smaller)
 SELECT PULocationID, DOLocationID, Fare_Amount
   FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips` 
  WHERE PULocationID = 74

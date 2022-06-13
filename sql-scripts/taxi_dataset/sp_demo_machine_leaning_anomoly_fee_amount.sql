@@ -220,7 +220,7 @@ SELECT *
        )
   AND DurationMinutes > 10; -- See some interesting data
    
--- Items you wwoudl want to investigate
+-- Items you would want to investigate
 SELECT *
   FROM `${project_id}.${bigquery_taxi_dataset}.train_model_predict_anomoly`
  WHERE (

@@ -164,6 +164,17 @@ variable "omni_dataset" {
   default     = "OMNI.DATASET"
 }
 
+variable "omni_aws_connection" {
+  type        = string
+  description = "The connection region and name"
+  default     = "AWS_REGION.CONNECTION_NAME"
+}
+
+variable "omni_aws_s3_bucket_name" {
+  type        = string
+  description = "The full path project_id.dataset_id to the OMNI data."
+  default     = "S3_BUCKET_NAME"
+}
 
 
 ####################################################################################
@@ -361,6 +372,8 @@ module "sql-scripts" {
   deployment_service_account_name = var.deployment_service_account_name
   bigquery_region                 = var.bigquery_region
   omni_dataset                    = var.omni_dataset
+  omni_aws_connection             = var.omni_aws_connection
+  omni_aws_s3_bucket_name         = var.omni_aws_s3_bucket_name
 
   depends_on = [
     module.project,

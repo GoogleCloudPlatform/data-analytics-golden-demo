@@ -44,6 +44,8 @@ variable "project_number" {}
 variable "deployment_service_account_name" {}
 variable "bigquery_region" {}
 variable "omni_dataset" {}
+variable "omni_aws_connection" {}
+variable "omni_aws_s3_bucket_name" {}
 
 
 # Hardcoded
@@ -110,6 +112,35 @@ resource "google_bigquery_routine" "sproc_sp_create_taxi_internal_tables" {
   routine_type    = "PROCEDURE"
   language        = "SQL"
   definition_body = "${data.template_file.sproc_sp_create_taxi_internal_tables.rendered}"
+}
+
+
+
+####################################################################################
+# sp_demo_aws_omni
+####################################################################################
+data "template_file" "sproc_sp_demo_aws_omni" {
+  template = "${file("../sql-scripts/taxi_dataset/sp_demo_aws_omni.sql")}"
+  vars = {
+    project_id = var.project_id
+    region = var.region
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+    bigquery_thelook_ecommerce_dataset = var.bigquery_thelook_ecommerce_dataset
+    bucket_name = "processed-${var.storage_bucket}"
+    bigquery_region = var.bigquery_region
+    gcp_account_name = var.gcp_account_name
+    omni_dataset = var.omni_dataset
+    omni_project = split(".",var.omni_dataset)[0]
+    omni_aws_connection = var.omni_aws_connection
+    omni_aws_s3_bucket_name = var.omni_aws_s3_bucket_name
+  }  
+}
+resource "google_bigquery_routine" "sproc_sp_demo_aws_omni" {
+  dataset_id      = var.bigquery_taxi_dataset
+  routine_id      = "sp_demo_aws_omni"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = "${data.template_file.sproc_sp_demo_aws_omni.rendered}"
 }
 
 
