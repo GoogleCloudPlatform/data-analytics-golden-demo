@@ -42,11 +42,80 @@ SELECT *
 """;
 
 
--- *******************************************************************************************
--- This ONLY works when you are in the same Region (currently they are in different regions)
--- *******************************************************************************************
--- Query data in Spanner and JOIN to BigQuery Data
--- Does weather affect taxi cab rides and fares?
+-- Federated Queries that join data to BigQuery require resources to be in the same region
+-- Create a dataset and sample data in the same region in which Spanner is deployed
+CREATE SCHEMA taxi_dataset_spanner
+OPTIONS(
+  location="${region}"
+  );
+
+
+-- Seed a BigQuery table with data
+CREATE OR REPLACE TABLE ${project_id}.${bigquery_taxi_dataset}_spanner.taxi_averages AS
+    SELECT CAST('2020-01-05' AS DATE) AS PickupDate, 'Sunday' AS WeekdayName, 0 AS WeekdayNumber, 177136 AS NumberOfTrips, 3.345020493 AS AvgDistance, 13.44308379 AS AvgFareAmount
+    UNION ALL
+    SELECT CAST('2020-01-04' AS DATE) AS PickupDate, 'Saturday' AS WeekdayName, 6 AS WeekdayNumber, 197060 AS NumberOfTrips,3.001948239 AS AvgDistance, 12.57408292 AS AvgFareAmount
+    UNION ALL
+    SELECT CAST('2020-01-06' AS DATE) AS PickupDate, 'Monday' AS WeekdayName, 1 AS WeekdayNumber, 195843 AS NumberOfTrips,3.15029779 AS AvgDistance, 13.4240052 AS AvgFareAmount
+    UNION ALL
+    SELECT CAST('2020-01-02' AS DATE) AS PickupDate, 'Thursday' AS WeekdayName, 4 AS WeekdayNumber, 177191 AS NumberOfTrips,3.347735946 AS AvgDistance, 13.85145685 AS AvgFareAmount
+    UNION ALL
+    SELECT CAST('2020-01-01' AS DATE) AS PickupDate, 'Wednesday' AS WeekdayName, 3 AS WeekdayNumber, 180439 AS NumberOfTrips,3.517630446 AS AvgDistance, 14.04735933 AS AvgFareAmount
+    UNION ALL
+    SELECT CAST('2020-01-03' AS DATE) AS PickupDate, 'Friday' AS WeekdayName, 5 AS WeekdayNumber, 199545 AS NumberOfTrips,3.042911925 AS AvgDistance, 12.95975163 AS AvgFareAmount
+    UNION ALL
+    SELECT CAST('2020-01-07' AS DATE) AS PickupDate, 'Tuesday' AS WeekdayName, 2 AS WeekdayNumber, 218548 AS NumberOfTrips,2.955926799 AS AvgDistance, 12.88856677 AS AvgFareAmount
+    UNION ALL
+    SELECT CAST('2020-01-11' AS DATE) AS PickupDate, 'Saturday' AS WeekdayName, 6 AS WeekdayNumber, 232678 AS NumberOfTrips,2.871209483 AS AvgDistance, 12.57551036 AS AvgFareAmount
+    UNION ALL
+    SELECT CAST('2020-01-23' AS DATE) AS PickupDate, 'Thursday' AS WeekdayName, 4 AS WeekdayNumber, 246865 AS NumberOfTrips,2.863291394 AS AvgDistance, 12.90945193 AS AvgFareAmount
+    UNION ALL
+    SELECT CAST('2020-01-22' AS DATE) AS PickupDate, 'Wednesday' AS WeekdayName, 3 AS WeekdayNumber, 236450 AS NumberOfTrips,2.784504208 AS AvgDistance, 12.6883772 AS AvgFareAmount
+    UNION ALL
+    SELECT CAST('2020-01-09' AS DATE) AS PickupDate, 'Thursday' AS WeekdayName, 4 AS WeekdayNumber, 250181 AS NumberOfTrips,2.888248308 AS AvgDistance, 13.01847938 AS AvgFareAmount
+    UNION ALL
+    SELECT CAST('2020-01-17' AS DATE) AS PickupDate, 'Friday' AS WeekdayName, 5 AS WeekdayNumber, 259705 AS NumberOfTrips,2.832833908 AS AvgDistance, 12.76231355 AS AvgFareAmount
+    UNION ALL
+    SELECT CAST('2020-01-14' AS DATE) AS PickupDate, 'Tuesday' AS WeekdayName, 2 AS WeekdayNumber, 31713 AS NumberOfTrips,2.830828439 AS AvgDistance, 12.81617005 AS AvgFareAmount
+    UNION ALL
+    SELECT CAST('2020-01-16' AS DATE) AS PickupDate, 'Thursday' AS WeekdayName, 4 AS WeekdayNumber, 254881 AS NumberOfTrips,2.82420149 AS AvgDistance, 12.82655835 AS AvgFareAmount
+    UNION ALL
+    SELECT CAST('2020-01-29' AS DATE) AS PickupDate, 'Wednesday' AS WeekdayName, 3 AS WeekdayNumber, 241997 AS NumberOfTrips,2.772662884 AS AvgDistance, 12.71310925 AS AvgFareAmount
+    UNION ALL
+    SELECT CAST('2020-01-24' AS DATE) AS PickupDate, 'Friday' AS WeekdayName, 5 AS WeekdayNumber, 248452 AS NumberOfTrips,2.837416845 AS AvgDistance, 12.82717004 AS AvgFareAmount
+    UNION ALL
+    SELECT CAST('2020-01-19' AS DATE) AS PickupDate, 'Sunday' AS WeekdayName, 0 AS WeekdayNumber, 187029 AS NumberOfTrips,3.027041635 AS AvgDistance, 12.55000011 AS AvgFareAmount
+    UNION ALL
+    SELECT CAST('2020-01-27' AS DATE) AS PickupDate, 'Monday' AS WeekdayName, 1 AS WeekdayNumber, 203245 AS NumberOfTrips,3.000888681 AS AvgDistance, 13.00633393 AS AvgFareAmount
+    UNION ALL
+    SELECT CAST('2020-01-12' AS DATE) AS PickupDate, 'Sunday' AS WeekdayName, 0 AS WeekdayNumber, 200190 AS NumberOfTrips,3.231275089 AS AvgDistance, 13.34709351 AS AvgFareAmount
+    UNION ALL
+    SELECT CAST('2020-01-26' AS DATE) AS PickupDate, 'Sunday' AS WeekdayName, 0 AS WeekdayNumber, 199961 AS NumberOfTrips,3.121571156 AS AvgDistance, 13.02878826 AS AvgFareAmount
+    UNION ALL
+    SELECT CAST('2020-01-10' AS DATE) AS PickupDate, 'Friday' AS WeekdayName, 5 AS WeekdayNumber, 246516 AS NumberOfTrips,2.949418821 AS AvgDistance, 13.20513281 AS AvgFareAmount
+    UNION ALL
+    SELECT CAST('2020-01-13' AS DATE) AS PickupDate, 'Monday' AS WeekdayName, 1 AS WeekdayNumber, 223498 AS NumberOfTrips,2.97676619 AS AvgDistance, 13.20867829 AS AvgFareAmount
+    UNION ALL
+    SELECT CAST('2020-01-30' AS DATE) AS PickupDate, 'Thursday' AS WeekdayName, 4 AS WeekdayNumber, 257929 AS NumberOfTrips,2.83982092 AS AvgDistance, 12.93011922 AS AvgFareAmount
+    UNION ALL
+    SELECT CAST('2020-01-28' AS DATE) AS PickupDate, 'Tuesday' AS WeekdayName, 2 AS WeekdayNumber, 230215 AS NumberOfTrips,3.69128797 AS AvgDistance, 12.50978646 AS AvgFareAmount
+    UNION ALL
+    SELECT CAST('2020-01-20' AS DATE) AS PickupDate, 'Monday' AS WeekdayName, 1 AS WeekdayNumber, 171643 AS NumberOfTrips,3.236503091 AS AvgDistance, 13.16145208 AS AvgFareAmount
+    UNION ALL
+    SELECT CAST('2020-01-15' AS DATE) AS PickupDate, 'Wednesday' AS WeekdayName, 3 AS WeekdayNumber, 231658 AS NumberOfTrips,2.872086697 AS AvgDistance, 12.92222772 AS AvgFareAmount
+    UNION ALL
+    SELECT CAST('2020-01-18' AS DATE) AS PickupDate, 'Saturday' AS WeekdayName, 6 AS WeekdayNumber, 201245 AS NumberOfTrips,2.70808994 AS AvgDistance, 11.95403324 AS AvgFareAmount
+    UNION ALL
+    SELECT CAST('2020-01-08' AS DATE) AS PickupDate, 'Wednesday' AS WeekdayName, 3 AS WeekdayNumber, 234692 AS NumberOfTrips,2.885778126 AS AvgDistance, 12.74203607 AS AvgFareAmount
+    UNION ALL
+    SELECT CAST('2020-01-25' AS DATE) AS PickupDate, 'Saturday' AS WeekdayName, 6 AS WeekdayNumber, 236541 AS NumberOfTrips,2.605902613 AS AvgDistance, 11.75244702 AS AvgFareAmount
+    UNION ALL
+    SELECT CAST('2020-01-21' AS DATE) AS PickupDate, 'Tuesday' AS WeekdayName, 2 AS WeekdayNumber, 228019 AS NumberOfTrips,2.859358387 AS AvgDistance, 12.88700257 AS AvgFareAmount
+    UNION ALL
+    SELECT CAST('2020-01-31' AS DATE) AS PickupDate, 'Friday' AS WeekdayName, 5 AS WeekdayNumber, 251978 AS NumberOfTrips,2.849273786 AS AvgDistance, 13.0044567 AS AvgFareAmount;
+
+
+-- Run the Federated query between Spanner and BigQuery
 EXECUTE IMMEDIATE """
 WITH WeatherData AS
 (SELECT station_id,
@@ -61,15 +130,13 @@ WITH WeatherData AS
 )
 , TaxiData AS
 (
-SELECT CAST(Pickup_DateTime AS DATE) AS PickupDate,
-       FORMAT_DATE("%A", Pickup_DateTime) AS WeekdayName,
-       FORMAT_DATE("%w", Pickup_DateTime) AS WeekdayNumber,
-       COUNT(1)           AS NumberOfTrips,
-       AVG(Trip_Distance) AS AvgDistance,
-       AVG(Fare_Amount)   AS AvgFareAmount
-  FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips` AS taxi_trips
-  WHERE PartitionDate BETWEEN '2020-01-01' AND '2020-01-31'
-  GROUP BY 1,2,3
+SELECT PickupDate,
+       WeekdayName,
+       WeekdayNumber,
+       NumberOfTrips,
+       AvgDistance,
+       AvgFareAmount
+  FROM `${project_id}.${bigquery_taxi_dataset}_spanner.taxi_averages` AS taxi_averages
  )
  SELECT TaxiData.*,
         WeatherData.*
@@ -77,5 +144,4 @@ SELECT CAST(Pickup_DateTime AS DATE) AS PickupDate,
         INNER JOIN WeatherData 
                 ON TaxiData.PickupDate = WeatherData.station_date
 ORDER BY TaxiData.WeekdayNumber;
-""";   
-
+""";

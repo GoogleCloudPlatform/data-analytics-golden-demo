@@ -1,3 +1,6 @@
+CREATE OR REPLACE PROCEDURE `${omni_dataset}.sp_demo_aws_omni_queries`()
+OPTIONS (strict_mode=false)
+BEGIN
 /*##################################################################################
 # Copyright 2022 Google LLC
 #
@@ -269,3 +272,5 @@ WITH CONNECTION `${omni_aws_connection}`;
 -- Show the tables loaded with data from AWS
 SELECT * FROM `demo_omni_load_data.results_csv`;
 SELECT * FROM `demo_omni_load_data.results_parquet`;
+
+END;

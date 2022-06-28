@@ -16,9 +16,6 @@
 
 
 /*
-PREVIEW FEATURE:
-    - You need to run the below "CLI Commands" from your Cloud Shell
-
 Use Cases:
     - Secure your data on your datalake with row level security
     - Replace Apache Ranger with a simipler easy to use solution
@@ -68,4 +65,3 @@ DROP ALL ROW ACCESS POLICIES ON `${project_id}.${bigquery_taxi_dataset}.biglake_
 -- See all the data
 SELECT *
   FROM `${project_id}.${bigquery_taxi_dataset}.biglake_green_trips`;
-

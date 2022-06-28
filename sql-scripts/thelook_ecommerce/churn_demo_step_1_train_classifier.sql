@@ -37,29 +37,6 @@ Clean up / Reset script:
     DROP MODEL IF EXISTS `${project_id}.${bigquery_thelook_ecommerce_dataset}.model_churn`;
 */
 
-/*
--- NOTE: If you get an error on this, you need to run the following commands in your Cloud Shell
--- Temporary permissions needed, this can be removed at a later time
--- You might need to wait a few minutes for the permissions to propagate on the backend
--- https://cloud.google.com/bigquery-ml/docs/managing-models-vertex#prerequisites
-
-echo "name: projects/${project_id}/policies/iam.allowedPolicyMemberDomains" > iam_allowedPolicyMemberDomains.yaml
-echo "spec:" >> iam_allowedPolicyMemberDomains.yaml
-echo "  rules:" >> iam_allowedPolicyMemberDomains.yaml
-echo "  - allow_all: true" >> iam_allowedPolicyMemberDomains.yaml
-
-gcloud org-policies set-policy iam_allowedPolicyMemberDomains.yaml 
-
-sleep 30
-
-gcloud projects add-iam-policy-binding ${project_number} \
-      --member='serviceAccount:cloud-dataengine@system.gserviceaccount.com' \
-      --role='roles/aiplatform.admin'
-
-gcloud projects add-iam-policy-binding ${project_number} \
-      --member='user:cloud-dataengine@prod.google.com' \
-      --role='roles/aiplatform.admin'
-*/
 
 EXECUTE IMMEDIATE format("""
 CREATE OR REPLACE MODEL `${project_id}`.${bigquery_thelook_ecommerce_dataset}.model_churn
