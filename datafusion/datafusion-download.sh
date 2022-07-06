@@ -17,10 +17,17 @@
 ####################################################################################
 
 
+# How to use
+# 1. Create Data Fusion (by hand or DAG) - Call this df-DEV
+# 2. Author pipelines
+# 3. Use this script to download the namespaces, pipelines and compute profiles
+# 4. Create a new Data fusion (by hand or alter DAG) - Call this df-QA
+# 5. Run the datafusion-deploy.sh to push out the artifacts
+
 # NOTES:
 # 1. This does not remove items from the hard drive that have been deleted from DataFusion.  
 #    You would need to clear each directory before downloading each set of asessts.
-# 2. 
+# 2. This assumes you have created some pipelines in Data Fusion and you now want to download them.
 
 
 

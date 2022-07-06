@@ -21,7 +21,6 @@ locals {
 }
 
 resource "google_data_fusion_instance" "df" {
-  count                         = var.fusion ? 1 : 0
   provider                      = google-beta
   name                          = local.datafusion_name
   description                   = "My Data Fusion instance"
@@ -40,7 +39,6 @@ data "google_app_engine_default_service_account" "default" {
 
 # allow datafusion managed service account (from google tenent) to use datafusion agent in this project
 resource "google_project_iam_binding" "fusion-dataproc" {
-  count   = var.fusion ? 1 : 0
   project = google_project.prj.project_id
   role    = "roles/datafusion.serviceAgent"
 
@@ -52,7 +50,6 @@ resource "google_project_iam_binding" "fusion-dataproc" {
 
 # allow data fusion default service account to impersonate compute engine default service account
 resource "google_service_account_iam_binding" "df-dce" {
-  count              = var.fusion ? 1 : 0
   service_account_id = data.google_compute_default_service_account.default.id
   role               = "roles/iam.serviceAccountUser"
 
@@ -62,12 +59,10 @@ resource "google_service_account_iam_binding" "df-dce" {
 
 }
 
-
-
+# Deploy your items (assuming you have them downloaded from source control)
 resource "null_resource" "upload-df-pipeline" {
-  for_each = var.fusion ? toset(var.df_pipelines) : []
   provisioner "local-exec" {
-    command = "./scripts/import_df_pipelines.sh ${local.df_pipelines}/${each.key}"
+    command = "datafusion-deploy.sh"
   }
   depends_on = [
     google_data_fusion_instance.df[0]
