@@ -34,7 +34,7 @@ gcp_account_name=$(gcloud auth list --filter=status:ACTIVE --format="value(accou
 
 # Variables
 project="data-analytics-demo-z4x77nbcc3"
-datafusion_name="data-fusion-dev-01"
+datafusion_name="data-fusion-prod-02"
 datafusion_location="us-west2"
 datafusion_api_version="v1"
 #datafusion_api_version="v1beta1"

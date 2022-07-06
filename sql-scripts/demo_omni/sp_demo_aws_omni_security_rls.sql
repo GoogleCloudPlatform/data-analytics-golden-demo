@@ -55,12 +55,12 @@ FILTER USING (PULocationID = 244);
 CREATE OR REPLACE ROW ACCESS POLICY rls_yellow_trips_csv_pu_244
     ON `${omni_dataset}.taxi_s3_yellow_trips_csv_rls`
     GRANT TO ("group:REPLACE_ME-group-name@domain.com") -- This also works for users: "user:me@domain.com"
-FILTER USING (PULocationID = 245);
+FILTER USING (PULocationID = 245 AND Total_Amount < 100);
 
 CREATE OR REPLACE ROW ACCESS POLICY rls_yellow_trips_json_pu_244
     ON `${omni_dataset}.taxi_s3_yellow_trips_json_rls`
     GRANT TO ("group:REPLACE_ME-group-name@domain.com") -- This also works for users: "user:me@domain.com"
-FILTER USING (PULocationID = 246);
+FILTER USING (Vendor_Id = 1 AND PULocationID = 246 AND Trip_Distance < 5 AND Total_Amount < 50);
 
 
 -- See just the data you are allowed to see
