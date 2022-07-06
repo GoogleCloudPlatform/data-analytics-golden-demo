@@ -90,7 +90,7 @@ def upload_blob(project, raw_bucket_name, source_file_name, destination_blob_nam
 
 
 
-# python3 download-taxi-data.py "big-query-demo-09" "big-query-demo-09" "yellow" "2021" "https://s3.amazonaws.com/nyc-tlc/trip+data/yellow_tripdata_2021-01.parquet"
+# python3 download-taxi-data.py "big-query-demo-09" "big-query-demo-09" "yellow" "2021" "https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2021-01.parquet"
 def download_and_upload_to_gcs(project, raw_bucket_name, color, year, url):
     print ("Begin: download_and_upload_to_gcs")
     for month_index in range(12):
@@ -120,7 +120,7 @@ with airflow.DAG('step-01-taxi-data-download',
                         "raw_bucket_name" : raw_bucket_name, 
                         "color" : "yellow", 
                         "year" : "2021", 
-                        "url" : "https://s3.amazonaws.com/nyc-tlc/trip+data/{COLOR}_tripdata_{YEAR}-{MONTH}.parquet" },
+                        "url" : "https://d37ci6vzurychx.cloudfront.net/trip-data/{COLOR}_tripdata_{YEAR}-{MONTH}.parquet" },
         execution_timeout=timedelta(minutes=30),
         dag=dag,
         )
@@ -132,7 +132,7 @@ with airflow.DAG('step-01-taxi-data-download',
                         "raw_bucket_name" : raw_bucket_name, 
                         "color" : "green", 
                         "year" : "2021", 
-                        "url" : "https://s3.amazonaws.com/nyc-tlc/trip+data/{COLOR}_tripdata_{YEAR}-{MONTH}.parquet" },
+                        "url" : "https://d37ci6vzurychx.cloudfront.net/trip-data/{COLOR}_tripdata_{YEAR}-{MONTH}.parquet" },
         execution_timeout=timedelta(minutes=30),
         dag=dag,
         )
@@ -144,7 +144,7 @@ with airflow.DAG('step-01-taxi-data-download',
                         "raw_bucket_name" : raw_bucket_name, 
                         "color" : "yellow", 
                         "year" : "2020", 
-                        "url" : "https://s3.amazonaws.com/nyc-tlc/trip+data/{COLOR}_tripdata_{YEAR}-{MONTH}.parquet" },
+                        "url" : "https://d37ci6vzurychx.cloudfront.net/trip-data/{COLOR}_tripdata_{YEAR}-{MONTH}.parquet" },
         execution_timeout=timedelta(minutes=30),
         dag=dag,
         )
@@ -156,7 +156,7 @@ with airflow.DAG('step-01-taxi-data-download',
                         "raw_bucket_name" : raw_bucket_name, 
                         "color" : "green", 
                         "year" : "2020", 
-                        "url" : "https://s3.amazonaws.com/nyc-tlc/trip+data/{COLOR}_tripdata_{YEAR}-{MONTH}.parquet" },
+                        "url" : "https://d37ci6vzurychx.cloudfront.net/trip-data/{COLOR}_tripdata_{YEAR}-{MONTH}.parquet" },
         execution_timeout=timedelta(minutes=30),
         dag=dag,
         )
@@ -168,7 +168,7 @@ with airflow.DAG('step-01-taxi-data-download',
                         "raw_bucket_name" : raw_bucket_name, 
                         "color" : "yellow", 
                         "year" : "2019", 
-                        "url" : "https://s3.amazonaws.com/nyc-tlc/trip+data/{COLOR}_tripdata_{YEAR}-{MONTH}.parquet" },
+                        "url" : "https://d37ci6vzurychx.cloudfront.net/trip-data/{COLOR}_tripdata_{YEAR}-{MONTH}.parquet" },
         execution_timeout=timedelta(minutes=30),
         dag=dag,
         )
@@ -180,7 +180,7 @@ with airflow.DAG('step-01-taxi-data-download',
                         "raw_bucket_name" : raw_bucket_name, 
                         "color" : "green", 
                         "year" : "2019", 
-                        "url" : "https://s3.amazonaws.com/nyc-tlc/trip+data/{COLOR}_tripdata_{YEAR}-{MONTH}.parquet" },
+                        "url" : "https://d37ci6vzurychx.cloudfront.net/trip-data/{COLOR}_tripdata_{YEAR}-{MONTH}.parquet" },
         execution_timeout=timedelta(minutes=30),
         dag=dag,
         )
