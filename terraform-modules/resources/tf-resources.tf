@@ -300,13 +300,31 @@ resource "google_project_iam_member" "composer_service_account_bq_admin_role" {
   # provider= google.service_principal_impersonation
   project  = var.project_id
   role     = "roles/owner"
-  member = "serviceAccount:${google_service_account.composer_service_account.email}"
+  member   = "serviceAccount:${google_service_account.composer_service_account.email}"
 
   depends_on = [
     google_project_iam_member.composer_service_account_worker_role
   ]
 }
 
+# Let composer impersonation the service account that can change org policies (for demo purposes)
+resource "google_service_account_iam_member" "cloudcomposer_service_account_impersonation" {
+  service_account_id ="projects/${var.project_id}/serviceAccounts/${var.project_id}@${var.project_id}.iam.gserviceaccount.com"
+  role               = "roles/iam.serviceAccountTokenCreator"
+  member             = "serviceAccount:${google_service_account.composer_service_account.email}"
+  depends_on         = [ google_project_iam_member.composer_service_account_bq_admin_role ]
+}
+
+# ActAs role
+resource "google_project_iam_member" "cloudcomposer_act_as" {
+  project  = var.project_id
+  role     = "roles/iam.serviceAccountUser"
+  member   = "serviceAccount:${google_service_account.composer_service_account.email}"
+
+  depends_on = [
+    google_service_account_iam_member.cloudcomposer_service_account_impersonation
+  ]
+}
 
 resource "google_composer_environment" "composer_env" {
   project  = var.project_id
@@ -817,6 +835,13 @@ resource "time_sleep" "create_bigquerydatatransfer_account_time_delay" {
 }
 
 
+resource "google_service_account_iam_member" "service_account_impersonation" {
+  service_account_id = google_service_account.composer_service_account.name
+  role               = "roles/iam.serviceAccountTokenCreator"
+  member             = "serviceAccount:service-${var.project_number}@gcp-sa-bigquerydatatransfer.iam.gserviceaccount.com"
+  depends_on         = [ time_sleep.create_bigquerydatatransfer_account_time_delay ]
+}
+/*
 resource "google_service_account_iam_binding" "service_account_impersonation" {
   provider           = google
   service_account_id = google_service_account.composer_service_account.name
@@ -830,7 +855,7 @@ resource "google_service_account_iam_binding" "service_account_impersonation" {
     time_sleep.create_bigquerydatatransfer_account_time_delay,
   ]
 }
-
+*/
 
 ####################################################################################
 # Outputs

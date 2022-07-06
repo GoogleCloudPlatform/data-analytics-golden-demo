@@ -84,13 +84,22 @@ bq_show_connections= \
     "--format=json " + \
     "biglake-connection > /home/airflow/gcs/data/bq-connection.json"
 
+# Allow accounts from other domains
+change_org_policy= \
+"echo \"name: projects/" + project_id + "/policies/iam.allowedPolicyMemberDomains\" > iam_allowedPolicyMemberDomains.yaml; " + \
+"echo \"spec:\" >> iam_allowedPolicyMemberDomains.yaml; " + \
+"echo \"  rules:\" >> iam_allowedPolicyMemberDomains.yaml; " + \
+"echo \"  - allow_all: true\" >> iam_allowedPolicyMemberDomains.yaml; " + \
+"cat iam_allowedPolicyMemberDomains.yaml;" + \
+"gcloud org-policies --impersonate-service-account \"" + project_id + "@" + project_id + ".iam.gserviceaccount.com" + "\" set-policy iam_allowedPolicyMemberDomains.yaml; " + \
+"sleep 120;"
+
 grant_iam= \
 "serviceAccount=$(cat /home/airflow/gcs/data/serviceAccountId.txt); " + \
 "echo \"serviceAccount: ${serviceAccount}\" ; " + \
 "gcloud projects add-iam-policy-binding \"" + project_id + "\" " + \
     "--member=\"serviceAccount:${serviceAccount}\" " + \
     "--role='roles/storage.objectViewer'"
-
 
 # Get the connection service principal
 def parse_json():
@@ -135,13 +144,17 @@ with airflow.DAG('step-04-create-biglake-connection',
         dag=dag,
         )    
         
+    change_org_policy = bash_operator.BashOperator(
+        task_id="change_org_policy",
+        bash_command=change_org_policy  
+    )
+        
     grant_iam = bash_operator.BashOperator(
         task_id="grant_iam",
         bash_command=grant_iam  
     )
-
     # DAG Graph
-    bq_create_connection >> bq_show_connections >> parse_connections >> grant_iam
+    bq_create_connection >> bq_show_connections >> parse_connections >> change_org_policy >> grant_iam
     
 
 # [END dag]

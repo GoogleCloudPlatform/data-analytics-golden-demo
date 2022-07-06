@@ -106,6 +106,7 @@ resource "google_organization_iam_member" "organization" {
 # If a user is running this script then add them to the role serviceAccountTokenCreator 
 # If a service account is running this script then add them to the role serviceAccountTokenCreator 
 # Subsequent Terraform script will now use impersonation to finish the deployment
+/*
 resource "google_service_account_iam_binding" "service_account_impersonation" {
   service_account_id = google_service_account.service_account.name
   role               = "roles/iam.serviceAccountTokenCreator"
@@ -118,9 +119,18 @@ resource "google_service_account_iam_binding" "service_account_impersonation" {
     google_service_account.service_account
   ]
 }
+*/
+# The above replaces all memebers, this just adds one
+resource "google_service_account_iam_member" "service_account_impersonation" {
+  service_account_id = google_service_account.service_account.name
+  role               = "roles/iam.serviceAccountTokenCreator"
+  member             = var.impersonation_account
+  depends_on         = [ google_service_account.service_account ]
+}
+
 
 # It can take 60+ seconds or so for the permission to actually propragate
 resource "time_sleep" "service_account_impersonation_time_delay" {
-  depends_on      = [google_service_account_iam_binding.service_account_impersonation]
+  depends_on      = [google_service_account_iam_member.service_account_impersonation]
   create_duration = "90s"
 }
