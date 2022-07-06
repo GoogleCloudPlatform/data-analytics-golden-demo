@@ -36,6 +36,7 @@ Clean up / Reset script:
     DROP VIEW  IF EXISTS `${project_id}.${bigquery_taxi_dataset}.v_taxi_trips_passenger_amounts`;
     DROP TABLE IF EXISTS  `${project_id}.${bigquery_taxi_dataset}.user_vendor_security`;
     DROP ALL ROW ACCESS POLICIES ON `${project_id}.${bigquery_taxi_dataset}.taxi_trips`;
+    TRUNCATE TABLE `${project_id}.${bigquery_taxi_dataset}.taxi_trips_with_col_sec` ;
 */
 
 -- Query 1: BigQuery allows security to be placed at a Dataset level
@@ -121,7 +122,7 @@ CREATE OR REPLACE ROW ACCESS POLICY rap_taxi_trips_admin_mta_tax
     GRANT TO ("user:${gcp_account_name}") -- This also works for groups: "group:tax-collectors@altostrat.com"
 FILTER USING (MTA_Tax > 0);
 
--- Query 6: This will only show Vendor ID of 1
+-- Query 6: This will only show MTA_Tax > 0
 SELECT * 
    FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips` 
  LIMIT 50;

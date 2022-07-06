@@ -19,3 +19,5 @@ terraform/terraform.tfstate.backup
 terraform/tf-output.json
 temp.sql
 deploy-omni.sh
+datafusion/system/*
+datafusion/sample-json/*

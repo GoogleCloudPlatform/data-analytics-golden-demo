@@ -2,7 +2,7 @@
 Deploys a end to end working demo of a Data Analytics / Data Processing using Google Cloud.  All the services are connected, configured and ready to run.  All the artifacts are deployed and you can immedately start using.
 
 
-![alt tag](Architecture-Diagram.png)
+![alt tag](./images/Architecture-Diagram.png)
 
 
 ## Deploying using Cloud Shell
