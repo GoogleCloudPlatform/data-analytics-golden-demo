@@ -19,7 +19,6 @@
 Prerequisites: 
     - In Composer / Airflow start the DAG: sample-dataflow-streaming-bigquery
     - It will take several minutes for the DAG to start
-    - Please Cancel the DAG after your demo/testing
 
 Use Cases:
     - Receive realtime data from streaming sources directly into BigQuery
@@ -36,25 +35,36 @@ Clean up / Reset script:
     n/a
 */
 
+-- Open the table taxi_trips_streaming
+-- Click on details to see the streaming buffer stats
 
-SELECT *
+-- Current data within past hour (run over and over again to show data streaming)
+SELECT COUNT(*) AS RecordCount  
   FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips_streaming` 
-  WHERE timestamp BETWEEN TIMESTAMP_SUB(CURRENT_TIMESTAMP(),INTERVAL 2 HOUR) AND TIMESTAMP_SUB(CURRENT_TIMESTAMP(),INTERVAL 1 HOUR)
- LIMIT 100;
+  WHERE timestamp > TIMESTAMP_SUB(CURRENT_TIMESTAMP(),INTERVAL 1 HOUR);
+
+
+-- Show current data in past hour
+SELECT *   
+  FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips_streaming` 
+ WHERE timestamp > TIMESTAMP_SUB(CURRENT_TIMESTAMP(),INTERVAL 1 HOUR)
+ORDER BY timestamp DESC;
+
 
 -- Data older than last hour
 SELECT COUNT(*) AS RecordCount  
   FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips_streaming` 
   WHERE timestamp < TIMESTAMP_SUB(CURRENT_TIMESTAMP(),INTERVAL 1 HOUR);
 
--- Last prior full hour of data
+
+-- Show data from 1 to 2 hours ago (provided the streaming job has been running)
+SELECT *
+  FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips_streaming` 
+  WHERE timestamp BETWEEN TIMESTAMP_SUB(CURRENT_TIMESTAMP(),INTERVAL 2 HOUR) AND TIMESTAMP_SUB(CURRENT_TIMESTAMP(),INTERVAL 1 HOUR)
+ LIMIT 100;
+
+
+-- Count the data from 1 to 2 hours ago (provided the streaming job has been running)
 SELECT COUNT(*) AS RecordCount  
   FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips_streaming` 
   WHERE timestamp BETWEEN TIMESTAMP_SUB(CURRENT_TIMESTAMP(),INTERVAL 2 HOUR) AND TIMESTAMP_SUB(CURRENT_TIMESTAMP(),INTERVAL 1 HOUR);
-
--- Current data within past hour
-SELECT COUNT(*) AS RecordCount  
-  FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips_streaming` 
-  WHERE timestamp > TIMESTAMP_SUB(CURRENT_TIMESTAMP(),INTERVAL 1 HOUR);
-
-

@@ -1,0 +1,2 @@
+- DO NOT PLACE FILES IN HERE
+- This is a placeholder directory for copying the Delta.io files from the sample-data/rideshare_trips directory to this directory with token replacement for the GCS Bucket name

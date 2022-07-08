@@ -266,6 +266,30 @@ resource "google_bigquery_routine" "sproc_sp_demo_datastudio_report" {
   definition_body = "${data.template_file.sproc_sp_demo_datastudio_report.rendered}"
 }
 
+
+####################################################################################
+# sp_demo_delta_lake
+####################################################################################
+data "template_file" "sproc_sp_demo_delta_lake" {
+  template = "${file("../sql-scripts/taxi_dataset/sp_demo_delta_lake.sql")}"
+  vars = {
+    project_id = var.project_id
+    region = var.region
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+    bigquery_thelook_ecommerce_dataset = var.bigquery_thelook_ecommerce_dataset
+    bucket_name = "processed-${var.storage_bucket}"
+    bigquery_region = var.bigquery_region
+    gcp_account_name = var.gcp_account_name
+  }  
+}
+resource "google_bigquery_routine" "sproc_sp_demo_delta_lake" {
+  dataset_id      = var.bigquery_taxi_dataset
+  routine_id      = "sp_demo_delta_lake"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = "${data.template_file.sproc_sp_demo_delta_lake.rendered}"
+}
+
 ####################################################################################
 # sp_demo_export_weather_data
 ####################################################################################

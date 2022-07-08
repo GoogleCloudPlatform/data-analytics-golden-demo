@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
  
 ## [Unreleased] - 2022-07-31
  
-Cleaned up some code and added some Data Fusion samples.
+Cleaned up some code and added some Data Fusion DevOps samples.
  
 ### Added
 - Terraform Parameters
@@ -13,7 +13,11 @@ Cleaned up some code and added some Data Fusion samples.
     - omni_aws_connection: The connection region and name
     - omni_aws_s3_bucket_name: The full path project_id.dataset_id to the OMNI data.
 - datafusion folder 
-    - sample DevOps with Data Fusion (not deployed as part of Terraform)    
+    - sample DevOps with Data Fusion (not deployed as part of Terraform)  
+- new stored procdures / updates
+    - sp_demo_taxi_streaming_data - shows queries against streaming table
+    - sp_demo_federated_query - updated to generate data in a region that can join to BigQuery
+    - sp_demo_taxi_streaming_data - demos Delta.io/Delta Lake interaction with BigQuery
 
 ### Changed
 - sql-scripts
@@ -22,7 +26,12 @@ Cleaned up some code and added some Data Fusion samples.
     - fixed some clean up / truncate tables items
  
 ### Fixed
-- n/a
+- NYC taxi data was put behind a CDN and the download links changed.  
+    - DAG: step-01-taxi-data-download.py was updated.
+- BigLake service principal now requires an org policy change. 
+    - DAG: step-04-create-biglake-connection.py was updated
+    - Terraform: tf-resources.tf was updated
+    - Airflow will impersonate a higher level account that can make the org policy change.
 
 
 

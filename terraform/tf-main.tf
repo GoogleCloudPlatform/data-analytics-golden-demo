@@ -419,7 +419,7 @@ EOF
 }
 
 
-# Upload the Airflow "data/tempate" files
+# Upload the Airflow "data/template" files
 # The data folder is the same path as the DAGs, but just has DATA as the folder name
 resource "null_resource" "deploy_airflow_dags_data" {
   provisioner "local-exec" {
@@ -581,6 +581,46 @@ EOF
     module.sql-scripts
   ]
 }
+
+
+# Upload the sample Delta.io files
+# The manifest files need to have the GCS bucket name updated
+resource "null_resource" "deploy_delta_io_files" {
+  provisioner "local-exec" {
+    interpreter = ["/bin/bash", "-c"]
+    command     = <<EOF
+if [ -z "$${GOOGLE_APPLICATION_CREDENTIALS}" ]
+then
+    echo "We are not running in a local docker container.  No need to login."
+else
+    echo "We are running in local docker container. Logging in."
+    gcloud auth activate-service-account "${var.deployment_service_account_name}" --key-file="$${GOOGLE_APPLICATION_CREDENTIALS}" --project="${var.project_id}"
+    gcloud config set account "${var.deployment_service_account_name}"
+fi
+cp -rf ../sample-data/rideshare_trips/* ../sample-data/rideshare_trips-with-substitution
+find ../sample-data/rideshare_trips/_symlink_format_manifest -type f -name "*" -print0 | while IFS= read -r -d '' file; do
+    echo "Updating Manifest file: $${file}"
+    searchString="../sample-data/rideshare_trips"
+    replaceString="../sample-data/rideshare_trips-with-substitution"
+    destFile=$(echo "$${file//$searchString/$replaceString}")
+    echo "destFile: $${destFile}"
+    sed "s/REPLACE-BUCKET-NAME/processed-${local.local_storage_bucket}/g" "$${file}" > "$${destFile}"
+done
+gsutil cp -r ../sample-data/rideshare_trips-with-substitution/* gs://processed-${local.local_storage_bucket}/delta_io/rideshare_trips/
+EOF
+  }
+  depends_on = [
+    module.project,
+    module.service-account,
+    module.service-usage,
+    module.apis,
+    module.org-policies,
+    module.org-policies-deprecated,
+    module.resources,
+    module.sql-scripts
+  ]
+}
+
 
 
 # You need to wait for Airflow to read the DAGs just uploaded
