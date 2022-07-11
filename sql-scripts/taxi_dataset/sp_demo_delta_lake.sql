@@ -71,10 +71,10 @@ uris = ['gs://${bucket_name}/delta_io/rideshare_trips/*.snappy.parquet']
 );
 
 -- This shows all the data (including the logically deleted Delta.IO data which is incorrect)
-SELECT * FROM ${project_id}.${bigquery_taxi_dataset}.rideshare_trips_raw_parquet;
+SELECT * FROM `${project_id}.${bigquery_taxi_dataset}.rideshare_trips_raw_parquet`;
 
 -- Returns 54521
-SELECT COUNT(*) FROM ${project_id}.${bigquery_taxi_dataset}.rideshare_trips_raw_parquet;
+SELECT COUNT(*) FROM `${project_id}.${bigquery_taxi_dataset}.rideshare_trips_raw_parquet`;
 
 -- Create an external table over the generated manifest files which has pointers to the actual parquet files
 CREATE OR REPLACE EXTERNAL TABLE `${project_id}.${bigquery_taxi_dataset}.rideshare_trips_manifest`
@@ -106,10 +106,10 @@ WHERE _FILE_NAME IN (SELECT string_field_0 FROM `${project_id}.${bigquery_taxi_d
 -- We should not have any PULocationIds >= 100 in our results
 
 -- Show it works
-SELECT * FROM ${project_id}.${bigquery_taxi_dataset}.rideshare_trips;
+SELECT * FROM `${project_id}.${bigquery_taxi_dataset}.rideshare_trips`;
 
 -- Shows that we are not returning delete rows
-SELECT * FROM ${project_id}.${bigquery_taxi_dataset}.rideshare_trips WHERE PULocationID >= 100;
+SELECT * FROM `${project_id}.${bigquery_taxi_dataset}.rideshare_trips` WHERE PULocationID >= 100;
 
 -- Show the count 4521 as compared to the 54521 above
-SELECT COUNT(*) FROM ${project_id}.${bigquery_taxi_dataset}.rideshare_trips;
+SELECT COUNT(*) FROM `${project_id}.${bigquery_taxi_dataset}.rideshare_trips`;

@@ -607,6 +607,7 @@ find ../sample-data/rideshare_trips/_symlink_format_manifest -type f -name "*" -
     sed "s/REPLACE-BUCKET-NAME/processed-${local.local_storage_bucket}/g" "$${file}" > "$${destFile}"
 done
 gsutil cp -r ../sample-data/rideshare_trips-with-substitution/* gs://processed-${local.local_storage_bucket}/delta_io/rideshare_trips/
+gsutil rm gs://processed-${local.local_storage_bucket}/delta_io/rideshare_trips/README.md
 EOF
   }
   depends_on = [
