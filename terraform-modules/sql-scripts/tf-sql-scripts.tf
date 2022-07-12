@@ -484,6 +484,30 @@ resource "google_bigquery_routine" "sproc_sp_demo_materialized_views_joins" {
 
 
 ####################################################################################
+# sp_demo_security_col_encryption_shredding
+####################################################################################
+data "template_file" "sproc_sp_demo_security_col_encryption_shredding" {
+  template = "${file("../sql-scripts/taxi_dataset/sp_demo_security_col_encryption_shredding.sql")}"
+  vars = {
+    project_id = var.project_id
+    region = var.region
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+    bigquery_thelook_ecommerce_dataset = var.bigquery_thelook_ecommerce_dataset
+    bucket_name = "processed-${var.storage_bucket}"
+    bigquery_region = var.bigquery_region
+    gcp_account_name = var.gcp_account_name
+  }  
+}
+resource "google_bigquery_routine" "sproc_sp_demo_security_col_encryption_shredding" {
+  dataset_id      = var.bigquery_taxi_dataset
+  routine_id      = "sp_demo_security_col_encryption_shredding"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = "${data.template_file.sproc_sp_demo_security_col_encryption_shredding.rendered}"
+}
+
+
+####################################################################################
 # sp_demo_security
 ####################################################################################
 data "template_file" "sproc_sp_demo_security" {

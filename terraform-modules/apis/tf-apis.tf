@@ -343,6 +343,27 @@ resource "time_sleep" "enable_api_analyticshub_time_delay" {
 }
 
 
+# Cloud KMS
+resource "google_project_service" "enable_api_cloudkms" {
+  project                    = var.project_id
+  service                    = "cloudkms.googleapis.com"
+  disable_dependent_services = true
+  disable_on_destroy         = true
+  depends_on                 = [time_sleep.enable_api_cloudresourcemanager_time_delay,
+                               time_sleep.enable_api_servicemanagement_time_delay,
+                               time_sleep.enable_api_compute_time_delay]
+  timeouts {
+    create = "15m"
+  }
+}
+
+resource "time_sleep" "enable_api_cloudkms_time_delay" {
+  depends_on      = [google_project_service.enable_api_cloudkms]
+  create_duration = "5s"
+}
+
+
+
 
 #-----------------------------------------------------------------------------------
 # Overall Time Deplay for API Enable Commands (You must update this if you add a new API above)
@@ -368,5 +389,6 @@ resource "time_sleep" "time_sleep_enable_api" {
                 time_sleep.enable_api_notebooks_time_delay,
                 time_sleep.enable_api_spanner_time_delay,
                 time_sleep.enable_api_dataflow_time_delay,
+                time_sleep.enable_api_cloudkms_time_delay,
   ]
 }

@@ -100,6 +100,25 @@ SELECT *
 FROM  `${project_id}.${bigquery_taxi_dataset}.rideshare_trips_raw_parquet`
 WHERE _FILE_NAME IN (SELECT string_field_0 FROM `${project_id}.${bigquery_taxi_dataset}.rideshare_trips_manifest`) ;
 
+/*
+-- In Azure
+CREATE OR REPLACE VIEW `${project_id}.${bigquery_taxi_dataset}.rideshare_trips` AS
+SELECT *,
+FROM  `${project_id}.${bigquery_taxi_dataset}.rideshare_trips_raw_parquet`
+WHERE REPLACE(_FILE_NAME, 
+             'azure://STORAGE_ACCOUNT_NAME.blob.core.windows.net/CONTAINER_NAME', 
+             'abfss://CONTAINER_NAME@STORAGE_ACCOUNT_NAME.dfs.core.windows.net')
+           IN (SELECT string_field_0 FROM `${project_id}.${bigquery_taxi_dataset}.rideshare_trips_manifest`) ;
+
+-- In AWS
+CREATE OR REPLACE VIEW `${project_id}.${bigquery_taxi_dataset}.rideshare_trips` AS
+SELECT *
+FROM  `${project_id}.${bigquery_taxi_dataset}.rideshare_trips_raw_parquet`
+WHERE REPLACE(_FILE_NAME, 
+             's3a', 
+             's3')
+           IN (SELECT string_field_0 FROM `${project_id}.${bigquery_taxi_dataset}.rideshare_trips_manifest`) ;
+*/
 
 -- This show the correct data (excludes logically deleted Delta.IO data)
 -- The following query was done on the Delta data: DELETE FROM rideshare_trips WHERE PULocationID >= 100;
