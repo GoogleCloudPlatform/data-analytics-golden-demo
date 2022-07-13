@@ -59,6 +59,7 @@ Clean up / Reset script:
     DROP TABLE IF EXISTS  `${project_id}.${bigquery_taxi_dataset}.pii_customers`;
     DROP TABLE IF EXISTS  `${project_id}.${bigquery_taxi_dataset}.pii_taxi_trips`;
     DROP TABLE IF EXISTS  `${project_id}.${bigquery_taxi_dataset}.pii_customers_ahed_keys`;
+    DROP TABLE IF EXISTS  `${project_id}.${bigquery_taxi_dataset}.pii_customers_tbl_approach`;
     DROP TABLE IF EXISTS  `${project_id}.${bigquery_taxi_dataset}.pii_taxi_trips_tbl_approach`;
     DROP TABLE IF EXISTS  `${project_id}.${bigquery_taxi_dataset}.pii_customers_kms_keys`;
     DROP TABLE IF EXISTS  `${project_id}.${bigquery_taxi_dataset}.pii_customers_kms_approach`;
@@ -117,7 +118,7 @@ SELECT * FROM `${project_id}.${bigquery_taxi_dataset}.pii_taxi_trips` ;
 -- A new law is passed and customers demand the data is protected
 -- Customer drivers license and DOB need protecting
 -- Customer demand the right to be forgotten for their Trips
--- NOTE: This is an example and not a certified legal apporach
+-- NOTE: This is an example and not a certified legal approach
 --------------------------------------------------------------------------------
 
 -- **********************************************************
@@ -195,7 +196,7 @@ UPDATE `${project_id}.${bigquery_taxi_dataset}.pii_customers_ahed_keys`
 -- Hide rows that are disabled or destroyed from users 
  CREATE OR REPLACE ROW ACCESS POLICY pii_customers_ahed_keys_rls
     ON `${project_id}.${bigquery_taxi_dataset}.pii_customers_ahed_keys`
-    GRANT TO ("user:admin@paternostro.altostrat.com") 
+    GRANT TO ("user:${gcp_account_name}") 
 FILTER USING (key_disabled = FALSE AND key_destroyed = FALSE);
 
 
