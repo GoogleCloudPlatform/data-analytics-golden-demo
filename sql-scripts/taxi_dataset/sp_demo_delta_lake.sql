@@ -103,9 +103,9 @@ WHERE _FILE_NAME IN (SELECT string_field_0 FROM `${project_id}.${bigquery_taxi_d
 /*
 -- In Azure
 CREATE OR REPLACE VIEW `${project_id}.${bigquery_taxi_dataset}.rideshare_trips` AS
-SELECT *,
-FROM  `${project_id}.${bigquery_taxi_dataset}.rideshare_trips_raw_parquet`
-WHERE REPLACE(_FILE_NAME, 
+SELECT *
+  FROM `${project_id}.${bigquery_taxi_dataset}.rideshare_trips_raw_parquet`
+ WHERE REPLACE(_FILE_NAME, 
              'azure://STORAGE_ACCOUNT_NAME.blob.core.windows.net/CONTAINER_NAME', 
              'abfss://CONTAINER_NAME@STORAGE_ACCOUNT_NAME.dfs.core.windows.net')
            IN (SELECT string_field_0 FROM `${project_id}.${bigquery_taxi_dataset}.rideshare_trips_manifest`) ;
@@ -113,11 +113,10 @@ WHERE REPLACE(_FILE_NAME,
 -- In AWS
 CREATE OR REPLACE VIEW `${project_id}.${bigquery_taxi_dataset}.rideshare_trips` AS
 SELECT *
-FROM  `${project_id}.${bigquery_taxi_dataset}.rideshare_trips_raw_parquet`
-WHERE REPLACE(_FILE_NAME, 
-             's3a', 
-             's3')
-           IN (SELECT string_field_0 FROM `${project_id}.${bigquery_taxi_dataset}.rideshare_trips_manifest`) ;
+  FROM `${project_id}.${bigquery_taxi_dataset}.rideshare_trips_raw_parquet`
+ WHERE _FILE_NAME IN (SELECT REPLACE(string_field_0,'s3a://','s3://')
+                        FROM `${project_id}.${bigquery_taxi_dataset}.rideshare_trips_manifest`) ;
+
 */
 
 -- This show the correct data (excludes logically deleted Delta.IO data)
