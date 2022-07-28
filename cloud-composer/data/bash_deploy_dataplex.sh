@@ -19,7 +19,9 @@
 # Deploys DataPlex using gCloud commands
 # Currently Terraform is under development: https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/dataplex_lake
 # https://cloud.google.com/dataplex/docs/discover-data
-
+# https://cloud.google.com/static/dataplex/docs/reference/rest/v1/projects.locations.lakes.zones#DiscoverySpec
+# https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/dataplex_lake
+# glob patterns: https://cloud.google.com/dataplex/docs/discover-data#discovery-configuration
 
 # Hardcoded for now (until more regions are activated)
 #LOCATION="{{ params.region }}"
@@ -35,6 +37,10 @@ THELOOK_DATASET="{{ params.thelook_dataset }}"
 gcloud services enable metastore.googleapis.com --project="${PROJECT_ID}"
 gcloud services enable dataplex.googleapis.com --project="${PROJECT_ID}"
 
+# Since the current version of gCloud does not have DataPlex, install it.
+# This is NOT a best practice
+sudo apt-get update && sudo apt-get --only-upgrade install google-cloud-sdk 
+# sudo apt-get update && sudo apt-get --only-upgrade install google-cloud-sdk-cbt google-cloud-sdk-bigtable-emulator google-cloud-sdk-kpt google-cloud-sdk-gke-gcloud-auth-plugin google-cloud-sdk-app-engine-python google-cloud-sdk-datalab google-cloud-sdk-datastore-emulator google-cloud-sdk-anthos-auth google-cloud-sdk-terraform-validator google-cloud-sdk google-cloud-sdk-spanner-emulator google-cloud-sdk-pubsub-emulator google-cloud-sdk-app-engine-python-extras google-cloud-sdk-app-engine-java google-cloud-sdk-kubectl-oidc google-cloud-sdk-app-engine-grpc google-cloud-sdk-firestore-emulator google-cloud-sdk-skaffold google-cloud-sdk-local-extract google-cloud-sdk-minikube google-cloud-sdk-cloud-build-local google-cloud-sdk-config-connector kubectl google-cloud-sdk-app-engine-go
 
 ##########################################################################################
 # Taxi Data
