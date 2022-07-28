@@ -1,0 +1,138 @@
+#!/bin/bash
+
+####################################################################################
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#     https://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+####################################################################################
+
+# Deploys DataPlex using gCloud commands
+# Currently Terraform is under development: https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/dataplex_lake
+# https://cloud.google.com/dataplex/docs/discover-data
+
+
+# Hardcoded for now (until more regions are activated)
+#LOCATION="{{ params.region }}"
+LOCATION="us-central1"
+PROJECT_ID="{{ params.project_id }}"
+RAW_BUCKET="{{ params.raw_bucket }}"
+PROCESSED_BUCKET="{{ params.processed_bucket }}"
+TAXI_DATASET="{{ params.taxi_dataset }}"
+THELOOK_DATASET="{{ params.thelook_dataset }}"
+
+
+# Activate the services (TODO: Move the full TF script)
+gcloud services enable metastore.googleapis.com --project="${PROJECT_ID}"
+gcloud services enable dataplex.googleapis.com --project="${PROJECT_ID}"
+
+
+##########################################################################################
+# Taxi Data
+##########################################################################################
+
+# Create the Data Lake
+gcloud dataplex lakes create taxi-data-lake \
+    --project="${PROJECT_ID}" \
+    --location="${LOCATION}" \
+    --description="Taxi Data Lake" \
+    --display-name="Taxi Data Lake"
+
+
+# Create the Zones 
+gcloud dataplex zones create taxi-raw-zone \
+    --lake="taxi-data-lake" \
+    --type=RAW \
+    --resource-location-type=MULTI_REGION \
+    --project="${PROJECT_ID}" \
+    --location="${LOCATION}" \
+    --description="Taxi Raw Zone" \
+    --display-name="Taxi Raw Zone" \
+    --csv-delimiter="," \
+    --csv-header-rows=1
+
+gcloud dataplex zones create taxi-curated-zone \
+    --lake="taxi-data-lake" \
+    --type=CURATED \
+    --resource-location-type=MULTI_REGION \
+    --project="${PROJECT_ID}" \
+    --location="${LOCATION}" \
+    --description="Taxi Curated Zone" \
+    --display-name="Taxi Curated Zone" \
+    --csv-delimiter="," \
+    --csv-header-rows=1
+
+# Add the Assests (2 buckets and 1 dataset)
+# Showing how to exclude at the bucket let (you would probably do this instead of the zone level unless you have a common zone path to exclude)
+gcloud dataplex assets create taxi-raw-bucket \
+    --lake="taxi-data-lake" \
+    --zone="taxi-raw-zone" \
+    --project="${PROJECT_ID}" \
+    --location="${LOCATION}" \
+    --resource-type=STORAGE_BUCKET \
+    --resource-name="projects/${PROJECT_ID}/buckets/${RAW_BUCKET}" \
+    --discovery-enabled \
+    --csv-delimiter="," \
+    --csv-header-rows=1
+# This will NOT generate action warnings.  For the demo is it good to show Bad data/issue.
+#    --discovery-exclude-patterns=[**/bigspark/*,**/dataflow/*,**/pyspark-code/*]
+
+gcloud dataplex assets create taxi-processed-bucket \
+    --lake="taxi-data-lake" \
+    --zone="taxi-curated-zone" \
+    --project="${PROJECT_ID}" \
+    --location="${LOCATION}" \
+    --resource-type=STORAGE_BUCKET \
+    --resource-name="projects/${PROJECT_ID}/buckets/${PROCESSED_BUCKET}" \
+    --discovery-enabled \
+    --csv-delimiter="," \
+    --csv-header-rows=1 
+# This will NOT generate action warnings.  For the demo is it good to show Bad data/issue.
+#    --discovery-exclude-patterns=[**/delta_io/*,**/notebooks/*]
+
+gcloud dataplex assets create taxi-processed-datasets \
+    --lake="taxi-data-lake" \
+    --zone="taxi-curated-zone" \
+    --project="${PROJECT_ID}" \
+    --location="${LOCATION}" \
+    --resource-type=BIGQUERY_DATASET \
+    --resource-name="projects/${PROJECT_ID}/datasets/${TAXI_DATASET}" \
+    --discovery-enabled
+
+
+##########################################################################################
+# The Look eCommerce
+##########################################################################################
+gcloud dataplex lakes create ecommerce-data-lake \
+    --project="${PROJECT_ID}" \
+    --location="${LOCATION}" \
+    --description="The Look eCommerce Data Lake" \
+    --display-name="The Look eCommerce Data Lake"
+
+gcloud dataplex zones create ecommerce-curated-zone \
+    --lake="ecommerce-data-lake" \
+    --type=CURATED \
+    --resource-location-type=MULTI_REGION \
+    --project="${PROJECT_ID}" \
+    --location="${LOCATION}" \
+    --description="The Look eCommerce Curated Zone" \
+    --display-name="The Look eCommerce Zone"
+
+gcloud dataplex assets create ecommerce-dataset \
+    --lake="ecommerce-data-lake" \
+    --zone="ecommerce-curated-zone" \
+    --project="${PROJECT_ID}" \
+    --location="${LOCATION}" \
+    --resource-type=BIGQUERY_DATASET \
+    --resource-name="projects/${PROJECT_ID}/datasets/${THELOOK_DATASET}" \
+    --discovery-enabled
+    
