@@ -78,7 +78,7 @@ params_list = {
 # Create the dataset to hold the data quality results
 # NOTE: This has to be in the same region as the BigQuery dataset we are performing our data quality checks
 sql="""
-CREATE SCHEMA IF NOT EXISTS `{project_id}`.data_quality_summary_dataset
+CREATE SCHEMA IF NOT EXISTS `{project_id}`.dataplex_data_quality
   OPTIONS (
     description = 'Dataplex Data Quality',
     location='{bigquery_region}');

@@ -82,13 +82,13 @@ DATAPLEX_LAKE_NAME="${TAXI_DATAPLEX_LAKE_NAME}"
 DATAPLEX_TASK_SERVICE_ACCOUNT="${SERVICE_ACCOUNT_TO_RUN_DATAPLEX}"
 
 # The BigQuery dataset used for storing the intermediate data quality summary results and the BigQuery views associated with each rule binding.
-TARGET_BQ_DATASET="data_quality_summary_dataset"
+TARGET_BQ_DATASET="dataplex_data_quality"
 
 # If you want to use a different dataset for storing the intermediate data quality summary results and the BigQuery views associated with each rule binding, use the following:
 CLOUDDQ_BIGQUERY_DATASET=$TARGET_BQ_DATASET
 
 # The BigQuery dataset where the final results of the data quality checks are stored. This could be the same as CLOUDDQ_BIGQUERY_DATASET.
-TARGET_BQ_DATASET="data_quality_summary_dataset"
+TARGET_BQ_DATASET="dataplex_data_quality"
 
 # The BigQuery table where the final results of the data quality checks are stored.
 TARGET_BQ_TABLE="data_quality_summary"
