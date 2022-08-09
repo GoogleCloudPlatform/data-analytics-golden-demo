@@ -31,7 +31,7 @@ Reference:
     - https://cloud.google.com/bigquery/docs/reference/standard-sql/json-data
 
 Clean up / Reset script:
-    DROP TABLE IF EXISTS `${project_id}.${bigquery_taxi_dataset}.ext_yellow_trips_json`;
+    DROP TABLE IF EXISTS `${project_id}.${bigquery_taxi_dataset}.ext_taxi_trips_json`;
     DROP TABLE IF EXISTS `${project_id}.${bigquery_taxi_dataset}.taxi_trips_json`;
         
 */
@@ -62,12 +62,12 @@ OPTIONS (
 
 -- Check the results
 SELECT COUNT(*)
- FROM `${project_id}.${bigquery_taxi_dataset}.ext_yellow_trips_json`;
+ FROM `${project_id}.${bigquery_taxi_dataset}.ext_taxi_trips_json`;
 
 
 -- Check the results
 SELECT *
- FROM `${project_id}.${bigquery_taxi_dataset}.ext_yellow_trips_json`
+ FROM `${project_id}.${bigquery_taxi_dataset}.ext_taxi_trips_json`
  LIMIT 10;
 
 
@@ -79,7 +79,7 @@ CREATE OR REPLACE TABLE `${project_id}.${bigquery_taxi_dataset}.taxi_trips_json`
 )
 AS
 SELECT SAFE.PARSE_JSON(taxi_json)
-  FROM `${project_id}.${bigquery_taxi_dataset}.ext_yellow_trips_json`;
+  FROM `${project_id}.${bigquery_taxi_dataset}.ext_taxi_trips_json`;
 
 
 -- Check results
@@ -198,15 +198,12 @@ WHERE Ranking = 1
 ORDER BY Pickup_Date, Payment_Type_Description;
 
 
-
 -- Insert data (we go the passenger names)
--- Commented out due to preview feature (this can be uncommented at JSON GA)
-/*
-INSERT INTO ${project_id}.${bigquery_taxi_dataset}.taxi_trips_json (taxi_json) VALUES
+INSERT INTO `${project_id}`.${bigquery_taxi_dataset}.taxi_trips_json (taxi_json) VALUES
 (JSON """
 {"Vendor_Id":456, "Passenger_Names" : ["Bugs","Daffy","Coyote"], "Pickup_DateTime":"2020-06-13T07:15:50.000Z","Dropoff_DateTime":"2020-06-13T07:17:30.000Z","Passenger_Count":1,"Trip_Distance":0.62,"Rate_Code_Id":1,"Store_And_Forward":"N","PULocationID":100,"DOLocationID":230,"Payment_Type_Id":1,"Fare_Amount":4.0,"Surcharge":0.5,"MTA_Tax":0.5,"Tip_Amount":1.56,"Tolls_Amount":0.0,"Improvement_Surcharge":0.3,"Total_Amount":9.36,"Congestion_Surcharge":2.5}
 """);
-*/
+
 
 SELECT taxi_json.Vendor_Id, taxi_json.Passenger_Names[0] AS FirstPassenagerName
   FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips_json`
