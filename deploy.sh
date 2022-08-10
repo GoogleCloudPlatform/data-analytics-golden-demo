@@ -67,7 +67,7 @@ else
   then
     echo "You have more than one org id, please manually enter the correct one."
     echo "Your org id will be in the format of xxxxxxxxxxxx"
-    read -p "Please enter your org id:" billing_account
+    read -p "Please enter your org id:" org_id
   else
     echo "Org Id was automatically retreived."
   fi
