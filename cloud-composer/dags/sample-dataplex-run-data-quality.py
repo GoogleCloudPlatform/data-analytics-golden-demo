@@ -57,7 +57,7 @@ vpc_subnet_name                 = "bigspark-subnet"
 dataplex_region                 = "us-central1"
 service_account_to_run_dataplex = "dataproc-service-account@" + project_id + ".iam.gserviceaccount.com"
 random_extension                = os.environ['ENV_RANDOM_EXTENSION']
-taxi_dataplex_lake_name         = "taxi-data-lake-${random_extension}"
+taxi_dataplex_lake_name         = "taxi-data-lake-" + random_extension
 
 # NOTE: This is case senstive for some reason
 bigquery_region = bigquery_region.upper()
