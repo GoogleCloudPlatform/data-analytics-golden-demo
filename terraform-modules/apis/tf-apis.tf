@@ -406,6 +406,26 @@ resource "time_sleep" "enable_api_dataplex_time_delay" {
 }
 
 
+# BigQuery Data Masking
+resource "google_project_service" "enable_api_bigquerydatapolicy" {
+  project                    = var.project_id
+  service                    = "bigquerydatapolicy.googleapis.com"
+  disable_dependent_services = true
+  disable_on_destroy         = true
+  depends_on                 = [time_sleep.enable_api_cloudresourcemanager_time_delay,
+                               time_sleep.enable_api_servicemanagement_time_delay,
+                               time_sleep.enable_api_compute_time_delay,
+                               time_sleep.enable_api_datacatalog_time_delay]
+  timeouts {
+    create = "15m"
+  }
+}
+
+resource "time_sleep" "enable_api_bigquerydatapolicy_time_delay" {
+  depends_on      = [google_project_service.enable_api_bigquerydatapolicy]
+  create_duration = "5s"
+}
+
 
 #-----------------------------------------------------------------------------------
 # Overall Time Deplay for API Enable Commands (You must update this if you add a new API above)
