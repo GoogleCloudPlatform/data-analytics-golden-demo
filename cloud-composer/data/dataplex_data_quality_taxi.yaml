@@ -64,35 +64,35 @@ rules:
 #rule bindings associate rules to {table, column}
 rule_bindings:
   TAXI_AMOUNT_VALID:
-    entity_uri: dataplex://projects/PROJECT_ID/locations/DATAPLEX_REGION/lakes/taxi-data-lake/zones/taxi-curated-zone/entities/taxi_trips
+    entity_uri: dataplex://projects/PROJECT_ID/locations/DATAPLEX_REGION/lakes/taxi-data-lake-RANDOM_EXTENSION/zones/taxi-curated-zone-RANDOM_EXTENSION/entities/taxi_trips
     column_id: Total_Amount
     row_filter_id: NONE
     rule_ids:
       - VALUE_ZERO_OR_POSITIVE
 
   TAXI_VALID_VENDOR_ID:
-    entity_uri: dataplex://projects/PROJECT_ID/locations/DATAPLEX_REGION/lakes/taxi-data-lake/zones/taxi-curated-zone/entities/taxi_trips
+    entity_uri: dataplex://projects/PROJECT_ID/locations/DATAPLEX_REGION/lakes/taxi-data-lake-RANDOM_EXTENSION/zones/taxi-curated-zone-RANDOM_EXTENSION/entities/taxi_trips
     column_id: Vendor_Id
     row_filter_id: NONE
     rule_ids:
       - VALID_VENDOR_ID
 
   TAXI_LOCATION_VALID:
-    entity_uri: dataplex://projects/PROJECT_ID/locations/DATAPLEX_REGION/lakes/taxi-data-lake/zones/taxi-curated-zone/entities/taxi_trips
+    entity_uri: dataplex://projects/PROJECT_ID/locations/DATAPLEX_REGION/lakes/taxi-data-lake-RANDOM_EXTENSION/zones/taxi-curated-zone-RANDOM_EXTENSION/entities/taxi_trips
     column_id: PULocationID
     row_filter_id: NONE
     rule_ids:
       - VALID_LOCATION_ID
 
   TAXI_LOCATION_VALID:
-    entity_uri: dataplex://projects/PROJECT_ID/locations/DATAPLEX_REGION/lakes/taxi-data-lake/zones/taxi-curated-zone/entities/taxi_trips
+    entity_uri: dataplex://projects/PROJECT_ID/locations/DATAPLEX_REGION/lakes/taxi-data-lake-RANDOM_EXTENSION/zones/taxi-curated-zone-RANDOM_EXTENSION/entities/taxi_trips
     column_id: DOLocationID
     row_filter_id: NONE
     rule_ids:
       - VALID_LOCATION_ID
 
   TAXI_TRIPS_UNIQUE:
-    entity_uri: dataplex://projects/PROJECT_ID/locations/DATAPLEX_REGION/lakes/taxi-data-lake/zones/taxi-curated-zone/entities/taxi_trips
+    entity_uri: dataplex://projects/PROJECT_ID/locations/DATAPLEX_REGION/lakes/taxi-data-lake-RANDOM_EXTENSION/zones/taxi-curated-zone-RANDOM_EXTENSION/entities/taxi_trips
     column_id: Pickup_DateTime
     row_filter_id: NONE
     incremental_time_filter_column_id: Pickup_DateTime

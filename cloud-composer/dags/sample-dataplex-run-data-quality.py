@@ -46,17 +46,18 @@ default_args = {
     'dagrun_timeout' : timedelta(minutes=60),
 }
 
-project_id                     = os.environ['GCP_PROJECT'] 
-taxi_dataset_id                = os.environ['ENV_TAXI_DATASET_ID']
-processed_bucket_name          = os.environ['ENV_PROCESSED_BUCKET'] 
-yaml_path                      = "gs://" + processed_bucket_name + "/dataplex/dataplex_data_quality_taxi.yaml"
-bigquery_region                = os.environ['ENV_BIGQUERY_REGION']
-taxi_dataset_id                = os.environ['ENV_TAXI_DATASET_ID']
-thelook_dataset_id             = "thelook_ecommerce"
-taxi_dataplex_lake_name        = "taxi-data-lake"
-vpc_subnet_name                = "bigspark-subnet"
-dataplex_region                = "us-central1"
-service_account_to_run_dataplex= "dataproc-service-account@" + project_id + ".iam.gserviceaccount.com"
+project_id                      = os.environ['GCP_PROJECT'] 
+taxi_dataset_id                 = os.environ['ENV_TAXI_DATASET_ID']
+processed_bucket_name           = os.environ['ENV_PROCESSED_BUCKET'] 
+yaml_path                       = "gs://" + processed_bucket_name + "/dataplex/dataplex_data_quality_taxi.yaml"
+bigquery_region                 = os.environ['ENV_BIGQUERY_REGION']
+taxi_dataset_id                 = os.environ['ENV_TAXI_DATASET_ID']
+thelook_dataset_id              = "thelook_ecommerce"
+vpc_subnet_name                 = "bigspark-subnet"
+dataplex_region                 = "us-central1"
+service_account_to_run_dataplex = "dataproc-service-account@" + project_id + ".iam.gserviceaccount.com"
+random_extension                = os.environ['ENV_RANDOM_EXTENSION']
+taxi_dataplex_lake_name         = "taxi-data-lake-${random_extension}"
 
 # NOTE: This is case senstive for some reason
 bigquery_region = bigquery_region.upper()
@@ -71,7 +72,8 @@ params_list = {
     "taxi_dataplex_lake_name": taxi_dataplex_lake_name,
     "vpc_subnet_name": vpc_subnet_name,
     "dataplex_region": dataplex_region,
-    "service_account_to_run_dataplex": service_account_to_run_dataplex
+    "service_account_to_run_dataplex": service_account_to_run_dataplex,
+    "random_extension": random_extension
     }
 
 

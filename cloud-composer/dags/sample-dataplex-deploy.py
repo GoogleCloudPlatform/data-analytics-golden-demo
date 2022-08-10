@@ -56,6 +56,7 @@ processed_bucket_name    = os.environ['ENV_PROCESSED_BUCKET']
 region                   = os.environ['ENV_REGION'] 
 taxi_dataset_id          = os.environ['ENV_TAXI_DATASET_ID']
 thelook_dataset_id       = "thelook_ecommerce"
+random_extension         = os.environ['ENV_RANDOM_EXTENSION']
 
 params_list = { 
     "project_id" : project_id,
@@ -64,6 +65,7 @@ params_list = {
     "processed_bucket": processed_bucket_name,
     "taxi_dataset": taxi_dataset_id,
     "thelook_dataset": thelook_dataset_id,
+    "random_extension": random_extension,
     }
 
 

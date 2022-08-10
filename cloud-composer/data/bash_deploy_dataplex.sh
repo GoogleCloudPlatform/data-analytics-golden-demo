@@ -31,6 +31,7 @@ RAW_BUCKET="{{ params.raw_bucket }}"
 PROCESSED_BUCKET="{{ params.processed_bucket }}"
 TAXI_DATASET="{{ params.taxi_dataset }}"
 THELOOK_DATASET="{{ params.thelook_dataset }}"
+RANDOM_EXTENSION="{{ params.random_extension }}"
 
 
 # Activate the services (TODO: Move the full TF script)
@@ -47,41 +48,41 @@ sudo apt-get update && sudo apt-get --only-upgrade install google-cloud-sdk
 ##########################################################################################
 
 # Create the Data Lake
-gcloud dataplex lakes create taxi-data-lake \
+gcloud dataplex lakes create "taxi-data-lake-${RANDOM_EXTENSION}" \
     --project="${PROJECT_ID}" \
     --location="${LOCATION}" \
-    --description="Taxi Data Lake" \
-    --display-name="Taxi Data Lake"
+    --description="Taxi Data Lake (${RANDOM_EXTENSION})" \
+    --display-name="Taxi Data Lake (${RANDOM_EXTENSION})"
 
 
 # Create the Zones 
-gcloud dataplex zones create taxi-raw-zone \
-    --lake="taxi-data-lake" \
+gcloud dataplex zones create "taxi-raw-zone-${RANDOM_EXTENSION}" \
+    --lake="taxi-data-lake-${RANDOM_EXTENSION}" \
     --type=RAW \
     --resource-location-type=MULTI_REGION \
     --project="${PROJECT_ID}" \
     --location="${LOCATION}" \
-    --description="Taxi Raw Zone" \
-    --display-name="Taxi Raw Zone" \
+    --description="Taxi Raw Zone (${RANDOM_EXTENSION})" \
+    --display-name="Taxi Raw Zone (${RANDOM_EXTENSION})" \
     --csv-delimiter="," \
     --csv-header-rows=1
 
-gcloud dataplex zones create taxi-curated-zone \
-    --lake="taxi-data-lake" \
+gcloud dataplex zones create "taxi-curated-zone-${RANDOM_EXTENSION}" \
+    --lake="taxi-data-lake-${RANDOM_EXTENSION}" \
     --type=CURATED \
     --resource-location-type=MULTI_REGION \
     --project="${PROJECT_ID}" \
     --location="${LOCATION}" \
-    --description="Taxi Curated Zone" \
-    --display-name="Taxi Curated Zone" \
+    --description="Taxi Curated Zone (${RANDOM_EXTENSION})" \
+    --display-name="Taxi Curated Zone (${RANDOM_EXTENSION})" \
     --csv-delimiter="," \
     --csv-header-rows=1
 
 # Add the Assests (2 buckets and 1 dataset)
 # Showing how to exclude at the bucket let (you would probably do this instead of the zone level unless you have a common zone path to exclude)
-gcloud dataplex assets create taxi-raw-bucket \
-    --lake="taxi-data-lake" \
-    --zone="taxi-raw-zone" \
+gcloud dataplex assets create "taxi-raw-bucket-${RANDOM_EXTENSION}" \
+    --lake="taxi-data-lake-${RANDOM_EXTENSION}" \
+    --zone="taxi-raw-zone-${RANDOM_EXTENSION}" \
     --project="${PROJECT_ID}" \
     --location="${LOCATION}" \
     --resource-type=STORAGE_BUCKET \
@@ -92,9 +93,9 @@ gcloud dataplex assets create taxi-raw-bucket \
 # This will NOT generate action warnings.  For the demo is it good to show Bad data/issue.
 #    --discovery-exclude-patterns=[**/bigspark/*,**/dataflow/*,**/pyspark-code/*]
 
-gcloud dataplex assets create taxi-processed-bucket \
-    --lake="taxi-data-lake" \
-    --zone="taxi-curated-zone" \
+gcloud dataplex assets create "taxi-processed-bucket-${RANDOM_EXTENSION}" \
+    --lake="taxi-data-lake-${RANDOM_EXTENSION}" \
+    --zone="taxi-curated-zone-${RANDOM_EXTENSION}" \
     --project="${PROJECT_ID}" \
     --location="${LOCATION}" \
     --resource-type=STORAGE_BUCKET \
@@ -105,9 +106,9 @@ gcloud dataplex assets create taxi-processed-bucket \
 # This will NOT generate action warnings.  For the demo is it good to show Bad data/issue.
 #    --discovery-exclude-patterns=[**/delta_io/*,**/notebooks/*]
 
-gcloud dataplex assets create taxi-processed-datasets \
-    --lake="taxi-data-lake" \
-    --zone="taxi-curated-zone" \
+gcloud dataplex assets create "taxi-processed-datasets-${RANDOM_EXTENSION}" \
+    --lake="taxi-data-lake-${RANDOM_EXTENSION}" \
+    --zone="taxi-curated-zone-${RANDOM_EXTENSION}" \
     --project="${PROJECT_ID}" \
     --location="${LOCATION}" \
     --resource-type=BIGQUERY_DATASET \
@@ -118,24 +119,24 @@ gcloud dataplex assets create taxi-processed-datasets \
 ##########################################################################################
 # The Look eCommerce
 ##########################################################################################
-gcloud dataplex lakes create ecommerce-data-lake \
+gcloud dataplex lakes create "ecommerce-data-lake-${RANDOM_EXTENSION}" \
     --project="${PROJECT_ID}" \
     --location="${LOCATION}" \
-    --description="The Look eCommerce Data Lake" \
-    --display-name="The Look eCommerce Data Lake"
+    --description="The Look eCommerce Data Lake (${RANDOM_EXTENSION})" \
+    --display-name="The Look eCommerce Data Lake (${RANDOM_EXTENSION})"
 
-gcloud dataplex zones create ecommerce-curated-zone \
-    --lake="ecommerce-data-lake" \
+gcloud dataplex zones create "ecommerce-curated-zone-${RANDOM_EXTENSION}" \
+    --lake="ecommerce-data-lake-${RANDOM_EXTENSION}" \
     --type=CURATED \
     --resource-location-type=MULTI_REGION \
     --project="${PROJECT_ID}" \
     --location="${LOCATION}" \
-    --description="The Look eCommerce Curated Zone" \
-    --display-name="The Look eCommerce Zone"
+    --description="The Look eCommerce Curated Zone (${RANDOM_EXTENSION})" \
+    --display-name="The Look eCommerce Zone (${RANDOM_EXTENSION})"
 
-gcloud dataplex assets create ecommerce-dataset \
-    --lake="ecommerce-data-lake" \
-    --zone="ecommerce-curated-zone" \
+gcloud dataplex assets create "ecommerce-dataset-${RANDOM_EXTENSION}" \
+    --lake="ecommerce-data-lake-${RANDOM_EXTENSION}" \
+    --zone="ecommerce-curated-zone-${RANDOM_EXTENSION}" \
     --project="${PROJECT_ID}" \
     --location="${LOCATION}" \
     --resource-type=BIGQUERY_DATASET \

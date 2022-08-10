@@ -36,6 +36,7 @@ TAXI_DATAPLEX_LAKE_NAME="{{ params.taxi_dataplex_lake_name }}"
 VPC_SUBNET_NAME="{{ params.vpc_subnet_name }}"
 DATAPLEX_REGION="{{ params.dataplex_region }}"
 SERVICE_ACCOUNT_TO_RUN_DATAPLEX="{{ params.service_account_to_run_dataplex }}"
+RANDOM_EXTENSION="{{ params.random_extension }}"
 
 #PROJECT_ID="data-analytics-demo-4g4pkx9s5l"
 #TAXI_DATASET="taxi_dataset"
@@ -53,9 +54,11 @@ SERVICE_ACCOUNT_TO_RUN_DATAPLEX="{{ params.service_account_to_run_dataplex }}"
 echo "YAML Replacing: /home/airflow/gcs/data/dataplex_data_quality_taxi.yaml"
 sed "s/DATAPLEX_REGION/${DATAPLEX_REGION}/g" "/home/airflow/gcs/data/dataplex_data_quality_taxi.yaml" > "/home/airflow/gcs/data/dataplex_data_quality_taxi.tmp1"
 sed "s/PROJECT_ID/${PROJECT_ID}/g" "/home/airflow/gcs/data/dataplex_data_quality_taxi.tmp1" > "/home/airflow/gcs/data/dataplex_data_quality_taxi.tmp2"
-gsutil cp /home/airflow/gcs/data/dataplex_data_quality_taxi.tmp2 ${YAML_PATH}
+sed "s/RANDOM_EXTENSION/${RANDOM_EXTENSION}/g" "/home/airflow/gcs/data/dataplex_data_quality_taxi.tmp2" > "/home/airflow/gcs/data/dataplex_data_quality_taxi.tmp3"
+gsutil cp /home/airflow/gcs/data/dataplex_data_quality_taxi.tmp3 ${YAML_PATH}
 rm /home/airflow/gcs/data/dataplex_data_quality_taxi.tmp1
 rm /home/airflow/gcs/data/dataplex_data_quality_taxi.tmp2
+rm /home/airflow/gcs/data/dataplex_data_quality_taxi.tmp3
 
 # Since the current version of gCloud does not have DataPlex, install it.
 # This is NOT a best practice

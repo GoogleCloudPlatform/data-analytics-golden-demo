@@ -363,6 +363,48 @@ resource "time_sleep" "enable_api_cloudkms_time_delay" {
 }
 
 
+# Dataproc metastore (required for Dataplex, even though we do not create a metastore)
+resource "google_project_service" "enable_api_metastore" {
+  project                    = var.project_id
+  service                    = "metastore.googleapis.com"
+  disable_dependent_services = true
+  disable_on_destroy         = true
+  depends_on                 = [time_sleep.enable_api_cloudresourcemanager_time_delay,
+                               time_sleep.enable_api_servicemanagement_time_delay,
+                               time_sleep.enable_api_compute_time_delay,
+                               time_sleep.enable_api_datacatalog_time_delay]
+  timeouts {
+    create = "15m"
+  }
+}
+
+resource "time_sleep" "enable_api_metastore_time_delay" {
+  depends_on      = [google_project_service.enable_api_metastore]
+  create_duration = "5s"
+}
+
+
+# Dataplex
+resource "google_project_service" "enable_api_dataplex" {
+  project                    = var.project_id
+  service                    = "dataplex.googleapis.com"
+  disable_dependent_services = true
+  disable_on_destroy         = true
+  depends_on                 = [time_sleep.enable_api_cloudresourcemanager_time_delay,
+                               time_sleep.enable_api_servicemanagement_time_delay,
+                               time_sleep.enable_api_compute_time_delay,
+                               time_sleep.enable_api_datacatalog_time_delay,
+                               time_sleep.enable_api_metastore_time_delay]
+  timeouts {
+    create = "15m"
+  }
+}
+
+resource "time_sleep" "enable_api_dataplex_time_delay" {
+  depends_on      = [google_project_service.enable_api_dataplex]
+  create_duration = "5s"
+}
+
 
 
 #-----------------------------------------------------------------------------------
