@@ -77,14 +77,14 @@ rule_bindings:
     rule_ids:
       - VALID_VENDOR_ID
 
-  TAXI_LOCATION_VALID:
+  TAXI_LOCATION_PU_VALID:
     entity_uri: dataplex://projects/PROJECT_ID/locations/DATAPLEX_REGION/lakes/taxi-data-lake-RANDOM_EXTENSION/zones/taxi-curated-zone-RANDOM_EXTENSION/entities/taxi_trips
     column_id: PULocationID
     row_filter_id: NONE
     rule_ids:
       - VALID_LOCATION_ID
 
-  TAXI_LOCATION_VALID:
+  TAXI_LOCATION_DO_VALID:
     entity_uri: dataplex://projects/PROJECT_ID/locations/DATAPLEX_REGION/lakes/taxi-data-lake-RANDOM_EXTENSION/zones/taxi-curated-zone-RANDOM_EXTENSION/entities/taxi_trips
     column_id: DOLocationID
     row_filter_id: NONE

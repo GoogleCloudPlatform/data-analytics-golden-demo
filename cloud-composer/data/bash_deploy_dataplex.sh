@@ -51,8 +51,8 @@ sudo apt-get update && sudo apt-get --only-upgrade install google-cloud-sdk
 gcloud dataplex lakes create "taxi-data-lake-${RANDOM_EXTENSION}" \
     --project="${PROJECT_ID}" \
     --location="${LOCATION}" \
-    --description="Taxi Data Lake (${RANDOM_EXTENSION})" \
-    --display-name="Taxi Data Lake (${RANDOM_EXTENSION})"
+    --description="Taxi Data Lake" \
+    --display-name="Taxi Data Lake"
 
 
 # Create the Zones 
@@ -62,8 +62,8 @@ gcloud dataplex zones create "taxi-raw-zone-${RANDOM_EXTENSION}" \
     --resource-location-type=MULTI_REGION \
     --project="${PROJECT_ID}" \
     --location="${LOCATION}" \
-    --description="Taxi Raw Zone (${RANDOM_EXTENSION})" \
-    --display-name="Taxi Raw Zone (${RANDOM_EXTENSION})" \
+    --description="Taxi Raw Zone" \
+    --display-name="Taxi Raw Zone" \
     --csv-delimiter="," \
     --csv-header-rows=1
 
@@ -73,8 +73,8 @@ gcloud dataplex zones create "taxi-curated-zone-${RANDOM_EXTENSION}" \
     --resource-location-type=MULTI_REGION \
     --project="${PROJECT_ID}" \
     --location="${LOCATION}" \
-    --description="Taxi Curated Zone (${RANDOM_EXTENSION})" \
-    --display-name="Taxi Curated Zone (${RANDOM_EXTENSION})" \
+    --description="Taxi Curated Zone" \
+    --display-name="Taxi Curated Zone" \
     --csv-delimiter="," \
     --csv-header-rows=1
 
@@ -85,6 +85,8 @@ gcloud dataplex assets create "taxi-raw-bucket-${RANDOM_EXTENSION}" \
     --zone="taxi-raw-zone-${RANDOM_EXTENSION}" \
     --project="${PROJECT_ID}" \
     --location="${LOCATION}" \
+    --description="Taxi Raw Bucket" \
+    --display-name="Taxi Raw Bucket" \
     --resource-type=STORAGE_BUCKET \
     --resource-name="projects/${PROJECT_ID}/buckets/${RAW_BUCKET}" \
     --discovery-enabled \
@@ -98,6 +100,8 @@ gcloud dataplex assets create "taxi-processed-bucket-${RANDOM_EXTENSION}" \
     --zone="taxi-curated-zone-${RANDOM_EXTENSION}" \
     --project="${PROJECT_ID}" \
     --location="${LOCATION}" \
+    --description="Taxi Processed Bucket" \
+    --display-name="Taxi Processed Bucket" \
     --resource-type=STORAGE_BUCKET \
     --resource-name="projects/${PROJECT_ID}/buckets/${PROCESSED_BUCKET}" \
     --discovery-enabled \
@@ -111,6 +115,8 @@ gcloud dataplex assets create "taxi-processed-datasets-${RANDOM_EXTENSION}" \
     --zone="taxi-curated-zone-${RANDOM_EXTENSION}" \
     --project="${PROJECT_ID}" \
     --location="${LOCATION}" \
+    --description="Taxi BigQuery Dataset" \
+    --display-name="Taxi BigQuery Dataset" \
     --resource-type=BIGQUERY_DATASET \
     --resource-name="projects/${PROJECT_ID}/datasets/${TAXI_DATASET}" \
     --discovery-enabled
@@ -122,8 +128,8 @@ gcloud dataplex assets create "taxi-processed-datasets-${RANDOM_EXTENSION}" \
 gcloud dataplex lakes create "ecommerce-data-lake-${RANDOM_EXTENSION}" \
     --project="${PROJECT_ID}" \
     --location="${LOCATION}" \
-    --description="The Look eCommerce Data Lake (${RANDOM_EXTENSION})" \
-    --display-name="The Look eCommerce Data Lake (${RANDOM_EXTENSION})"
+    --description="The Look eCommerce Data Lake" \
+    --display-name="The Look eCommerce Data Lake"
 
 gcloud dataplex zones create "ecommerce-curated-zone-${RANDOM_EXTENSION}" \
     --lake="ecommerce-data-lake-${RANDOM_EXTENSION}" \
@@ -131,14 +137,16 @@ gcloud dataplex zones create "ecommerce-curated-zone-${RANDOM_EXTENSION}" \
     --resource-location-type=MULTI_REGION \
     --project="${PROJECT_ID}" \
     --location="${LOCATION}" \
-    --description="The Look eCommerce Curated Zone (${RANDOM_EXTENSION})" \
-    --display-name="The Look eCommerce Zone (${RANDOM_EXTENSION})"
+    --description="The Look eCommerce Curated Zone" \
+    --display-name="The Look eCommerce Zone"
 
 gcloud dataplex assets create "ecommerce-dataset-${RANDOM_EXTENSION}" \
     --lake="ecommerce-data-lake-${RANDOM_EXTENSION}" \
     --zone="ecommerce-curated-zone-${RANDOM_EXTENSION}" \
     --project="${PROJECT_ID}" \
     --location="${LOCATION}" \
+    --description="TheLook eCommerce BigQuery Dataset" \
+    --display-name="eCommerce BigQuery Dataset" \
     --resource-type=BIGQUERY_DATASET \
     --resource-name="projects/${PROJECT_ID}/datasets/${THELOOK_DATASET}" \
     --discovery-enabled
