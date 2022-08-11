@@ -91,9 +91,9 @@ def upload_blob(project, raw_bucket_name, source_file_name, destination_blob_nam
 
 
 # python3 download-taxi-data.py "big-query-demo-09" "big-query-demo-09" "yellow" "2021" "https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2021-01.parquet"
-def download_and_upload_to_gcs(project, raw_bucket_name, color, year, url):
+def download_and_upload_to_gcs(project, raw_bucket_name, color, year, url, max_month):
     print ("Begin: download_and_upload_to_gcs")
-    for month_index in range(12):
+    for month_index in range(max_month):
         downloadURL = url.replace("{COLOR}",color).replace("{YEAR}",year).replace("{MONTH}",str.format("%02d" % (month_index+1,)))
         print("downloadURL:", downloadURL)    
         try:
@@ -113,6 +113,34 @@ with airflow.DAG('step-01-taxi-data-download',
                  # Not scheduled, trigger only
                  schedule_interval=None) as dag:
 
+    download_yellow_2022 = PythonOperator(
+        task_id='download_yellow_2022',
+        python_callable= download_and_upload_to_gcs,
+        op_kwargs = { "project" : project_id, 
+                        "raw_bucket_name" : raw_bucket_name, 
+                        "color" : "yellow", 
+                        "year" : "2022", 
+                        "url" : "https://d37ci6vzurychx.cloudfront.net/trip-data/{COLOR}_tripdata_{YEAR}-{MONTH}.parquet",
+                        "max_month" : 4
+                         },
+        execution_timeout=timedelta(minutes=30),
+        dag=dag,
+        )
+
+    download_green_2022 = PythonOperator(
+        task_id='download_green_2022',
+        python_callable= download_and_upload_to_gcs,
+        op_kwargs = { "project" : project_id, 
+                        "raw_bucket_name" : raw_bucket_name, 
+                        "color" : "green", 
+                        "year" : "2022", 
+                        "url" : "https://d37ci6vzurychx.cloudfront.net/trip-data/{COLOR}_tripdata_{YEAR}-{MONTH}.parquet",
+                        "max_month" : 4
+                         },
+        execution_timeout=timedelta(minutes=30),
+        dag=dag,
+        )
+
     download_yellow_2021 = PythonOperator(
         task_id='download_yellow_2021',
         python_callable= download_and_upload_to_gcs,
@@ -120,7 +148,9 @@ with airflow.DAG('step-01-taxi-data-download',
                         "raw_bucket_name" : raw_bucket_name, 
                         "color" : "yellow", 
                         "year" : "2021", 
-                        "url" : "https://d37ci6vzurychx.cloudfront.net/trip-data/{COLOR}_tripdata_{YEAR}-{MONTH}.parquet" },
+                        "url" : "https://d37ci6vzurychx.cloudfront.net/trip-data/{COLOR}_tripdata_{YEAR}-{MONTH}.parquet",
+                        "max_month" : 12
+                         },
         execution_timeout=timedelta(minutes=30),
         dag=dag,
         )
@@ -132,7 +162,9 @@ with airflow.DAG('step-01-taxi-data-download',
                         "raw_bucket_name" : raw_bucket_name, 
                         "color" : "green", 
                         "year" : "2021", 
-                        "url" : "https://d37ci6vzurychx.cloudfront.net/trip-data/{COLOR}_tripdata_{YEAR}-{MONTH}.parquet" },
+                        "url" : "https://d37ci6vzurychx.cloudfront.net/trip-data/{COLOR}_tripdata_{YEAR}-{MONTH}.parquet",
+                        "max_month" : 12
+                         },
         execution_timeout=timedelta(minutes=30),
         dag=dag,
         )
@@ -144,7 +176,9 @@ with airflow.DAG('step-01-taxi-data-download',
                         "raw_bucket_name" : raw_bucket_name, 
                         "color" : "yellow", 
                         "year" : "2020", 
-                        "url" : "https://d37ci6vzurychx.cloudfront.net/trip-data/{COLOR}_tripdata_{YEAR}-{MONTH}.parquet" },
+                        "url" : "https://d37ci6vzurychx.cloudfront.net/trip-data/{COLOR}_tripdata_{YEAR}-{MONTH}.parquet",
+                        "max_month" : 12
+                         },
         execution_timeout=timedelta(minutes=30),
         dag=dag,
         )
@@ -156,7 +190,9 @@ with airflow.DAG('step-01-taxi-data-download',
                         "raw_bucket_name" : raw_bucket_name, 
                         "color" : "green", 
                         "year" : "2020", 
-                        "url" : "https://d37ci6vzurychx.cloudfront.net/trip-data/{COLOR}_tripdata_{YEAR}-{MONTH}.parquet" },
+                        "url" : "https://d37ci6vzurychx.cloudfront.net/trip-data/{COLOR}_tripdata_{YEAR}-{MONTH}.parquet",
+                        "max_month" : 12
+                         },
         execution_timeout=timedelta(minutes=30),
         dag=dag,
         )
@@ -168,7 +204,9 @@ with airflow.DAG('step-01-taxi-data-download',
                         "raw_bucket_name" : raw_bucket_name, 
                         "color" : "yellow", 
                         "year" : "2019", 
-                        "url" : "https://d37ci6vzurychx.cloudfront.net/trip-data/{COLOR}_tripdata_{YEAR}-{MONTH}.parquet" },
+                        "url" : "https://d37ci6vzurychx.cloudfront.net/trip-data/{COLOR}_tripdata_{YEAR}-{MONTH}.parquet",
+                        "max_month" : 12
+                         },
         execution_timeout=timedelta(minutes=30),
         dag=dag,
         )
@@ -180,11 +218,16 @@ with airflow.DAG('step-01-taxi-data-download',
                         "raw_bucket_name" : raw_bucket_name, 
                         "color" : "green", 
                         "year" : "2019", 
-                        "url" : "https://d37ci6vzurychx.cloudfront.net/trip-data/{COLOR}_tripdata_{YEAR}-{MONTH}.parquet" },
+                        "url" : "https://d37ci6vzurychx.cloudfront.net/trip-data/{COLOR}_tripdata_{YEAR}-{MONTH}.parquet",
+                        "max_month" : 12
+                         },
         execution_timeout=timedelta(minutes=30),
         dag=dag,
         )
 
-    download_green_2021 >> download_yellow_2021 >> download_green_2020 >> download_yellow_2020 >> download_green_2019 >> download_yellow_2019
+    # Do not do in parallel since the worker node will run out of disk space
+    # If you had more workers then yes, run in parallel
+    download_green_2022 >> download_yellow_2022 >> download_green_2021 >> download_yellow_2021 >> \
+        download_green_2020 >> download_yellow_2020 >> download_green_2019 >> download_yellow_2019
 
 # [END dag]

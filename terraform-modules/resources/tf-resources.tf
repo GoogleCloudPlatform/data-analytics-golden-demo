@@ -351,6 +351,7 @@ resource "google_composer_environment" "composer_env" {
         ENV_BIGQUERY_REGION          = var.bigquery_region,
         ENV_DATAFLOW_SUBNET          = "regions/${var.region}/subnetworks/dataflow-subnet",
         ENV_DATAFLOW_SERVICE_ACCOUNT = "dataflow-service-account@${var.project_id}.iam.gserviceaccount.com",
+        ENV_RANDOM_EXTENSION         = var.random_extension
       }
     }
 
