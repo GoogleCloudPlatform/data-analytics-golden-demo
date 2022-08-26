@@ -255,6 +255,7 @@ module "service-account" {
 # Error: Error when reading or editing Project Service : Request `List Project Services data-analytics-demo-4kljxj1jd5` 
 # returned error: Failed to list enabled services for project data-analytics-demo-4kljxj1jd5: googleapi: 
 # Error 403: Service Usage API has not been used in project 182999489528 before or it is disabled. 
+/*
 module "service-usage" {
   # Run this as the currently logged in user or the service account executing the TF script
   source     = "../terraform-modules/service-usage"
@@ -265,9 +266,10 @@ module "service-usage" {
     module.service-account
   ]
 }
-
+*/
 
 # Enable all the cloud APIs that will be used
+/*
 module "apis" {
   source = "../terraform-modules/apis"
 
@@ -282,6 +284,34 @@ module "apis" {
     module.service-usage
   ]
 }
+*/
+
+
+# Enable all the cloud APIs that will be used by using Batch Mode
+# Batch mode can enable all the services in just a second or two
+# NOTE: Terraform does not have support for batch mode, so curl was use to do a HTTP POST
+module "apis-batch-enable" {
+  source = "../terraform-modules/apis-batch-enable"
+
+  project_id                      = local.local_project_id
+  project_number                  = var.project_number == "" ? module.project[0].output-project-number : var.project_number
+  deployment_service_account_name = var.deployment_service_account_name  
+
+  depends_on = [
+    module.project,
+    module.service-account
+  ]
+}
+
+resource "time_sleep" "service_account_api_activation_time_delay" {
+  create_duration = "120s"
+  depends_on = [
+    module.project,
+    module.service-account,
+    module.apis-batch-enable
+  ]  
+}
+
 
 
 # Uses the new Org Policies method (when a project is created by TF)
@@ -298,8 +328,10 @@ module "org-policies" {
   depends_on = [
     module.project,
     module.service-account,
-    module.service-usage,
-    module.apis
+    #module.service-usage,
+    #module.apis
+    module.apis-batch-enable,
+    time_sleep.service_account_api_activation_time_delay
   ]
 }
 
@@ -319,8 +351,9 @@ module "org-policies-deprecated" {
   depends_on = [
     module.project,
     module.service-account,
-    module.service-usage,
-    module.apis
+    #module.service-usage,
+    #module.apis
+    module.apis-batch-enable
   ]
 }
 
@@ -345,8 +378,10 @@ module "resources" {
   depends_on = [
     module.project,
     module.service-account,
-    module.service-usage,
-    module.apis,
+    #module.service-usage,
+    #module.apis,
+    module.apis-batch-enable,
+    time_sleep.service_account_api_activation_time_delay,
     module.org-policies,
     module.org-policies-deprecated,
   ]
@@ -378,8 +413,10 @@ module "sql-scripts" {
   depends_on = [
     module.project,
     module.service-account,
-    module.service-usage,
-    module.apis,
+    #module.service-usage,
+    #module.apis,
+    module.apis-batch-enable,
+    time_sleep.service_account_api_activation_time_delay,
     module.org-policies,
     module.org-policies-deprecated,
     module.resources
@@ -409,8 +446,10 @@ EOF
   depends_on = [
     module.project,
     module.service-account,
-    module.service-usage,
-    module.apis,
+    #module.service-usage,
+    #module.apis,
+    module.apis-batch-enable,
+    time_sleep.service_account_api_activation_time_delay,
     module.org-policies,
     module.org-policies-deprecated,
     module.resources,
@@ -439,8 +478,10 @@ EOF
   depends_on = [
     module.project,
     module.service-account,
-    module.service-usage,
-    module.apis,
+    #module.service-usage,
+    #module.apis,
+    module.apis-batch-enable,
+    time_sleep.service_account_api_activation_time_delay,
     module.org-policies,
     module.org-policies-deprecated,
     module.resources,
@@ -468,8 +509,10 @@ EOF
   depends_on = [
     module.project,
     module.service-account,
-    module.service-usage,
-    module.apis,
+    #module.service-usage,
+    #module.apis,
+    module.apis-batch-enable,
+    time_sleep.service_account_api_activation_time_delay,
     module.org-policies,
     module.org-policies-deprecated,
     module.resources,
@@ -497,8 +540,10 @@ EOF
   depends_on = [
     module.project,
     module.service-account,
-    module.service-usage,
-    module.apis,
+    #module.service-usage,
+    #module.apis,
+    module.apis-batch-enable,
+    time_sleep.service_account_api_activation_time_delay,
     module.org-policies,
     module.org-policies-deprecated,
     module.resources,
@@ -534,8 +579,10 @@ EOF
   depends_on = [
     module.project,
     module.service-account,
-    module.service-usage,
-    module.apis,
+    #module.service-usage,
+    #module.apis,
+    module.apis-batch-enable,
+    time_sleep.service_account_api_activation_time_delay,
     module.org-policies,
     module.org-policies-deprecated,
     module.resources,
@@ -573,8 +620,10 @@ EOF
   depends_on = [
     module.project,
     module.service-account,
-    module.service-usage,
-    module.apis,
+    #module.service-usage,
+    #module.apis,
+    module.apis-batch-enable,
+    time_sleep.service_account_api_activation_time_delay,
     module.org-policies,
     module.org-policies-deprecated,
     module.resources,
@@ -613,8 +662,10 @@ EOF
   depends_on = [
     module.project,
     module.service-account,
-    module.service-usage,
-    module.apis,
+    #module.service-usage,
+    #module.apis,
+    module.apis-batch-enable,
+    time_sleep.service_account_api_activation_time_delay,
     module.org-policies,
     module.org-policies-deprecated,
     module.resources,
@@ -629,8 +680,10 @@ resource "time_sleep" "wait_for_airflow_dag_sync" {
   depends_on = [
     module.project,
     module.service-account,
-    module.service-usage,
-    module.apis,
+    #module.service-usage,
+    #module.apis,
+    module.apis-batch-enable,
+    time_sleep.service_account_api_activation_time_delay,
     module.org-policies,
     module.org-policies-deprecated,
     module.resources,
@@ -661,8 +714,10 @@ EOF
   depends_on = [
     module.project,
     module.service-account,
-    module.service-usage,
-    module.apis,
+    #module.service-usage,
+    #module.apis,
+    module.apis-batch-enable,
+    time_sleep.service_account_api_activation_time_delay,
     module.org-policies,
     module.org-policies-deprecated,
     module.resources,

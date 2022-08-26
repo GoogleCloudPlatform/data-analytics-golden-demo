@@ -129,8 +129,9 @@ resource "google_service_account_iam_member" "service_account_impersonation" {
 }
 
 
+# This time delay was placed in the Main TF script
 # It can take 60+ seconds or so for the permission to actually propragate
-resource "time_sleep" "service_account_impersonation_time_delay" {
-  depends_on      = [google_service_account_iam_member.service_account_impersonation]
-  create_duration = "90s"
-}
+#resource "time_sleep" "service_account_impersonation_time_delay" {
+#  depends_on      = [google_service_account_iam_member.service_account_impersonation]
+#  create_duration = "90s"
+#}
