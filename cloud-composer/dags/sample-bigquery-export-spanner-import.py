@@ -35,7 +35,7 @@ from airflow.utils import trigger_rule
 from airflow.operators.python_operator import PythonOperator
 import google.auth
 import google.auth.transport.requests
-from airflow.contrib.operators import bigquery_operator
+from airflow.providers.google.cloud.operators.bigquery import BigQueryInsertJobOperator
 from airflow.providers.google.cloud.transfers.local_to_gcs import LocalFilesystemToGCSOperator
 import json
 
@@ -211,12 +211,16 @@ with airflow.DAG('sample-bigquery-export-spanner-import',
     # Access to spanner is required
 
     # Run a BigQuery stored procedure that exports data to a storage bucket
-    export_public_weather_data = bigquery_operator.BigQueryOperator(
-        task_id='export_public_weather_data',
-        sql=sql,
-        location=bigquery_region,
-        use_legacy_sql=False)
-            
+    export_public_weather_data = BigQueryInsertJobOperator(
+    task_id="export_public_weather_data",
+    location=bigquery_region,
+    configuration={
+        "query": {
+            "query": sql,
+            "useLegacySql": False,
+        }
+    })
+    
     # Save a template file locally and then upload to GCS (Spanner needs this for importing)
     write_spanner_manifest_file = PythonOperator(
         task_id='write_spanner_manifest_file',

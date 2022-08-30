@@ -31,7 +31,7 @@ from airflow.utils import trigger_rule
 from airflow.operators.python_operator import PythonOperator
 import google.auth
 import google.auth.transport.requests
-from airflow.contrib.operators import bigquery_operator
+from airflow.providers.google.cloud.operators.bigquery import BigQueryCreateEmptyDatasetOperator
 from airflow.providers.google.cloud.transfers.local_to_gcs import LocalFilesystemToGCSOperator
 import json
 
@@ -58,6 +58,7 @@ dataplex_region                 = "us-central1"
 service_account_to_run_dataplex = "dataproc-service-account@" + project_id + ".iam.gserviceaccount.com"
 random_extension                = os.environ['ENV_RANDOM_EXTENSION']
 taxi_dataplex_lake_name         = "taxi-data-lake-" + random_extension
+data_quality_dataset_id         = "dataplex_data_quality"
 
 # NOTE: This is case senstive for some reason
 bigquery_region = bigquery_region.upper()
@@ -79,12 +80,14 @@ params_list = {
 
 # Create the dataset to hold the data quality results
 # NOTE: This has to be in the same region as the BigQuery dataset we are performing our data quality checks
-sql="""
-CREATE SCHEMA IF NOT EXISTS `{project_id}`.dataplex_data_quality
-  OPTIONS (
-    description = 'Dataplex Data Quality',
-    location='{bigquery_region}');
-""".format(project_id=project_id,bigquery_region=bigquery_region)
+
+
+#sql="""
+#CREATE SCHEMA IF NOT EXISTS `{project_id}`.dataplex_data_quality
+#  OPTIONS (
+#    description = 'Dataplex Data Quality',
+#    location='{bigquery_region}');
+#""".format(project_id=project_id,bigquery_region=bigquery_region)
 
 
 with airflow.DAG('sample-dataplex-run-data-quality',
@@ -98,12 +101,22 @@ with airflow.DAG('sample-dataplex-run-data-quality',
     # NOTE: The service account of the Composer worker node must have access to run these commands
 
     # Create the dataset for holding dataplex data quality results
-    create_data_quality_dataset = bigquery_operator.BigQueryOperator(
-        task_id='create_data_quality_dataset',
-        sql=sql,
+    create_data_quality_dataset = BigQueryCreateEmptyDatasetOperator(
+        task_id="create_dataset", 
         location=bigquery_region,
-        use_legacy_sql=False)
-
+        project_id=project_id,
+        dataset_id=data_quality_dataset_id,
+        exists_ok=True
+    )
+ #   create_data_quality_dataset = BigQueryInsertJobOperator(
+ #   task_id="create_data_quality_dataset",
+ #   location=bigquery_region,
+ #   configuration={
+ #       "query": {
+ #           "query": sql,
+ #           "useLegacySql": False,
+ #       }
+ #   })
 
     # Create a data quality task
     dataplex_data_quality = bash_operator.BashOperator(

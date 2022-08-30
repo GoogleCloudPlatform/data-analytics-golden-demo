@@ -26,7 +26,7 @@ import os
 import logging
 import airflow
 from airflow.utils import trigger_rule
-from airflow.contrib.operators import bigquery_operator
+from airflow.providers.google.cloud.operators.bigquery import BigQueryInsertJobOperator
 
 
 default_args = {
@@ -54,29 +54,45 @@ with airflow.DAG('step-03-hydrate-tables',
                  # Not scheduled, trigger only
                  schedule_interval=None) as dag:
 
-    sql_taxi_internal_tables = bigquery_operator.BigQueryOperator(
-        task_id='sql_taxi_internal_tables',
-        sql=sql_taxi_internal_tables,
-        location=bigquery_region,
-        use_legacy_sql=False)
+    sql_taxi_internal_tables = BigQueryInsertJobOperator(
+    task_id="sql_taxi_internal_tables",
+    location=bigquery_region,
+    configuration={
+        "query": {
+            "query": sql_taxi_internal_tables,
+            "useLegacySql": False,
+        }
+    })
 
-    sql_taxi_external_tables = bigquery_operator.BigQueryOperator(
-        task_id='sql_taxi_external_tables',
-        sql=sql_taxi_external_tables,
-        location=bigquery_region,
-        use_legacy_sql=False)
+    sql_taxi_external_tables = BigQueryInsertJobOperator(
+    task_id="sql_taxi_external_tables",
+    location=bigquery_region,
+    configuration={
+        "query": {
+            "query": sql_taxi_external_tables,
+            "useLegacySql": False,
+        }
+    })
 
-    sql_create_product_deliveries = bigquery_operator.BigQueryOperator(
-        task_id='sql_create_product_deliveries',
-        sql=sql_create_product_deliveries,
-        location=bigquery_region,
-        use_legacy_sql=False)
+    sql_create_product_deliveries = BigQueryInsertJobOperator(
+    task_id="sql_create_product_deliveries",
+    location=bigquery_region,
+    configuration={
+        "query": {
+            "query": sql_create_product_deliveries,
+            "useLegacySql": False,
+        }
+    })
 
-    sql_create_thelook_tables = bigquery_operator.BigQueryOperator(
-        task_id='sql_create_thelook_tables',
-        sql=sql_create_thelook_tables,
-        location=bigquery_region,
-        use_legacy_sql=False)
+    sql_create_thelook_tables = BigQueryInsertJobOperator(
+    task_id="sql_create_thelook_tables",
+    location=bigquery_region,
+    configuration={
+        "query": {
+            "query": sql_create_thelook_tables,
+            "useLegacySql": False,
+        }
+    })   
 
     sql_taxi_internal_tables >> sql_taxi_external_tables >> sql_create_product_deliveries >> sql_create_thelook_tables
 
