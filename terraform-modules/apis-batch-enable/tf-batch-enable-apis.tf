@@ -75,7 +75,7 @@ then
     echo "Successfully activated services"
     exit 0
 else
-    echo "FAIDED to activated services"
+    echo "FAILED to activated services"
     exit 1
 fi      
 EOF
@@ -113,7 +113,7 @@ then
     echo "Successfully activated services"
     exit 0
 else
-    echo "FAIDED to activated services"
+    echo "FAILED to activated services"
     exit 1
 fi        
 EOF
