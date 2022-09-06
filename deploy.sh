@@ -31,6 +31,9 @@
 # NOTE: If you do not want to install this software, then run build and run the Dockerfile in this directory
 # You would run "source deploy-use-docker.sh" "(after you have built the docker image, see the Dockerfile for instructions)
 
+# NOTE: If the command prompt prompts you to install/upgrade a service, press Ctrl+C and then run the two sudo commands below (beta/kubectrl).
+#       For some reason this just happens occasionally....
+
 # Required software (cloud shell has this installed):
 #   - gcloud
 #   - gcloud beta (sudo gcloud components install beta)
