@@ -168,7 +168,7 @@ def ConvertTaxiData(sourceYellow, sourceGreen, destination):
     df_with_partition_cols = df_new_column_order \
         .withColumn("year",  year      (col("Pickup_DateTime"))) \
         .withColumn("month", month     (col("Pickup_DateTime"))) \
-        .filter(year(col("Pickup_DateTime")).isin (2019,2020,2021))
+        .filter(year(col("Pickup_DateTime")).isin (2019,2020,2021,2022))
 
     # Write as Parquet
     df_with_partition_cols \
