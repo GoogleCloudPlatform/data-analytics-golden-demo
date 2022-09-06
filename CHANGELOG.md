@@ -2,8 +2,18 @@
 # Change Log
 All notable changes to this project will be documented in this file.
  
+## [Released] - Aug 2022
+### Added
+    - Added Dataplex (taxi and eCommerce data lakes/mesh).  There is a data quality DAG added as well.
+    - Added a sample ingestion into BigQuery: sp_demo_ingest_data 
+    - Taxi data for 2022 is being downloaded (up until April)
+    - BigQuery Data Masking API is now enabled, you can see this on the Dataplex Policies page.  No demo has been created for this feature, yet.  
+    - Added a DAG to generate Iceberg files. 
+### Fixed
+    - Fixed JSON stored procedure (on GitHub). 
+
  
-## [Unreleased] - 2022-07-31
+## [Released] - July 2022
  
 Cleaned up some code and added some Data Fusion DevOps samples.
  
