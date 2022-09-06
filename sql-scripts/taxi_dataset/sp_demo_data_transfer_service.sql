@@ -36,6 +36,9 @@ Reference:
 
 Clean up / Reset script:
     n/a
+
+Change Log:
+    - Aug 26 2022, removed PULocationGeo and DOLocationGeo since the public dataset was updated.
 */
 
 -- https://developers.google.com/codelabs/maps-platform/bigquery-maps-api#0
@@ -43,8 +46,6 @@ Clean up / Reset script:
 -- 2016 does not have the same fields (no pickup/dropoff ids, just lat/long)
 -- 2018 and below does not have the same fields 
 ALTER TABLE `${project_id}.${bigquery_taxi_dataset}.taxi_trips`
-  ADD COLUMN IF NOT EXISTS PULocationGeo GEOGRAPHY,
-  ADD COLUMN IF NOT EXISTS DOLocationGeo GEOGRAPHY,
   ADD COLUMN IF NOT EXISTS distance_between_service FLOAT64,
   ADD COLUMN IF NOT EXISTS time_between_service INTEGER;
 
@@ -98,6 +99,7 @@ SELECT 'Green' AS TaxiCompany,
        ehail_fee                                    AS Ehail_Fee,
        SAFE_CAST(trip_type            AS INTEGER)   AS Trip_Type,
        DATE(EXTRACT(YEAR FROM pickup_datetime), EXTRACT(MONTH FROM pickup_datetime), 1)  AS PartitionDate
+
   FROM `${project_id}.${bigquery_taxi_dataset}_public_copy.tlc_green_trips_2018`;
 
 
@@ -148,6 +150,7 @@ SELECT 'Green' AS TaxiCompany,
        ehail_fee                                    AS Ehail_Fee,
        SAFE_CAST(trip_type            AS INTEGER)   AS Trip_Type,
        DATE(EXTRACT(YEAR FROM pickup_datetime), EXTRACT(MONTH FROM pickup_datetime), 1)  AS PartitionDate
+
   FROM `${project_id}.${bigquery_taxi_dataset}_public_copy.tlc_green_trips_2017`;
 
 
@@ -174,10 +177,7 @@ INSERT INTO `${project_id}.${bigquery_taxi_dataset}.taxi_trips`
     Congestion_Surcharge,
     Ehail_Fee,
     trip_type,
-    PartitionDate,
-
-    PULocationGeo,
-    DOLocationGeo    
+    PartitionDate
 )
 SELECT 'Green' AS TaxiCompany,
        SAFE_CAST(vendor_id            AS INTEGER)   AS Vendor_Id,
@@ -200,22 +200,7 @@ SELECT 'Green' AS TaxiCompany,
        NULL                                         AS Congestion_Surcharge,
        ehail_fee                                    AS Ehail_Fee,
        SAFE_CAST(trip_type AS INTEGER)              AS Trip_Type,
-       DATE(EXTRACT(YEAR FROM pickup_datetime), EXTRACT(MONTH FROM pickup_datetime), 1)  AS PartitionDate,
-
-       -- Latitudes must be in the range [-90, 90]. Latitudes outside this range will result in an error.
-       -- Longitudes outside the range [-180, 180] are allowed; ST_GEOGPOINT uses the input longitude modulo 360 to obtain a longitude within [-180, 180].
-
-       CASE WHEN pickup_longitude BETWEEN -180 AND 180
-             AND pickup_latitude  BETWEEN -90  AND 90 
-             THEN ST_GeogPoint(pickup_longitude,pickup_latitude)
-             ELSE NULL
-        END AS PULocationGeo,
-
-        CASE WHEN dropoff_longitude BETWEEN -180 AND 180
-              AND dropoff_latitude  BETWEEN -90  AND 90 
-             THEN ST_GeogPoint(dropoff_longitude,dropoff_latitude)
-             ELSE NULL
-        END AS DOLocationGeo
+       DATE(EXTRACT(YEAR FROM pickup_datetime), EXTRACT(MONTH FROM pickup_datetime), 1)  AS PartitionDate
 
   FROM `${project_id}.${bigquery_taxi_dataset}_public_copy.tlc_green_trips_2016`;
 
@@ -243,10 +228,7 @@ INSERT INTO `${project_id}.${bigquery_taxi_dataset}.taxi_trips`
     Congestion_Surcharge,
     Ehail_Fee,
     trip_type,
-    PartitionDate,
-
-    PULocationGeo,
-    DOLocationGeo    
+    PartitionDate 
 )
 SELECT 'Green' AS TaxiCompany,
        SAFE_CAST(vendor_id            AS INTEGER)   AS Vendor_Id,
@@ -269,22 +251,7 @@ SELECT 'Green' AS TaxiCompany,
        NULL                                         AS Congestion_Surcharge,
        ehail_fee                                    AS Ehail_Fee,
        SAFE_CAST(trip_type AS INTEGER)              AS Trip_Type,
-       DATE(EXTRACT(YEAR FROM pickup_datetime), EXTRACT(MONTH FROM pickup_datetime), 1)  AS PartitionDate,
-
-       -- Latitudes must be in the range [-90, 90]. Latitudes outside this range will result in an error.
-       -- Longitudes outside the range [-180, 180] are allowed; ST_GEOGPOINT uses the input longitude modulo 360 to obtain a longitude within [-180, 180].
-
-       CASE WHEN pickup_longitude BETWEEN -180 AND 180
-             AND pickup_latitude  BETWEEN -90  AND 90 
-             THEN ST_GeogPoint(pickup_longitude,pickup_latitude)
-             ELSE NULL
-        END AS PULocationGeo,
-
-        CASE WHEN dropoff_longitude BETWEEN -180 AND 180
-              AND dropoff_latitude  BETWEEN -90  AND 90 
-             THEN ST_GeogPoint(dropoff_longitude,dropoff_latitude)
-             ELSE NULL
-        END AS DOLocationGeo
+       DATE(EXTRACT(YEAR FROM pickup_datetime), EXTRACT(MONTH FROM pickup_datetime), 1)  AS PartitionDate
 
   FROM `${project_id}.${bigquery_taxi_dataset}_public_copy.tlc_green_trips_2015`;
 
@@ -312,10 +279,7 @@ INSERT INTO `${project_id}.${bigquery_taxi_dataset}.taxi_trips`
     Congestion_Surcharge,
     Ehail_Fee,
     trip_type,
-    PartitionDate,
-
-    PULocationGeo,
-    DOLocationGeo    
+    PartitionDate  
 )
 SELECT 'Green' AS TaxiCompany,
        SAFE_CAST(vendor_id            AS INTEGER)   AS Vendor_Id,
@@ -338,22 +302,7 @@ SELECT 'Green' AS TaxiCompany,
        NULL                                         AS Congestion_Surcharge,
        ehail_fee                                    AS Ehail_Fee,
        SAFE_CAST(trip_type AS INTEGER)              AS Trip_Type,
-       DATE(EXTRACT(YEAR FROM pickup_datetime), EXTRACT(MONTH FROM pickup_datetime), 1)  AS PartitionDate,
-
-       -- Latitudes must be in the range [-90, 90]. Latitudes outside this range will result in an error.
-       -- Longitudes outside the range [-180, 180] are allowed; ST_GEOGPOINT uses the input longitude modulo 360 to obtain a longitude within [-180, 180].
-
-       CASE WHEN pickup_longitude BETWEEN -180 AND 180
-             AND pickup_latitude  BETWEEN -90  AND 90 
-             THEN ST_GeogPoint(pickup_longitude,pickup_latitude)
-             ELSE NULL
-        END AS PULocationGeo,
-
-        CASE WHEN dropoff_longitude BETWEEN -180 AND 180
-              AND dropoff_latitude  BETWEEN -90  AND 90 
-             THEN ST_GeogPoint(dropoff_longitude,dropoff_latitude)
-             ELSE NULL
-        END AS DOLocationGeo
+       DATE(EXTRACT(YEAR FROM pickup_datetime), EXTRACT(MONTH FROM pickup_datetime), 1)  AS PartitionDate
 
   FROM `${project_id}.${bigquery_taxi_dataset}_public_copy.tlc_green_trips_2014`;
 
@@ -405,6 +354,7 @@ SELECT 'Yellow' AS TaxiCompany,
        total_amount                                 AS Total_Amount,
        NULL                                         AS Congestion_Surcharge,
        DATE(EXTRACT(YEAR FROM pickup_datetime), EXTRACT(MONTH FROM pickup_datetime), 1)  AS PartitionDate
+
   FROM `${project_id}.${bigquery_taxi_dataset}_public_copy.tlc_yellow_trips_2018`;
 
 
@@ -476,10 +426,7 @@ INSERT INTO `${project_id}.${bigquery_taxi_dataset}.taxi_trips`
     Improvement_Surcharge,
     Total_Amount,
     Congestion_Surcharge,
-    PartitionDate,
-
-    PULocationGeo,
-    DOLocationGeo
+    PartitionDate
 )
 SELECT 'Yellow' AS TaxiCompany,
        SAFE_CAST(vendor_id            AS INTEGER)   AS Vendor_Id,
@@ -500,22 +447,8 @@ SELECT 'Yellow' AS TaxiCompany,
        imp_surcharge                                AS Improvement_Surcharge,
        total_amount                                 AS Total_Amount,
        NULL                                         AS Congestion_Surcharge,
-       DATE(EXTRACT(YEAR FROM pickup_datetime), EXTRACT(MONTH FROM pickup_datetime), 1)  AS PartitionDate,
+       DATE(EXTRACT(YEAR FROM pickup_datetime), EXTRACT(MONTH FROM pickup_datetime), 1)  AS PartitionDate
 
-       -- Latitudes must be in the range [-90, 90]. Latitudes outside this range will result in an error.
-       -- Longitudes outside the range [-180, 180] are allowed; ST_GEOGPOINT uses the input longitude modulo 360 to obtain a longitude within [-180, 180].
-
-       CASE WHEN pickup_longitude BETWEEN -180 AND 180
-             AND pickup_latitude  BETWEEN -90  AND 90 
-             THEN ST_GeogPoint(pickup_longitude,pickup_latitude)
-             ELSE NULL
-        END AS PULocationGeo,
-
-        CASE WHEN dropoff_longitude BETWEEN -180 AND 180
-              AND dropoff_latitude  BETWEEN -90  AND 90 
-             THEN ST_GeogPoint(dropoff_longitude,dropoff_latitude)
-             ELSE NULL
-        END AS DOLocationGeo
   FROM `${project_id}.${bigquery_taxi_dataset}_public_copy.tlc_yellow_trips_2016`;
 
 
@@ -540,10 +473,7 @@ INSERT INTO `${project_id}.${bigquery_taxi_dataset}.taxi_trips`
     Improvement_Surcharge,
     Total_Amount,
     Congestion_Surcharge,
-    PartitionDate,
-
-    PULocationGeo,
-    DOLocationGeo
+    PartitionDate
 )
 SELECT 'Yellow' AS TaxiCompany,
        SAFE_CAST(vendor_id            AS INTEGER)   AS Vendor_Id,
@@ -564,22 +494,8 @@ SELECT 'Yellow' AS TaxiCompany,
        imp_surcharge                                AS Improvement_Surcharge,
        total_amount                                 AS Total_Amount,
        NULL                                         AS Congestion_Surcharge,
-       DATE(EXTRACT(YEAR FROM pickup_datetime), EXTRACT(MONTH FROM pickup_datetime), 1)  AS PartitionDate,
+       DATE(EXTRACT(YEAR FROM pickup_datetime), EXTRACT(MONTH FROM pickup_datetime), 1)  AS PartitionDate
 
-       -- Latitudes must be in the range [-90, 90]. Latitudes outside this range will result in an error.
-       -- Longitudes outside the range [-180, 180] are allowed; ST_GEOGPOINT uses the input longitude modulo 360 to obtain a longitude within [-180, 180].
-
-       CASE WHEN pickup_longitude BETWEEN -180 AND 180
-             AND pickup_latitude  BETWEEN -90  AND 90 
-             THEN ST_GeogPoint(pickup_longitude,pickup_latitude)
-             ELSE NULL
-        END AS PULocationGeo,
-
-        CASE WHEN dropoff_longitude BETWEEN -180 AND 180
-              AND dropoff_latitude  BETWEEN -90  AND 90 
-             THEN ST_GeogPoint(dropoff_longitude,dropoff_latitude)
-             ELSE NULL
-        END AS DOLocationGeo
   FROM `${project_id}.${bigquery_taxi_dataset}_public_copy.tlc_yellow_trips_2015`;
 
 
