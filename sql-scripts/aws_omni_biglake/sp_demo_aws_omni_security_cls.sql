@@ -1,4 +1,4 @@
-CREATE OR REPLACE PROCEDURE `${omni_dataset}.sp_demo_aws_omni_security_cls`()
+CREATE OR REPLACE PROCEDURE `aws_omni_biglake.sp_demo_aws_omni_security_cls`()
 OPTIONS (strict_mode=false)
 BEGIN
 /*##################################################################################
@@ -26,7 +26,7 @@ Description:
     - Filter rows by a Pickup Location
 
 Dependencies:
-    - You must open a new tab with the URL: https://console.cloud.google.com/bigquery?project=${omni_project}
+    - You must open a new tab with the URL: https://console.cloud.google.com/bigquery?project=data-analytics-golden-v1-share
 
 Show:
     - Data is protected (columns) even though the data is a CSV format.
@@ -51,7 +51,7 @@ Clean up / Reset script:
 --- CSV FORMAT
 -- This will error since we try to select the Fare_Amount and Total_Amount
 SELECT *
-  FROM `${omni_dataset}.taxi_s3_yellow_trips_csv_cls`
+  FROM `aws_omni_biglake.taxi_s3_yellow_trips_csv_cls`
  WHERE year = 2021
    AND month = 1  
 LIMIT 1000;
@@ -59,7 +59,7 @@ LIMIT 1000;
 
 -- This will work since we do not select the column's we do not have access
 SELECT * EXCEPT (Fare_Amount,Total_Amount)
-  FROM `${omni_dataset}.taxi_s3_yellow_trips_csv_cls`
+  FROM `aws_omni_biglake.taxi_s3_yellow_trips_csv_cls`
  WHERE year = 2021
    AND month = 1  
 LIMIT 1000;
@@ -68,7 +68,7 @@ LIMIT 1000;
 -- JSON FORMAT
 -- This will error since we try to select the Fare_Amount and Total_Amount
 SELECT *
-  FROM `${omni_dataset}.taxi_s3_yellow_trips_json_cls`
+  FROM `aws_omni_biglake.taxi_s3_yellow_trips_json_cls`
  WHERE year = 2021
    AND month = 1  
 LIMIT 1000;
@@ -76,7 +76,7 @@ LIMIT 1000;
 
 -- This will work since we do not select the column's we do not have access
 SELECT * EXCEPT (Fare_Amount,Total_Amount)
-  FROM `${omni_dataset}.taxi_s3_yellow_trips_json_cls`
+  FROM `aws_omni_biglake.taxi_s3_yellow_trips_json_cls`
  WHERE year = 2021
    AND month = 1  
 LIMIT 1000;
@@ -85,13 +85,13 @@ LIMIT 1000;
 -- PARQUET FORMAT
 -- This will error since we try to select the Fare_Amount and Total_Amount
 SELECT *
-  FROM `${omni_dataset}.taxi_s3_yellow_trips_parquet_cls`
+  FROM `aws_omni_biglake.taxi_s3_yellow_trips_parquet_cls`
 LIMIT 1000;
 
 
 -- This will work since we do not select the column's we do not have access
 SELECT * EXCEPT (Fare_Amount,Total_Amount)
-  FROM `${omni_dataset}.taxi_s3_yellow_trips_parquet_cls`
+  FROM `aws_omni_biglake.taxi_s3_yellow_trips_parquet_cls`
 LIMIT 1000;
 
 END;

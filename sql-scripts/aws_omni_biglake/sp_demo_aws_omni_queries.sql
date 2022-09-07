@@ -1,5 +1,4 @@
-CREATE OR REPLACE PROCEDURE `${omni_dataset}.sp_demo_aws_omni_queries`()
-OPTIONS (strict_mode=false)
+CREATE OR REPLACE PROCEDURE `aws_omni_biglake.sp_demo_aws_omni_queries`()
 BEGIN
 /*##################################################################################
 # Copyright 2022 Google LLC
@@ -27,7 +26,7 @@ Description:
     - Show many complex SQL statements along with Exporting data to S3 for ETL or other purposes
 
 Dependencies:
-    - You must open a new tab with the URL: https://console.cloud.google.com/bigquery?project=${omni_project}
+    - You must open a new tab with the URL: https://console.cloud.google.com/bigquery?project=data-analytics-golden-v1-share
 
 Show:
     - Just like regular external tables (see script create_aws_taxi_tables_s3.sql)
@@ -41,7 +40,7 @@ Clean up / Reset script:
 */
 
 -- 140 million rows of data
--- SELECT COUNT(*) FROM `${omni_dataset}.taxi_s3_yellow_trips_parquet`;
+-- SELECT COUNT(*) FROM `aws_omni_biglake.taxi_s3_yellow_trips_parquet`;
 
 ------------------------------------------------------------------------------------
 -- Query 1
@@ -52,7 +51,7 @@ Clean up / Reset script:
 --       to set up and configure OMNI and AWS manually.
 ------------------------------------------------------------------------------------
 SELECT Vendor_Id, Rate_Code_Id, SUM(Total_Amount) AS GrandTotal
-FROM `${omni_dataset}.taxi_s3_yellow_trips_parquet` 
+FROM `aws_omni_biglake.taxi_s3_yellow_trips_parquet` 
 WHERE year=2019
   AND month=1
 GROUP BY Vendor_Id, Rate_Code_Id;
@@ -63,10 +62,10 @@ GROUP BY Vendor_Id, Rate_Code_Id;
 -- Sum data for a single month
 ------------------------------------------------------------------------------------
 SELECT Vendor.Vendor_Description, RateCode.Rate_Code_Description, SUM(Trips.Total_Amount) AS GrandTotal
-  FROM `${omni_dataset}.taxi_s3_yellow_trips_parquet` AS Trips
-       INNER JOIN `${omni_dataset}.taxi_s3_vendor` AS Vendor
+  FROM `aws_omni_biglake.taxi_s3_yellow_trips_parquet` AS Trips
+       INNER JOIN `aws_omni_biglake.taxi_s3_vendor` AS Vendor
        ON Trips.Vendor_Id = Vendor.Vendor_Id  
-       INNER JOIN `${omni_dataset}.taxi_s3_rate_code` AS RateCode
+       INNER JOIN `aws_omni_biglake.taxi_s3_rate_code` AS RateCode
        ON Trips.Rate_Code_Id = RateCode.Rate_Code_Id
 WHERE year=2019
   AND month=1
@@ -78,10 +77,10 @@ GROUP BY Vendor.Vendor_Description, RateCode.Rate_Code_Description;
 -- Sum data for an entire year
 ------------------------------------------------------------------------------------
 SELECT Vendor.Vendor_Description, RateCode.Rate_Code_Description,  SUM(Trips.Total_Amount) AS GrandTotal
-  FROM `${omni_dataset}.taxi_s3_yellow_trips_parquet` AS Trips
-       INNER JOIN `${omni_dataset}.taxi_s3_vendor` AS Vendor
+  FROM `aws_omni_biglake.taxi_s3_yellow_trips_parquet` AS Trips
+       INNER JOIN `aws_omni_biglake.taxi_s3_vendor` AS Vendor
        ON Trips.Vendor_Id = Vendor.Vendor_Id  
-       INNER JOIN `${omni_dataset}.taxi_s3_rate_code` AS RateCode
+       INNER JOIN `aws_omni_biglake.taxi_s3_rate_code` AS RateCode
        ON Trips.Rate_Code_Id = RateCode.Rate_Code_Id
 WHERE year=2019
 GROUP BY Vendor.Vendor_Description, RateCode.Rate_Code_Description;
@@ -92,27 +91,28 @@ GROUP BY Vendor.Vendor_Description, RateCode.Rate_Code_Description;
 -- Sum data for an entire year
 ------------------------------------------------------------------------------------
 SELECT Vendor.Vendor_Description, RateCode.Rate_Code_Description, PaymentType.Payment_Type_Description, SUM(Trips.Total_Amount) AS GrandTotal
-  FROM `${omni_dataset}.taxi_s3_yellow_trips_parquet` AS Trips
-       INNER JOIN `${omni_dataset}.taxi_s3_vendor` AS Vendor
+  FROM `aws_omni_biglake.taxi_s3_yellow_trips_parquet` AS Trips
+       INNER JOIN `aws_omni_biglake.taxi_s3_vendor` AS Vendor
        ON Trips.Vendor_Id = Vendor.Vendor_Id  
-       INNER JOIN `${omni_dataset}.taxi_s3_rate_code` AS RateCode
+       INNER JOIN `aws_omni_biglake.taxi_s3_rate_code` AS RateCode
        ON Trips.Rate_Code_Id = RateCode.Rate_Code_Id
-       INNER JOIN `${omni_dataset}.taxi_s3_payment_type` AS PaymentType
+       INNER JOIN `aws_omni_biglake.taxi_s3_payment_type` AS PaymentType
        ON Trips.Payment_Type_Id = PaymentType.Payment_Type_Id       
 WHERE year=2019
 GROUP BY Vendor.Vendor_Description, RateCode.Rate_Code_Description, PaymentType.Payment_Type_Description;
+
 
 ------------------------------------------------------------------------------------
 -- Query 5
 -- Sum data for 3+ years
 ------------------------------------------------------------------------------------
 SELECT Vendor.Vendor_Description, RateCode.Rate_Code_Description, PaymentType.Payment_Type_Description, SUM(Trips.Total_Amount) AS GrandTotal
-  FROM `${omni_dataset}.taxi_s3_yellow_trips_parquet` AS Trips
-       INNER JOIN `${omni_dataset}.taxi_s3_vendor` AS Vendor
+  FROM `aws_omni_biglake.taxi_s3_yellow_trips_parquet` AS Trips
+       INNER JOIN `aws_omni_biglake.taxi_s3_vendor` AS Vendor
        ON Trips.Vendor_Id = Vendor.Vendor_Id  
-       INNER JOIN `${omni_dataset}.taxi_s3_rate_code` AS RateCode
+       INNER JOIN `aws_omni_biglake.taxi_s3_rate_code` AS RateCode
        ON Trips.Rate_Code_Id = RateCode.Rate_Code_Id
-       INNER JOIN `${omni_dataset}.taxi_s3_payment_type` AS PaymentType
+       INNER JOIN `aws_omni_biglake.taxi_s3_payment_type` AS PaymentType
        ON Trips.Payment_Type_Id = PaymentType.Payment_Type_Id       
 GROUP BY Vendor.Vendor_Description, RateCode.Rate_Code_Description, PaymentType.Payment_Type_Description;
 
@@ -125,12 +125,12 @@ WITH HighestPayment AS
 (
 SELECT Vendor.Vendor_Description, RateCode.Rate_Code_Description, PaymentType.Payment_Type_Description, Total_Amount,
        RANK() OVER (PARTITION BY Vendor.Vendor_Description, RateCode.Rate_Code_Description, PaymentType.Payment_Type_Description ORDER BY Total_Amount DESC) AS Ranking
-  FROM `${omni_dataset}.taxi_s3_yellow_trips_parquet` AS Trips
-       INNER JOIN `${omni_dataset}.taxi_s3_vendor` AS Vendor
+  FROM `aws_omni_biglake.taxi_s3_yellow_trips_parquet` AS Trips
+       INNER JOIN `aws_omni_biglake.taxi_s3_vendor` AS Vendor
        ON Trips.Vendor_Id = Vendor.Vendor_Id  
-       INNER JOIN `${omni_dataset}.taxi_s3_rate_code` AS RateCode
+       INNER JOIN `aws_omni_biglake.taxi_s3_rate_code` AS RateCode
        ON Trips.Rate_Code_Id = RateCode.Rate_Code_Id
-       INNER JOIN `${omni_dataset}.taxi_s3_payment_type` AS PaymentType
+       INNER JOIN `aws_omni_biglake.taxi_s3_payment_type` AS PaymentType
        ON Trips.Payment_Type_Id = PaymentType.Payment_Type_Id       
 )
 SELECT *
@@ -146,7 +146,7 @@ WHERE Ranking = 1;
 WITH DailyAverages AS
 (
     SELECT TIMESTAMP_TRUNC(Pickup_DateTime, DAY) AS TripDay, PULocationID, DOLocationID, avg(Tip_Amount) AvgTip, avg(Total_Amount) AS AvgTotal,
-    FROM `${omni_dataset}.taxi_s3_yellow_trips_parquet`
+    FROM `aws_omni_biglake.taxi_s3_yellow_trips_parquet`
     GROUP BY TripDay, PULocationID, DOLocationID
 ),
 RankTable AS
@@ -169,13 +169,13 @@ ORDER BY TripDay;
 WITH MaxPickupTotalAmountPerDay AS
 (
     SELECT TIMESTAMP_TRUNC(Pickup_DateTime, DAY) AS TripDay, PULocationID, Max(Total_Amount) AS MaxPickup,
-      FROM `${omni_dataset}.taxi_s3_yellow_trips_parquet`
+      FROM `aws_omni_biglake.taxi_s3_yellow_trips_parquet`
      GROUP BY TripDay, PULocationID
 ),
 MaxDropoffTotalAmountPerDay AS
 (
     SELECT TIMESTAMP_TRUNC(Pickup_DateTime, DAY) AS TripDay, DOLocationID, Max(Total_Amount) AS MaxDropOff,
-      FROM `${omni_dataset}.taxi_s3_yellow_trips_parquet`
+      FROM `aws_omni_biglake.taxi_s3_yellow_trips_parquet`
      GROUP BY TripDay, DOLocationID
 ),
 PickupMax AS 
@@ -188,8 +188,12 @@ DropOffMax AS
     SELECT TripDay, DOLocationID, MaxDropOff, RANK() OVER (PARTITION BY TripDay ORDER BY MaxDropOff DESC) AS Ranking
       FROM MaxDropoffTotalAmountPerDay
 )
-SELECT PickupMax.TripDay, PickupMax.PULocationID, PickupMax.MaxPickup,
-       DropOffMax.TripDay, DropOffMax.DOLocationID, DropOffMax.MaxDropOff 
+SELECT PickupMax.TripDay            AS PickupMax_TripDay, 
+       PickupMax.PULocationID       AS PickupMax_PULocationID, 
+       PickupMax.MaxPickup          AS PickupMax_MaxPickup,
+       DropOffMax.TripDay           AS DropOffMax_TripDay, 
+       DropOffMax.DOLocationID      AS DropOffMax_DOLocationID, 
+       DropOffMax.MaxDropOff        AS DropOffMax_MaxDropOff
   FROM PickupMax
        INNER JOIN DropOffMax
        ON PickupMax.TripDay = DropOffMax.TripDay
@@ -201,7 +205,7 @@ ORDER BY PickupMax.TripDay;
 ------------------------------------------------------------------------------------
 -- Query 7 (EXPORT DATA)
 -- Run the same query as Query 6, but now save to storage (S3)
--- NOTE: If two people are running this at the same time change the "query-7" in the uri="s3://dagoldendemo20220530/taxi-export/query-7/*" 
+-- NOTE: If two people are running this at the same time change the "query-7" in the uri="s3://${omni_aws_s3_bucket_name}/taxi-export/query-7/*" 
 ------------------------------------------------------------------------------------
 EXPORT DATA WITH CONNECTION `${omni_aws_connection}`
 OPTIONS(
@@ -212,13 +216,13 @@ AS
 WITH MaxPickupTotalAmountPerDay AS
 (
     SELECT TIMESTAMP_TRUNC(Pickup_DateTime, DAY) AS TripDay, PULocationID, Max(Total_Amount) AS MaxPickup,
-      FROM `${omni_dataset}.taxi_s3_yellow_trips_parquet`
+      FROM `aws_omni_biglake.taxi_s3_yellow_trips_parquet`
      GROUP BY TripDay, PULocationID
 ),
 MaxDropoffTotalAmountPerDay AS
 (
     SELECT TIMESTAMP_TRUNC(Pickup_DateTime, DAY) AS TripDay, DOLocationID, Max(Total_Amount) AS MaxDropOff,
-      FROM `${omni_dataset}.taxi_s3_yellow_trips_parquet`
+      FROM `aws_omni_biglake.taxi_s3_yellow_trips_parquet`
      GROUP BY TripDay, DOLocationID
 ),
 PickupMax AS 
@@ -250,27 +254,30 @@ ORDER BY PickupMax.TripDay;
 -- You can now do cross cloud data analysis
 -- You want to do as much processing of data in AWS/Azure as possible in order to keep your transfered data sizes reasonable
 
--- NOTE: You would need higher security access to run these, you can view the results in the demo_omni_load_data dataset
 -- You can load data from AWS directly into a BigQuery table
 -- Reference: https://cloud.google.com/bigquery/docs/omni-aws-cross-cloud-transfer
+*/
 
-LOAD DATA INTO `demo_omni_load_data.results_parquet` 
-FROM FILES (uris = ['s3://${omni_aws_s3_bucket_name}/taxi-export/query-8/*'], format = 'PARQUET')
+-- Load the parquet files into the BigQuery US dataset: omni_cross_cloud_data_load
+LOAD DATA INTO `omni_cross_cloud_data_load.aws_results_parquet` 
+FROM FILES (uris = ['s3://${omni_aws_s3_bucket_name}/taxi-export/taxi-export-parquet/*'], format = 'PARQUET')
 WITH CONNECTION `${omni_aws_connection}`;
 
-LOAD DATA INTO `demo_omni_load_data.results_csv` (
+
+-- Load the CSV files into the BigQuery US dataset: omni_cross_cloud_data_load
+LOAD DATA INTO `omni_cross_cloud_data_load.aws_results_csv` (
   PickupMax_TripDay TIMESTAMP,
   PickupMax_PULocationID INTEGER,
   PickupMax_MaxPickup NUMERIC,
   DropOffMax_TripDay TIMESTAMP,
   DropOffMax_DOLocationID INTEGER,
   DropOffMax_MaxDropOff NUMERIC)
-FROM FILES (uris = ['s3://${omni_aws_s3_bucket_name}/taxi-export/query-7/*'], format = 'CSV')
+FROM FILES (uris = ['s3://${omni_aws_s3_bucket_name}/taxi-export/taxi-export-csv/*'], format = 'CSV')
 WITH CONNECTION `${omni_aws_connection}`;
-*/
+
 
 -- Show the tables loaded with data from AWS
-SELECT * FROM `demo_omni_load_data.results_csv`;
-SELECT * FROM `demo_omni_load_data.results_parquet`;
+SELECT * FROM `omni_cross_cloud_data_load.aws_results_csv`;
+SELECT * FROM `omni_cross_cloud_data_load.aws_results_parquet`;
 
 END;
