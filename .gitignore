@@ -27,3 +27,4 @@ sample-data/rideshare_trips-with-substitution/Rideshare_Vendor_Id=2/*
 sample-data/rideshare_trips-with-substitution/_delta_log/*
 sample-data/rideshare_trips-with-substitution/_symlink_format_manifest/*
 tf.log
+git-on-borg.sh
