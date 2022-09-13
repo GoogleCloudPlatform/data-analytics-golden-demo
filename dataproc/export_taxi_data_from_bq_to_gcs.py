@@ -1,0 +1,116 @@
+#!/usr/bin/env python
+####################################################################################
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#     https://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+####################################################################################
+
+# Author:  Adam Paternostro
+# Summary: Read the BigQuery "taxi_dataset.taxi_trips" table and exports to parquet format
+#          This uses dataproc serverless spark
+#          The data is exported partitioned by each minute (inefficient on purpose)
+#          The goal is to generate a lot of small files (antipattern) to demo BQ performance on small files
+
+from pyspark.sql.dataframe import DataFrame
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col, year, month, day, hour, minute
+from pyspark.sql.types import StructType, StructField, StringType, IntegerType, DoubleType, TimestampType
+from datetime import datetime
+import time
+import sys
+
+
+def ExportTaxiData(project_id,temporaryGcsBucket,destination):
+    spark = SparkSession \
+        .builder \
+        .appName("export_taxi_data_from_bq_to_gcs") \
+        .getOrCreate()
+
+    # Use the Cloud Storage bucket for temporary BigQuery export data used by the connector.
+    bucket = "[bucket]"
+    spark.conf.set('temporaryGcsBucket', temporaryGcsBucket)
+ 
+    # Sample Code: https://cloud.google.com/dataproc/docs/tutorials/bigquery-connector-spark-example#pyspark
+    # Load data from BigQuery.
+    # words = spark.read.format('bigquery') \
+    #   .option('table', 'bigquery-public-data:samples.shakespeare') \
+    #   .load()
+    # words.createOrReplaceTempView('words')
+
+    # Perform word count.
+    # word_count = spark.sql(
+    #     'SELECT word, SUM(word_count) AS word_count FROM words GROUP BY word')
+    # word_count.show()
+    # word_count.printSchema()
+
+    # Saving the data to BigQuery
+    # word_count.write.format('bigquery') \
+    #   .option('table', 'wordcount_dataset.wordcount_output') \
+    #   .save()
+
+    # Load data from BigQuery.
+    df_taxi_trips = spark.read.format('bigquery') \
+        .option('table', project_id + ':taxi_dataset.taxi_trips') \
+        .load()
+
+    df_taxi_trips_partitioned = df_taxi_trips \
+        .withColumn("year",   year   (col("Pickup_DateTime"))) \
+        .withColumn("month",  month  (col("Pickup_DateTime"))) \
+        .withColumn("day",    day    (col("Pickup_DateTime"))) \
+        .withColumn("hour",   hour   (col("Pickup_DateTime"))) \
+        .withColumn("minute", minute (col("Pickup_DateTime"))) 
+
+    # Write as Parquet
+    df_taxi_trips_partitioned \
+        .write \
+        .mode("overwrite") \
+        .partitionBy("year","month","day","hour","minute") \
+        .parquet(destination + "/processed/taxi-trips-small-files")
+        
+    spark.stop()
+
+
+# Main entry point
+if __name__ == "__main__":
+    if len(sys.argv) != 4:
+        print("Usage: export_taxi_data_from_bq_to_gcs project_id temporaryGcsBucket destination")
+        sys.exit(-1)
+
+    project_id         = sys.argv[1]
+    temporaryGcsBucket = sys.argv[2]
+    destination        = sys.argv[3]
+
+    print ("BEGIN: Main")
+    ExportTaxiData(project_id, temporaryGcsBucket, destination)
+    print ("END: Main")
+
+
+# Sample run via command line
+# See the DAG sample-export-taxi-trips-from-bq-to-gcs.py for Airflow execution
+"""
+REPLACE "4s42tmb9uw" with your unique Id
+
+gsutil cp ./dataproc/export_taxi_data_from_bq_to_gcs.py gs://raw-data-analytics-demo-4s42tmb9uw/pyspark-code
+
+gcloud beta dataproc batches submit pyspark \
+    --project="data-analytics-demo-4s42tmb9uw" \
+    --region="us-central1" \
+    --batch="batch-003"  \
+    gs://raw-data-analytics-demo-4s42tmb9uw/pyspark-code/export_taxi_data_from_bq_to_gcs.py \
+    --jars gs://raw-data-analytics-demo-4s42tmb9uw/pyspark-code/spark-bigquery-with-dependencies_2.12-0.26.0.jar \
+    --subnet="bigspark-subnet" \
+    --deps-bucket="gs://dataproc-data-analytics-demo-4s42tmb9uw" \
+    --service-account="dataproc-service-account@data-analytics-demo-4s42tmb9uw.iam.gserviceaccount.com" \
+    -- data-analytics-demo-4s42tmb9uw bigspark-data-analytics-demo-4s42tmb9uw gs://processed-data-analytics-demo-4s42tmb9uw
+
+"""

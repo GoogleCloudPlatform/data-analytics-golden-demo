@@ -334,7 +334,8 @@ resource "google_composer_environment" "composer_env" {
   config {
 
     software_config {
-      image_version = "composer-2.0.0-airflow-2.1.4"
+      image_version = "composer-2.0.24-airflow-2.2.5"
+      #"composer-2.0.0-airflow-2.1.4"
       #"composer-2.0.7-airflow-2.2.3"
 
       env_variables = {

@@ -250,46 +250,9 @@ module "service-account" {
   ]
 }
 
-# This has to be run as the current user or deploying service account
-# You are not able to run using service account impersonation or you get the below message:
-# Error: Error when reading or editing Project Service : Request `List Project Services data-analytics-demo-4kljxj1jd5` 
-# returned error: Failed to list enabled services for project data-analytics-demo-4kljxj1jd5: googleapi: 
-# Error 403: Service Usage API has not been used in project 182999489528 before or it is disabled. 
-/*
-module "service-usage" {
-  # Run this as the currently logged in user or the service account executing the TF script
-  source     = "../terraform-modules/service-usage"
-  project_id = local.local_project_id
-
-  depends_on = [
-    module.project,
-    module.service-account
-  ]
-}
-*/
-
-# Enable all the cloud APIs that will be used
-/*
-module "apis" {
-  source = "../terraform-modules/apis"
-
-  # Use Service Account Impersonation for this step. 
-  providers = { google = google.service_principal_impersonation }
-
-  project_id = local.local_project_id
-
-  depends_on = [
-    module.project,
-    module.service-account,
-    module.service-usage
-  ]
-}
-*/
-
 
 # Enable all the cloud APIs that will be used by using Batch Mode
-# Batch mode can enable all the services in just a second or two
-# NOTE: Terraform does not have support for batch mode, so curl was use to do a HTTP POST
+# Batch mode is enabled on the provider (by default)
 module "apis-batch-enable" {
   source = "../terraform-modules/apis-batch-enable"
 
@@ -313,7 +276,6 @@ resource "time_sleep" "service_account_api_activation_time_delay" {
 }
 
 
-
 # Uses the new Org Policies method (when a project is created by TF)
 module "org-policies" {
   count  = var.project_number == "" ? 1 : 0
@@ -328,8 +290,6 @@ module "org-policies" {
   depends_on = [
     module.project,
     module.service-account,
-    #module.service-usage,
-    #module.apis
     module.apis-batch-enable,
     time_sleep.service_account_api_activation_time_delay
   ]
@@ -351,8 +311,6 @@ module "org-policies-deprecated" {
   depends_on = [
     module.project,
     module.service-account,
-    #module.service-usage,
-    #module.apis
     module.apis-batch-enable
   ]
 }
@@ -378,8 +336,6 @@ module "resources" {
   depends_on = [
     module.project,
     module.service-account,
-    #module.service-usage,
-    #module.apis,
     module.apis-batch-enable,
     time_sleep.service_account_api_activation_time_delay,
     module.org-policies,
@@ -413,8 +369,6 @@ module "sql-scripts" {
   depends_on = [
     module.project,
     module.service-account,
-    #module.service-usage,
-    #module.apis,
     module.apis-batch-enable,
     time_sleep.service_account_api_activation_time_delay,
     module.org-policies,
@@ -446,14 +400,11 @@ EOF
   depends_on = [
     module.project,
     module.service-account,
-    #module.service-usage,
-    #module.apis,
     module.apis-batch-enable,
     time_sleep.service_account_api_activation_time_delay,
     module.org-policies,
     module.org-policies-deprecated,
-    module.resources,
-    module.sql-scripts
+    module.resources
   ]
 }
 
@@ -478,14 +429,11 @@ EOF
   depends_on = [
     module.project,
     module.service-account,
-    #module.service-usage,
-    #module.apis,
     module.apis-batch-enable,
     time_sleep.service_account_api_activation_time_delay,
     module.org-policies,
     module.org-policies-deprecated,
-    module.resources,
-    module.sql-scripts
+    module.resources
   ]
 }
 
@@ -509,8 +457,6 @@ EOF
   depends_on = [
     module.project,
     module.service-account,
-    #module.service-usage,
-    #module.apis,
     module.apis-batch-enable,
     time_sleep.service_account_api_activation_time_delay,
     module.org-policies,
@@ -540,8 +486,6 @@ EOF
   depends_on = [
     module.project,
     module.service-account,
-    #module.service-usage,
-    #module.apis,
     module.apis-batch-enable,
     time_sleep.service_account_api_activation_time_delay,
     module.org-policies,
@@ -579,8 +523,6 @@ EOF
   depends_on = [
     module.project,
     module.service-account,
-    #module.service-usage,
-    #module.apis,
     module.apis-batch-enable,
     time_sleep.service_account_api_activation_time_delay,
     module.org-policies,
@@ -620,8 +562,6 @@ EOF
   depends_on = [
     module.project,
     module.service-account,
-    #module.service-usage,
-    #module.apis,
     module.apis-batch-enable,
     time_sleep.service_account_api_activation_time_delay,
     module.org-policies,
@@ -662,8 +602,6 @@ EOF
   depends_on = [
     module.project,
     module.service-account,
-    #module.service-usage,
-    #module.apis,
     module.apis-batch-enable,
     time_sleep.service_account_api_activation_time_delay,
     module.org-policies,
@@ -680,8 +618,6 @@ resource "time_sleep" "wait_for_airflow_dag_sync" {
   depends_on = [
     module.project,
     module.service-account,
-    #module.service-usage,
-    #module.apis,
     module.apis-batch-enable,
     time_sleep.service_account_api_activation_time_delay,
     module.org-policies,
@@ -691,7 +627,9 @@ resource "time_sleep" "wait_for_airflow_dag_sync" {
     null_resource.deploy_airflow_dags,
     null_resource.deploy_airflow_dags_data
   ]
-  create_duration = "180s"
+  # This just a "guess" and might need to be extended.  The Composer (Airflow) cluster is sized very small so it 
+  # takes longer to sync the DAG files
+  create_duration = "200s"
 }
 
 
@@ -714,8 +652,6 @@ EOF
   depends_on = [
     module.project,
     module.service-account,
-    #module.service-usage,
-    #module.apis,
     module.apis-batch-enable,
     time_sleep.service_account_api_activation_time_delay,
     module.org-policies,

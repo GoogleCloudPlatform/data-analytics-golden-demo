@@ -109,7 +109,7 @@ SELECT *
 -- Run machine learning on the streaming data
 -- NOTE You must run the sp_demo_machine_leaning_anomoly_fee_amount procedure First in order to train the model!
 ------------------------------------------------------------------------------------
-
+EXECUTE IMMEDIATE """
 WITH LatestData AS 
 (
   SELECT ride_id, timestamp, longitude, latitude, meter_reading, ride_status
@@ -142,7 +142,7 @@ SELECT *
                               LIMIT 100
                             ))
   WHERE is_anomaly = TRUE;
-
+""";
 
 
 ------------------------------------------------------------------------------------
