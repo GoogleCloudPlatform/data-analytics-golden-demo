@@ -22,6 +22,8 @@
 #          Many small files on a data lake is a common performance issue, so we want to show to to address this
 #          with BigQuery.
 # NOTE:    This can take over 1 hour to run!  You need to run before your Demo!
+#          If you want massive data, then run the sample-bigquery-data-transfer-service DAG and then the
+#          sp_demo_data_transfer_service stored procedure to get 700M+ rows.
 
 # [START dag]
 import os
@@ -42,7 +44,7 @@ default_args = {
     'email_on_retry': False,
     'retries': 0,
     'retry_delay': timedelta(minutes=5),
-    'dagrun_timeout' : timedelta(minutes=60),
+    'dagrun_timeout' : timedelta(minutes=300),
 }
 
 project_id               = os.environ['GCP_PROJECT'] 
@@ -57,6 +59,8 @@ dataproc_subnet          = "bigspark-subnet"
 dataproc_service_account = os.environ['ENV_DATAPROC_SERVICE_ACCOUNT'] 
 dataproc_bucket          = os.environ['ENV_DATAPROC_BUCKET'] 
 bigspark_bucket          = os.environ['ENV_RAW_BUCKET'].replace("raw-","bigspark-")
+taxi_dataset_id          = os.environ['ENV_TAXI_DATASET_ID'] 
+
 
 """
 gcloud beta dataproc batches submit pyspark \
@@ -68,7 +72,7 @@ gcloud beta dataproc batches submit pyspark \
     --subnet="bigspark-subnet" \
     --deps-bucket="gs://dataproc-data-analytics-demo-4s42tmb9uw" \
     --service-account="dataproc-service-account@data-analytics-demo-4s42tmb9uw.iam.gserviceaccount.com" \
-    -- data-analytics-demo-4s42tmb9uw bigspark-data-analytics-demo-4s42tmb9uw gs://processed-data-analytics-demo-4s42tmb9uw
+    -- data-analytics-demo-4s42tmb9uw taxi_dataset bigspark-data-analytics-demo-4s42tmb9uw gs://processed-data-analytics-demo-4s42tmb9uw
 
 """
 
@@ -79,7 +83,7 @@ BATCH_CONFIG = {
         {
             'main_python_file_uri': pyspark_code,
             'jar_file_uris': [ jar_file ],
-            'args': [project_id, bigspark_bucket, processed_bucket_name ]
+            'args': [project_id, taxi_dataset_id, bigspark_bucket, processed_bucket_name ]
         },
     'environment_config':
         {'execution_config':
@@ -108,9 +112,11 @@ with airflow.DAG('sample-export-taxi-trips-from-bq-to-gcs',
         task_id="dataproc_serverless_export_taxi_trips",
         project_id=project_id,
         region=region,
-        batch_id=f"taxi-trips-export-{{run_id}}",
+        batch_id="taxi-trips-export-{{ ds_nodash }}-{{ ts_nodash.lower() }}",
         batch=BATCH_CONFIG
     )
+
+    # {{run_id}} = "Batch ID 'taxi-trips-export-manual__2022-09-13T21:46:52.639478+00:00' must conform to pattern '[a-z0-9][a-z0-9\-]{2,61}[a-z0-9]'"
 
     dataproc_serverless
 

@@ -30,7 +30,7 @@ import time
 import sys
 
 
-def ExportTaxiData(project_id,temporaryGcsBucket,destination):
+def ExportTaxiData(project_id, taxi_dataset_id, temporaryGcsBucket, destination):
     spark = SparkSession \
         .builder \
         .appName("export_taxi_data_from_bq_to_gcs") \
@@ -58,9 +58,9 @@ def ExportTaxiData(project_id,temporaryGcsBucket,destination):
     #   .option('table', 'wordcount_dataset.wordcount_output') \
     #   .save()
 
-    # Load data from BigQuery.
+    # Load data from BigQuery taxi_trips table
     df_taxi_trips = spark.read.format('bigquery') \
-        .option('table', project_id + ':taxi_dataset.taxi_trips') \
+        .option('table', project_id + ':' + taxi_dataset_id + '.taxi_trips') \
         .load()
 
     df_taxi_trips_partitioned = df_taxi_trips \
@@ -83,15 +83,16 @@ def ExportTaxiData(project_id,temporaryGcsBucket,destination):
 # Main entry point
 if __name__ == "__main__":
     if len(sys.argv) != 4:
-        print("Usage: export_taxi_data_from_bq_to_gcs project_id temporaryGcsBucket destination")
+        print("Usage: export_taxi_data_from_bq_to_gcs project_id taxi_dataset_id temporaryGcsBucket destination")
         sys.exit(-1)
 
     project_id         = sys.argv[1]
-    temporaryGcsBucket = sys.argv[2]
-    destination        = sys.argv[3]
+    taxi_dataset_id    = sys.argv[2]
+    temporaryGcsBucket = sys.argv[3]
+    destination        = sys.argv[4]
 
     print ("BEGIN: Main")
-    ExportTaxiData(project_id, temporaryGcsBucket, destination)
+    ExportTaxiData(project_id, taxi_dataset_id, temporaryGcsBucket, destination)
     print ("END: Main")
 
 
@@ -111,6 +112,9 @@ gcloud beta dataproc batches submit pyspark \
     --subnet="bigspark-subnet" \
     --deps-bucket="gs://dataproc-data-analytics-demo-4s42tmb9uw" \
     --service-account="dataproc-service-account@data-analytics-demo-4s42tmb9uw.iam.gserviceaccount.com" \
-    -- data-analytics-demo-4s42tmb9uw bigspark-data-analytics-demo-4s42tmb9uw gs://processed-data-analytics-demo-4s42tmb9uw
+    -- data-analytics-demo-4s42tmb9uw taxi_dataset bigspark-data-analytics-demo-4s42tmb9uw gs://processed-data-analytics-demo-4s42tmb9uw
+
+# to cancel
+gcloud dataproc batches cancel  batch-003 --project data-analytics-demo-4s42tmb9uw --region us-central1
 
 """
