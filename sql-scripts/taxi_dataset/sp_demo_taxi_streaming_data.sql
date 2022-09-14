@@ -39,6 +39,9 @@ Clean up / Reset script:
 
 -- Open the table taxi_trips_streaming
 -- Click on details to see the streaming buffer stats
+-- Some of the data is in columnar format and some is in row format, but when we query
+-- we do not need to worry about where the data is, BigQuery just queries the data.
+
 
 -- Current data within past hour (run over and over again to show data streaming)
 SELECT COUNT(*) AS RecordCount  
@@ -46,6 +49,7 @@ SELECT COUNT(*) AS RecordCount
   WHERE timestamp > TIMESTAMP_SUB(CURRENT_TIMESTAMP(),INTERVAL 1 HOUR);
 
 
+-- Same SQL as above, just orders the data
 -- Show current data in past hour (slower query due to ORDER BY)
 SELECT *   
   FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips_streaming` 
@@ -59,14 +63,15 @@ SELECT COUNT(*) AS RecordCount
   WHERE timestamp < TIMESTAMP_SUB(CURRENT_TIMESTAMP(),INTERVAL 1 HOUR);
 
 
--- Show data from 1 to 2 hours ago (provided the streaming job has been running)
+-- Show data from 1 hour ago to 2 hours ago (provided the streaming job has been running for the past 3 hours)
 SELECT *
   FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips_streaming` 
   WHERE timestamp BETWEEN TIMESTAMP_SUB(CURRENT_TIMESTAMP(),INTERVAL 2 HOUR) AND TIMESTAMP_SUB(CURRENT_TIMESTAMP(),INTERVAL 1 HOUR)
  LIMIT 100;
 
 
--- Count the data from 1 to 2 hours ago (provided the streaming job has been running)
+-- Same SQL as above, but does a Count
+-- Show data from 1 hour ago to 2 hours ago (provided the streaming job has been running for the past 3 hours)
 SELECT COUNT(*) AS RecordCount  
   FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips_streaming` 
   WHERE timestamp BETWEEN TIMESTAMP_SUB(CURRENT_TIMESTAMP(),INTERVAL 2 HOUR) AND TIMESTAMP_SUB(CURRENT_TIMESTAMP(),INTERVAL 1 HOUR);
@@ -76,18 +81,21 @@ SELECT COUNT(*) AS RecordCount
 ------------------------------------------------------------------------------------
 -- Self join the streaming data
 -- The streaming data has a "pickup" record (message) and then a "dropoff" message
--- We need to match the pickup and dropoff seperate records so we can compute the time and distance
--- The distance is computed usnig Geospacial
+-- We need to match the pickup and dropoff seperate records (by ride_id) so we can compute the time and distance between pickup and dropoff
+-- The distance is computed using Geospacial functions in BigQuery
 ------------------------------------------------------------------------------------
 
 WITH LatestData AS 
 (
+  -- Get last 15 minutes of data
   SELECT ride_id, timestamp, longitude, latitude, meter_reading, ride_status
     FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips_streaming` 
    WHERE timestamp > TIMESTAMP_SUB(CURRENT_TIMESTAMP(),INTERVAL 15 MINUTE)
 )
 , results AS 
 (
+  -- for the last 15 minutes match the pickup with dropoff
+  -- compute miles since ST_DISTANCE is in meters (divide by 1609.34)
   SELECT enroute.ride_id,
          enroute.timestamp AS PickupTime,
          dropoff.timestamp AS DropoffTime, 
@@ -209,5 +217,3 @@ SELECT *
          INNER JOIN `${project_id}.${bigquery_thelook_ecommerce_dataset}.distribution_centers` AS distribution_centers
                  ON PivotData.distribution_center_id = distribution_centers.id
   ORDER BY distribution_center_id;
-
-
