@@ -59,23 +59,29 @@ def ExportTaxiData(project_id, taxi_dataset_id, temporaryGcsBucket, destination)
     #   .save()
 
     # Load data from BigQuery taxi_trips table
+    print ("BEGIN: Querying Table")
     df_taxi_trips = spark.read.format('bigquery') \
         .option('table', project_id + ':' + taxi_dataset_id + '.taxi_trips') \
         .load()
+    print ("END: Querying Table")
 
+    print ("BEGIN: Adding partition columns to dataframe")
     df_taxi_trips_partitioned = df_taxi_trips \
         .withColumn("year",   year       (col("Pickup_DateTime"))) \
         .withColumn("month",  month      (col("Pickup_DateTime"))) \
         .withColumn("day",    dayofmonth (col("Pickup_DateTime"))) \
         .withColumn("hour",   hour       (col("Pickup_DateTime"))) \
         .withColumn("minute", minute     (col("Pickup_DateTime"))) 
+    print ("END: Adding partition columns to dataframe")
 
     # Write as Parquet
+    print ("BEGIN: Writing Data to GCS")
     df_taxi_trips_partitioned \
         .write \
         .mode("overwrite") \
         .partitionBy("year","month","day","hour","minute") \
-        .parquet(destination + "/processed/taxi-trips-small-files")
+        .parquet(destination + "/processed/taxi-trips-query-acceleration")
+    print ("END: Writing Data to GCS")
         
     spark.stop()
 
@@ -120,6 +126,6 @@ gcloud beta dataproc batches submit pyspark \
     -- data-analytics-demo-4s42tmb9uw taxi_dataset bigspark-data-analytics-demo-4s42tmb9uw gs://processed-data-analytics-demo-4s42tmb9uw
 
 # to cancel
-gcloud dataproc batches cancel  batch-000 --project data-analytics-demo-4s42tmb9uw --region us-central1
+gcloud dataproc batches cancel batch-000 --project data-analytics-demo-4s42tmb9uw --region us-central1
 
 """
