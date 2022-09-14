@@ -44,7 +44,7 @@ default_args = {
     'email_on_retry': False,
     'retries': 0,
     'retry_delay': timedelta(minutes=5),
-    'dagrun_timeout' : timedelta(minutes=300),
+    'dagrun_timeout' : timedelta(minutes=600),
 }
 
 project_id               = os.environ['GCP_PROJECT'] 
@@ -100,7 +100,7 @@ BATCH_CONFIG = {
         }
     }
 
-with airflow.DAG('sample-export-taxi-trips-from-bq-to-gcs',
+with airflow.DAG('sample-export-taxi-trips-from-bq-to-gcs-serverless',
                  default_args=default_args,
                  start_date=datetime(2021, 1, 1),
                  # Not scheduled, trigger only
