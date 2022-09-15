@@ -266,10 +266,10 @@ def ConvertTaxiData(sourceYellow, sourceGreen, icebergWarehouse):
 
 
 # Main entry point
-# convert_taxi_to_parquet gs://big-query-demo-09/test-taxi/yellow gs://big-query-demo-09/test-taxi/green gs://big-query-demo-09/test-taxi-output
+# convert_taxi_to_iceberg_create_tables gs://${rawBucket}/raw/taxi-data/yellow/*/*.parquet gs://${rawBucket}/raw/taxi-data/green/*/*.parquet gs://${processedBucket}/iceberg-warehouse
 if __name__ == "__main__":
     if len(sys.argv) != 4:
-        print("Usage: convert_taxi_to_parquet sourceYellow sourceGreen icebergWarehouse")
+        print("Usage: convert_taxi_to_iceberg_create_tables sourceYellow sourceGreen icebergWarehouse")
         sys.exit(-1)
 
     sourceYellow     = sys.argv[1]
@@ -308,14 +308,14 @@ gcloud dataproc clusters create iceberg-cluster \
 # Download Iceberg JAR: https://iceberg.apache.org/releases/
 # https://iceberg.apache.org/spark-quickstart/ (pyspark samples)
 
-gsutil cp ./dataproc/convert_taxi_to_iceberg.py gs://${rawBucket}/pyspark-code/convert_taxi_to_iceberg.py
+gsutil cp ./dataproc/convert_taxi_to_iceberg_create_tables.py gs://${rawBucket}/pyspark-code/convert_taxi_to_iceberg_create_tables.py
 
 gcloud dataproc jobs submit pyspark  \
    --cluster "iceberg-cluster" \
    --region="us-west2" \
    --project="${project}" \
    --jars ./dataproc/iceberg-spark-runtime-3.1_2.12-0.14.0.jar \
-   gs://${rawBucket}/pyspark-code/convert_taxi_to_iceberg.py \
+   gs://${rawBucket}/pyspark-code/convert_taxi_to_iceberg_create_tables.py \
    -- gs://${rawBucket}/raw/taxi-data/yellow/*/*.parquet \
       gs://${rawBucket}/raw/taxi-data/green/*/*.parquet \
       gs://${processedBucket}/iceberg-warehouse

@@ -15,15 +15,15 @@
 ####################################################################################
 
 # Author:  Adam Paternostro
-# Summary: Runs a Dataproc Serverless Batch to export the taxi_trips table to GCS
+# Summary: Runs a Dataproc Serverless to export the taxi_trips table to GCS
 #          The spark code (in the dataproc folder: export_taxi_data_from_bq_to_gcs.py) exports the data
 #          as parquet and is partitioned by year-month-day-hour-minute.  This generates alot of files!
 #          The goal is to place a BigLake table with a feature to show fast performance with lots of small files.
 #          Many small files on a data lake is a common performance issue, so we want to show to to address this
 #          with BigQuery.
-# NOTE:    This can take over 1 hour to run!  You need to run before your Demo!
-#          If you want massive data, then run the sample-bigquery-data-transfer-service DAG and then the
-#          sp_demo_data_transfer_service stored procedure to get 700M+ rows.
+# NOTE:    This can take hours to run!
+#          This is not practical to run due to the large amount of data.  Please run the sample-export-taxi-trips-from-bq-to-gcs-cluster DAG
+#          This is provided as a Spark Serveless example!
 
 # [START dag]
 import os
@@ -61,6 +61,8 @@ dataproc_bucket          = os.environ['ENV_DATAPROC_BUCKET']
 bigspark_bucket          = os.environ['ENV_RAW_BUCKET'].replace("raw-","bigspark-")
 taxi_dataset_id          = os.environ['ENV_TAXI_DATASET_ID'] 
 
+data_year = "2022"
+data_month = "1"
 
 """
 gcloud beta dataproc batches submit pyspark \
@@ -83,7 +85,7 @@ BATCH_CONFIG = {
         {
             'main_python_file_uri': pyspark_code,
             'jar_file_uris': [ jar_file ],
-            'args': [project_id, taxi_dataset_id, bigspark_bucket, processed_bucket_name ]
+            'args': [project_id, taxi_dataset_id, bigspark_bucket, processed_bucket_name, data_year, data_month ]
         },
     'environment_config':
         {'execution_config':

@@ -45,26 +45,30 @@ default_args = {
     'dagrun_timeout' : timedelta(minutes=60),
 }
 
-project_id               = os.environ['GCP_PROJECT'] 
-raw_bucket_name          = os.environ['ENV_RAW_BUCKET'] 
-processed_bucket_name    = os.environ['ENV_PROCESSED_BUCKET'] 
-pyspark_code             = "gs://" + raw_bucket_name + "/pyspark-code/convert_taxi_to_iceberg.py"
-region                   = os.environ['ENV_REGION'] 
-zone                     = os.environ['ENV_ZONE'] 
-yellow_source            = "gs://" + raw_bucket_name + "/raw/taxi-data/yellow/*/*.parquet"
-green_source             = "gs://" + raw_bucket_name + "/raw/taxi-data/green/*/*.parquet"
-dataproc_bucket          = os.environ['ENV_DATAPROC_BUCKET'] 
-dataproc_subnet          = os.environ['ENV_DATAPROC_SUBNET'] 
-dataproc_service_account = os.environ['ENV_DATAPROC_SERVICE_ACCOUNT']
+project_id                 = os.environ['GCP_PROJECT'] 
+raw_bucket_name             = os.environ['ENV_RAW_BUCKET'] 
+processed_bucket_name       = os.environ['ENV_PROCESSED_BUCKET'] 
+pyspark_code_create_tables  = "gs://" + raw_bucket_name + "/pyspark-code/convert_taxi_to_iceberg_create_tables.py"
+pyspark_code_update_data    = "gs://" + raw_bucket_name + "/pyspark-code/convert_taxi_to_iceberg_data_updates.py"
+region                      = os.environ['ENV_REGION'] 
+zone                        = os.environ['ENV_ZONE'] 
+yellow_source               = "gs://" + raw_bucket_name + "/raw/taxi-data/yellow/*/*.parquet"
+green_source                = "gs://" + raw_bucket_name + "/raw/taxi-data/green/*/*.parquet"
+dataproc_bucket             = os.environ['ENV_DATAPROC_BUCKET'] 
+dataproc_subnet             = os.environ['ENV_DATAPROC_SUBNET'] 
+dataproc_service_account    = os.environ['ENV_DATAPROC_SERVICE_ACCOUNT']
 
-icebergWarehouse         = "gs://" + processed_bucket_name + "/iceberg-warehouse"
-icebergJARFile           = "gs://" + raw_bucket_name + "/pyspark-code/iceberg-spark-runtime-3.1_2.12-0.14.0.jar"
+icebergWarehouse            = "gs://" + processed_bucket_name + "/iceberg-warehouse"
+icebergJARFile              = "gs://" + raw_bucket_name + "/pyspark-code/iceberg-spark-runtime-3.1_2.12-0.14.0.jar"
 
 
 # https://cloud.google.com/dataproc/docs/reference/rest/v1/ClusterConfig
 CLUSTER_CONFIG = {
     "config_bucket" : dataproc_bucket,
     "temp_bucket": dataproc_bucket,
+    "software_config": {
+        "image_version": "2.0.47-debian10"
+    },    
     "master_config": {
         "num_instances": 1,
         "machine_type_uri": "n1-standard-8",
@@ -72,7 +76,7 @@ CLUSTER_CONFIG = {
     },
     "worker_config": {
         "num_instances": 4,
-        "machine_type_uri": "n1-standard-8",
+        "machine_type_uri": "n1-standard-16",
         "disk_config": {"boot_disk_type": "pd-ssd", "boot_disk_size_gb": 30},
     },
     "gce_cluster_config" :{
@@ -84,7 +88,7 @@ CLUSTER_CONFIG = {
     }
 }
 
-with airflow.DAG('sample-iceberg-data-processing',
+with airflow.DAG('sample-iceberg-create-tables-update-data',
                  default_args=default_args,
                  start_date=datetime(2021, 1, 1),
                  # Not scheduled, trigger only
@@ -100,17 +104,27 @@ with airflow.DAG('sample-iceberg-data-processing',
         cluster_config=CLUSTER_CONFIG,
     )
 
-    # Run the Spark code to processes the raw files to a processed folder
-    run_dataproc_iceberg_spark = dataproc_operator.DataProcPySparkOperator(
+    # Process taxi data into Iceberg table format
+    create_iceberg_tables = dataproc_operator.DataProcPySparkOperator(
         default_args=default_args,
-        task_id='task-taxi-data-iceberg',
+        task_id='create-iceberg-tables',
         project_id=project_id,
         region=region,
         cluster_name='process-taxi-data-iceberg-{{ ts_nodash.lower() }}',
         dataproc_jars=[icebergJARFile],
-        main=pyspark_code,
+        main=pyspark_code_create_tables,
         arguments=[yellow_source, green_source, icebergWarehouse])
 
+    # Perform data updates to the Iceberg data
+    perform_iceberg_data_updates = dataproc_operator.DataProcPySparkOperator(
+        default_args=default_args,
+        task_id='perform-iceberg-data-updates',
+        project_id=project_id,
+        region=region,
+        cluster_name='process-taxi-data-iceberg-{{ ts_nodash.lower() }}',
+        dataproc_jars=[icebergJARFile],
+        main=pyspark_code_update_data,
+        arguments=[icebergWarehouse])
 
     # Delete Cloud Dataproc cluster
     delete_dataproc_iceberg_cluster = dataproc_operator.DataprocClusterDeleteOperator(
@@ -122,6 +136,9 @@ with airflow.DAG('sample-iceberg-data-processing',
         # Setting trigger_rule to ALL_DONE causes the cluster to be deleted even if the Dataproc job fails.
         trigger_rule=trigger_rule.TriggerRule.ALL_DONE)
 
-    create_dataproc_iceberg_cluster >> run_dataproc_iceberg_spark >> delete_dataproc_iceberg_cluster
+    create_dataproc_iceberg_cluster >> \
+        create_iceberg_tables >> \
+        perform_iceberg_data_updates >> \
+        delete_dataproc_iceberg_cluster
 
 # [END dag]

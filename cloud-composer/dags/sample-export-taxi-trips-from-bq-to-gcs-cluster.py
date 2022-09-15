@@ -21,9 +21,7 @@
 #          The goal is to place a BigLake table with a feature to show fast performance with lots of small files.
 #          Many small files on a data lake is a common performance issue, so we want to show to to address this
 #          with BigQuery.
-# NOTE:    This can take over 1 hour to run!  You need to run before your Demo!
-#          If you want massive data, then run the sample-bigquery-data-transfer-service DAG and then the
-#          sp_demo_data_transfer_service stored procedure to get 700M+ rows.
+# NOTE:    This can take hours to run!
 
 
 # [START dag]
@@ -70,12 +68,12 @@ CLUSTER_CONFIG = {
     "master_config": {
         "num_instances": 1,
         "machine_type_uri": "n1-standard-8",
-        "disk_config": {"boot_disk_type": "pd-ssd", "boot_disk_size_gb": 30},
+        "disk_config": {"boot_disk_type": "pd-ssd", "boot_disk_size_gb": 30, "num_local_ssds":2},
     },
     "worker_config": {
-        "num_instances": 4,
-        "machine_type_uri": "n1-standard-8",
-        "disk_config": {"boot_disk_type": "pd-ssd", "boot_disk_size_gb": 30},
+        "num_instances": 2,
+        "machine_type_uri": "n1-standard-16",
+        "disk_config": {"boot_disk_type": "pd-ssd", "boot_disk_size_gb": 30, "num_local_ssds":2},
     },
     "gce_cluster_config" :{
         "zone_uri" : zone,
@@ -103,16 +101,26 @@ with airflow.DAG('sample-export-taxi-trips-from-bq-to-gcs-cluster',
     )
 
     # Run the Spark code to processes the raw files to a processed folder
-    run_dataproc_export_spark = dataproc_operator.DataProcPySparkOperator(
+    # Need to implement this: https://airflow.apache.org/docs/apache-airflow/2.3.0/concepts/dynamic-task-mapping.html#repeated-mapping
+    run_dataproc_export_spark_2022_01 = dataproc_operator.DataProcPySparkOperator(
         default_args=default_args,
-        task_id='task-taxi-trips-export',
+        task_id='task-taxi-trips-export-2022-01',
         project_id=project_id,
         region=region,
         cluster_name='process-taxi-trips-export-{{ ts_nodash.lower() }}',
         dataproc_jars=[jar_file],
         main=pyspark_code,
-        arguments=[project_id, taxi_dataset_id, dataproc_bucket, processed_bucket_name])
+        arguments=[project_id, taxi_dataset_id, dataproc_bucket, processed_bucket_name, "2022", "1"])
 
+    run_dataproc_export_spark_2022_02 = dataproc_operator.DataProcPySparkOperator(
+        default_args=default_args,
+        task_id='task-taxi-trips-export-2022-02',
+        project_id=project_id,
+        region=region,
+        cluster_name='process-taxi-trips-export-{{ ts_nodash.lower() }}',
+        dataproc_jars=[jar_file],
+        main=pyspark_code,
+        arguments=[project_id, taxi_dataset_id, dataproc_bucket, processed_bucket_name, "2022", "2"])
 
     # Delete Cloud Dataproc cluster
     delete_dataproc_export_cluster = dataproc_operator.DataprocClusterDeleteOperator(
@@ -124,6 +132,9 @@ with airflow.DAG('sample-export-taxi-trips-from-bq-to-gcs-cluster',
         # Setting trigger_rule to ALL_DONE causes the cluster to be deleted even if the Dataproc job fails.
         trigger_rule=trigger_rule.TriggerRule.ALL_DONE)
 
-    create_dataproc_export_cluster >> run_dataproc_export_spark >> delete_dataproc_export_cluster
+    create_dataproc_export_cluster >> \
+        run_dataproc_export_spark_2022_01 >> \
+        run_dataproc_export_spark_2022_02 >> \
+        delete_dataproc_export_cluster
 
 # [END dag]
