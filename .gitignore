@@ -28,3 +28,4 @@ sample-data/rideshare_trips-with-substitution/_delta_log/*
 sample-data/rideshare_trips-with-substitution/_symlink_format_manifest/*
 tf.log
 git-on-borg.sh
+preview-features/*
