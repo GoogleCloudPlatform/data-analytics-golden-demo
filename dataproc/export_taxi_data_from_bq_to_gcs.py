@@ -91,7 +91,7 @@ def ExportTaxiData(project_id, taxi_dataset_id, temporaryGcsBucket, destination,
 
     # Write as Parquet
     print ("BEGIN: Writing Data to GCS")
-    outputPath = destination + "/processed/taxi-trips-query-acceleration-16/year=" + str(data_year) + "/month=" + str(data_month)
+    outputPath = destination + "/processed/taxi-trips-query-acceleration/year=" + str(data_year) + "/month=" + str(data_month)
     df_taxi_trips_partitioned \
         .write \
         .mode("overwrite") \
