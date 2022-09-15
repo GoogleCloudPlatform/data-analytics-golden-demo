@@ -381,8 +381,10 @@ module "sql-scripts" {
 ####################################################################################
 # Deploy "data" and "scripts"
 ###################################################################################
-# Upload the Airflow DAGs
-resource "null_resource" "deploy_airflow_dags" {
+# Upload the Airflow initial DAGs needed to run the system
+# Upload all the DAGs can cause issues since the Airflow instance is so small they call cannot sync
+# before run-all-dags is launched
+resource "null_resource" "deploy_initial_airflow_dags" {
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
     command     = <<EOF
@@ -394,7 +396,11 @@ else
     gcloud auth activate-service-account "${var.deployment_service_account_name}" --key-file="$${GOOGLE_APPLICATION_CREDENTIALS}" --project="${var.project_id}"
     gcloud config set account "${var.deployment_service_account_name}"
 fi  
-gsutil cp ../cloud-composer/dags/* ${module.resources.output-composer-dag-bucket}
+# gsutil cp ../cloud-composer/dags/* ${module.resources.output-composer-dag-bucket}
+gsutil cp ../cloud-composer/dags/run-all-dags.py ${module.resources.output-composer-dag-bucket}
+gsutil cp ../cloud-composer/dags/step-*.py ${module.resources.output-composer-dag-bucket}
+gsutil cp ../cloud-composer/dags/sample-dataflow-start-streaming-job.py ${module.resources.output-composer-dag-bucket}
+
 EOF    
   }
   depends_on = [
@@ -411,7 +417,7 @@ EOF
 
 # Upload the Airflow "data/template" files
 # The data folder is the same path as the DAGs, but just has DATA as the folder name
-resource "null_resource" "deploy_airflow_dags_data" {
+resource "null_resource" "deploy_initial_airflow_dags_data" {
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
     command     = <<EOF
@@ -614,6 +620,7 @@ EOF
 
 
 # You need to wait for Airflow to read the DAGs just uploaded
+# Only a few DAGs are uploaded so that we can sync quicker
 resource "time_sleep" "wait_for_airflow_dag_sync" {
   depends_on = [
     module.project,
@@ -624,12 +631,12 @@ resource "time_sleep" "wait_for_airflow_dag_sync" {
     module.org-policies-deprecated,
     module.resources,
     module.sql-scripts,
-    null_resource.deploy_airflow_dags,
-    null_resource.deploy_airflow_dags_data
+    null_resource.deploy_initial_airflow_dags,
+    null_resource.deploy_initial_airflow_dags_data
   ]
   # This just a "guess" and might need to be extended.  The Composer (Airflow) cluster is sized very small so it 
   # takes longer to sync the DAG files
-  create_duration = "200s"
+  create_duration = "180s"
 }
 
 
@@ -658,11 +665,47 @@ EOF
     module.org-policies-deprecated,
     module.resources,
     module.sql-scripts,
-    null_resource.deploy_airflow_dags,
-    null_resource.deploy_airflow_dags_data,
+    null_resource.deploy_initial_airflow_dags,
+    null_resource.deploy_initial_airflow_dags_data,
     time_sleep.wait_for_airflow_dag_sync
   ]
 }
+
+
+# Deploy all the DAGs (hopefully the initial ones have synced)
+# We overwrite the initial ones, but that should not matter
+resource "null_resource" "deploy_all_airflow_dags" {
+  provisioner "local-exec" {
+    interpreter = ["/bin/bash", "-c"]
+    command     = <<EOF
+if [ -z "$${GOOGLE_APPLICATION_CREDENTIALS}" ]
+then
+    echo "We are not running in a local docker container.  No need to login."
+else
+    echo "We are running in local docker container. Logging in."
+    gcloud auth activate-service-account "${var.deployment_service_account_name}" --key-file="$${GOOGLE_APPLICATION_CREDENTIALS}" --project="${var.project_id}"
+    gcloud config set account "${var.deployment_service_account_name}"
+fi  
+gsutil cp ../cloud-composer/dags/* ${module.resources.output-composer-dag-bucket}
+
+EOF    
+  }
+  depends_on = [
+    module.project,
+    module.service-account,
+    module.apis-batch-enable,
+    time_sleep.service_account_api_activation_time_delay,
+    module.org-policies,
+    module.org-policies-deprecated,
+    module.resources,
+    module.sql-scripts,
+    null_resource.deploy_initial_airflow_dags,
+    null_resource.deploy_initial_airflow_dags_data,
+    time_sleep.wait_for_airflow_dag_sync,
+    null_resource.run_airflow_dag
+  ]
+}
+
 
 
 ####################################################################################
