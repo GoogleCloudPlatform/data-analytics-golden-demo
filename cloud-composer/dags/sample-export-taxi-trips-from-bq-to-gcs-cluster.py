@@ -80,7 +80,6 @@ CLUSTER_CONFIG = {
         "subnetwork_uri" : dataproc_subnet,
         "service_account" : dataproc_service_account,
         "service_account_scopes" : ["https://www.googleapis.com/auth/cloud-platform"]
-
     }
 }
 

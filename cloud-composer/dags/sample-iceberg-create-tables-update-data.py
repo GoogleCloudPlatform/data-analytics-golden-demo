@@ -42,7 +42,7 @@ default_args = {
     'email_on_retry': False,
     'retries': 0,
     'retry_delay': timedelta(minutes=5),
-    'dagrun_timeout' : timedelta(minutes=60),
+    'dagrun_timeout' : timedelta(minutes=120),
 }
 
 project_id                 = os.environ['GCP_PROJECT'] 
@@ -72,19 +72,18 @@ CLUSTER_CONFIG = {
     "master_config": {
         "num_instances": 1,
         "machine_type_uri": "n1-standard-8",
-        "disk_config": {"boot_disk_type": "pd-ssd", "boot_disk_size_gb": 30},
+        "disk_config": {"boot_disk_type": "pd-ssd", "boot_disk_size_gb": 30, "num_local_ssds":2},
     },
     "worker_config": {
-        "num_instances": 4,
+        "num_instances": 2,
         "machine_type_uri": "n1-standard-16",
-        "disk_config": {"boot_disk_type": "pd-ssd", "boot_disk_size_gb": 30},
+        "disk_config": {"boot_disk_type": "pd-ssd", "boot_disk_size_gb": 30, "num_local_ssds":2},
     },
     "gce_cluster_config" :{
         "zone_uri" : zone,
         "subnetwork_uri" : dataproc_subnet,
         "service_account" : dataproc_service_account,
         "service_account_scopes" : ["https://www.googleapis.com/auth/cloud-platform"]
-
     }
 }
 

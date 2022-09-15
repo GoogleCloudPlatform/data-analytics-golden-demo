@@ -50,12 +50,20 @@ def UpdateIcebergTaxiData(icebergWarehouse):
     ##############################################################################################################
     
     # Delete some data
-    #query = "DELETE FROM local.default.green_taxi_trips WHERE Vendor_Id != 1"
-    #spark.sql(query)
+    query = "DELETE FROM local.default.green_taxi_trips WHERE Vendor_Id != 1"
+    spark.sql(query)
 
     # Do an update on some data
-    #query = "UPDATE local.default.yellow_taxi_trips SET Surcharge = 99.99 WHERE Passenger_Count > 6"
-    #spark.sql(query)
+    query = "UPDATE local.default.yellow_taxi_trips SET Surcharge = 99.99 WHERE Passenger_Count > 6"
+    spark.sql(query)
+
+    # Add a column to the Green table
+    query = "ALTER TABLE local.default.green_taxi_trips ADD COLUMNS (iceberg_data string comment 'Iceberg new column')"
+    spark.sql(query)
+
+     # Update the new column with data
+    query = "UPDATE local.default.green_taxi_trips SET iceberg_data = 'Iceberg was here!'"
+    spark.sql(query)
 
     spark.stop()
 
@@ -115,7 +123,7 @@ gcloud dataproc clusters delete iceberg-cluster --region us-west2 --project="${p
 """
 
 
-# Sample run: Using a full dataproc serverless (CURRENT does NOT work since serverless is Spark 3.2 and Iceberg only support 3.1)
+# Sample run: Using a full dataproc serverless (CURRENTLY THIS DOES NOT WORK since serverless is Spark 3.2 and Iceberg only supports Spark 3.1)
 """
 REPLACE "s3epuwhxbf" with your unique Id
 
