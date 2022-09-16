@@ -22,8 +22,8 @@
 #          Many small files on a data lake is a common performance issue, so we want to show to to address this
 #          with BigQuery.
 # NOTE:    This can take hours to run!
-#          This export ALL data in the taxi_dataset.taxi_trips table.  So you should delete data from this table
-#          in order to avoid too much data being processed.
+#          This exports data for several years!
+
 
 # [START dag]
 import os

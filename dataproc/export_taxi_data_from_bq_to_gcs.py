@@ -40,52 +40,55 @@ def ExportTaxiData(project_id, taxi_dataset_id, temporaryGcsBucket, destination)
     bucket = "[bucket]"
     spark.conf.set('temporaryGcsBucket', temporaryGcsBucket)
  
-    # Sample Code: https://cloud.google.com/dataproc/docs/tutorials/bigquery-connector-spark-example#pyspark
-    # To use SQL to BQ
-    """
-    spark.conf.set("viewsEnabled","true")
-    spark.conf.set("materializationProject",project_id)
-    spark.conf.set("materializationDataset",taxi_dataset_id)
-    print ("BEGIN: Querying Table")
-    sql = "SELECT * " + \
-            "FROM `" + project_id + "." + taxi_dataset_id + ".taxi_trips` " 
-    #            + \
-    #      "WHERE EXTRACT(YEAR  FROM Pickup_DateTime) = " + str(data_year) + " " + \
-    #        "AND EXTRACT(MONTH FROM Pickup_DateTime) = " + str(data_month) + ";"
-    print ("SQL: ", sql)
-    df_taxi_trips = spark.read.format("bigquery").option("query", sql).load()
-    print ("END: Querying Table")
-    """
+    years = [2021, 2020, 2019]
+    for data_year in years:
+        print("data_year: ", data_year)
+        for data_month in range(1, 13):
+            print("data_month: ", data_month)
 
- 
-    # Returns too much data to process with our limited demo core CPU quota
-    # Load data from BigQuery taxi_trips table
-    print ("BEGIN: Querying Table")
-    df_taxi_trips = spark.read.format('bigquery') \
-        .option('table', project_id + ':' + taxi_dataset_id + '.taxi_trips') \
-        .load()
-    print ("END: Querying Table")
+            # Sample Code: https://cloud.google.com/dataproc/docs/tutorials/bigquery-connector-spark-example#pyspark
+            # To use SQL to BQ
+            spark.conf.set("viewsEnabled","true")
+            spark.conf.set("materializationProject",project_id)
+            spark.conf.set("materializationDataset",taxi_dataset_id)
+            print ("BEGIN: Querying Table")
+            sql = "SELECT * " + \
+                    "FROM `" + project_id + "." + taxi_dataset_id + ".taxi_trips` " + \
+                   "WHERE EXTRACT(YEAR  FROM Pickup_DateTime) = " + str(data_year)  + " " + \
+                     "AND EXTRACT(MONTH FROM Pickup_DateTime) = " + str(data_month) + ";"
+            print ("SQL: ", sql)
+            df_taxi_trips = spark.read.format("bigquery").option("query", sql).load()
+            print ("END: Querying Table")
+     
+            # Returns too much data to process with our limited demo core CPU quota
+            # Load data from BigQuery taxi_trips table
+            """
+            print ("BEGIN: Querying Table")
+            df_taxi_trips = spark.read.format('bigquery') \
+                .option('table', project_id + ':' + taxi_dataset_id + '.taxi_trips') \
+                .load()
+            print ("END: Querying Table")
+            """
 
- 
-    print ("BEGIN: Adding partition columns to dataframe")
-    df_taxi_trips_partitioned = df_taxi_trips \
-        .withColumn("year",   year       (col("Pickup_DateTime"))) \
-        .withColumn("month",  month      (col("Pickup_DateTime"))) \
-        .withColumn("day",    dayofmonth (col("Pickup_DateTime"))) \
-        .withColumn("hour",   hour       (col("Pickup_DateTime"))) \
-        .withColumn("minute", minute     (col("Pickup_DateTime"))) 
-    print ("END: Adding partition columns to dataframe")
+            print ("BEGIN: Adding partition columns to dataframe")
+            df_taxi_trips_partitioned = df_taxi_trips \
+                .withColumn("year",   year       (col("Pickup_DateTime"))) \
+                .withColumn("month",  month      (col("Pickup_DateTime"))) \
+                .withColumn("day",    dayofmonth (col("Pickup_DateTime"))) \
+                .withColumn("hour",   hour       (col("Pickup_DateTime"))) \
+                .withColumn("minute", minute     (col("Pickup_DateTime"))) 
+            print ("END: Adding partition columns to dataframe")
 
-    # Write as Parquet
-    print ("BEGIN: Writing Data to GCS")
-    outputPath = destination + "/processed/taxi-trips-query-acceleration/"
-    df_taxi_trips_partitioned \
-        .write \
-        .mode("overwrite") \
-        .partitionBy("year","month","day","hour","minute") \
-        .parquet(outputPath)
-    print ("END: Writing Data to GCS")
-        
+            # Write as Parquet
+            print ("BEGIN: Writing Data to GCS")
+            outputPath = destination + "/processed/taxi-trips-query-acceleration/year=" + str(data_year)  + "/month=" + str(data_month) + "/"
+            df_taxi_trips_partitioned \
+                .write \
+                .mode("overwrite") \
+                .partitionBy("day","hour","minute") \
+                .parquet(outputPath)
+            print ("END: Writing Data to GCS")
+                
     spark.stop()
 
 
@@ -105,14 +108,13 @@ if __name__ == "__main__":
     print ("temporaryGcsBucket: ", temporaryGcsBucket)
     print ("destination: ", destination)
 
-
     print ("BEGIN: Main")
     ExportTaxiData(project_id, taxi_dataset_id, temporaryGcsBucket, destination)
     print ("END: Main")
 
 
 
-# Sample run using static Cluster 
+# Sample run using static Dataproc Cluster 
 """
 project="data-analytics-demo-4hrpc5l4yg"
 dataproceTempBucketName="dataproc-data-analytics-demo-4hrpc5l4yg"
@@ -145,10 +147,11 @@ gcloud dataproc jobs submit pyspark  \
    --project="${project}" \
    --jars gs://${rawBucket}/pyspark-code/spark-bigquery-with-dependencies_2.12-0.26.0.jar \
    gs://${rawBucket}/pyspark-code/export_taxi_data_from_bq_to_gcs.py \
-   -- ${project} taxi_dataset ${dataproceTempBucketName} /tmp/taxi-export
+   -- ${project} taxi_dataset ${dataproceTempBucketName} "gs://${dataproceTempBucketName}/taxi-export"
 
 # Write to local HDFS "/tmp/taxi-export" (you have to SSH to the machine and then distcp the files to a bucket)
 # To SSH you need a firewall rule to open traffic
+# This is FAST! But copying the data after the job is hard since we need this automated.
 gcloud dataproc jobs submit pyspark  \
    --cluster "dataproc-cluster" \
    --region="us-west2" \
@@ -157,8 +160,10 @@ gcloud dataproc jobs submit pyspark  \
    gs://${rawBucket}/pyspark-code/export_taxi_data_from_bq_to_gcs.py \
    -- ${project} taxi_dataset ${dataproceTempBucketName} /tmp/taxi-export
 
-hdfs dfs -cp -f /tmp/taxi-export/processed/taxi-trips-query-acceleration gs://processed-data-analytics-demo-4hrpc5l4yg/taxi-export/processed/taxi-trips-query-acceleration
-hadoop distcp /tmp/taxi-export/processed/taxi-trips-query-acceleration gs://processed-data-analytics-demo-4hrpc5l4yg/taxi-export/processed/taxi-trips-query-acceleration
+# Run via SSH
+hdfs dfs -ls /tmp/taxi-export/processed
+hdfs dfs -cp -f /tmp/taxi-export/processed/taxi-trips-query-acceleration gs://processed-data-analytics-demo-4hrpc5l4yg/copytest/
+hadoop distcp /tmp/taxi-export/processed/taxi-trips-query-acceleration gs://processed-data-analytics-demo-4hrpc5l4yg/copytest2
 
 # Delete the cluster
 gcloud dataproc clusters delete dataproc-cluster --region us-west2 --project="${project}"

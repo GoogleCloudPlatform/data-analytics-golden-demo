@@ -22,8 +22,7 @@
 #          Many small files on a data lake is a common performance issue, so we want to show to to address this
 #          with BigQuery.
 # NOTE:    This can take hours to run!
-#          This export ALL data in the taxi_dataset.taxi_trips table.  So you should delete data from this table
-#          in order to avoid too much data being processed.
+#          This exports data for several years!
 
 
 # [START dag]
@@ -73,7 +72,7 @@ CLUSTER_CONFIG = {
         "disk_config": {"boot_disk_type": "pd-ssd", "boot_disk_size_gb": 30, "num_local_ssds":2},
     },
     "worker_config": {
-        "num_instances": 2,
+        "num_instances": 3,
         "machine_type_uri": "n1-standard-16",
         "disk_config": {"boot_disk_type": "pd-ssd", "boot_disk_size_gb": 30, "num_local_ssds":2},
     },
