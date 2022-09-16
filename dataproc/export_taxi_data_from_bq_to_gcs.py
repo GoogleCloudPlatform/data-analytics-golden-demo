@@ -138,6 +138,17 @@ gcloud dataproc clusters create dataproc-cluster \
 
 gsutil cp ./dataproc/export_taxi_data_from_bq_to_gcs.py gs://${rawBucket}/pyspark-code
 
+# Write to bucket (regional)
+gcloud dataproc jobs submit pyspark  \
+   --cluster "dataproc-cluster" \
+   --region="us-west2" \
+   --project="${project}" \
+   --jars gs://${rawBucket}/pyspark-code/spark-bigquery-with-dependencies_2.12-0.26.0.jar \
+   gs://${rawBucket}/pyspark-code/export_taxi_data_from_bq_to_gcs.py \
+   -- ${project} taxi_dataset ${dataproceTempBucketName} /tmp/taxi-export
+
+# Write to local HDFS "/tmp/taxi-export" (you have to SSH to the machine and then distcp the files to a bucket)
+# To SSH you need a firewall rule to open traffic
 gcloud dataproc jobs submit pyspark  \
    --cluster "dataproc-cluster" \
    --region="us-west2" \
@@ -149,12 +160,15 @@ gcloud dataproc jobs submit pyspark  \
 hdfs dfs -cp -f /tmp/taxi-export/processed/taxi-trips-query-acceleration gs://processed-data-analytics-demo-4hrpc5l4yg/taxi-export/processed/taxi-trips-query-acceleration
 hadoop distcp /tmp/taxi-export/processed/taxi-trips-query-acceleration gs://processed-data-analytics-demo-4hrpc5l4yg/taxi-export/processed/taxi-trips-query-acceleration
 
+# Delete the cluster
 gcloud dataproc clusters delete dataproc-cluster --region us-west2 --project="${project}"
 """
 
 
 
 # Sample run via command line using Dataproc Serverless
+# You must delete a lot of data from the taxi_trips table in order to test this.
+# The amount of files can overwhelm most Spark clusters
 """
 REPLACE "4s42tmb9uw" with your unique Id
 
