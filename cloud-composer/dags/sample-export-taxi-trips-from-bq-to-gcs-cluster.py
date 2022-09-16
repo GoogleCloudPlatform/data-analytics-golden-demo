@@ -22,6 +22,8 @@
 #          Many small files on a data lake is a common performance issue, so we want to show to to address this
 #          with BigQuery.
 # NOTE:    This can take hours to run!
+#          This export ALL data in the taxi_dataset.taxi_trips table.  So you should delete data from this table
+#          in order to avoid too much data being processed.
 
 
 # [START dag]
@@ -101,25 +103,15 @@ with airflow.DAG('sample-export-taxi-trips-from-bq-to-gcs-cluster',
 
     # Run the Spark code to processes the raw files to a processed folder
     # Need to implement this: https://airflow.apache.org/docs/apache-airflow/2.3.0/concepts/dynamic-task-mapping.html#repeated-mapping
-    run_dataproc_export_spark_2022_01 = dataproc_operator.DataProcPySparkOperator(
+    run_dataproc_export_spark = dataproc_operator.DataProcPySparkOperator(
         default_args=default_args,
-        task_id='task-taxi-trips-export-2022-01',
+        task_id='task-taxi-trips-export',
         project_id=project_id,
         region=region,
         cluster_name='process-taxi-trips-export-{{ ts_nodash.lower() }}',
         dataproc_jars=[jar_file],
         main=pyspark_code,
-        arguments=[project_id, taxi_dataset_id, dataproc_bucket, processed_bucket_name, "2022", "1"])
-
-    run_dataproc_export_spark_2022_02 = dataproc_operator.DataProcPySparkOperator(
-        default_args=default_args,
-        task_id='task-taxi-trips-export-2022-02',
-        project_id=project_id,
-        region=region,
-        cluster_name='process-taxi-trips-export-{{ ts_nodash.lower() }}',
-        dataproc_jars=[jar_file],
-        main=pyspark_code,
-        arguments=[project_id, taxi_dataset_id, dataproc_bucket, processed_bucket_name, "2022", "2"])
+        arguments=[project_id, taxi_dataset_id, dataproc_bucket, processed_bucket_name])
 
     # Delete Cloud Dataproc cluster
     delete_dataproc_export_cluster = dataproc_operator.DataprocClusterDeleteOperator(
@@ -131,9 +123,6 @@ with airflow.DAG('sample-export-taxi-trips-from-bq-to-gcs-cluster',
         # Setting trigger_rule to ALL_DONE causes the cluster to be deleted even if the Dataproc job fails.
         trigger_rule=trigger_rule.TriggerRule.ALL_DONE)
 
-    create_dataproc_export_cluster >> \
-        run_dataproc_export_spark_2022_01 >> \
-        run_dataproc_export_spark_2022_02 >> \
-        delete_dataproc_export_cluster
+    create_dataproc_export_cluster >> run_dataproc_export_spark >> delete_dataproc_export_cluster
 
 # [END dag]

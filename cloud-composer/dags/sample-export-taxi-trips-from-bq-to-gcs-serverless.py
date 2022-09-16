@@ -22,8 +22,8 @@
 #          Many small files on a data lake is a common performance issue, so we want to show to to address this
 #          with BigQuery.
 # NOTE:    This can take hours to run!
-#          This is not practical to run due to the large amount of data.  Please run the sample-export-taxi-trips-from-bq-to-gcs-cluster DAG
-#          This is provided as a Spark Serveless example!
+#          This export ALL data in the taxi_dataset.taxi_trips table.  So you should delete data from this table
+#          in order to avoid too much data being processed.
 
 # [START dag]
 import os
@@ -61,9 +61,6 @@ dataproc_bucket          = os.environ['ENV_DATAPROC_BUCKET']
 bigspark_bucket          = os.environ['ENV_RAW_BUCKET'].replace("raw-","bigspark-")
 taxi_dataset_id          = os.environ['ENV_TAXI_DATASET_ID'] 
 
-data_year = "2022"
-data_month = "1"
-
 """
 gcloud beta dataproc batches submit pyspark \
     --project="data-analytics-demo-4s42tmb9uw" \
@@ -85,7 +82,7 @@ BATCH_CONFIG = {
         {
             'main_python_file_uri': pyspark_code,
             'jar_file_uris': [ jar_file ],
-            'args': [project_id, taxi_dataset_id, bigspark_bucket, processed_bucket_name, data_year, data_month ]
+            'args': [project_id, taxi_dataset_id, bigspark_bucket, processed_bucket_name ]
         },
     'environment_config':
         {'execution_config':
