@@ -176,6 +176,22 @@ variable "omni_aws_s3_bucket_name" {
   default     = "S3_BUCKET_NAME"
 }
 
+# Not required for this demo, but is part of click to deploy automation
+variable "data_location" {
+  type        = string
+  description = "Location of source data file in central bucket"
+  default     = ""
+}
+variable "secret_stored_project" {
+  type        = string
+  description = "Project where secret is accessing from"
+  default     = ""
+}
+variable "project_name" {
+  type        = string
+  description = "Project name in which demo deploy"
+  default     = ""
+}
 
 ####################################################################################
 # Local Variables 
@@ -250,46 +266,9 @@ module "service-account" {
   ]
 }
 
-# This has to be run as the current user or deploying service account
-# You are not able to run using service account impersonation or you get the below message:
-# Error: Error when reading or editing Project Service : Request `List Project Services data-analytics-demo-4kljxj1jd5` 
-# returned error: Failed to list enabled services for project data-analytics-demo-4kljxj1jd5: googleapi: 
-# Error 403: Service Usage API has not been used in project 182999489528 before or it is disabled. 
-/*
-module "service-usage" {
-  # Run this as the currently logged in user or the service account executing the TF script
-  source     = "../terraform-modules/service-usage"
-  project_id = local.local_project_id
-
-  depends_on = [
-    module.project,
-    module.service-account
-  ]
-}
-*/
-
-# Enable all the cloud APIs that will be used
-/*
-module "apis" {
-  source = "../terraform-modules/apis"
-
-  # Use Service Account Impersonation for this step. 
-  providers = { google = google.service_principal_impersonation }
-
-  project_id = local.local_project_id
-
-  depends_on = [
-    module.project,
-    module.service-account,
-    module.service-usage
-  ]
-}
-*/
-
 
 # Enable all the cloud APIs that will be used by using Batch Mode
-# Batch mode can enable all the services in just a second or two
-# NOTE: Terraform does not have support for batch mode, so curl was use to do a HTTP POST
+# Batch mode is enabled on the provider (by default)
 module "apis-batch-enable" {
   source = "../terraform-modules/apis-batch-enable"
 
@@ -313,7 +292,6 @@ resource "time_sleep" "service_account_api_activation_time_delay" {
 }
 
 
-
 # Uses the new Org Policies method (when a project is created by TF)
 module "org-policies" {
   count  = var.project_number == "" ? 1 : 0
@@ -328,8 +306,6 @@ module "org-policies" {
   depends_on = [
     module.project,
     module.service-account,
-    #module.service-usage,
-    #module.apis
     module.apis-batch-enable,
     time_sleep.service_account_api_activation_time_delay
   ]
@@ -351,8 +327,6 @@ module "org-policies-deprecated" {
   depends_on = [
     module.project,
     module.service-account,
-    #module.service-usage,
-    #module.apis
     module.apis-batch-enable
   ]
 }
@@ -378,8 +352,6 @@ module "resources" {
   depends_on = [
     module.project,
     module.service-account,
-    #module.service-usage,
-    #module.apis,
     module.apis-batch-enable,
     time_sleep.service_account_api_activation_time_delay,
     module.org-policies,
@@ -413,8 +385,6 @@ module "sql-scripts" {
   depends_on = [
     module.project,
     module.service-account,
-    #module.service-usage,
-    #module.apis,
     module.apis-batch-enable,
     time_sleep.service_account_api_activation_time_delay,
     module.org-policies,
@@ -427,8 +397,10 @@ module "sql-scripts" {
 ####################################################################################
 # Deploy "data" and "scripts"
 ###################################################################################
-# Upload the Airflow DAGs
-resource "null_resource" "deploy_airflow_dags" {
+# Upload the Airflow initial DAGs needed to run the system
+# Upload all the DAGs can cause issues since the Airflow instance is so small they call cannot sync
+# before run-all-dags is launched
+resource "null_resource" "deploy_initial_airflow_dags" {
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
     command     = <<EOF
@@ -440,27 +412,28 @@ else
     gcloud auth activate-service-account "${var.deployment_service_account_name}" --key-file="$${GOOGLE_APPLICATION_CREDENTIALS}" --project="${var.project_id}"
     gcloud config set account "${var.deployment_service_account_name}"
 fi  
-gsutil cp ../cloud-composer/dags/* ${module.resources.output-composer-dag-bucket}
+# gsutil cp ../cloud-composer/dags/* ${module.resources.output-composer-dag-bucket}
+gsutil cp ../cloud-composer/dags/run-all-dags.py ${module.resources.output-composer-dag-bucket}
+gsutil cp ../cloud-composer/dags/step-*.py ${module.resources.output-composer-dag-bucket}
+gsutil cp ../cloud-composer/dags/sample-dataflow-start-streaming-job.py ${module.resources.output-composer-dag-bucket}
+
 EOF    
   }
   depends_on = [
     module.project,
     module.service-account,
-    #module.service-usage,
-    #module.apis,
     module.apis-batch-enable,
     time_sleep.service_account_api_activation_time_delay,
     module.org-policies,
     module.org-policies-deprecated,
-    module.resources,
-    module.sql-scripts
+    module.resources
   ]
 }
 
 
 # Upload the Airflow "data/template" files
 # The data folder is the same path as the DAGs, but just has DATA as the folder name
-resource "null_resource" "deploy_airflow_dags_data" {
+resource "null_resource" "deploy_initial_airflow_dags_data" {
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
     command     = <<EOF
@@ -478,14 +451,11 @@ EOF
   depends_on = [
     module.project,
     module.service-account,
-    #module.service-usage,
-    #module.apis,
     module.apis-batch-enable,
     time_sleep.service_account_api_activation_time_delay,
     module.org-policies,
     module.org-policies-deprecated,
-    module.resources,
-    module.sql-scripts
+    module.resources
   ]
 }
 
@@ -509,8 +479,6 @@ EOF
   depends_on = [
     module.project,
     module.service-account,
-    #module.service-usage,
-    #module.apis,
     module.apis-batch-enable,
     time_sleep.service_account_api_activation_time_delay,
     module.org-policies,
@@ -540,8 +508,6 @@ EOF
   depends_on = [
     module.project,
     module.service-account,
-    #module.service-usage,
-    #module.apis,
     module.apis-batch-enable,
     time_sleep.service_account_api_activation_time_delay,
     module.org-policies,
@@ -579,8 +545,6 @@ EOF
   depends_on = [
     module.project,
     module.service-account,
-    #module.service-usage,
-    #module.apis,
     module.apis-batch-enable,
     time_sleep.service_account_api_activation_time_delay,
     module.org-policies,
@@ -620,8 +584,6 @@ EOF
   depends_on = [
     module.project,
     module.service-account,
-    #module.service-usage,
-    #module.apis,
     module.apis-batch-enable,
     time_sleep.service_account_api_activation_time_delay,
     module.org-policies,
@@ -662,8 +624,6 @@ EOF
   depends_on = [
     module.project,
     module.service-account,
-    #module.service-usage,
-    #module.apis,
     module.apis-batch-enable,
     time_sleep.service_account_api_activation_time_delay,
     module.org-policies,
@@ -676,21 +636,22 @@ EOF
 
 
 # You need to wait for Airflow to read the DAGs just uploaded
+# Only a few DAGs are uploaded so that we can sync quicker
 resource "time_sleep" "wait_for_airflow_dag_sync" {
   depends_on = [
     module.project,
     module.service-account,
-    #module.service-usage,
-    #module.apis,
     module.apis-batch-enable,
     time_sleep.service_account_api_activation_time_delay,
     module.org-policies,
     module.org-policies-deprecated,
     module.resources,
     module.sql-scripts,
-    null_resource.deploy_airflow_dags,
-    null_resource.deploy_airflow_dags_data
+    null_resource.deploy_initial_airflow_dags,
+    null_resource.deploy_initial_airflow_dags_data
   ]
+  # This just a "guess" and might need to be extended.  The Composer (Airflow) cluster is sized very small so it 
+  # takes longer to sync the DAG files
   create_duration = "180s"
 }
 
@@ -714,19 +675,53 @@ EOF
   depends_on = [
     module.project,
     module.service-account,
-    #module.service-usage,
-    #module.apis,
     module.apis-batch-enable,
     time_sleep.service_account_api_activation_time_delay,
     module.org-policies,
     module.org-policies-deprecated,
     module.resources,
     module.sql-scripts,
-    null_resource.deploy_airflow_dags,
-    null_resource.deploy_airflow_dags_data,
+    null_resource.deploy_initial_airflow_dags,
+    null_resource.deploy_initial_airflow_dags_data,
     time_sleep.wait_for_airflow_dag_sync
   ]
 }
+
+
+# Deploy all the DAGs (hopefully the initial ones have synced)
+# We overwrite the initial ones, but that should not matter
+resource "null_resource" "deploy_all_airflow_dags" {
+  provisioner "local-exec" {
+    interpreter = ["/bin/bash", "-c"]
+    command     = <<EOF
+if [ -z "$${GOOGLE_APPLICATION_CREDENTIALS}" ]
+then
+    echo "We are not running in a local docker container.  No need to login."
+else
+    echo "We are running in local docker container. Logging in."
+    gcloud auth activate-service-account "${var.deployment_service_account_name}" --key-file="$${GOOGLE_APPLICATION_CREDENTIALS}" --project="${var.project_id}"
+    gcloud config set account "${var.deployment_service_account_name}"
+fi  
+gsutil cp ../cloud-composer/dags/* ${module.resources.output-composer-dag-bucket}
+
+EOF    
+  }
+  depends_on = [
+    module.project,
+    module.service-account,
+    module.apis-batch-enable,
+    time_sleep.service_account_api_activation_time_delay,
+    module.org-policies,
+    module.org-policies-deprecated,
+    module.resources,
+    module.sql-scripts,
+    null_resource.deploy_initial_airflow_dags,
+    null_resource.deploy_initial_airflow_dags_data,
+    time_sleep.wait_for_airflow_dag_sync,
+    null_resource.run_airflow_dag
+  ]
+}
+
 
 
 ####################################################################################

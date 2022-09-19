@@ -198,7 +198,7 @@ ORDER BY PickupMax.TripDay;
 ------------------------------------------------------------------------------------
 -- Query 7 (EXPORT DATA)
 -- Run the same query as Query 6, but now save to storage (S3)
--- NOTE: If two people are running this at the same time change the "query-7" in the uri="s3://dagoldendemo20220530/taxi-export/query-7/*" 
+-- NOTE: If two people are running this at the same time change the "query-7" in the uri="s3://${omni_aws_s3_bucket_name}/taxi-export/query-7/*" 
 ------------------------------------------------------------------------------------
 EXPORT DATA WITH CONNECTION `${omni_aws_connection}`
 OPTIONS(
