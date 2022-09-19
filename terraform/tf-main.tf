@@ -178,16 +178,19 @@ variable "omni_aws_s3_bucket_name" {
 
 # Not required for this demo, but is part of click to deploy automation
 variable "data_location" {
- type        = string
- description = "Location of source data file in central bucket"
+  type        = string
+  description = "Location of source data file in central bucket"
+  default     = ""
 }
 variable "secret_stored_project" {
   type        = string
   description = "Project where secret is accessing from"
+  default     = ""
 }
 variable "project_name" {
- type        = string
- description = "Project name in which demo deploy"
+  type        = string
+  description = "Project name in which demo deploy"
+  default     = ""
 }
 
 ####################################################################################
