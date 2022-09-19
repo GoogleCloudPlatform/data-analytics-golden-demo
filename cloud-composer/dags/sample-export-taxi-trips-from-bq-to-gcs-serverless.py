@@ -23,7 +23,10 @@
 #          with BigQuery.
 # NOTE:    This can take hours to run!
 #          This exports data for several years!
-
+#          To Run: Edit the export_taxi_data_from_bq_to_gcs.py file and change the following:
+#                   years = [2021, 2020, 2019] =>  years = [2021]
+#                   for data_month in range(1, 13): => for data_month in range(1, 2):
+#          The above will export 1 year/month instead of 3 years and 12 months per year
 
 # [START dag]
 import os
