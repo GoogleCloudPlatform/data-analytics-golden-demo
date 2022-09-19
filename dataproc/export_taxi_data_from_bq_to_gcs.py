@@ -138,6 +138,13 @@ gcloud dataproc clusters create dataproc-cluster \
     --num-worker-local-ssds=4 \
     --project "${project}"
 
+# Create firewall rule for:
+# Type: Ingress
+# Target: Service Account: dataproc-service-account@data-analytics-demo-4hrpc5l4yg.iam.gserviceaccount.com
+# Port: TCP port 22 Ingress 
+# Source IP address of your home network
+gcloud compute ssh --zone "us-west2-c" "dataproc-cluster-m"  --project "data-analytics-demo-4hrpc5l4yg"
+
 gsutil cp ./dataproc/export_taxi_data_from_bq_to_gcs.py gs://${rawBucket}/pyspark-code
 
 # Write to bucket (regional)
@@ -162,11 +169,19 @@ gcloud dataproc jobs submit pyspark  \
 
 # Run via SSH
 hdfs dfs -ls /tmp/taxi-export/processed
+hdfs dfs -count /tmp/taxi-export/processed
+# grant access to dataproc-service-account@${project}.iam.gserviceaccount.com to your storage account
+# 2022-09-17 00:43:15,803 INFO tools.SimpleCopyListing: Paths (files+dirs) cnt = 5069012; dirCnt = 1588356
+hadoop distcp /tmp/taxi-export/processed/taxi-trips-query-acceleration gs://dataproc-data-analytics-demo-4hrpc5l4yg/taxi-data/
+
+# slower than distcp
 hdfs dfs -cp -f /tmp/taxi-export/processed/taxi-trips-query-acceleration gs://processed-data-analytics-demo-4hrpc5l4yg/copytest/
-hadoop distcp /tmp/taxi-export/processed/taxi-trips-query-acceleration gs://processed-data-analytics-demo-4hrpc5l4yg/copytest2
 
 # Delete the cluster
 gcloud dataproc clusters delete dataproc-cluster --region us-west2 --project="${project}"
+
+
+gcloud compute ssh --zone "us-west2-c" "dataproc-cluster-m"  --project "data-analytics-demo-4hrpc5l4yg"
 """
 
 
