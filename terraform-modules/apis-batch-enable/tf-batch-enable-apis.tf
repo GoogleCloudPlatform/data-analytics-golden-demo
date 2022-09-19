@@ -42,8 +42,12 @@ variable "deployment_service_account_name" {}
 
 
 ####################################################################################
-# API Services
+# API Services - Using Curl to manaully enable APIs in 20 sizes batches
 ####################################################################################
+
+# NOTE: This is fast, takes about 1-2 seconds per curl call.  But this is not Terraform native; therefore, see the next section (takes ~1 minute).
+
+/*******************************************************************************************
 # Do first 20 services (20 is the limit)
 resource "null_resource" "batch_enable_service_apis_01" {
   provisioner "local-exec" {
@@ -121,10 +125,143 @@ EOF
 
   depends_on = [null_resource.batch_enable_service_apis_01]  
 }
+*******************************************************************************************/
 
-# This time delay was placed in the Main TF script
-#resource "time_sleep" "batch_enable_service_apis_time_delay" {
-#  depends_on      = [null_resource.batch_enable_service_apis_01,
-#                     null_resource.batch_enable_service_apis_02]
-#  create_duration = "60s"
-#}
+
+####################################################################################
+# API Services (let Google provide do batching for you)
+####################################################################################
+
+# NOTE: These services will be enabled via Batches since batching is turned on by default for the Google provider
+#       Batching will also help the cache hit/eviction which means you will less likely get an error that a specific
+#       service has not been activated (when used later on by terraform).
+# 
+# You can review the terraform log file and search for: Creating new batch "Enable Project Service"
+#
+# You will see the following:
+# [DEBUG] Creating new batch "Enable Project Service \"cloudkms.googleapis.com\" for project \"data-analytics-demo-7rlf2vua2t\"" from request "project/data-analytics-demo-7rlf2vua2t/services:batchEnable": timestamp=2022-09-07T15:09:29.901-0400
+# [DEBUG] Adding batch request "Enable Project Service \"orgpolicy.googleapis.com\" for project \"data-analytics-demo-7rlf2vua2t\"" to existing batch "project/data-analytics-demo-7rlf2vua2t/services:batchEnable": timestamp=2022-09-07T15:09:29.901-0400
+# [DEBUG] Added batch request "Enable Project Service \"orgpolicy.googleapis.com\" for project \"data-analytics-demo-7rlf2vua2t\"" to batch. New batch body: [cloudkms.googleapis.com orgpolicy.googleapis.com]: timestamp=2022-09-07T15:09:29.901-0400
+# [DEBUG] Adding batch request "Enable Project Service \"bigquerystorage.googleapis.com\" for project \"data-analytics-demo-7rlf2vua2t\"" to existing batch "project/data-analytics-demo-7rlf2vua2t/services:batchEnable": timestamp=2022-09-07T15:09:29.901-0400
+# [DEBUG] Added batch request "Enable Project Service \"bigquerystorage.googleapis.com\" for project \"data-analytics-demo-7rlf2vua2t\"" to batch. New batch body: [cloudkms.googleapis.com orgpolicy.googleapis.com bigquerystorage.googleapis.com]: timestamp=2022-09-07T15:09:29.901-0400
+# [DEBUG] Adding batch request "Enable Project Service \"notebooks.googleapis.com\" for project \"data-analytics-demo-7rlf2vua2t\"" to existing batch "project/data-analytics-demo-7rlf2vua2t/services:batchEnable": timestamp=2022-09-07T15:09:29.901-0400
+# [DEBUG] Added batch request "Enable Project Service \"notebooks.googleapis.com\" for project \"data-analytics-demo-7rlf2vua2t\"" to batch. New batch body: [cloudkms.googleapis.com orgpolicy.googleapis.com bigquerystorage.googleapis.com notebooks.googleapis.com]: timestamp=2022-09-07T15:09:29.901-0400
+# [DEBUG] Adding batch request "Enable Project Service \"dataflow.googleapis.com\" for project \"data-analytics-demo-7rlf2vua2t\"" to existing batch "project/data-analytics-demo-7rlf2vua2t/services:batchEnable": timestamp=2022-09-07T15:09:29.901-0400
+# [DEBUG] Added batch request "Enable Project Service \"dataflow.googleapis.com\" for project \"data-analytics-demo-7rlf2vua2t\"" to batch. New batch body: [cloudkms.googleapis.com orgpolicy.googleapis.com bigquerystorage.googleapis.com notebooks.googleapis.com dataflow.googleapis.com]: timestamp=2022-09-07T15:09:29.901-0400
+# [DEBUG] Adding batch request "Enable Project Service \"bigqueryconnection.googleapis.com\" for project \"data-analytics-demo-7rlf2vua2t\"" to existing batch "project/data-analytics-demo-7rlf2vua2t/services:batchEnable": timestamp=2022-09-07T15:09:29.901-0400
+# [DEBUG] Added batch request "Enable Project Service \"bigqueryconnection.googleapis.com\" for project \"data-analytics-demo-7rlf2vua2t\"" to batch. New batch body: [cloudkms.googleapis.com orgpolicy.googleapis.com bigquerystorage.googleapis.com notebooks.googleapis.com dataflow.googleapis.com bigqueryconnection.googleapis.com]: timestamp=2022-09-07T15:09:29.901-0400
+# [DEBUG] Adding batch request "Enable Project Service \"dataplex.googleapis.com\" for project \"data-analytics-demo-7rlf2vua2t\"" to existing batch "project/data-analytics-demo-7rlf2vua2t/services:batchEnable": timestamp=2022-09-07T15:09:29.901-0400
+# [DEBUG] Added batch request "Enable Project Service \"dataplex.googleapis.com\" for project \"data-analytics-demo-7rlf2vua2t\"" to batch. New batch body: [cloudkms.googleapis.com orgpolicy.googleapis.com bigquerystorage.googleapis.com notebooks.googleapis.com dataflow.googleapis.com bigqueryconnection.googleapis.com dataplex.googleapis.com]: timestamp=2022-09-07T15:09:29.901-0400
+# [DEBUG] Adding batch request "Enable Project Service \"bigquerydatatransfer.googleapis.com\" for project \"data-analytics-demo-7rlf2vua2t\"" to existing batch "project/data-analytics-demo-7rlf2vua2t/services:batchEnable": timestamp=2022-09-07T15:09:29.901-0400
+# [DEBUG] Added batch request "Enable Project Service \"bigquerydatatransfer.googleapis.com\" for project \"data-analytics-demo-7rlf2vua2t\"" to batch. New batch body: [cloudkms.googleapis.com orgpolicy.googleapis.com bigquerystorage.googleapis.com notebooks.googleapis.com dataflow.googleapis.com bigqueryconnection.googleapis.com dataplex.googleapis.com bigquerydatatransfer.googleapis.com]: timestamp=2022-09-07T15:09:29.901-0400
+# [DEBUG] Adding batch request "Enable Project Service \"dataproc.googleapis.com\" for project \"data-analytics-demo-7rlf2vua2t\"" to existing batch "project/data-analytics-demo-7rlf2vua2t/services:batchEnable": timestamp=2022-09-07T15:09:29.901-0400
+# [DEBUG] Added batch request "Enable Project Service \"dataproc.googleapis.com\" for project \"data-analytics-demo-7rlf2vua2t\"" to batch. New batch body: [cloudkms.googleapis.com orgpolicy.googleapis.com bigquerystorage.googleapis.com notebooks.googleapis.com dataflow.googleapis.com bigqueryconnection.googleapis.com dataplex.googleapis.com bigquerydatatransfer.googleapis.com dataproc.googleapis.com]: timestamp=2022-09-07T15:09:29.901-0400
+# [DEBUG] Adding batch request "Enable Project Service \"analyticshub.googleapis.com\" for project \"data-analytics-demo-7rlf2vua2t\"" to existing batch "project/data-analytics-demo-7rlf2vua2t/services:batchEnable": timestamp=2022-09-07T15:09:29.901-0400
+# [DEBUG] Added batch request "Enable Project Service \"analyticshub.googleapis.com\" for project \"data-analytics-demo-7rlf2vua2t\"" to batch. New batch body: [cloudkms.googleapis.com orgpolicy.googleapis.com bigquerystorage.googleapis.com notebooks.googleapis.com dataflow.googleapis.com bigqueryconnection.googleapis.com dataplex.googleapis.com bigquerydatatransfer.googleapis.com dataproc.googleapis.com analyticshub.googleapis.com]: timestamp=2022-09-07T15:09:29.901-0400
+# [DEBUG] Sending batch "project/data-analytics-demo-7rlf2vua2t/services:batchEnable" combining 10 requests): timestamp=2022-09-07T15:09:32.901-0400
+
+
+resource "google_project_service" "service-serviceusage" {
+  project = var.project_id
+  service = "serviceusage.googleapis.com"
+}
+
+resource "google_project_service" "service-cloudresourcemanager" {
+  project = var.project_id
+  service = "cloudresourcemanager.googleapis.com"
+}
+
+resource "google_project_service" "service-servicemanagement" {
+  project = var.project_id
+  service = "servicemanagement.googleapis.com"
+}
+
+resource "google_project_service" "service-orgpolicy" {
+  project = var.project_id
+  service = "orgpolicy.googleapis.com"
+}
+
+resource "google_project_service" "service-compute" {
+  project = var.project_id
+  service = "compute.googleapis.com"
+}
+
+resource "google_project_service" "service-bigquerystorage" {
+  project = var.project_id
+  service = "bigquerystorage.googleapis.com"
+}
+
+resource "google_project_service" "service-bigquerydatatransfer" {
+  project = var.project_id
+  service = "bigquerydatatransfer.googleapis.com"
+}
+
+resource "google_project_service" "service-bigqueryreservation" {
+  project = var.project_id
+  service = "bigqueryreservation.googleapis.com"
+}
+
+resource "google_project_service" "service-bigqueryconnection" {
+  project = var.project_id
+  service = "bigqueryconnection.googleapis.com"
+}
+
+resource "google_project_service" "service-composer" {
+  project = var.project_id
+  service = "composer.googleapis.com"
+}
+
+resource "google_project_service" "service-dataproc" {
+  project = var.project_id
+  service = "dataproc.googleapis.com"
+}
+
+resource "google_project_service" "service-datacatalog" {
+  project = var.project_id
+  service = "datacatalog.googleapis.com"
+}
+
+resource "google_project_service" "service-aiplatform" {
+  project = var.project_id
+  service = "aiplatform.googleapis.com"
+}
+
+resource "google_project_service" "service-notebooks" {
+  project = var.project_id
+  service = "notebooks.googleapis.com"
+}
+
+resource "google_project_service" "service-spanner" {
+  project = var.project_id
+  service = "spanner.googleapis.com"
+}
+
+resource "google_project_service" "service-dataflow" {
+  project = var.project_id
+  service = "dataflow.googleapis.com"
+}
+
+resource "google_project_service" "service-analyticshub" {
+  project = var.project_id
+  service = "analyticshub.googleapis.com"
+}
+
+resource "google_project_service" "service-cloudkms" {
+  project = var.project_id
+  service = "cloudkms.googleapis.com"
+}
+
+resource "google_project_service" "service-metastore" {
+  project = var.project_id
+  service = "metastore.googleapis.com"
+}
+
+resource "google_project_service" "service-dataplex" {
+  project = var.project_id
+  service = "dataplex.googleapis.com"
+}
+
+resource "google_project_service" "service-bigquerydatapolicy" {
+  project = var.project_id
+  service = "bigquerydatapolicy.googleapis.com"
+}

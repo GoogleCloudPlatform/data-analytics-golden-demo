@@ -1,5 +1,4 @@
-CREATE OR REPLACE PROCEDURE `${omni_dataset}.sp_demo_aws_omni_create_tables`()
-OPTIONS (strict_mode=false)
+CREATE OR REPLACE PROCEDURE `azure_omni_biglake.sp_demo_azure_omni_create_tables`()
 BEGIN
 /*##################################################################################
 # Copyright 2022 Google LLC
@@ -36,47 +35,49 @@ Clean up / Reset script:
     - Please do not DROP
 */
 
-CREATE OR REPLACE EXTERNAL TABLE `demo_omni.taxi_s3_yellow_trips_parquet`
+CREATE OR REPLACE EXTERNAL TABLE `azure_omni_biglake.taxi_azure_yellow_trips_parquet`
 WITH PARTITION COLUMNS (
     year  INTEGER, -- column order must match the external path
     month INTEGER
 )
-WITH CONNECTION `${omni_aws_connection}`
+WITH CONNECTION `${omni_azure_connection}`
 OPTIONS (
     format = "PARQUET",
-    hive_partition_uri_prefix = "s3://${omni_aws_s3_bucket_name}/taxi-data/yellow/trips_table/parquet/",
-    uris = ['s3://${omni_aws_s3_bucket_name}/taxi-data/yellow/trips_table/parquet/*.parquet']
+    hive_partition_uri_prefix = "azure://${omni_azure_adls_name}.blob.core.windows.net/datalake/taxi-data/yellow/trips_table/parquet/",
+    uris = ['azure://${omni_azure_adls_name}.blob.core.windows.net/datalake/taxi-data/yellow/trips_table/parquet/*.parquet']
+);
+
+CREATE OR REPLACE EXTERNAL TABLE `azure_omni_biglake.taxi_azure_yellow_trips_parquet_cls`
+WITH PARTITION COLUMNS 
+/* Use auto detect for now
+(
+    year  INTEGER, -- column order must match the external path
+    month INTEGER
+)
+*/
+WITH CONNECTION `${omni_azure_connection}`
+OPTIONS (
+    format = "PARQUET",
+    hive_partition_uri_prefix = "azure://${omni_azure_adls_name}.blob.core.windows.net/datalake/taxi-data/yellow/trips_table/parquet/",
+    uris = ['azure://${omni_azure_adls_name}.blob.core.windows.net/datalake/taxi-data/yellow/trips_table/parquet/*.parquet']
 );
 
 
-CREATE OR REPLACE EXTERNAL TABLE `demo_omni.taxi_s3_yellow_trips_parquet_cls`
+CREATE OR REPLACE EXTERNAL TABLE `azure_omni_biglake.taxi_azure_yellow_trips_parquet_rls`
 WITH PARTITION COLUMNS (
     year  INTEGER, -- column order must match the external path
     month INTEGER
 )
-WITH CONNECTION `${omni_aws_connection}`
+WITH CONNECTION `${omni_azure_connection}`
 OPTIONS (
     format = "PARQUET",
-    hive_partition_uri_prefix = "s3://${omni_aws_s3_bucket_name}/taxi-data/yellow/trips_table/parquet/",
-    uris = ['s3://${omni_aws_s3_bucket_name}/taxi-data/yellow/trips_table/parquet/*.parquet']
-);
-
-
-CREATE OR REPLACE EXTERNAL TABLE `demo_omni.taxi_s3_yellow_trips_parquet_rls`
-WITH PARTITION COLUMNS (
-    year  INTEGER, -- column order must match the external path
-    month INTEGER
-)
-WITH CONNECTION `${omni_aws_connection}`
-OPTIONS (
-    format = "PARQUET",
-    hive_partition_uri_prefix = "s3://${omni_aws_s3_bucket_name}/taxi-data/yellow/trips_table/parquet/",
-    uris = ['s3://${omni_aws_s3_bucket_name}/taxi-data/yellow/trips_table/parquet/*.parquet']
+    hive_partition_uri_prefix = "azure://${omni_azure_adls_name}.blob.core.windows.net/datalake/taxi-data/yellow/trips_table/parquet/",
+    uris = ['azure://${omni_azure_adls_name}.blob.core.windows.net/datalake/taxi-data/yellow/trips_table/parquet/*.parquet']
 );
 
 
 
-CREATE OR REPLACE EXTERNAL TABLE `demo_omni.taxi_s3_yellow_trips_csv`
+CREATE OR REPLACE EXTERNAL TABLE `azure_omni_biglake.taxi_azure_yellow_trips_csv`
 (
     Vendor_Id	            INTEGER,
     Pickup_DateTime	        TIMESTAMP,
@@ -97,22 +98,24 @@ CREATE OR REPLACE EXTERNAL TABLE `demo_omni.taxi_s3_yellow_trips_csv`
     Total_Amount	        NUMERIC,
     Congestion_Surcharge	NUMERIC
 )
-WITH PARTITION COLUMNS (
+WITH PARTITION COLUMNS 
+(
     -- column order must match the external path
     year INTEGER, 
     month INTEGER
 )
-WITH CONNECTION `${omni_aws_connection}`
+WITH CONNECTION `${omni_azure_connection}`
 OPTIONS (
     format = "CSV",
     field_delimiter = ',',
     skip_leading_rows = 1,
-    hive_partition_uri_prefix = "s3://${omni_aws_s3_bucket_name}/taxi-data/yellow/trips_table/csv/",
-    uris = ['s3://${omni_aws_s3_bucket_name}/taxi-data/yellow/trips_table/csv/*.csv']
+    hive_partition_uri_prefix = "azure://${omni_azure_adls_name}.blob.core.windows.net/datalake/taxi-data/yellow/trips_table/csv/",
+    uris = ['azure://${omni_azure_adls_name}.blob.core.windows.net/datalake/taxi-data/yellow/trips_table/csv/*.csv']
 );
 
 
-CREATE OR REPLACE EXTERNAL TABLE `demo_omni.taxi_s3_yellow_trips_csv_cls`
+
+CREATE OR REPLACE EXTERNAL TABLE `azure_omni_biglake.taxi_azure_yellow_trips_csv_rls`
 (
     Vendor_Id	            INTEGER,
     Pickup_DateTime	        TIMESTAMP,
@@ -133,23 +136,24 @@ CREATE OR REPLACE EXTERNAL TABLE `demo_omni.taxi_s3_yellow_trips_csv_cls`
     Total_Amount	        NUMERIC,
     Congestion_Surcharge	NUMERIC
 )
-WITH PARTITION COLUMNS (
+WITH PARTITION COLUMNS 
+(
     -- column order must match the external path
     year INTEGER, 
     month INTEGER
 )
-WITH CONNECTION `${omni_aws_connection}`
+
+WITH CONNECTION `${omni_azure_connection}`
 OPTIONS (
     format = "CSV",
     field_delimiter = ',',
     skip_leading_rows = 1,
-    hive_partition_uri_prefix = "s3://${omni_aws_s3_bucket_name}/taxi-data/yellow/trips_table/csv/",
-    uris = ['s3://${omni_aws_s3_bucket_name}/taxi-data/yellow/trips_table/csv/*.csv']
+    hive_partition_uri_prefix = "azure://${omni_azure_adls_name}.blob.core.windows.net/datalake/taxi-data/yellow/trips_table/csv/",
+    uris = ['azure://${omni_azure_adls_name}.blob.core.windows.net/datalake/taxi-data/yellow/trips_table/csv/*.csv']
 );
 
 
-
-CREATE OR REPLACE EXTERNAL TABLE `demo_omni.taxi_s3_yellow_trips_csv_rls`
+CREATE OR REPLACE EXTERNAL TABLE `azure_omni_biglake.taxi_azure_yellow_trips_csv_cls`
 (
     Vendor_Id	            INTEGER,
     Pickup_DateTime	        TIMESTAMP,
@@ -170,22 +174,25 @@ CREATE OR REPLACE EXTERNAL TABLE `demo_omni.taxi_s3_yellow_trips_csv_rls`
     Total_Amount	        NUMERIC,
     Congestion_Surcharge	NUMERIC
 )
-WITH PARTITION COLUMNS (
+WITH PARTITION COLUMNS 
+/*
+(
     -- column order must match the external path
     year INTEGER, 
     month INTEGER
 )
-WITH CONNECTION `${omni_aws_connection}`
+*/
+WITH CONNECTION `${omni_azure_connection}`
 OPTIONS (
     format = "CSV",
     field_delimiter = ',',
     skip_leading_rows = 1,
-    hive_partition_uri_prefix = "s3://${omni_aws_s3_bucket_name}/taxi-data/yellow/trips_table/csv/",
-    uris = ['s3://${omni_aws_s3_bucket_name}/taxi-data/yellow/trips_table/csv/*.csv']
+    hive_partition_uri_prefix = "azure://${omni_azure_adls_name}.blob.core.windows.net/datalake/taxi-data/yellow/trips_table/csv/",
+    uris = ['azure://${omni_azure_adls_name}.blob.core.windows.net/datalake/taxi-data/yellow/trips_table/csv/*.csv']
 );
 
 
-CREATE OR REPLACE EXTERNAL TABLE `demo_omni.taxi_s3_yellow_trips_csv_cls`
+CREATE OR REPLACE EXTERNAL TABLE `azure_omni_biglake.taxi_azure_yellow_trips_json`
 (
     Vendor_Id	            INTEGER,
     Pickup_DateTime	        TIMESTAMP,
@@ -211,51 +218,15 @@ WITH PARTITION COLUMNS (
     year INTEGER, 
     month INTEGER
 )
-WITH CONNECTION `${omni_aws_connection}`
-OPTIONS (
-    format = "CSV",
-    field_delimiter = ',',
-    skip_leading_rows = 1,
-    hive_partition_uri_prefix = "s3://${omni_aws_s3_bucket_name}/taxi-data/yellow/trips_table/csv/",
-    uris = ['s3://${omni_aws_s3_bucket_name}/taxi-data/yellow/trips_table/csv/*.csv']
-);
-
-
-CREATE OR REPLACE EXTERNAL TABLE `demo_omni.taxi_s3_yellow_trips_json`
-(
-    Vendor_Id	            INTEGER,
-    Pickup_DateTime	        TIMESTAMP,
-    Dropoff_DateTime	    TIMESTAMP,
-    Passenger_Count	        INTEGER,
-    Trip_Distance	        NUMERIC,
-    Rate_Code_Id	        INTEGER,	
-    Store_And_Forward	    STRING,
-    PULocationID	        INTEGER,	
-    DOLocationID	        INTEGER,
-    Payment_Type_Id	        INTEGER,
-    Fare_Amount	            NUMERIC,
-    Surcharge	            NUMERIC,
-    MTA_Tax	                NUMERIC,
-    Tip_Amount	            NUMERIC,
-    Tolls_Amount	        NUMERIC,
-    Improvement_Surcharge	NUMERIC,
-    Total_Amount	        NUMERIC,
-    Congestion_Surcharge	NUMERIC
-)
-WITH PARTITION COLUMNS (
-    -- column order must match the external path
-    year INTEGER, 
-    month INTEGER
-)
-WITH CONNECTION `${omni_aws_connection}`
+WITH CONNECTION `${omni_azure_connection}`
 OPTIONS (
     format = "JSON",
-    hive_partition_uri_prefix = "s3://${omni_aws_s3_bucket_name}/taxi-data/yellow/trips_table/json/",
-    uris = ['s3://${omni_aws_s3_bucket_name}/taxi-data/yellow/trips_table/json/*.json']
+    hive_partition_uri_prefix = "azure://${omni_azure_adls_name}.blob.core.windows.net/datalake/taxi-data/yellow/trips_table/json/",
+    uris = ['azure://${omni_azure_adls_name}.blob.core.windows.net/datalake/taxi-data/yellow/trips_table/json/*.json']
 );
 
 
-CREATE OR REPLACE EXTERNAL TABLE `demo_omni.taxi_s3_yellow_trips_json_rls`
+CREATE OR REPLACE EXTERNAL TABLE `azure_omni_biglake.taxi_azure_yellow_trips_json_rls`
 (
     Vendor_Id	            INTEGER,
     Pickup_DateTime	        TIMESTAMP,
@@ -281,15 +252,15 @@ WITH PARTITION COLUMNS (
     year INTEGER, 
     month INTEGER
 )
-WITH CONNECTION `${omni_aws_connection}`
+WITH CONNECTION `${omni_azure_connection}`
 OPTIONS (
     format = "JSON",
-    hive_partition_uri_prefix = "s3://${omni_aws_s3_bucket_name}/taxi-data/yellow/trips_table/json/",
-    uris = ['s3://${omni_aws_s3_bucket_name}/taxi-data/yellow/trips_table/json/*.json']
+    hive_partition_uri_prefix = "azure://${omni_azure_adls_name}.blob.core.windows.net/datalake/taxi-data/yellow/trips_table/json/",
+    uris = ['azure://${omni_azure_adls_name}.blob.core.windows.net/datalake/taxi-data/yellow/trips_table/json/*.json']
 );
 
 
-CREATE OR REPLACE EXTERNAL TABLE `demo_omni.taxi_s3_yellow_trips_json_cls`
+CREATE OR REPLACE EXTERNAL TABLE `azure_omni_biglake.taxi_azure_yellow_trips_json_cls`
 (
     Vendor_Id	            INTEGER,
     Pickup_DateTime	        TIMESTAMP,
@@ -310,48 +281,51 @@ CREATE OR REPLACE EXTERNAL TABLE `demo_omni.taxi_s3_yellow_trips_json_cls`
     Total_Amount	        NUMERIC,
     Congestion_Surcharge	NUMERIC
 )
-WITH PARTITION COLUMNS (
+WITH PARTITION COLUMNS 
+/* Use auto detect for now
+(
     -- column order must match the external path
     year INTEGER, 
     month INTEGER
 )
-WITH CONNECTION `${omni_aws_connection}`
+*/
+WITH CONNECTION `${omni_azure_connection}`
 OPTIONS (
     format = "JSON",
-    hive_partition_uri_prefix = "s3://${omni_aws_s3_bucket_name}/taxi-data/yellow/trips_table/json/",
-    uris = ['s3://${omni_aws_s3_bucket_name}/taxi-data/yellow/trips_table/json/*.json']
+    hive_partition_uri_prefix = "azure://${omni_azure_adls_name}.blob.core.windows.net/datalake/taxi-data/yellow/trips_table/json/",
+    uris = ['azure://${omni_azure_adls_name}.blob.core.windows.net/datalake/taxi-data/yellow/trips_table/json/*.json']
 );
 
 
-CREATE OR REPLACE EXTERNAL TABLE `demo_omni.taxi_s3_vendor`
-WITH CONNECTION `${omni_aws_connection}`
+CREATE OR REPLACE EXTERNAL TABLE `azure_omni_biglake.taxi_azure_vendor`
+WITH CONNECTION `${omni_azure_connection}`
     OPTIONS (
     format = "PARQUET",
-    uris = ['s3://${omni_aws_s3_bucket_name}/taxi-data/vendor_table/*.parquet']
+    uris = ['azure://${omni_azure_adls_name}.blob.core.windows.net/datalake/taxi-data/vendor_table/*.parquet']
 );
 
 
-CREATE OR REPLACE EXTERNAL TABLE `demo_omni.taxi_s3_rate_code`
-WITH CONNECTION `${omni_aws_connection}`
+CREATE OR REPLACE EXTERNAL TABLE `azure_omni_biglake.taxi_azure_rate_code`
+WITH CONNECTION `${omni_azure_connection}`
     OPTIONS (
     format = "PARQUET",
-    uris = ['s3://${omni_aws_s3_bucket_name}/taxi-data/rate_code_table/*.parquet']
+    uris = ['azure://${omni_azure_adls_name}.blob.core.windows.net/datalake/taxi-data/rate_code_table/*.parquet']
 );
 
 
-CREATE OR REPLACE EXTERNAL TABLE `demo_omni.taxi_s3_payment_type`
-WITH CONNECTION `${omni_aws_connection}`
+CREATE OR REPLACE EXTERNAL TABLE `azure_omni_biglake.taxi_azure_payment_type`
+WITH CONNECTION `${omni_azure_connection}`
     OPTIONS (
     format = "PARQUET",
-    uris = ['s3://${omni_aws_s3_bucket_name}/taxi-data/payment_type_table/*.parquet']
+    uris = ['azure://${omni_azure_adls_name}.blob.core.windows.net/datalake/taxi-data/payment_type_table/*.parquet']
 );
 
 
-CREATE OR REPLACE EXTERNAL TABLE `demo_omni.taxi_s3_trip_type`
-WITH CONNECTION `${omni_aws_connection}`
+CREATE OR REPLACE EXTERNAL TABLE `azure_omni_biglake.taxi_azure_trip_type`
+WITH CONNECTION `${omni_azure_connection}`
     OPTIONS (
     format = "PARQUET",
-    uris = ['s3://${omni_aws_s3_bucket_name}/taxi-data/trip_type_table/*.parquet']
+    uris = ['azure://${omni_azure_adls_name}.blob.core.windows.net/datalake/taxi-data/trip_type_table/*.parquet']
 );
 
 

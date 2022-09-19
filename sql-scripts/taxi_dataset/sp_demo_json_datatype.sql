@@ -29,17 +29,15 @@ Description:
 
 Reference:
     - https://cloud.google.com/bigquery/docs/reference/standard-sql/json-data
+    - https://cloud.google.com/bigquery/docs/reference/standard-sql/data-types#json_type
 
 Clean up / Reset script:
     DROP TABLE IF EXISTS `${project_id}.${bigquery_taxi_dataset}.ext_taxi_trips_json`;
-    DROP TABLE IF EXISTS `${project_id}.${bigquery_taxi_dataset}.taxi_trips_json`;
-        
+    DROP TABLE IF EXISTS `${project_id}.${bigquery_taxi_dataset}.taxi_trips_json`;       
 */
-
 
 -- Create an external table over the JSON string data
 -- Import the data as strings (csv file with a field delimiter that is not in typical json)
-EXECUTE IMMEDIATE """
 CREATE OR REPLACE EXTERNAL TABLE `${project_id}.${bigquery_taxi_dataset}.ext_taxi_trips_json`
 (
     taxi_json STRING
@@ -53,25 +51,23 @@ OPTIONS (
     format = "CSV",
     field_delimiter = '\u00fe',
     skip_leading_rows = 0,
-    --uris = ['gs://${bucket_name}/processed/taxi-data/yellow/trips_table/json/year=2020/month=6/part-00000-f5004726-b7fc-409f-82a3-d9827f2e65a8.c000.json']
-    --uris = ['gs://${bucket_name}/processed/taxi-data/yellow/trips_table/json/*/*/*.json']
-    hive_partition_uri_prefix = "gs://${bucket_name}/processed/taxi-data/yellow/trips_table/json/",
-    uris = ['gs://${bucket_name}/processed/taxi-data/yellow/trips_table/json/*.json']
+    hive_partition_uri_prefix = "gs://processed-${project_id}/processed/taxi-data/yellow/trips_table/json/",
+    uris = ['gs://processed-${project_id}/processed/taxi-data/yellow/trips_table/json/*.json']
     );
-""";
+
 
 -- Check the results
 SELECT COUNT(*)
- FROM `${project_id}.${bigquery_taxi_dataset}.ext_taxi_trips_json`;
+  FROM `${project_id}.${bigquery_taxi_dataset}.ext_taxi_trips_json`;
 
 
 -- Check the results
 SELECT *
- FROM `${project_id}.${bigquery_taxi_dataset}.ext_taxi_trips_json`
- LIMIT 10;
+  FROM `${project_id}.${bigquery_taxi_dataset}.ext_taxi_trips_json`
+  LIMIT 10;
 
 
- -- Ingest data into internal table with JSON datatype (takes ~2 minutes for 124,046,938 rows)
+  -- Ingest data into internal table with JSON datatype (takes 27 sec for 152,821,520 rows for 57.51 GB)
 CREATE OR REPLACE TABLE `${project_id}.${bigquery_taxi_dataset}.taxi_trips_json` 
 (
     -- NOTE: You probably want to add a key and have a UUID as a surrogate key. 
@@ -94,31 +90,42 @@ SELECT *
 
 
 -- Check results for json fields
-SELECT taxi_json.Pickup_DateTime, taxi_json.Vendor_Id, taxi_json.Rate_Code_Id, taxi_json.Fare_Amount
+-- Access the fiels with the "dot" notation
+SELECT taxi_json.Pickup_DateTime, 
+       taxi_json.Vendor_Id, 
+       taxi_json.Rate_Code_Id, 
+       taxi_json.Fare_Amount
   FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips_json` 
   LIMIT 10;
 
 
 -- Typecast the values
-SELECT CAST(JSON_VALUE(taxi_json.Pickup_DateTime) AS TIMESTAMP ) AS Pickup_DateTime, 
-       CAST(JSON_VALUE(taxi_json.Vendor_Id) AS INTEGER)          AS Vendor_Id, 
-       CAST(JSON_VALUE(taxi_json.Rate_Code_Id) AS INTEGER)       AS Rate_Code_Id, 
-       CAST(JSON_VALUE(taxi_json.Fare_Amount) AS FLOAT64 )       AS Fare_Amount, 
+SELECT CAST(JSON_VALUE(taxi_json.Pickup_DateTime) AS TIMESTAMP) AS Pickup_DateTime, 
+       CAST(JSON_VALUE(taxi_json.Vendor_Id) AS INTEGER)         AS Vendor_Id, 
+       CAST(JSON_VALUE(taxi_json.Rate_Code_Id) AS INTEGER)      AS Rate_Code_Id, 
+       CAST(JSON_VALUE(taxi_json.Fare_Amount) AS FLOAT64 )      AS Fare_Amount, 
   FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips_json` 
-  LIMIT 10;
+ LIMIT 10;
 
+
+-- Use SAFE Casting
+SELECT SAFE.INT64(taxi_json.Vendor_Id)         AS Vendor_Id, 
+       SAFE.INT64(taxi_json.Rate_Code_Id)      AS Rate_Code_Id, 
+       SAFE.FLOAT64(taxi_json.Fare_Amount)     AS Fare_Amount, 
+  FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips_json` 
+ LIMIT 10;
 
 -- Complex SQL with JSON (typecast first, then treat as normal)
--- Query complete (2.8 sec elapsed, 20.1 GB processed)
+-- Query complete (2 sec elapsed, 7.09 GB processed)
 WITH TaxiData AS
 (
 SELECT CAST(JSON_VALUE(taxi_trips.taxi_json.Pickup_DateTime) AS TIMESTAMP) AS Pickup_DateTime,
-       CAST(JSON_VALUE(taxi_trips.taxi_json.Payment_Type_Id) AS INTEGER)   AS Payment_Type_Id,
-       CAST(JSON_VALUE(taxi_trips.taxi_json.Passenger_Count) AS INTEGER)   AS Passenger_Count,
-       CAST(JSON_VALUE(taxi_trips.taxi_json.Total_Amount)    AS FLOAT64)   AS Total_Amount,
+       SAFE.INT64(taxi_trips.taxi_json.Payment_Type_Id)                     AS Payment_Type_Id,
+       SAFE.INT64(taxi_trips.taxi_json.Passenger_Count)                     AS Passenger_Count,
+       SAFE.FLOAT64(taxi_trips.taxi_json.Total_Amount)                      AS Total_Amount,
   FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips_json` AS taxi_trips
  WHERE CAST(JSON_VALUE(taxi_trips.taxi_json.Pickup_DateTime) AS TIMESTAMP) BETWEEN '2020-01-01' AND '2020-06-01' 
-   AND CAST(JSON_VALUE(taxi_trips.taxi_json.Payment_Type_Id) AS INTEGER)  IN (1,2)
+   AND SAFE.INT64(taxi_trips.taxi_json.Payment_Type_Id)  IN (1,2)
 )
 , TaxiDataRanking AS
 (
@@ -137,27 +144,27 @@ SELECT Pickup_Date,
        Passenger_Count,
        Total_Amount
   FROM TaxiDataRanking
-       INNER JOIN `${project_id}.${bigquery_taxi_dataset}.payment_type` AS payment_type
-               ON TaxiDataRanking.Payment_Type_Id = payment_type.Payment_Type_Id
+      INNER JOIN `${project_id}.${bigquery_taxi_dataset}.payment_type` AS payment_type
+              ON TaxiDataRanking.Payment_Type_Id = payment_type.Payment_Type_Id
 WHERE Ranking = 1
 ORDER BY Pickup_Date, Payment_Type_Description;
 
 
 -- Ranking done in single query
--- Query complete (2.6 sec elapsed, 20.1 GB processed)
+-- Query complete (1 sec elapsed, 7.09 GB  processed)
 WITH TaxiDataRanking AS
 (
 SELECT CAST(CAST(JSON_VALUE(taxi_trips.taxi_json.Pickup_DateTime) AS TIMESTAMP) AS DATE) AS Pickup_Date,
-       CAST(JSON_VALUE(taxi_trips.taxi_json.Payment_Type_Id) AS INTEGER)   AS Payment_Type_Id,
-       CAST(JSON_VALUE(taxi_trips.taxi_json.Passenger_Count) AS INTEGER)   AS Passenger_Count,
-       CAST(JSON_VALUE(taxi_trips.taxi_json.Total_Amount)    AS FLOAT64)   AS Total_Amount,
-       RANK() OVER (PARTITION BY CAST(CAST(JSON_VALUE(taxi_trips.taxi_json.Pickup_DateTime) AS TIMESTAMP) AS DATE),
-                                 CAST(JSON_VALUE(taxi_trips.taxi_json.Payment_Type_Id) AS INTEGER)
-                        ORDER BY CAST(JSON_VALUE(taxi_trips.taxi_json.Passenger_Count) AS INTEGER) DESC, 
-                                 CAST(JSON_VALUE(taxi_trips.taxi_json.Total_Amount)    AS FLOAT64) DESC) AS Ranking       
+        SAFE.INT64(taxi_trips.taxi_json.Payment_Type_Id)   AS Payment_Type_Id,
+        SAFE.INT64(taxi_trips.taxi_json.Passenger_Count)   AS Passenger_Count,
+        SAFE.FLOAT64(taxi_trips.taxi_json.Total_Amount)    AS Total_Amount,
+        RANK() OVER (PARTITION BY CAST(CAST(JSON_VALUE(taxi_trips.taxi_json.Pickup_DateTime) AS TIMESTAMP) AS DATE),
+                                  SAFE.INT64(taxi_trips.taxi_json.Payment_Type_Id)
+                         ORDER BY SAFE.INT64(taxi_trips.taxi_json.Passenger_Count) DESC, 
+                                  SAFE.FLOAT64(taxi_trips.taxi_json.Total_Amount) DESC) AS Ranking       
   FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips_json` AS taxi_trips
  WHERE CAST(JSON_VALUE(taxi_trips.taxi_json.Pickup_DateTime) AS TIMESTAMP) BETWEEN '2020-01-01' AND '2020-06-01' 
-   AND CAST(JSON_VALUE(taxi_trips.taxi_json.Payment_Type_Id) AS INTEGER)  IN (1,2)
+   AND SAFE.INT64(taxi_trips.taxi_json.Payment_Type_Id)  IN (1,2)
 )
 SELECT Pickup_Date,
        Payment_Type_Description,
@@ -166,12 +173,12 @@ SELECT Pickup_Date,
   FROM TaxiDataRanking
        INNER JOIN `${project_id}.${bigquery_taxi_dataset}.payment_type` AS payment_type
                ON TaxiDataRanking.Payment_Type_Id = payment_type.Payment_Type_Id
-WHERE Ranking = 1
-ORDER BY Pickup_Date, Payment_Type_Description;
+ WHERE Ranking = 1
+ ORDER BY Pickup_Date, Payment_Type_Description;
 
 
--- Compare against non-json table
--- Query complete (1.1 sec elapsed, 494.6 MB processed)
+-- Compare against non-json table Internal table (this should be faster than parsing JSON)
+-- Query complete (1.1 sec elapsed,  654.34 MB  processed)
 WITH TaxiDataRanking AS
 (
 SELECT CAST(Pickup_DateTime AS DATE) AS Pickup_Date,
@@ -183,7 +190,7 @@ SELECT CAST(Pickup_DateTime AS DATE) AS Pickup_Date,
                         ORDER BY taxi_trips.Passenger_Count DESC, 
                                  taxi_trips.Total_Amount DESC) AS Ranking
   FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips` AS taxi_trips
- WHERE taxi_trips.TaxiCompany = 'Yellow'
+WHERE taxi_trips.TaxiCompany = 'Yellow'
    AND taxi_trips.Pickup_DateTime BETWEEN '2020-01-01' AND '2020-06-01' 
    AND taxi_trips.Payment_Type_Id IN (1,2)
 )
@@ -194,8 +201,8 @@ SELECT Pickup_Date,
   FROM TaxiDataRanking
        INNER JOIN `${project_id}.${bigquery_taxi_dataset}.payment_type` AS payment_type
                ON TaxiDataRanking.Payment_Type_Id = payment_type.Payment_Type_Id
-WHERE Ranking = 1
-ORDER BY Pickup_Date, Payment_Type_Description;
+ WHERE Ranking = 1
+ ORDER BY Pickup_Date, Payment_Type_Description;
 
 
 -- Insert data (we go the passenger names)
@@ -204,8 +211,6 @@ INSERT INTO `${project_id}`.${bigquery_taxi_dataset}.taxi_trips_json (taxi_json)
 {"Vendor_Id":456, "Passenger_Names" : ["Bugs","Daffy","Coyote"], "Pickup_DateTime":"2020-06-13T07:15:50.000Z","Dropoff_DateTime":"2020-06-13T07:17:30.000Z","Passenger_Count":1,"Trip_Distance":0.62,"Rate_Code_Id":1,"Store_And_Forward":"N","PULocationID":100,"DOLocationID":230,"Payment_Type_Id":1,"Fare_Amount":4.0,"Surcharge":0.5,"MTA_Tax":0.5,"Tip_Amount":1.56,"Tolls_Amount":0.0,"Improvement_Surcharge":0.3,"Total_Amount":9.36,"Congestion_Surcharge":2.5}
 """);
 
-
 SELECT taxi_json.Vendor_Id, taxi_json.Passenger_Names[0] AS FirstPassenagerName
   FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips_json`
- WHERE JSON_VALUE(taxi_json.Vendor_Id) = "456";
-
+ WHERE SAFE.INT64(taxi_json.Vendor_Id) = 456;
