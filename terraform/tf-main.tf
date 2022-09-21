@@ -328,7 +328,8 @@ module "org-policies-deprecated" {
   depends_on = [
     module.project,
     module.service-account,
-    module.apis-batch-enable
+    module.apis-batch-enable,
+    time_sleep.service_account_api_activation_time_delay
   ]
 }
 
