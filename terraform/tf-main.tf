@@ -704,7 +704,7 @@ else
     gcloud auth activate-service-account "${var.deployment_service_account_name}" --key-file="$${GOOGLE_APPLICATION_CREDENTIALS}" --project="${var.project_id}"
     gcloud config set account "${var.deployment_service_account_name}"
 fi  
-gsutil cp ../cloud-composer/dags/* ${module.resources.output-composer-dag-bucket}
+gsutil cp -n ../cloud-composer/dags/* ${module.resources.output-composer-dag-bucket}
 
 EOF    
   }
