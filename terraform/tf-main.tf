@@ -214,7 +214,8 @@ locals {
   local_storage_bucket = "${var.project_id}-${random_string.project_random.result}"
 
   # Use the GCP user or the service account running this in a DevOps process
-  local_impersonation_account = var.deployment_service_account_name == "" ? "user:${var.gcp_account_name}" : "serviceAccount:${var.deployment_service_account_name}"
+  local_impersonation_account = var.deployment_service_account_name == "" ? "user:${var.gcp_account_name}" : length(regexall("^serviceAccount:", var.deployment_service_account_name)) > 0 ? "${var.deployment_service_account_name}" : "serviceAccount:${var.deployment_service_account_name}"
+
 }
 
 
