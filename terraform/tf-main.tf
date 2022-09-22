@@ -214,7 +214,8 @@ locals {
   local_storage_bucket = "${var.project_id}-${random_string.project_random.result}"
 
   # Use the GCP user or the service account running this in a DevOps process
-  local_impersonation_account = var.deployment_service_account_name == "" ? "user:${var.gcp_account_name}" : "serviceAccount:${var.deployment_service_account_name}"
+  local_impersonation_account = var.deployment_service_account_name == "" ? "user:${var.gcp_account_name}" : length(regexall("^serviceAccount:", var.deployment_service_account_name)) > 0 ? "${var.deployment_service_account_name}" : "serviceAccount:${var.deployment_service_account_name}"
+
 }
 
 
@@ -327,7 +328,8 @@ module "org-policies-deprecated" {
   depends_on = [
     module.project,
     module.service-account,
-    module.apis-batch-enable
+    module.apis-batch-enable,
+    time_sleep.service_account_api_activation_time_delay
   ]
 }
 
@@ -702,7 +704,7 @@ else
     gcloud auth activate-service-account "${var.deployment_service_account_name}" --key-file="$${GOOGLE_APPLICATION_CREDENTIALS}" --project="${var.project_id}"
     gcloud config set account "${var.deployment_service_account_name}"
 fi  
-gsutil cp ../cloud-composer/dags/* ${module.resources.output-composer-dag-bucket}
+gsutil cp -n ../cloud-composer/dags/* ${module.resources.output-composer-dag-bucket}
 
 EOF    
   }

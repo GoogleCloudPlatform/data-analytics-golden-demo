@@ -51,8 +51,8 @@ OPTIONS (
     format = "CSV",
     field_delimiter = '\u00fe',
     skip_leading_rows = 0,
-    hive_partition_uri_prefix = "gs://processed-${project_id}/processed/taxi-data/yellow/trips_table/json/",
-    uris = ['gs://processed-${project_id}/processed/taxi-data/yellow/trips_table/json/*.json']
+    hive_partition_uri_prefix = "gs://${processed_bucket_name}/processed/taxi-data/yellow/trips_table/json/",
+    uris = ['gs://${processed_bucket_name}/processed/taxi-data/yellow/trips_table/json/*.json']
     );
 
 
