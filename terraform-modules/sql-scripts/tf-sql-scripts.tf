@@ -398,7 +398,7 @@ data "template_file" "sproc_sp_demo_json_datatype" {
     region = var.region
     bigquery_taxi_dataset = var.bigquery_taxi_dataset
     bigquery_thelook_ecommerce_dataset = var.bigquery_thelook_ecommerce_dataset
-    bucket_name = "processed-${var.storage_bucket}"
+    processed_bucket_name = "processed-${var.storage_bucket}"
     bigquery_region = var.bigquery_region
     gcp_account_name = var.gcp_account_name
   }  
