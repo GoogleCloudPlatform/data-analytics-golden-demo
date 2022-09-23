@@ -40,6 +40,7 @@ variable "project_id" {}
 variable "org_id" {}
 variable "impersonation_account" {} //  "user:${var.gcp_account_name}" or "serviceAccount:${var.deployment_service_account_name}"
 variable "gcp_account_name" {}
+variable "environment" {}
 
 
 ####################################################################################
@@ -47,6 +48,7 @@ variable "gcp_account_name" {}
 ####################################################################################
 # Add owner role to the gcp user
 resource "google_project_iam_member" "gcp_account_owner" {
+  count  = var.environment == "GITHUB_ENVIRONMENT" ? 1 : 0
   project  = var.project_id
   role     = "roles/owner"
   member   = "user:${var.gcp_account_name}"
@@ -90,6 +92,7 @@ resource "google_project_iam_member" "service_account_owner" {
 
 # Allow the service account to override organization policies on this project
 resource "google_organization_iam_member" "organization" {
+  count  = var.environment == "GITHUB_ENVIRONMENT" ? 1 : 0
   org_id   = var.org_id
   role     = "roles/orgpolicy.policyAdmin"
   member   = "serviceAccount:${google_service_account.service_account.email}"
