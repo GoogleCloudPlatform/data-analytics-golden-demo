@@ -176,6 +176,12 @@ variable "omni_aws_s3_bucket_name" {
   default     = "S3_BUCKET_NAME"
 }
 
+variable "environment" {
+  type        = string
+  description = "Where is the script being run from.  Internal system or public GitHub"
+  default     = "GITHUB_ENVIRONMENT"
+}
+
 # Not required for this demo, but is part of click to deploy automation
 variable "data_location" {
   type        = string
@@ -261,6 +267,7 @@ module "service-account" {
   org_id                = var.org_id
   impersonation_account = local.local_impersonation_account 
   gcp_account_name      = var.gcp_account_name
+  environment           = var.environment
 
   depends_on = [
     module.project
@@ -295,7 +302,7 @@ resource "time_sleep" "service_account_api_activation_time_delay" {
 
 # Uses the new Org Policies method (when a project is created by TF)
 module "org-policies" {
-  count  = var.project_number == "" ? 1 : 0
+  count  = var.environment == "GITHUB_ENVIRONMENT" ? 1 : 0
   source = "../terraform-modules/org-policies"
 
   # Use Service Account Impersonation for this step. 
@@ -316,6 +323,7 @@ module "org-policies" {
 # Uses the "Old" Org Policies methods (for when a project is created in advance)
 # This is used since the method you cannot specify a project and some orgs deploy with a 
 # cloud build account that is in a different domain/org
+/*
 module "org-policies-deprecated" {
   count  = var.project_number == "" ? 0 : 1
   source = "../terraform-modules/org-policies-deprecated"
@@ -332,7 +340,7 @@ module "org-policies-deprecated" {
     time_sleep.service_account_api_activation_time_delay
   ]
 }
-
+*/
 
 module "resources" {
   source = "../terraform-modules/resources"
@@ -357,7 +365,7 @@ module "resources" {
     module.apis-batch-enable,
     time_sleep.service_account_api_activation_time_delay,
     module.org-policies,
-    module.org-policies-deprecated,
+    # module.org-policies-deprecated,
   ]
 }
 
@@ -390,7 +398,7 @@ module "sql-scripts" {
     module.apis-batch-enable,
     time_sleep.service_account_api_activation_time_delay,
     module.org-policies,
-    module.org-policies-deprecated,
+    # module.org-policies-deprecated,
     module.resources
   ]
 }
@@ -427,7 +435,7 @@ EOF
     module.apis-batch-enable,
     time_sleep.service_account_api_activation_time_delay,
     module.org-policies,
-    module.org-policies-deprecated,
+    # module.org-policies-deprecated,
     module.resources
   ]
 }
@@ -456,7 +464,7 @@ EOF
     module.apis-batch-enable,
     time_sleep.service_account_api_activation_time_delay,
     module.org-policies,
-    module.org-policies-deprecated,
+    # module.org-policies-deprecated,
     module.resources
   ]
 }
@@ -484,7 +492,7 @@ EOF
     module.apis-batch-enable,
     time_sleep.service_account_api_activation_time_delay,
     module.org-policies,
-    module.org-policies-deprecated,
+    # module.org-policies-deprecated,
     module.resources,
     module.sql-scripts
   ]
@@ -513,7 +521,7 @@ EOF
     module.apis-batch-enable,
     time_sleep.service_account_api_activation_time_delay,
     module.org-policies,
-    module.org-policies-deprecated,
+    # module.org-policies-deprecated,
     module.resources,
     module.sql-scripts
   ]
@@ -550,7 +558,7 @@ EOF
     module.apis-batch-enable,
     time_sleep.service_account_api_activation_time_delay,
     module.org-policies,
-    module.org-policies-deprecated,
+    # module.org-policies-deprecated,
     module.resources,
     module.sql-scripts
   ]
@@ -589,7 +597,7 @@ EOF
     module.apis-batch-enable,
     time_sleep.service_account_api_activation_time_delay,
     module.org-policies,
-    module.org-policies-deprecated,
+    # module.org-policies-deprecated,
     module.resources,
     module.sql-scripts
   ]
@@ -629,7 +637,7 @@ EOF
     module.apis-batch-enable,
     time_sleep.service_account_api_activation_time_delay,
     module.org-policies,
-    module.org-policies-deprecated,
+    # module.org-policies-deprecated,
     module.resources,
     module.sql-scripts
   ]
@@ -646,7 +654,7 @@ resource "time_sleep" "wait_for_airflow_dag_sync" {
     module.apis-batch-enable,
     time_sleep.service_account_api_activation_time_delay,
     module.org-policies,
-    module.org-policies-deprecated,
+    # module.org-policies-deprecated,
     module.resources,
     module.sql-scripts,
     null_resource.deploy_initial_airflow_dags,
@@ -680,7 +688,7 @@ EOF
     module.apis-batch-enable,
     time_sleep.service_account_api_activation_time_delay,
     module.org-policies,
-    module.org-policies-deprecated,
+    # module.org-policies-deprecated,
     module.resources,
     module.sql-scripts,
     null_resource.deploy_initial_airflow_dags,
@@ -714,7 +722,7 @@ EOF
     module.apis-batch-enable,
     time_sleep.service_account_api_activation_time_delay,
     module.org-policies,
-    module.org-policies-deprecated,
+    # module.org-policies-deprecated,
     module.resources,
     module.sql-scripts,
     null_resource.deploy_initial_airflow_dags,
