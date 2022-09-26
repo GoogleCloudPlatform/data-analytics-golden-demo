@@ -26,7 +26,7 @@ Description:
     - Show many complex SQL statements along with Exporting data to S3 for ETL or other purposes
 
 Dependencies:
-    - You must open a new tab with the URL: https://console.cloud.google.com/bigquery?project=data-analytics-golden-v1-share
+    - You must open a new tab with the URL: https://console.cloud.google.com/bigquery?project=${omni_project}
 
 Show:
     - Just like regular external tables (see script create_aws_taxi_tables_s3.sql)
