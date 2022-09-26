@@ -179,7 +179,7 @@ variable "omni_aws_s3_bucket_name" {
 variable "environment" {
   type        = string
   description = "Where is the script being run from.  Internal system or public GitHub"
-  default     = "GITHUB_ENVIRONMENT"
+  default     = "GITHUB_ENVIRONMENT" #_REPLACEMENT_MARKER (do not remove this text of change the spacing)
 }
 
 # Not required for this demo, but is part of click to deploy automation
