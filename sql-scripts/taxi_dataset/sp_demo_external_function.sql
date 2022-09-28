@@ -1,5 +1,3 @@
-CREATE OR REPLACE PROCEDURE `${project_id}.${bigquery_taxi_dataset}.sp_demo_external_function`()
-BEGIN
 /*##################################################################################
 # Copyright 2022 Google LLC
 #

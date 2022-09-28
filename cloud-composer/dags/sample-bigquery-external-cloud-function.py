@@ -139,6 +139,15 @@ curl_command = \
     "    \"calls\":[ [\"gs://cloud-samples-data/vision/label/setagaya.jpeg'\"]] " + \
     "}'"
 
+"""
+curl -m 70 -X POST https://us-central1-${project}.cloudfunctions.net/bigquery_external_function \
+    -H "Authorization: bearer $(gcloud auth print-identity-token)" \
+    -H "Content-Type: application/json" \
+    -d '{ 
+        "userDefinedContext": {"mode":"detect_labels_uri" },
+        "calls":[ ["gs://cloud-samples-data/vision/label/setagaya.jpe'"]]
+    }'
+"""
 
 # Get the connection service principal
 def parse_json():
