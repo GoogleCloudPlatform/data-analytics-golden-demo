@@ -1,0 +1,5 @@
+google-cloud-aiplatform==1.16.1
+functions-framework
+flask
+google-cloud-error-reporting
+google-cloud-vision

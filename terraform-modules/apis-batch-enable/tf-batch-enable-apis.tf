@@ -265,3 +265,13 @@ resource "google_project_service" "service-bigquerydatapolicy" {
   project = var.project_id
   service = "bigquerydatapolicy.googleapis.com"
 }
+
+resource "google_project_service" "service-cloudfunctions" {
+  project = var.project_id
+  service = "cloudfunctions.googleapis.com"
+}
+
+resource "google_project_service" "service-vision" {
+  project = var.project_id
+  service = "vision.googleapis.com"
+}
