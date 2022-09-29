@@ -25,7 +25,7 @@ Description:
     - Filter rows by a Pickup Location
 
 Dependencies:
-    - You must open a new tab with the URL: https://console.cloud.google.com/bigquery?project=data-analytics-golden-v1-share
+    - You must open a new tab with the URL: https://console.cloud.google.com/bigquery?project=${omni_project}
 
 Show:
     - Tables are filter by rows even though it is a parquet file

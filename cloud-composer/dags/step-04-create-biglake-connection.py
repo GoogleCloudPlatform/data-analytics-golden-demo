@@ -74,7 +74,7 @@ bq_create_connection= \
     "--location=\"" + bigquery_region + "\" " + \
     "--project_id=\"" + project_id + "\" " + \
     "--connection_type=CLOUD_RESOURCE " + \
-    "biglake-connection " + \
+    "biglake-connection" + \
     "|| true"
 
 bq_show_connections= \
