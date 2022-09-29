@@ -525,7 +525,7 @@ provisioner "local-exec" {
   when    = create
   command = <<EOF
     curl \
-      --header "Authorization: Bearer  $(gcloud auth print-access-token --impersonate-service-account=${var.deployment_service_account_name})" \
+      --header "Authorization: Bearer $(gcloud auth print-access-token --impersonate-service-account=${var.deployment_service_account_name})" \
       --header "Accept: application/json" \
       --header "Content-Type: application/json" \
       -X POST \
@@ -544,7 +544,7 @@ provisioner "local-exec" {
   when    = create
   command = <<EOF
     curl \
-      --header "Authorization: Bearer  $(gcloud auth print-access-token --impersonate-service-account=${var.deployment_service_account_name})" \
+      --header "Authorization: Bearer $(gcloud auth print-access-token --impersonate-service-account=${var.deployment_service_account_name})" \
       --header "Accept: application/json" \
       --header "Content-Type: application/json" \
       -X POST \
@@ -563,7 +563,7 @@ provisioner "local-exec" {
   when    = create
   command = <<EOF
     curl \
-      --header "Authorization: Bearer  $(gcloud auth print-access-token --impersonate-service-account=${var.deployment_service_account_name})" \
+      --header "Authorization: Bearer $(gcloud auth print-access-token --impersonate-service-account=${var.deployment_service_account_name})" \
       --header "Accept: application/json" \
       --header "Content-Type: application/json" \
       -X POST \
@@ -582,7 +582,7 @@ provisioner "local-exec" {
   when    = create
   command = <<EOT
     curl \
-      --header "Authorization: Bearer  $(gcloud auth print-access-token --impersonate-service-account=${var.deployment_service_account_name})" \
+      --header "Authorization: Bearer $(gcloud auth print-access-token --impersonate-service-account=${var.deployment_service_account_name})" \
       --header "Accept: application/json" \
       --header "Content-Type: application/json" \
       -X POST \
@@ -920,7 +920,10 @@ else
     gcloud auth activate-service-account "${var.deployment_service_account_name}" --key-file="$${GOOGLE_APPLICATION_CREDENTIALS}" --project="${var.project_id}"
     gcloud config set account "${var.deployment_service_account_name}"
 fi 
-curl "https://bigquerydatatransfer.googleapis.com/v1/projects/${var.project_id}/locations/${var.region}/transferConfigs" --header "Authorization: Bearer $(gcloud auth application-default print-access-token)"  --header "Accept: application/json" --compressed
+curl "https://bigquerydatatransfer.googleapis.com/v1/projects/${var.project_id}/locations/${var.region}/transferConfigs" \
+  --header "Authorization: Bearer $(gcloud auth print-access-token --impersonate-service-account=${var.deployment_service_account_name})"  \
+  --header "Accept: application/json" \
+  --compressed
 EOF
   }
   depends_on = [

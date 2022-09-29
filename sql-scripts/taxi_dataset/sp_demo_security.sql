@@ -20,6 +20,7 @@ Use Cases:
     - Need to secure your datasets, tables, views, columns and rows, BigQuery allows you to have full security
       of you data.  
     - Row level security allows you to have a multitenant warehouse without creating seperate tables for each tenant.
+    - Data Masking lets you secure columns with Hash (for joins), Default (set to default values), Null (set to null)
 
 Description: 
     - Show Dataset, Table and Row Level security
@@ -31,6 +32,8 @@ Reference:
     - https://cloud.google.com/bigquery/docs/authorized-views
     - https://cloud.google.com/bigquery/docs/row-level-security-intro
     - https://cloud.google.com/bigquery/docs/column-level-security
+    - https://cloud.google.com/bigquery/docs/column-data-masking-intro
+
 
 Clean up / Reset script:
     DROP VIEW  IF EXISTS `${project_id}.${bigquery_taxi_dataset}.v_taxi_trips_passenger_amounts`;
@@ -58,11 +61,13 @@ REVOKE `roles/bigquery.dataViewer`
     ON SCHEMA `${project_id}.${bigquery_taxi_dataset}`
     FROM "user:${gcp_account_name}";
 
+
 -- Query 3: Table permissions
 -- Tables can have access as well as Views
 GRANT `roles/bigquery.dataViewer`
     ON TABLE `${project_id}.${bigquery_taxi_dataset}.taxi_trips`
     TO "user:${gcp_account_name}";
+
 
 -- Query 4: Revoke table
 REVOKE `roles/bigquery.dataViewer`
@@ -78,9 +83,11 @@ CREATE OR REPLACE TABLE `${project_id}.${bigquery_taxi_dataset}.user_vendor_secu
     Vendor_Id INTEGER
 ); 
 
+
 -- Query 6:  Insert "you" as a test
 INSERT INTO `${project_id}.${bigquery_taxi_dataset}.user_vendor_security` (user_id, Vendor_Id)
 VALUES ('${gcp_account_name}', 1);
+
 
 -- Query 5:  Create the view that joins to the new table and filters based upon SESSION_USER()
 CREATE OR REPLACE VIEW `${project_id}.${bigquery_taxi_dataset}.v_taxi_trips_passenger_amounts` AS
@@ -95,6 +102,7 @@ SELECT vendor.Vendor_Id,
                AND taxi_trips.Vendor_Id = user_vendor_security.Vendor_Id
         INNER JOIN `${project_id}.${bigquery_taxi_dataset}.vendor` AS vendor
                 ON taxi_trips.Vendor_Id = vendor.Vendor_Id;
+
 
 -- Query 6:  Run a SELECT against the view.  You will only see Vendors Id of 1
 --           Get the max total per day and show the number of passengers
@@ -122,10 +130,12 @@ CREATE OR REPLACE ROW ACCESS POLICY rap_taxi_trips_admin_mta_tax
     GRANT TO ("user:${gcp_account_name}") -- This also works for groups: "group:tax-collectors@altostrat.com"
 FILTER USING (MTA_Tax > 0);
 
+
 -- Query 6: This will only show MTA_Tax > 0
 SELECT * 
    FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips` 
  LIMIT 50;
+
 
 -- Query 7: Apply another filter 
 -- Filter again (filters will cascade, in a non-demo, you would be setting this for different groups of users)
@@ -134,10 +144,12 @@ CREATE OR REPLACE ROW ACCESS POLICY rap_taxi_trips_admin_mta_tax_vendor_2
     GRANT TO ("user:${gcp_account_name}")
 FILTER USING (Vendor_Id = 2 OR PULocationID = 182); 
 
+
 -- Query 8: Show the results
 SELECT * 
   FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips` 
  LIMIT 50;
+
 
 -- Query 9: Remove this so the rest of the demo works
 DROP ROW ACCESS POLICY rap_taxi_trips_admin_mta_tax_vendor_2 ON `${project_id}.${bigquery_taxi_dataset}.taxi_trips`;
@@ -186,12 +198,18 @@ SELECT
    FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips`;
 
 
-
 -- Error: Selecting columns w/o access
 -- Access Denied: BigQuery BigQuery: User does not have permission to access policy tag "Business Critical : High security" on columns ${project_id}.${bigquery_taxi_dataset}.taxi_trips_with_col_sec.Tip_Amount, ${project_id}.${bigquery_taxi_dataset}.taxi_trips_with_col_sec.Total_Amount.
-SELECT * FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips_with_col_sec` LIMIT 1000;
+SELECT * 
+  FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips_with_col_sec` 
+ LIMIT 1000;
 
--- Valid
-SELECT * EXCEPT(Tip_Amount, Total_Amount) FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips_with_col_sec` LIMIT 1000;
 
-
+-- Valid (with data masking)
+-- Open this in a new tab: https://console.cloud.google.com/dataplex/taxonomies
+-- The fields: PULocationID and DOLocationID are data masked (to NULL values)
+--             On the policy tag, check off the "Data Masking security" and click "MANAGE DATA POLICIES"
+--             You will notice that your user is set to the "Nullify_Rule"
+SELECT * EXCEPT(Tip_Amount, Total_Amount) 
+  FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips_with_col_sec` 
+ LIMIT 1000;
