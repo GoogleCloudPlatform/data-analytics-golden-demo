@@ -455,7 +455,7 @@ else
     gcloud auth activate-service-account "${var.deployment_service_account_name}" --key-file="$${GOOGLE_APPLICATION_CREDENTIALS}" --project="${var.project_id}"
     gcloud config set account "${var.deployment_service_account_name}"
 fi  
-gsutil cp ../cloud-composer/data/* ${replace(module.resources.output-composer-dag-bucket, "/dags", "/data")}
+gsutil cp -r ../cloud-composer/data/* ${replace(module.resources.output-composer-dag-bucket, "/dags", "/data")}
 EOF        
   }
   depends_on = [
