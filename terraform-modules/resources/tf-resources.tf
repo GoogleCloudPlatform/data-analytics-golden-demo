@@ -491,7 +491,7 @@ resource "google_data_catalog_policy_tag" "high_security_policy_tag" {
   description  = "A policy tag normally associated with high security items"
 
   depends_on = [
-    google_data_catalog_taxonomy.business_critical_taxonomy,
+    google_data_catalog_taxonomy.business_critical_taxonomy
   ]
 }
 
@@ -504,6 +504,100 @@ resource "google_data_catalog_policy_tag_iam_member" "member" {
   ]
 }
 
+
+# Data Masking
+resource "google_data_catalog_policy_tag" "data_masking_policy_tag" {
+  taxonomy     = google_data_catalog_taxonomy.business_critical_taxonomy.id
+  display_name = "Data Masking security"
+  description  = "A policy tag that will apply data masking"
+
+  depends_on = [
+    google_data_catalog_taxonomy.business_critical_taxonomy
+  ]
+}
+
+# REST API (no gcloud or Terraform yet)
+# https://cloud.google.com/bigquery/docs/reference/bigquerydatapolicy/rest/v1beta1/projects.locations.dataPolicies#datamaskingpolicy
+
+# Create a Hash Rule
+resource "null_resource" "deploy_data_masking_sha256" {
+provisioner "local-exec" {
+  when    = create
+  command = <<EOF
+    curl \
+      --header "Authorization: Bearer  $(gcloud auth print-access-token --impersonate-service-account=${var.deployment_service_account_name})" \
+      --header "Accept: application/json" \
+      --header "Content-Type: application/json" \
+      -X POST \
+      https://bigquerydatapolicy.googleapis.com/v1beta1/projects/${var.project_id}/locations/us/dataPolicies?prettyPrint=true \
+      --data \ '{"dataMaskingPolicy":{"predefinedExpression":"SHA256"},"dataPolicyId":"Hash_Rule","dataPolicyType":"DATA_MASKING_POLICY","policyTag":"${google_data_catalog_policy_tag.data_masking_policy_tag.id}"}'
+    EOF
+  }
+  depends_on = [
+     google_data_catalog_policy_tag.data_masking_policy_tag
+    ]
+}
+
+# Create a Nullify Rule
+resource "null_resource" "deploy_data_masking_nullify" {
+provisioner "local-exec" {
+  when    = create
+  command = <<EOF
+    curl \
+      --header "Authorization: Bearer  $(gcloud auth print-access-token --impersonate-service-account=${var.deployment_service_account_name})" \
+      --header "Accept: application/json" \
+      --header "Content-Type: application/json" \
+      -X POST \
+      https://bigquerydatapolicy.googleapis.com/v1beta1/projects/${var.project_id}/locations/us/dataPolicies?prettyPrint=true \
+      --data \ '{"dataMaskingPolicy":{"predefinedExpression":"ALWAYS_NULL"},"dataPolicyId":"Nullify_Rule","dataPolicyType":"DATA_MASKING_POLICY","policyTag":"${google_data_catalog_policy_tag.data_masking_policy_tag.id}"}'
+    EOF
+  }
+  depends_on = [
+     null_resource.deploy_data_masking_sha256
+    ]
+}
+
+# Create a Default-Value Rule
+resource "null_resource" "deploy_data_masking_default_value" {
+provisioner "local-exec" {
+  when    = create
+  command = <<EOF
+    curl \
+      --header "Authorization: Bearer  $(gcloud auth print-access-token --impersonate-service-account=${var.deployment_service_account_name})" \
+      --header "Accept: application/json" \
+      --header "Content-Type: application/json" \
+      -X POST \
+      https://bigquerydatapolicy.googleapis.com/v1beta1/projects/${var.project_id}/locations/us/dataPolicies?prettyPrint=true \
+      --data \ '{"dataMaskingPolicy":{"predefinedExpression":"DEFAULT_MASKING_VALUE"},"dataPolicyId":"DefaultValue_Rule","dataPolicyType":"DATA_MASKING_POLICY","policyTag":"${google_data_catalog_policy_tag.data_masking_policy_tag.id}"}'
+    EOF
+  }
+  depends_on = [
+     null_resource.deploy_data_masking_nullify
+    ]
+}
+
+# Grant access to the user to the Nullify (you can change during the demo)
+resource "null_resource" "deploy_data_masking_iam_permissions" {
+provisioner "local-exec" {
+  when    = create
+  command = <<EOT
+    curl \
+      --header "Authorization: Bearer  $(gcloud auth print-access-token --impersonate-service-account=${var.deployment_service_account_name})" \
+      --header "Accept: application/json" \
+      --header "Content-Type: application/json" \
+      -X POST \
+      https://bigquerydatapolicy.googleapis.com/v1beta1/projects/${var.project_id}/locations/us/dataPolicies/Nullify_Rule:setIamPolicy?prettyPrint=true \
+      --data \ '{"policy":{"bindings":[{"members":["user:${var.gcp_account_name}"],"role":"roles/bigquerydatapolicy.maskedReader"}]}}'
+    EOT
+  }
+  depends_on = [
+      google_data_catalog_taxonomy.business_critical_taxonomy,
+      google_data_catalog_policy_tag.data_masking_policy_tag,
+      null_resource.deploy_data_masking_sha256,
+      null_resource.deploy_data_masking_nullify,
+      null_resource.deploy_data_masking_default_value,
+    ]
+}
 
 ####################################################################################
 # BigQuery Table with Column Level Security
@@ -555,12 +649,18 @@ resource "google_bigquery_table" "default" {
   {
     "name": "PULocationID",
     "type": "INTEGER",
-    "mode": "NULLABLE"
+    "mode": "NULLABLE",
+    "policyTags": {
+        "names": ["${google_data_catalog_policy_tag.data_masking_policy_tag.id}"]
+      }
   },
   {
     "name": "DOLocationID",
     "type": "INTEGER",
-    "mode": "NULLABLE"
+    "mode": "NULLABLE",
+    "policyTags": {
+        "names": ["${google_data_catalog_policy_tag.data_masking_policy_tag.id}"]
+      }
   },
   {
     "name": "Payment_Type_Id",

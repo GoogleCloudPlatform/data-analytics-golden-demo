@@ -118,7 +118,7 @@ CREATE OR REPLACE FUNCTION `${project_id}.${bigquery_taxi_dataset}.ext_udf_taxi_
 -- For more images: gsutil ls gs://cloud-samples-data/vision/object_localization/
 WITH Data AS
 (
-    SELECT SAFE.PARSE_JSON(${bigquery_taxi_dataset}.ext_udf_ai_localize_objects('gs://cloud-samples-data/vision/object_localization/duck_and_truck.jpg')) AS json_result
+    SELECT SAFE.PARSE_JSON(`${project_id}.${bigquery_taxi_dataset}.ext_udf_ai_localize_objects`('gs://cloud-samples-data/vision/object_localization/duck_and_truck.jpg')) AS json_result
 )
 SELECT item.name,
        item.score,
@@ -134,7 +134,7 @@ SELECT item.name,
 -- For more images: gsutil ls gs://cloud-samples-data/vision/label
 WITH Data AS
 (
-    SELECT SAFE.PARSE_JSON(${bigquery_taxi_dataset}.ext_udf_ai_detect_labels('gs://cloud-samples-data/vision/label/setagaya.jpeg')) AS json_result
+    SELECT SAFE.PARSE_JSON(`${project_id}.${bigquery_taxi_dataset}.ext_udf_ai_detect_labels`('gs://cloud-samples-data/vision/label/setagaya.jpeg')) AS json_result
 )
 SELECT item.description,
        item.score,
@@ -149,7 +149,7 @@ SELECT item.description,
 -- For more images: gsutil ls gs://cloud-samples-data/vision/landmark
 WITH Data AS
 (
-    SELECT SAFE.PARSE_JSON(${bigquery_taxi_dataset}.ext_udf_ai_detect_landmarks('gs://cloud-samples-data/vision/landmark/eiffel_tower.jpg')) AS json_result
+    SELECT SAFE.PARSE_JSON(`${project_id}.${bigquery_taxi_dataset}.ext_udf_ai_detect_landmarks`('gs://cloud-samples-data/vision/landmark/eiffel_tower.jpg')) AS json_result
 )
 SELECT item.description,
        item.score,
@@ -164,7 +164,7 @@ SELECT item.description,
 -- For more images: gsutil ls gs://cloud-samples-data/vision/logo
 WITH Data AS
 (
-    SELECT SAFE.PARSE_JSON(${bigquery_taxi_dataset}.ext_udf_ai_detect_logos('gs://cloud-samples-data/vision/logo/google_logo.jpg')) AS json_result
+    SELECT SAFE.PARSE_JSON(`${project_id}.${bigquery_taxi_dataset}.ext_udf_ai_detect_logos`('gs://cloud-samples-data/vision/logo/google_logo.jpg')) AS json_result
 )
 SELECT item.description,
        item.score,
@@ -190,7 +190,7 @@ WITH Data AS
 )
 SELECT Pickup_DateTime,
        Dropoff_DateTime,
-       SAFE.PARSE_JSON(${bigquery_taxi_dataset}.ext_udf_taxi_zone_lookup(PULocationID)) As PickupDetails,
-       SAFE.PARSE_JSON(${bigquery_taxi_dataset}.ext_udf_taxi_zone_lookup(DOLocationID)) AS DropOffDetails,
+       SAFE.PARSE_JSON(`${project_id}.${bigquery_taxi_dataset}.ext_udf_taxi_zone_lookup`(PULocationID)) As PickupDetails,
+       SAFE.PARSE_JSON(`${project_id}.${bigquery_taxi_dataset}.ext_udf_taxi_zone_lookup`(DOLocationID)) AS DropOffDetails,
        Total_Amount
   FROM Data;
