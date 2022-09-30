@@ -33,7 +33,16 @@
 #       --runtime="python310" \
 #       --ingress-settings="all" \
 #       --no-allow-unauthenticated \
-#       --trigger-http        
+#       --trigger-http
+#
+# To test the function from Cloud Shell
+# curl -m 70 -X POST https://us-central1-${project}.cloudfunctions.net/bigquery_external_function \
+#     -H "Authorization: bearer $(gcloud auth print-identity-token)" \
+#     -H "Content-Type: application/json" \
+#     -d '{ 
+#         "userDefinedContext": {"mode":"detect_labels_uri" },
+#         "calls":[ ["gs://cloud-samples-data/vision/label/setagaya.jpeg"]]
+#     }'
  
  
 from __future__ import print_function

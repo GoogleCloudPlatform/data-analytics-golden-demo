@@ -44,6 +44,7 @@ variable "random_extension" {}
 variable "project_number" {}
 variable "deployment_service_account_name" {}
 variable "bigquery_region" {}
+variable "curl_impersonation" {}
 
 # Hardcoded
 variable "bigquery_taxi_dataset" {
@@ -525,7 +526,7 @@ provisioner "local-exec" {
   when    = create
   command = <<EOF
     curl \
-      --header "Authorization: Bearer $(gcloud auth print-access-token --impersonate-service-account=${var.deployment_service_account_name})" \
+      --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
       --header "Accept: application/json" \
       --header "Content-Type: application/json" \
       -X POST \
@@ -544,7 +545,7 @@ provisioner "local-exec" {
   when    = create
   command = <<EOF
     curl \
-      --header "Authorization: Bearer $(gcloud auth print-access-token --impersonate-service-account=${var.deployment_service_account_name})" \
+      --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
       --header "Accept: application/json" \
       --header "Content-Type: application/json" \
       -X POST \
@@ -563,7 +564,7 @@ provisioner "local-exec" {
   when    = create
   command = <<EOF
     curl \
-      --header "Authorization: Bearer $(gcloud auth print-access-token --impersonate-service-account=${var.deployment_service_account_name})" \
+      --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
       --header "Accept: application/json" \
       --header "Content-Type: application/json" \
       -X POST \
@@ -582,7 +583,7 @@ provisioner "local-exec" {
   when    = create
   command = <<EOT
     curl \
-      --header "Authorization: Bearer $(gcloud auth print-access-token --impersonate-service-account=${var.deployment_service_account_name})" \
+      --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
       --header "Accept: application/json" \
       --header "Content-Type: application/json" \
       -X POST \
@@ -921,7 +922,7 @@ else
     gcloud config set account "${var.deployment_service_account_name}"
 fi 
 curl "https://bigquerydatatransfer.googleapis.com/v1/projects/${var.project_id}/locations/${var.region}/transferConfigs" \
-  --header "Authorization: Bearer $(gcloud auth print-access-token --impersonate-service-account=${var.deployment_service_account_name})"  \
+  --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})"  \
   --header "Accept: application/json" \
   --compressed
 EOF
