@@ -136,7 +136,7 @@ curl_command = \
     "-H \"Content-Type: application/json\" " + \
     "-d '{  " + \
     "    \"userDefinedContext\": {\"mode\":\"detect_labels_uri\" }, " + \
-    "    \"calls\":[ [\"gs://cloud-samples-data/vision/label/setagaya.jpeg'\"]] " + \
+    "    \"calls\":[ [\"gs://cloud-samples-data/vision/label/setagaya.jpeg\"]] " + \
     "}'"
 
 """
@@ -145,7 +145,7 @@ curl -m 70 -X POST https://us-central1-${project}.cloudfunctions.net/bigquery_ex
     -H "Content-Type: application/json" \
     -d '{ 
         "userDefinedContext": {"mode":"detect_labels_uri" },
-        "calls":[ ["gs://cloud-samples-data/vision/label/setagaya.jpe'"]]
+        "calls":[ ["gs://cloud-samples-data/vision/label/setagaya.jpeg"]]
     }'
 """
 

@@ -222,6 +222,7 @@ locals {
   # Use the GCP user or the service account running this in a DevOps process
   local_impersonation_account = var.deployment_service_account_name == "" ? "user:${var.gcp_account_name}" : length(regexall("^serviceAccount:", var.deployment_service_account_name)) > 0 ? "${var.deployment_service_account_name}" : "serviceAccount:${var.deployment_service_account_name}"
 
+  local_curl_impersonation = var.environment == "GITHUB_ENVIRONMENT" ? "--impersonate-service-account=${var.deployment_service_account_name}" : ""
 }
 
 
@@ -358,6 +359,7 @@ module "resources" {
   project_number                  = var.project_number == "" ? module.project[0].output-project-number : var.project_number
   deployment_service_account_name = var.deployment_service_account_name
   bigquery_region                 = var.bigquery_region
+  curl_impersonation              = local.local_curl_impersonation
 
   depends_on = [
     module.project,
