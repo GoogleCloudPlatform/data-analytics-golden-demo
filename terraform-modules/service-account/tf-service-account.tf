@@ -27,7 +27,7 @@ terraform {
   required_providers {
     google = {
       source  = "hashicorp/google-beta"
-      version = "4.15.0"
+      version = "4.30.0"
     }
   }
 }
@@ -91,16 +91,16 @@ resource "google_project_iam_member" "service_account_owner" {
 
 
 # Allow the service account to override organization policies on this project
-resource "google_organization_iam_member" "organization" {
-  count  = var.environment == "GITHUB_ENVIRONMENT" ? 1 : 0
-  org_id   = var.org_id
-  role     = "roles/orgpolicy.policyAdmin"
-  member   = "serviceAccount:${google_service_account.service_account.email}"
-
-  depends_on = [
-    google_service_account.service_account
-  ]
-}
+# resource "google_organization_iam_member" "organization" {
+#   count  = var.environment == "GITHUB_ENVIRONMENT" ? 1 : 0
+#   org_id   = var.org_id
+#   role     = "roles/orgpolicy.policyAdmin"
+#   member   = "serviceAccount:${google_service_account.service_account.email}"
+# 
+#   depends_on = [
+#     google_service_account.service_account
+#   ]
+# }
 
 
 ####################################################################################
