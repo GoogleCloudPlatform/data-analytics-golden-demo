@@ -700,7 +700,7 @@ resource "google_cloudfunctions_function_iam_member" "invoker" {
 resource "google_project_iam_member" "bq_connection_iam_cloud_invoker" {
   project  = var.project_id
   role     = "roles/storage.objectViewer"
-  member   = "serviceAccount:${var.project_id}@appspot.gserviceaccount.com}"
+  member   = "serviceAccount:${var.project_id}@appspot.gserviceaccount.com"
 
   depends_on = [ 
     google_storage_bucket.code_bucket,
