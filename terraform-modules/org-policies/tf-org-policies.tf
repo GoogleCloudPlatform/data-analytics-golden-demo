@@ -25,7 +25,7 @@ terraform {
   required_providers {
     google = {
       source  = "hashicorp/google-beta"
-      version = "4.15.0"
+      version = "4.30.0"
     }
   }
 }
@@ -93,6 +93,33 @@ resource "google_org_policy_policy" "org_policy_require_shielded_vm" {
 }
 
 
+# To deploy the cloud function
+resource "google_org_policy_policy" "org_policy_allowed_ingress_settings" {
+  name     = "projects/${var.project_id}/policies/cloudfunctions.allowedIngressSettings"
+  parent   = "projects/${var.project_id}"
+
+  spec {
+    rules {
+      allow_all = "TRUE"
+    }
+  }
+}
+
+
+# To set service accounts (since sometimes they cause a voliation)
+resource "google_org_policy_policy" "org_policy_allowed_policy_member_domains" {
+  name     = "projects/${var.project_id}/policies/iam.allowedPolicyMemberDomains"
+  parent   = "projects/${var.project_id}"
+
+  spec {
+    rules {
+      allow_all = "TRUE"
+    }
+  }
+}
+
+
+
 ####################################################################################
 # Time Delay for Org Policies
 ####################################################################################
@@ -105,6 +132,8 @@ resource "time_sleep" "time_sleep_org_policies" {
   depends_on = [
     google_org_policy_policy.org_policy_require_os_login,
     google_org_policy_policy.org_policy_vm_external_ip_access,
-    google_org_policy_policy.org_policy_require_shielded_vm
+    google_org_policy_policy.org_policy_require_shielded_vm,
+    google_org_policy_policy.org_policy_allowed_ingress_settings,
+    google_org_policy_policy.org_policy_allowed_policy_member_domains
   ]
 }

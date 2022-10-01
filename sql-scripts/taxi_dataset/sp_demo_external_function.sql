@@ -19,9 +19,6 @@
 Use Cases:
     - Call custom code from BigQuery that is not achiveable with BQ JavaScript functions or SQL functions
 
-Prerequisite:
-    - Run the "DAG sample-bigquery-external-cloud-function" to deploy the Cloud Function
-
 Description: 
     - The below creates the external function "link" in BigQuery
     - The below calls a single cloud function that has several methods
