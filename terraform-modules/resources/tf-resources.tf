@@ -643,7 +643,7 @@ resource "google_cloudfunctions_function" "bigquery_external_function" {
   description = "bigquery_external_function"
   runtime     = "python310"
 
-  available_memory_mb          = 128
+  available_memory_mb          = 256
   source_archive_bucket        = google_storage_bucket.code_bucket.name
   source_archive_object        = google_storage_bucket_object.bigquery_external_function_zip_upload.name
   trigger_http                 = true
