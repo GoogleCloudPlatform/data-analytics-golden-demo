@@ -91,8 +91,7 @@ change_org_policy= \
 "echo \"  rules:\" >> iam_allowedPolicyMemberDomains.yaml; " + \
 "echo \"  - allow_all: true\" >> iam_allowedPolicyMemberDomains.yaml; " + \
 "cat iam_allowedPolicyMemberDomains.yaml;" + \
-"gcloud org-policies --impersonate-service-account \"" + project_id + "@" + project_id + ".iam.gserviceaccount.com" + "\" set-policy iam_allowedPolicyMemberDomains.yaml; " + \
-"sleep 120;"
+"gcloud org-policies --impersonate-service-account \"" + project_id + "@" + project_id + ".iam.gserviceaccount.com" + "\" set-policy iam_allowedPolicyMemberDomains.yaml; "
 
 grant_iam= \
 "serviceAccount=$(cat /home/airflow/gcs/data/serviceAccountId.txt); " + \
@@ -148,13 +147,19 @@ with airflow.DAG('step-04-create-biglake-connection',
         task_id="change_org_policy",
         bash_command=change_org_policy  
     )
-        
+
+    # Wait for policies to take affect
+    sleep_2_minutes = bash_operator.BashOperator(
+        task_id="sleep_2_minutes",
+        bash_command="sleep 120"  
+    )
+
     grant_iam = bash_operator.BashOperator(
         task_id="grant_iam",
         bash_command=grant_iam  
     )
     # DAG Graph
-    bq_create_connection >> bq_show_connections >> parse_connections >> change_org_policy >> grant_iam
+    bq_create_connection >> bq_show_connections >> parse_connections >> change_org_policy >> sleep_2_minutes >> grant_iam
     
 
 # [END dag]

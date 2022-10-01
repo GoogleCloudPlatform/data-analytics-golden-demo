@@ -25,7 +25,7 @@ terraform {
   required_providers {
     google = {
       source  = "hashicorp/google-beta"
-      version = "4.15.0"
+      version = "4.30.0"
     }
   }
 }
@@ -73,6 +73,14 @@ resource "google_storage_bucket" "raw_bucket" {
 resource "google_storage_bucket" "processed_bucket" {
   project                     = var.project_id
   name                        = "processed-${var.storage_bucket}"
+  location                    = var.bigquery_region
+  force_destroy               = true
+  uniform_bucket_level_access = true
+}
+
+resource "google_storage_bucket" "code_bucket" {
+  project                     = var.project_id
+  name                        = "code-${var.storage_bucket}"
   location                    = var.bigquery_region
   force_destroy               = true
   uniform_bucket_level_access = true
@@ -599,6 +607,136 @@ provisioner "local-exec" {
       null_resource.deploy_data_masking_default_value,
     ]
 }
+
+####################################################################################
+# Cloud Function
+####################################################################################
+# Zip the source code
+data "archive_file" "bigquery_external_function_zip" {
+  type        = "zip"
+  source_dir  = "../cloud-functions/bigquery-external-function" 
+  output_path = "../cloud-functions/bigquery-external-function.zip"
+
+  depends_on = [ 
+    google_storage_bucket.code_bucket
+    ]  
+}
+
+# Upload code
+resource "google_storage_bucket_object" "bigquery_external_function_zip_upload" {
+  name   = "cloud-functions/bigquery-external-function/bigquery-external-function.zip"
+  bucket = google_storage_bucket.code_bucket.name
+  source = data.archive_file.bigquery_external_function_zip.output_path
+
+  depends_on = [ 
+    google_storage_bucket.code_bucket,
+    data.archive_file.bigquery_external_function_zip
+    ]  
+}
+
+
+# Deploy the function
+resource "google_cloudfunctions_function" "bigquery_external_function" {
+  project     = var.project_id
+  region      = "us-central1"
+  name        = "bigquery_external_function"
+  description = "bigquery_external_function"
+  runtime     = "python310"
+
+  available_memory_mb          = 256
+  source_archive_bucket        = google_storage_bucket.code_bucket.name
+  source_archive_object        = google_storage_bucket_object.bigquery_external_function_zip_upload.name
+  trigger_http                 = true
+  ingress_settings             = "ALLOW_ALL"
+  https_trigger_security_level = "SECURE_ALWAYS"
+  entry_point                  = "bigquery_external_function"
+  # no-allow-unauthenticated ???
+  depends_on = [ 
+    google_storage_bucket.code_bucket,
+    data.archive_file.bigquery_external_function_zip,
+    google_storage_bucket_object.bigquery_external_function_zip_upload
+  ]  
+}
+
+
+
+####################################################################################
+# BigQuery - Connections (BigLake, Functions, etc)
+####################################################################################
+# Cloud Function connection
+# https://cloud.google.com/bigquery/docs/biglake-quickstart#terraform
+resource "google_bigquery_connection" "cloud_function_connection" {
+   connection_id = "cloud-function"
+   location      = "US"
+   friendly_name = "cloud-function"
+   description   = "cloud-function"
+   cloud_resource {}
+   depends_on = [ 
+    google_bigquery_connection.cloud_function_connection
+    ]
+}
+
+
+# Allow service account to invoke the cloud function
+resource "google_cloudfunctions_function_iam_member" "invoker" {
+  project        = google_cloudfunctions_function.bigquery_external_function.project
+  region         = google_cloudfunctions_function.bigquery_external_function.region
+  cloud_function = google_cloudfunctions_function.bigquery_external_function.name
+
+  role   = "roles/cloudfunctions.invoker"
+  member = "serviceAccount:${google_bigquery_connection.cloud_function_connection.cloud_resource[0].service_account_id}"
+
+  depends_on = [
+    google_storage_bucket.code_bucket,
+    data.archive_file.bigquery_external_function_zip,
+    google_storage_bucket_object.bigquery_external_function_zip_upload,
+    google_cloudfunctions_function.bigquery_external_function,
+    google_bigquery_connection.cloud_function_connection
+  ]
+}
+
+
+# Allow cloud function service account to read storage
+resource "google_project_iam_member" "bq_connection_iam_cloud_invoker" {
+  project  = var.project_id
+  role     = "roles/storage.objectViewer"
+  member   = "serviceAccount:${var.project_id}@appspot.gserviceaccount.com"
+
+  depends_on = [ 
+    google_storage_bucket.code_bucket,
+    data.archive_file.bigquery_external_function_zip,
+    google_storage_bucket_object.bigquery_external_function_zip_upload,
+    google_cloudfunctions_function.bigquery_external_function,
+    google_bigquery_connection.cloud_function_connection
+  ]
+}
+
+
+# BigLake connection
+resource "google_bigquery_connection" "biglake_connection" {
+   connection_id = "biglake-connection"
+   location      = "US"
+   friendly_name = "biglake-connection"
+   description   = "biglake-connection"
+   cloud_resource {}
+   depends_on = [ 
+      google_bigquery_connection.cloud_function_connection
+   ]
+}
+
+
+# Allow BigLake to read storage
+resource "google_project_iam_member" "bq_connection_iam_object_viewer" {
+  project  = var.project_id
+  role     = "roles/storage.objectViewer"
+  member   = "serviceAccount:${google_bigquery_connection.biglake_connection.cloud_resource[0].service_account_id}"
+
+  depends_on = [
+    google_bigquery_connection.biglake_connection
+  ]
+}
+
+
 
 ####################################################################################
 # BigQuery Table with Column Level Security

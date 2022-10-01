@@ -73,11 +73,11 @@ with airflow.DAG('run-all-dags',
         wait_for_completion=True
     ) 
 
-    step_04_create_biglake_connection = TriggerDagRunOperator(
-        task_id="step_04_create_biglake_connection",
-        trigger_dag_id="step-04-create-biglake-connection",
-        wait_for_completion=True
-    )      
+    #step_04_create_biglake_connection = TriggerDagRunOperator(
+    #    task_id="step_04_create_biglake_connection",
+    #    trigger_dag_id="step-04-create-biglake-connection",
+    #    wait_for_completion=True
+    #)      
 
     # Seed some initial data in case the user forgets
     sample_dataflow_start_streaming_job = TriggerDagRunOperator(
@@ -88,6 +88,6 @@ with airflow.DAG('run-all-dags',
 
     # DAG Graph
     step_01_taxi_data_download >> step_02_taxi_data_processing >> step_03_hydrate_tables >> \
-        step_04_create_biglake_connection >> sample_dataflow_start_streaming_job
+        sample_dataflow_start_streaming_job
 
 # [END dag]
