@@ -4,6 +4,10 @@ Deploys a end to end working demo of a Data Analytics / Data Processing using Go
 
 ![alt tag](./images/Architecture-Diagram.png)
 
+![alt tag](./images/Technical-Architecture.png)
+
+![alt tag](./images/Sample-Architecture.png)
+
 
 ## Deploying using Cloud Shell
 You can deploy this to a new project or an existing project.
@@ -15,8 +19,8 @@ You can deploy this to a new project or an existing project.
 
 ### To deploy to New Project (Preferred method)
 1. Open a Google Cloud Shell: http://shell.cloud.google.com/ 
-2. Type: git clone https://github.com/GoogleCloudPlatform/enterprise-data-analytics-demo
-3. Switch the prompt to the directory: cd enterprise-data-analytics-demo
+2. Type: git clone https://github.com/GoogleCloudPlatform/data-analytics-golden-demo
+3. Switch the prompt to the directory: cd data-analytics-golden-demo
 4. Run the deployment script: source deploy.sh  
 5. Authorize the login (a popup will appear)
 6. Follow the prompts: Answer “Yes” for each.
