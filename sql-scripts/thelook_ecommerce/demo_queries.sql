@@ -175,9 +175,16 @@ ORDER BY distribution_center_id;
 --       to set up and configure OMNI and AWS manually.
 ------------------------------------------------------------------------------------
 
--- Open a new tab and paste the URL below.  You must run OMNI from a shared project.
--- https://console.cloud.google.com/bigquery?project=${omni_project}
-EXECUTE IMMEDIATE format("""
-SELECT * FROM `${omni_dataset}.distribution_centers` LIMIT 1000;
-""");
+-- To view the shared data you can navigate to the shared project
+-- https://console.cloud.google.com/bigquery?project=${shared_demo_project_id}
 
+-- This will query data in AWS on S3 storage
+
+CREATE OR REPLACE EXTERNAL TABLE `${project_id}.${aws_omni_biglake_dataset_name}.distribution_centers`
+WITH CONNECTION `${shared_demo_project_id}.${aws_omni_biglake_dataset_region}.${aws_omni_biglake_connection}`
+    OPTIONS (
+    format = "PARQUET",
+    uris = ['s3://${aws_omni_biglake_s3_bucket}/distribution-center/distribution_centers.parquet']
+);
+
+SELECT * FROM `${project_id}.${aws_omni_biglake_dataset_name}.distribution_centers` LIMIT 1000;

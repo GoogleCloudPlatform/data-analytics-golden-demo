@@ -46,6 +46,11 @@ variable "deployment_service_account_name" {}
 variable "bigquery_region" {}
 variable "curl_impersonation" {}
 
+variable "aws_omni_biglake_dataset_region" {}
+variable "aws_omni_biglake_dataset_name" {}
+variable "azure_omni_biglake_dataset_name" {}
+variable "azure_omni_biglake_dataset_region" {}
+
 # Hardcoded
 variable "bigquery_taxi_dataset" {
   type        = string
@@ -431,6 +436,22 @@ resource "google_bigquery_dataset" "thelook_ecommerce_dataset" {
   location      = var.bigquery_region
 }
 
+resource "google_bigquery_dataset" "aws_omni_biglake_dataset" {
+  project       = var.project_id
+  dataset_id    = var.aws_omni_biglake_dataset_name
+  friendly_name = var.aws_omni_biglake_dataset_name
+  description   = "This contains the AWS OMNI NYC taxi data"
+  location      = var.aws_omni_biglake_dataset_region
+}
+
+resource "google_bigquery_dataset" "azure_omni_biglake_dataset" {
+  project       = var.project_id
+  dataset_id    = var.azure_omni_biglake_dataset_name
+  friendly_name = var.azure_omni_biglake_dataset_name
+  description   = "This contains the Azure OMNI NYC taxi data"
+  location      = var.azure_omni_biglake_dataset_region
+}
+
 # Temp work bucket for BigSpark
 resource "google_storage_bucket" "bigspark_bucket" {
   project                     = var.project_id
@@ -474,6 +495,93 @@ resource "google_compute_firewall" "bigspark_subnet_firewall_rule" {
 
 ####################################################################################
 # Data Catalog Taxonomy
+# AWS Region
+####################################################################################
+resource "google_data_catalog_taxonomy" "business_critical_taxonomy_aws" {
+  project  = var.project_id
+  region   = var.aws_omni_biglake_dataset_region
+  # Must be unique accross your Org
+  display_name           = "Business-Critical-AWS-${var.random_extension}"
+  description            = "A collection of policy tags (AWS)"
+  activated_policy_types = ["FINE_GRAINED_ACCESS_CONTROL"]
+}
+
+resource "google_data_catalog_policy_tag" "low_security_policy_tag_aws" {
+  taxonomy     = google_data_catalog_taxonomy.business_critical_taxonomy_aws.id
+  display_name = "AWS Low security"
+  description  = "A policy tag normally associated with low security items (AWS)"
+
+  depends_on = [
+    google_data_catalog_taxonomy.business_critical_taxonomy_aws,
+  ]
+}
+
+resource "google_data_catalog_policy_tag" "high_security_policy_tag_aws" {
+  taxonomy     = google_data_catalog_taxonomy.business_critical_taxonomy_aws.id
+  display_name = "AWS High security"
+  description  = "A policy tag normally associated with high security items (AWS)"
+
+  depends_on = [
+    google_data_catalog_taxonomy.business_critical_taxonomy_aws
+  ]
+}
+
+resource "google_data_catalog_policy_tag_iam_member" "member_aws" {
+  policy_tag = google_data_catalog_policy_tag.low_security_policy_tag_aws.name
+  role       = "roles/datacatalog.categoryFineGrainedReader"
+  member     = "user:${var.gcp_account_name}"
+  depends_on = [
+    google_data_catalog_policy_tag.low_security_policy_tag_aws,
+  ]
+}
+
+
+####################################################################################
+# Data Catalog Taxonomy
+# Azure Region
+####################################################################################
+resource "google_data_catalog_taxonomy" "business_critical_taxonomy_azure" {
+  project  = var.project_id
+  region   = var.azure_omni_biglake_dataset_region
+  # Must be unique accross your Org
+  display_name           = "Business-Critical-Azure-${var.random_extension}"
+  description            = "A collection of policy tags (Azure)"
+  activated_policy_types = ["FINE_GRAINED_ACCESS_CONTROL"]
+}
+
+resource "google_data_catalog_policy_tag" "low_security_policy_tag_azure" {
+  taxonomy     = google_data_catalog_taxonomy.business_critical_taxonomy_azure.id
+  display_name = "Azure Low security"
+  description  = "A policy tag normally associated with low security items (Azure)"
+
+  depends_on = [
+    google_data_catalog_taxonomy.business_critical_taxonomy_azure,
+  ]
+}
+
+resource "google_data_catalog_policy_tag" "high_security_policy_tag_azure" {
+  taxonomy     = google_data_catalog_taxonomy.business_critical_taxonomy_azure.id
+  display_name = "Azure High security"
+  description  = "A policy tag normally associated with high security items (Azure)"
+
+  depends_on = [
+    google_data_catalog_taxonomy.business_critical_taxonomy_azure
+  ]
+}
+
+resource "google_data_catalog_policy_tag_iam_member" "member_azure" {
+  policy_tag = google_data_catalog_policy_tag.low_security_policy_tag_azure.name
+  role       = "roles/datacatalog.categoryFineGrainedReader"
+  member     = "user:${var.gcp_account_name}"
+  depends_on = [
+    google_data_catalog_policy_tag.low_security_policy_tag_azure,
+  ]
+}
+
+
+####################################################################################
+# Data Catalog Taxonomy
+# Taxi US Region
 ####################################################################################
 resource "google_data_catalog_taxonomy" "business_critical_taxonomy" {
   project  = var.project_id

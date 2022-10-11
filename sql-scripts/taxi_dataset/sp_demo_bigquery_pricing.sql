@@ -37,6 +37,9 @@ Reference:
     - https://cloud.google.com/bigquery/docs/information-schema-jobs
     - To set quotas: https://console.cloud.google.com/apis/api/bigquery.googleapis.com/quotas
     - Buy Flex Slots: https://cloud.google.com/bigquery/docs/reservations-get-started
+    - To setup quotas for user/project: 
+      https://cloud.google.com/bigquery/docs/custom-quotas#example
+      https://cloud.google.com/bigquery/docs/custom-quotas#how_to_set_or_modify_custom_quotas
 
 Clean up / Reset script:
     DROP ASSIGNMENT  `${project_id}.region-${bigquery_region}.demo-reservation-flex-100.demo-assignment-flex-100`;

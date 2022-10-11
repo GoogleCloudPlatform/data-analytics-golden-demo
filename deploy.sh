@@ -134,9 +134,10 @@ terraform apply \
   -var="project_id=data-analytics-demo"
 
 # NOTE: To deploy for BQ OMNI you need to also include there arguments to the terraform apply
-#  -var="omni_dataset=gcp_project_name_setup_for_omni.my_dataset_name_for_omni" \
-#  -var="omni_aws_connection=aws-us-east-1.my_connection_name" \
-#  -var="omni_aws_s3_bucket_name=my_bucket_name"
+#  -var="shared_demo_project_id=mySharedProject" \
+#  -var="aws_omni_biglake_s3_bucket=myS3Bucket" \
+#  -var="azure_omni_biglake_connection=projects/mySharedProject/locations/azure-eastus2/connections/bq_omni_azure_adls" \
+#  -var="azure_omni_biglake_adls_name=myAzureADLSGen2StorageAccount"
  
 # Write out the output variables (currently not used)
 # terraform output -json > tf-output.json

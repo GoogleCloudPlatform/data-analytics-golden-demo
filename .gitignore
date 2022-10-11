@@ -30,3 +30,4 @@ tf.log
 git-on-borg*.sh
 preview-features/*
 cloud-functions/bigquery-external-function.zip
+replace-me-helper.txt

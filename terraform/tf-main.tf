@@ -158,31 +158,84 @@ variable "bigquery_region" {
   }
 }
 
-variable "omni_dataset" {
+########################################################################################################
+# Google specific values (you need to setup your own OMNI)
+########################################################################################################
+variable "shared_demo_project_id" {
   type        = string
-  description = "The full path project_id.dataset_id to the OMNI data."
-  default     = "OMNI.DATASET"
+  description = "The name of a shared project that holds the OMNI slots and other sample data "
+  default     = "REPLACE_ME_SHARED_DEMO_PROJECT_ID"
 }
 
-variable "omni_aws_connection" {
+/*
+variable "deploy_aws_omni" {
+  type        = bool
+  description = "Should we deploy omni resouces"
+  default     = true
+}
+*/
+
+variable "aws_omni_biglake_dataset_region" {
   type        = string
-  description = "The connection region and name"
-  default     = "AWS_REGION.CONNECTION_NAME"
+  description = "The region of AWS OMNI"
+  default     = "us" //  "aws-us-east-1"
 }
 
-variable "omni_aws_s3_bucket_name" {
+variable "aws_omni_biglake_dataset_name" {
   type        = string
-  description = "The full path project_id.dataset_id to the OMNI data."
-  default     = "S3_BUCKET_NAME"
+  description = "The dataset to hold the AWS procedures and tables"
+  default     = "aws_omni_biglake"
 }
 
+variable "aws_omni_biglake_connection" {
+  type        = string
+  description = "The AWS connection name"
+  default     = "bq_omni_aws_s3"
+}
+
+variable "aws_omni_biglake_s3_bucket" {
+  type        = string
+  description = "The name of the S3 bucket"
+  default     = "REPLACE_ME_AWS_S3_BUCKET_NAME"
+}
+
+variable "azure_omni_biglake_adls_name" {
+  type        = string
+  description = "The name of the S3 bucket"
+  default     = "REPLACE_ME_AZURE_ADLS_NAME"
+}
+
+variable "azure_omni_biglake_connection" {
+  type        = string
+  description = "The name of the Azure V2 storage account"
+  default     = "REPLACE_ME_AZURE_CONNECTION_NAME"
+}
+
+variable "azure_omni_biglake_dataset_name" {
+  type        = string
+  description = "The name of the Azure dataset"
+  default     = "azure_omni_biglake"
+}
+
+variable "azure_omni_biglake_dataset_region" {
+  type        = string
+  description = "The region of Azure OMNI"
+  default     = "us" //  "azure-eastus2"
+}
+
+########################################################################################################
+# Some deployments target different environments
+########################################################################################################
 variable "environment" {
   type        = string
   description = "Where is the script being run from.  Internal system or public GitHub"
   default     = "GITHUB_ENVIRONMENT" #_REPLACEMENT_MARKER (do not remove this text of change the spacing)
 }
 
+
+########################################################################################################
 # Not required for this demo, but is part of click to deploy automation
+########################################################################################################
 variable "data_location" {
   type        = string
   description = "Location of source data file in central bucket"
@@ -198,6 +251,7 @@ variable "project_name" {
   description = "Project name in which demo deploy"
   default     = ""
 }
+
 
 ####################################################################################
 # Local Variables 
@@ -349,17 +403,21 @@ module "resources" {
   # Use Service Account Impersonation for this step. 
   providers = { google = google.service_principal_impersonation }
 
-  gcp_account_name                = var.gcp_account_name
-  project_id                      = local.local_project_id
-  region                          = var.region
-  zone                            = var.zone
-  storage_bucket                  = local.local_storage_bucket
-  spanner_config                  = var.spanner_config
-  random_extension                = random_string.project_random.result
-  project_number                  = var.project_number == "" ? module.project[0].output-project-number : var.project_number
-  deployment_service_account_name = var.deployment_service_account_name
-  bigquery_region                 = var.bigquery_region
-  curl_impersonation              = local.local_curl_impersonation
+  gcp_account_name                  = var.gcp_account_name
+  project_id                        = local.local_project_id
+  region                            = var.region
+  zone                              = var.zone
+  storage_bucket                    = local.local_storage_bucket
+  spanner_config                    = var.spanner_config
+  random_extension                  = random_string.project_random.result
+  project_number                    = var.project_number == "" ? module.project[0].output-project-number : var.project_number
+  deployment_service_account_name   = var.deployment_service_account_name
+  bigquery_region                   = var.bigquery_region
+  curl_impersonation                = local.local_curl_impersonation
+  aws_omni_biglake_dataset_region   = var.aws_omni_biglake_dataset_region
+  aws_omni_biglake_dataset_name     = var.aws_omni_biglake_dataset_name
+  azure_omni_biglake_dataset_name   = var.azure_omni_biglake_dataset_name
+  azure_omni_biglake_dataset_region = var.azure_omni_biglake_dataset_region
 
   depends_on = [
     module.project,
@@ -390,9 +448,14 @@ module "sql-scripts" {
   project_number                  = var.project_number == "" ? module.project[0].output-project-number : var.project_number
   deployment_service_account_name = var.deployment_service_account_name
   bigquery_region                 = var.bigquery_region
-  omni_dataset                    = var.omni_dataset
-  omni_aws_connection             = var.omni_aws_connection
-  omni_aws_s3_bucket_name         = var.omni_aws_s3_bucket_name
+  shared_demo_project_id          = var.shared_demo_project_id
+  aws_omni_biglake_dataset_name   = var.aws_omni_biglake_dataset_name
+  aws_omni_biglake_dataset_region = var.aws_omni_biglake_dataset_region
+  aws_omni_biglake_connection     = var.aws_omni_biglake_connection
+  aws_omni_biglake_s3_bucket      = var.aws_omni_biglake_s3_bucket
+  azure_omni_biglake_dataset_name = var.azure_omni_biglake_dataset_name
+  azure_omni_biglake_connection   = var.azure_omni_biglake_connection
+  azure_omni_biglake_adls_name    = var.azure_omni_biglake_adls_name
 
   depends_on = [
     module.project,

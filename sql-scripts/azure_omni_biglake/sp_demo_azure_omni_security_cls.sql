@@ -1,6 +1,3 @@
-CREATE OR REPLACE PROCEDURE `azure_omni_biglake.sp_demo_azure_omni_security_cls`()
-OPTIONS (strict_mode=false)
-BEGIN
 /*##################################################################################
 # Copyright 2022 Google LLC
 #
@@ -26,7 +23,7 @@ Description:
     - Filter rows by a Pickup Location
 
 Dependencies:
-    - You must open a new tab with the URL: https://console.cloud.google.com/bigquery?project=${omni_project}
+    - You must open a new tab with the URL: https://console.cloud.google.com/bigquery?project=${shared_demo_project_id}
 
 Show:
     - Data is protected (columns) even though the data is a CSV format.
@@ -40,10 +37,23 @@ Clean up / Reset script:
 
 */
 
+-- NOTE: MANUAL STEPS
+-- Perform the below during the demo to show how to setup column level security (or data masking)
+
 -- Open the table and view the schema
--- You will see columns with security applied
--- There is High Security on the Fare_Amount and Total_Amount (we do not have access to these fields)
--- There is Low Security on the "other" amount fields (we have access to these)
+-- Click the "EDIT SCHEMA" button at the bottom
+-- Go to Page 2 of the Fields (bottom right little arrow)
+-- Check off the fields: Fare_Amount and Total_Amount
+-- Click the "ADD POLICY TAG" button at the top
+-- Select the Policy tag Business-Critical-Azure-${random_extension}
+-- Select the "High Security" option (you will not be able to access this data)
+-- Click the "SELECT" buttom
+-- Check off the fields: Surcharge, MTA_Tax, Tip_Amount, Tolls_Amount, Improvement_Surcharge
+-- Click the "ADD POLICY TAG" button at the top
+-- Select the Policy tag Business-Critical-Azure-${random_extension}
+-- Select the "Low Security" option (you will have access to see this data)
+-- Click the "SELECT" buttom
+-- On the "Edit Schema" screen press "SAVE"
 
 -- NOTE: The tables are named with a suffix of "_cls", this is so we do not affect the demo.  
 --       In the real application of CLS you do not need a seperate table.
@@ -51,7 +61,7 @@ Clean up / Reset script:
 --- CSV FORMAT
 -- This will error since we try to select the Fare_Amount and Total_Amount
 SELECT *
-  FROM `azure_omni_biglake.taxi_azure_yellow_trips_csv_cls`
+  FROM `${project_id}.${azure_omni_biglake_dataset_name}.taxi_azure_yellow_trips_csv_cls`
  WHERE year = 2021
    AND month = 1  
 LIMIT 1000;
@@ -59,7 +69,7 @@ LIMIT 1000;
 
 -- This will work since we do not select the column's we do not have access
 SELECT * EXCEPT (Fare_Amount,Total_Amount)
-  FROM `azure_omni_biglake.taxi_azure_yellow_trips_csv_cls`
+  FROM `${project_id}.${azure_omni_biglake_dataset_name}.taxi_azure_yellow_trips_csv_cls`
  WHERE year = 2021
    AND month = 1  
 LIMIT 1000;
@@ -68,7 +78,7 @@ LIMIT 1000;
 -- JSON FORMAT
 -- This will error since we try to select the Fare_Amount and Total_Amount
 SELECT *
-  FROM `azure_omni_biglake.taxi_azure_yellow_trips_json_cls`
+  FROM `${project_id}.${azure_omni_biglake_dataset_name}.taxi_azure_yellow_trips_json_cls`
  WHERE year = 2021
    AND month = 1  
 LIMIT 1000;
@@ -76,7 +86,7 @@ LIMIT 1000;
 
 -- This will work since we do not select the column's we do not have access
 SELECT * EXCEPT (Fare_Amount,Total_Amount)
-  FROM `azure_omni_biglake.taxi_azure_yellow_trips_json_cls`
+  FROM `${project_id}.${azure_omni_biglake_dataset_name}.taxi_azure_yellow_trips_json_cls`
  WHERE year = 2021
    AND month = 1  
 LIMIT 1000;
@@ -85,13 +95,11 @@ LIMIT 1000;
 -- PARQUET FORMAT
 -- This will error since we try to select the Fare_Amount and Total_Amount
 SELECT *
-  FROM `azure_omni_biglake.taxi_azure_yellow_trips_parquet_cls`
+  FROM `${project_id}.${azure_omni_biglake_dataset_name}.taxi_azure_yellow_trips_parquet_cls`
 LIMIT 1000;
 
 
 -- This will work since we do not select the column's we do not have access
 SELECT * EXCEPT (Fare_Amount,Total_Amount)
-  FROM `azure_omni_biglake.taxi_azure_yellow_trips_parquet_cls`
+  FROM `${project_id}.${azure_omni_biglake_dataset_name}.taxi_azure_yellow_trips_parquet_cls`
 LIMIT 1000;
-
-END;
