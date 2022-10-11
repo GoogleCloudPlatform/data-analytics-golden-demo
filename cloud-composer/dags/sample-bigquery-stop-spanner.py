@@ -49,6 +49,9 @@ spanner_instance_id   = os.environ['ENV_SPANNER_INSTANCE_ID']
 
 spanner_uri = "projects/" + project_id + "/instances/" + spanner_instance_id
 
+delete_bigquery_connection="bq rm --connection --location=\"" + region + "\" bq_spanner_connection"
+
+
 # Opens the json written out when the job was started
 # Checks for 4 hours
 # Stops the job and deletes the json file
@@ -133,8 +136,13 @@ with airflow.DAG('sample-bigquery-stop-spanner',
         dag=dag,
         ) 
 
-    
+    # Delete BigQuery Spanner connection
+    delete_bigquery_connection = bash_operator.BashOperator(
+        task_id="delete_bigquery_connection",
+        bash_command=delete_bigquery_connection,
+    )
+
     # DAG Graph
-    delete_spanner_instance
+    delete_spanner_instance >> delete_bigquery_connection
     
 # [END dag]
