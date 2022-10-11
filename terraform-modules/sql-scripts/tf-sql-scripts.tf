@@ -441,10 +441,10 @@ resource "google_bigquery_routine" "sproc_sp_demo_json_datatype" {
 
 
 ####################################################################################
-# sp_demo_machine_leaning_anomoly_fee_amount
+# sp_demo_machine_learning_anomaly_fee_amount
 ####################################################################################
-data "template_file" "sproc_sp_demo_machine_leaning_anomoly_fee_amount" {
-  template = "${file("../sql-scripts/taxi_dataset/sp_demo_machine_leaning_anomoly_fee_amount.sql")}"
+data "template_file" "sproc_sp_demo_machine_learning_anomaly_fee_amount" {
+  template = "${file("../sql-scripts/taxi_dataset/sp_demo_machine_learning_anomaly_fee_amount.sql")}"
   vars = {
     project_id = var.project_id
     region = var.region
@@ -455,12 +455,12 @@ data "template_file" "sproc_sp_demo_machine_leaning_anomoly_fee_amount" {
     gcp_account_name = var.gcp_account_name
   }  
 }
-resource "google_bigquery_routine" "sproc_sp_demo_machine_leaning_anomoly_fee_amount" {
+resource "google_bigquery_routine" "sproc_sp_demo_machine_learning_anomaly_fee_amount" {
   dataset_id      = var.bigquery_taxi_dataset
-  routine_id      = "sp_demo_machine_leaning_anomoly_fee_amount"
+  routine_id      = "sp_demo_machine_learning_anomaly_fee_amount"
   routine_type    = "PROCEDURE"
   language        = "SQL"
-  definition_body = "${data.template_file.sproc_sp_demo_machine_leaning_anomoly_fee_amount.rendered}"
+  definition_body = "${data.template_file.sproc_sp_demo_machine_learning_anomaly_fee_amount.rendered}"
 }
 
 

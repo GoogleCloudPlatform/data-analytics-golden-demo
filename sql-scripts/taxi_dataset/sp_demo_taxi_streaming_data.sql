@@ -20,7 +20,7 @@ Prerequisites:
     - In Composer / Airflow start the DAG: sample-dataflow-streaming-bigquery
     - It will take several minutes for the DAG to start
     - To show machine learning on the stream run the following stored procedure at least 30 minutes before demoing
-      - CALL `${project_id}.${bigquery_taxi_dataset}.sp_demo_machine_leaning_anomoly_fee_amount`();
+      - CALL `${project_id}.${bigquery_taxi_dataset}.sp_demo_machine_learning_anomaly_fee_amount`();
 
 Use Cases:
     - Receive realtime data from streaming sources directly into BigQuery
@@ -115,7 +115,7 @@ SELECT *
 
 ------------------------------------------------------------------------------------
 -- Run machine learning on the streaming data
--- NOTE You must run the sp_demo_machine_leaning_anomoly_fee_amount procedure First in order to train the model!
+-- NOTE You must run the sp_demo_machine_learning_anomaly_fee_amount procedure First in order to train the model!
 ------------------------------------------------------------------------------------
 EXECUTE IMMEDIATE """
 WITH LatestData AS 
