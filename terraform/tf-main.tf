@@ -831,6 +831,8 @@ output "output-composer-dag-bucket" {
   value = module.resources.output-composer-dag-bucket
 }
 
+/*
 output "output-spanner-instance-id" {
   value = module.resources.output-spanner-instance-id
 }
+*/

@@ -362,11 +362,12 @@ resource "google_composer_environment" "composer_env" {
         ENV_DATAPROC_SERVICE_ACCOUNT = "dataproc-service-account@${var.project_id}.iam.gserviceaccount.com",
         ENV_GCP_ACCOUNT_NAME         = "${var.gcp_account_name}",
         ENV_TAXI_DATASET_ID          = google_bigquery_dataset.taxi_dataset.dataset_id,
-        ENV_SPANNER_INSTANCE_ID      = google_spanner_instance.spanner_instance.name,
+        ENV_SPANNER_INSTANCE_ID      = "spanner-${var.random_extension}" //google_spanner_instance.spanner_instance.name,
         ENV_BIGQUERY_REGION          = var.bigquery_region,
         ENV_DATAFLOW_SUBNET          = "regions/${var.region}/subnetworks/dataflow-subnet",
         ENV_DATAFLOW_SERVICE_ACCOUNT = "dataflow-service-account@${var.project_id}.iam.gserviceaccount.com",
         ENV_RANDOM_EXTENSION         = var.random_extension
+        ENV_SPANNER_CONFIG           = var.spanner_config
       }
     }
 
@@ -408,7 +409,7 @@ resource "google_composer_environment" "composer_env" {
     google_service_account.composer_service_account,
     google_project_iam_member.composer_service_account_worker_role,
     google_project_iam_member.composer_service_account_bq_admin_role,
-    google_spanner_database.spanner_weather_database
+    #google_spanner_database.spanner_weather_database
   ]
 
   timeouts {
@@ -1063,13 +1064,14 @@ EOF
 ####################################################################################
 # Spanner
 ####################################################################################
+/* This is now part of a DAG
+
 resource "google_spanner_instance" "spanner_instance" {
   project          = var.project_id
   config           = var.spanner_config
   display_name     = "main-instance"
   processing_units = 100
 }
-
 
 resource "google_spanner_database" "spanner_weather_database" {
   project  = var.project_id
@@ -1084,6 +1086,8 @@ resource "google_spanner_database" "spanner_weather_database" {
     google_spanner_instance.spanner_instance
   ]
 }
+*/
+
 
 ####################################################################################
 # DataFlow
@@ -1225,6 +1229,8 @@ output "output-composer-dag-bucket" {
   value = google_composer_environment.composer_env.config.0.dag_gcs_prefix
 }
 
+/*
 output "output-spanner-instance-id" {
   value = google_spanner_instance.spanner_instance.name
 }
+*/
