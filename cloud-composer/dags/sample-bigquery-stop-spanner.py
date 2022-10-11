@@ -137,12 +137,14 @@ with airflow.DAG('sample-bigquery-stop-spanner',
         ) 
 
     # Delete BigQuery Spanner connection
+    """  Should only run if > 4 hours
     delete_bigquery_connection = bash_operator.BashOperator(
-        task_id="delete_bigquery_connection",
+         task_id="delete_bigquery_connection",
         bash_command=delete_bigquery_connection,
     )
+    """
 
     # DAG Graph
-    delete_spanner_instance >> delete_bigquery_connection
+    delete_spanner_instance
     
 # [END dag]
