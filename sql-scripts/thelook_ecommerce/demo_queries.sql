@@ -198,10 +198,11 @@ SELECT * FROM `${project_id}.aws_omni_biglake.distribution_centers`;
 
 -- Load into BigQuery
 -- We can now join the data to the rest of data in BigQuery as well as do machine learning
-LOAD DATA INTO `${project_id}.${aws_omni_biglake_dataset_region}.aws_distribution_centers`
+-- This will appear in your dataset: ${bigquery_thelook_ecommerce_dataset}
+LOAD DATA INTO `${project_id}.${bigquery_thelook_ecommerce_dataset}.aws_distribution_centers`
   FROM FILES (uris = ['s3://${aws_omni_biglake_s3_bucket}/taxi-export/distribution_centers/*'], format = 'PARQUET')
   WITH CONNECTION `${shared_demo_project_id}.${aws_omni_biglake_dataset_region}.${aws_omni_biglake_connection}`;
 
 -- View the data just loaded
-SELECT * FROM `${project_id}.${aws_omni_biglake_dataset_region}.aws_distribution_centers`;
+SELECT * FROM `${project_id}.${bigquery_thelook_ecommerce_dataset}.aws_distribution_centers`;
 
