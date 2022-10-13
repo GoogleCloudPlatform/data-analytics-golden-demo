@@ -178,7 +178,7 @@ variable "deploy_aws_omni" {
 variable "aws_omni_biglake_dataset_region" {
   type        = string
   description = "The region of AWS OMNI"
-  default     = "us" //  "aws-us-east-1"
+  default     = "aws-us-east-1"
 }
 
 variable "aws_omni_biglake_dataset_name" {
@@ -220,7 +220,7 @@ variable "azure_omni_biglake_dataset_name" {
 variable "azure_omni_biglake_dataset_region" {
   type        = string
   description = "The region of Azure OMNI"
-  default     = "us" //  "azure-eastus2"
+  default     = "azure-eastus2"
 }
 
 ########################################################################################################
