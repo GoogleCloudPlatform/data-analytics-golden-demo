@@ -275,3 +275,8 @@ resource "google_project_service" "service-vision" {
   project = var.project_id
   service = "vision.googleapis.com"
 }
+    
+resource "google_project_service" "service-datafusion" {
+  project = var.project_id
+  service = "datafusion.googleapis.com"
+}
