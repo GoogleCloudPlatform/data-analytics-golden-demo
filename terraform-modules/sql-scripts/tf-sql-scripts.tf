@@ -133,6 +133,7 @@ data "template_file" "sproc_sp_demo_biglake" {
     bucket_name = "processed-${var.storage_bucket}"
     bigquery_region = var.bigquery_region
     gcp_account_name = var.gcp_account_name
+    random_extension = var.random_extension
     # special case for embedded bash commands
     bqOutputJsonFile = "$${bqOutputJsonFile}"
     bqOutputJson = "$${bqOutputJson}"

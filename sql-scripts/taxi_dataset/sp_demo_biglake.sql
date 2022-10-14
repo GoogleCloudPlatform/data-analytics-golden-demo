@@ -88,3 +88,7 @@ SELECT *
 -- Select the "Low Security" option (you will have access to see this data)
 -- Click the "SELECT" buttom
 -- On the "Edit Schema" screen press "SAVE"
+
+-- See column security/data masking items
+SELECT *
+  FROM `${project_id}.${bigquery_taxi_dataset}.biglake_green_trips`;
