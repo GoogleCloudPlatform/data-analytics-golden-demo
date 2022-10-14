@@ -32,7 +32,8 @@ BEGIN
       - Export data for consumption by data application.
   
   Reference:
-      - n/a
+      - SQL LOAD command: https://cloud.google.com/bigquery/docs/reference/standard-sql/other-statements#load_data_statement
+      - Command Line: https://cloud.google.com/bigquery/docs/bq-command-line-tool#loading_data
   
   Clean up / Reset script:
       DROP TABLE IF EXISTS `${project_id}.${bigquery_taxi_dataset}.load_taxi_ui`;
@@ -56,6 +57,7 @@ BEGIN
 
 -- APPROACH 2
 -- Using SQL commands
+-- https://cloud.google.com/bigquery/docs/reference/standard-sql/other-statements#load_data_statement
 LOAD DATA OVERWRITE ${bigquery_taxi_dataset}.load_taxi_sql
 FROM FILES (
   format = 'CSV',
@@ -68,6 +70,7 @@ SELECT * FROM ${bigquery_taxi_dataset}.load_taxi_sql;
 
 
 -- APPROACH 3
+-- https://cloud.google.com/bigquery/docs/bq-command-line-tool#loading_data
 -- Using CLI via command line
 -- Open a Cloud Shell and paste each command below
 /*
