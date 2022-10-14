@@ -40,43 +40,42 @@ def ExportTaxiData(project_id, taxi_dataset_id, temporaryGcsBucket, destination)
     bucket = "[bucket]"
     spark.conf.set('temporaryGcsBucket', temporaryGcsBucket)
  
-    # SQL API
+    # SQL STATEMENT
 
     # Sample Code: https://cloud.google.com/dataproc/docs/tutorials/bigquery-connector-spark-example#pyspark
     # To use SQL to BQ
     spark.conf.set("viewsEnabled","true")
     spark.conf.set("materializationProject",project_id)
     spark.conf.set("materializationDataset",taxi_dataset_id)
-    print ("BEGIN: Querying Table (SQL API)")
+    print ("BEGIN: Querying Table (SQL STATEMENT)")
     sql = "SELECT * " + \
             "FROM `" + project_id + "." + taxi_dataset_id + ".biglake_green_trips` " + \
-            "LIMIT 1000;"
+           "WHERE PULocationID = 168;"
     print ("SQL: ", sql)
-    df_sql_api = spark.read.format("bigquery").option("query", sql).load()
-    print ("END: Querying Table (SQL API)")
+    df_sql = spark.read.format("bigquery").option("query", sql).load()
+    print ("END: Querying Table (SQL STATEMENT)")
 
-    print ("BEGIN: Writing Data to GCS (SQL API)")
-    outputPath = destination + "/processed/df_sql_api/"
-    df_sql_api \
+    print ("BEGIN: Writing Data to GCS (SQL STATEMENT)")
+    outputPath = destination + "/processed/df_sql/"
+    df_sql \
         .write \
         .mode("overwrite") \
         .parquet(outputPath)
-    print ("END: Writing Data to GCS (SQL API)")
-
+    print ("END: Writing Data to GCS (SQL STATEMENT)")
 
     # Storage API
     # Returns too much data to process with our limited demo core CPU quota
     # Load data from BigQuery taxi_trips table
-    print ("BEGIN: Querying Table (STORAGE API)")
-    df_storage_api = spark.read.format('bigquery') \
+    print ("BEGIN: Querying Table TABLE LOAD)")
+    df_table = spark.read.format('bigquery') \
         .option('table', project_id + ':' + taxi_dataset_id + '.biglake_green_trips') \
-        .load()
-    print ("END: Querying Table (STORAGE API)")
+        .load()  
+    print ("END: Querying Table (TABLE LOAD)")
 
     # Write as Parquet
-    print ("BEGIN: Writing Data to GCS (STORAGE API)")
-    outputPath = destination + "/processed/df_storage_api/"
-    df_storage_api \
+    print ("BEGIN: Writing Data to GCS (TABLE LOAD)")
+    outputPath = destination + "/processed/df_table/"
+    df_table \
         .write \
         .mode("overwrite") \
         .parquet(outputPath)
