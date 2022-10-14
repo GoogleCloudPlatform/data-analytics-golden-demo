@@ -46,6 +46,11 @@ variable "deployment_service_account_name" {}
 variable "bigquery_region" {}
 variable "curl_impersonation" {}
 
+variable "aws_omni_biglake_dataset_region" {}
+variable "aws_omni_biglake_dataset_name" {}
+variable "azure_omni_biglake_dataset_name" {}
+variable "azure_omni_biglake_dataset_region" {}
+
 # Hardcoded
 variable "bigquery_taxi_dataset" {
   type        = string
@@ -357,11 +362,12 @@ resource "google_composer_environment" "composer_env" {
         ENV_DATAPROC_SERVICE_ACCOUNT = "dataproc-service-account@${var.project_id}.iam.gserviceaccount.com",
         ENV_GCP_ACCOUNT_NAME         = "${var.gcp_account_name}",
         ENV_TAXI_DATASET_ID          = google_bigquery_dataset.taxi_dataset.dataset_id,
-        ENV_SPANNER_INSTANCE_ID      = google_spanner_instance.spanner_instance.name,
+        ENV_SPANNER_INSTANCE_ID      = "spanner-${var.random_extension}" //google_spanner_instance.spanner_instance.name,
         ENV_BIGQUERY_REGION          = var.bigquery_region,
         ENV_DATAFLOW_SUBNET          = "regions/${var.region}/subnetworks/dataflow-subnet",
         ENV_DATAFLOW_SERVICE_ACCOUNT = "dataflow-service-account@${var.project_id}.iam.gserviceaccount.com",
         ENV_RANDOM_EXTENSION         = var.random_extension
+        ENV_SPANNER_CONFIG           = var.spanner_config
       }
     }
 
@@ -403,7 +409,7 @@ resource "google_composer_environment" "composer_env" {
     google_service_account.composer_service_account,
     google_project_iam_member.composer_service_account_worker_role,
     google_project_iam_member.composer_service_account_bq_admin_role,
-    google_spanner_database.spanner_weather_database
+    #google_spanner_database.spanner_weather_database
   ]
 
   timeouts {
@@ -429,6 +435,22 @@ resource "google_bigquery_dataset" "thelook_ecommerce_dataset" {
   friendly_name = var.bigquery_thelook_ecommerce_dataset
   description   = "This contains the Looker eCommerce data"
   location      = var.bigquery_region
+}
+
+resource "google_bigquery_dataset" "aws_omni_biglake_dataset" {
+  project       = var.project_id
+  dataset_id    = var.aws_omni_biglake_dataset_name
+  friendly_name = var.aws_omni_biglake_dataset_name
+  description   = "This contains the AWS OMNI NYC taxi data"
+  location      = var.aws_omni_biglake_dataset_region
+}
+
+resource "google_bigquery_dataset" "azure_omni_biglake_dataset" {
+  project       = var.project_id
+  dataset_id    = var.azure_omni_biglake_dataset_name
+  friendly_name = var.azure_omni_biglake_dataset_name
+  description   = "This contains the Azure OMNI NYC taxi data"
+  location      = var.azure_omni_biglake_dataset_region
 }
 
 # Temp work bucket for BigSpark
@@ -474,6 +496,93 @@ resource "google_compute_firewall" "bigspark_subnet_firewall_rule" {
 
 ####################################################################################
 # Data Catalog Taxonomy
+# AWS Region
+####################################################################################
+resource "google_data_catalog_taxonomy" "business_critical_taxonomy_aws" {
+  project  = var.project_id
+  region   = var.aws_omni_biglake_dataset_region
+  # Must be unique accross your Org
+  display_name           = "Business-Critical-AWS-${var.random_extension}"
+  description            = "A collection of policy tags (AWS)"
+  activated_policy_types = ["FINE_GRAINED_ACCESS_CONTROL"]
+}
+
+resource "google_data_catalog_policy_tag" "low_security_policy_tag_aws" {
+  taxonomy     = google_data_catalog_taxonomy.business_critical_taxonomy_aws.id
+  display_name = "AWS Low security"
+  description  = "A policy tag normally associated with low security items (AWS)"
+
+  depends_on = [
+    google_data_catalog_taxonomy.business_critical_taxonomy_aws,
+  ]
+}
+
+resource "google_data_catalog_policy_tag" "high_security_policy_tag_aws" {
+  taxonomy     = google_data_catalog_taxonomy.business_critical_taxonomy_aws.id
+  display_name = "AWS High security"
+  description  = "A policy tag normally associated with high security items (AWS)"
+
+  depends_on = [
+    google_data_catalog_taxonomy.business_critical_taxonomy_aws
+  ]
+}
+
+resource "google_data_catalog_policy_tag_iam_member" "member_aws" {
+  policy_tag = google_data_catalog_policy_tag.low_security_policy_tag_aws.name
+  role       = "roles/datacatalog.categoryFineGrainedReader"
+  member     = "user:${var.gcp_account_name}"
+  depends_on = [
+    google_data_catalog_policy_tag.low_security_policy_tag_aws,
+  ]
+}
+
+
+####################################################################################
+# Data Catalog Taxonomy
+# Azure Region
+####################################################################################
+resource "google_data_catalog_taxonomy" "business_critical_taxonomy_azure" {
+  project  = var.project_id
+  region   = var.azure_omni_biglake_dataset_region
+  # Must be unique accross your Org
+  display_name           = "Business-Critical-Azure-${var.random_extension}"
+  description            = "A collection of policy tags (Azure)"
+  activated_policy_types = ["FINE_GRAINED_ACCESS_CONTROL"]
+}
+
+resource "google_data_catalog_policy_tag" "low_security_policy_tag_azure" {
+  taxonomy     = google_data_catalog_taxonomy.business_critical_taxonomy_azure.id
+  display_name = "Azure Low security"
+  description  = "A policy tag normally associated with low security items (Azure)"
+
+  depends_on = [
+    google_data_catalog_taxonomy.business_critical_taxonomy_azure,
+  ]
+}
+
+resource "google_data_catalog_policy_tag" "high_security_policy_tag_azure" {
+  taxonomy     = google_data_catalog_taxonomy.business_critical_taxonomy_azure.id
+  display_name = "Azure High security"
+  description  = "A policy tag normally associated with high security items (Azure)"
+
+  depends_on = [
+    google_data_catalog_taxonomy.business_critical_taxonomy_azure
+  ]
+}
+
+resource "google_data_catalog_policy_tag_iam_member" "member_azure" {
+  policy_tag = google_data_catalog_policy_tag.low_security_policy_tag_azure.name
+  role       = "roles/datacatalog.categoryFineGrainedReader"
+  member     = "user:${var.gcp_account_name}"
+  depends_on = [
+    google_data_catalog_policy_tag.low_security_policy_tag_azure,
+  ]
+}
+
+
+####################################################################################
+# Data Catalog Taxonomy
+# Taxi US Region
 ####################################################################################
 resource "google_data_catalog_taxonomy" "business_critical_taxonomy" {
   project  = var.project_id
@@ -955,13 +1064,14 @@ EOF
 ####################################################################################
 # Spanner
 ####################################################################################
+/* This is now part of a DAG
+
 resource "google_spanner_instance" "spanner_instance" {
   project          = var.project_id
   config           = var.spanner_config
   display_name     = "main-instance"
   processing_units = 100
 }
-
 
 resource "google_spanner_database" "spanner_weather_database" {
   project  = var.project_id
@@ -976,6 +1086,8 @@ resource "google_spanner_database" "spanner_weather_database" {
     google_spanner_instance.spanner_instance
   ]
 }
+*/
+
 
 ####################################################################################
 # DataFlow
@@ -1117,6 +1229,8 @@ output "output-composer-dag-bucket" {
   value = google_composer_environment.composer_env.config.0.dag_gcs_prefix
 }
 
+/*
 output "output-spanner-instance-id" {
   value = google_spanner_instance.spanner_instance.name
 }
+*/

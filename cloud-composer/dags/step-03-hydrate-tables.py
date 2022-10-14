@@ -43,8 +43,8 @@ default_args = {
 project_id            = os.environ['GCP_PROJECT'] 
 bigquery_region       = os.environ['ENV_BIGQUERY_REGION'] 
 
-sql_taxi_internal_tables="CALL `{}.taxi_dataset.sp_create_taxi_external_tables`();".format(project_id)
-sql_taxi_external_tables="CALL `{}.taxi_dataset.sp_create_taxi_internal_tables`();".format(project_id)
+sql_taxi_external_tables="CALL `{}.taxi_dataset.sp_create_taxi_external_tables`();".format(project_id)
+sql_taxi_internal_tables="CALL `{}.taxi_dataset.sp_create_taxi_internal_tables`();".format(project_id)
 sql_create_product_deliveries="CALL `{}.thelook_ecommerce.create_product_deliveries`();".format(project_id)
 sql_create_thelook_tables="CALL `{}.thelook_ecommerce.create_thelook_tables`('{}');".format(project_id,bigquery_region)
 
@@ -54,22 +54,23 @@ with airflow.DAG('step-03-hydrate-tables',
                  # Not scheduled, trigger only
                  schedule_interval=None) as dag:
 
-    sql_taxi_internal_tables = BigQueryInsertJobOperator(
-    task_id="sql_taxi_internal_tables",
-    location=bigquery_region,
-    configuration={
-        "query": {
-            "query": sql_taxi_internal_tables,
-            "useLegacySql": False,
-        }
-    })
-
+ 
     sql_taxi_external_tables = BigQueryInsertJobOperator(
     task_id="sql_taxi_external_tables",
     location=bigquery_region,
     configuration={
         "query": {
             "query": sql_taxi_external_tables,
+            "useLegacySql": False,
+        }
+    })
+    
+    sql_taxi_internal_tables = BigQueryInsertJobOperator(
+    task_id="sql_taxi_internal_tables",
+    location=bigquery_region,
+    configuration={
+        "query": {
+            "query": sql_taxi_internal_tables,
             "useLegacySql": False,
         }
     })
@@ -94,6 +95,6 @@ with airflow.DAG('step-03-hydrate-tables',
         }
     })   
 
-    sql_taxi_internal_tables >> sql_taxi_external_tables >> sql_create_product_deliveries >> sql_create_thelook_tables
+    sql_taxi_external_tables >> sql_taxi_internal_tables >> sql_create_product_deliveries >> sql_create_thelook_tables
 
 # [END dag]

@@ -65,3 +65,30 @@ DROP ALL ROW ACCESS POLICIES ON `${project_id}.${bigquery_taxi_dataset}.biglake_
 -- See all the data
 SELECT *
   FROM `${project_id}.${bigquery_taxi_dataset}.biglake_green_trips`;
+
+
+--******************************************************************************************
+-- To show column level security or data masking
+--******************************************************************************************
+
+-- NOTE: MANUAL STEPS
+-- Perform the below during the demo to show how to setup column level security (or data masking)
+--
+-- Open the table and view the schema
+-- Click the "EDIT SCHEMA" button at the bottom
+-- Go to Page 2 of the Fields (bottom right little arrow)
+-- Check off the fields: Fare_Amount and Total_Amount
+-- Click the "ADD POLICY TAG" button at the top
+-- Select the Policy tag Business-Critical-AWS-${random_extension}
+-- Select the "High Security" option (you will not be able to access this data)
+-- Click the "SELECT" buttom
+-- Check off the fields: Surcharge, MTA_Tax, Tip_Amount, Tolls_Amount, Improvement_Surcharge
+-- Click the "ADD POLICY TAG" button at the top
+-- Select the Policy tag Business-Critical-AWS-${random_extension}
+-- Select the "Low Security" option (you will have access to see this data)
+-- Click the "SELECT" buttom
+-- On the "Edit Schema" screen press "SAVE"
+
+-- See column security/data masking items
+SELECT *
+  FROM `${project_id}.${bigquery_taxi_dataset}.biglake_green_trips`;
