@@ -1,5 +1,3 @@
-CREATE OR REPLACE PROCEDURE `azure_omni_biglake.sp_demo_azure_omni_delta_lake`()
-BEGIN
 /*##################################################################################
 # Copyright 2022 Google LLC
 #
@@ -44,9 +42,9 @@ Reference:
     - 
 
 Clean up / Reset script:
-    DROP VIEW IF EXISTS `azure_omni_biglake.rideshare_trips`;
-    DROP EXTERNAL TABLE IF EXISTS `azure_omni_biglake.rideshare_trips_raw_parquet`;
-    DROP EXTERNAL TABLE IF EXISTS `azure_omni_biglake.rideshare_trips_manifest`;
+    DROP VIEW IF EXISTS `${project_id}.${azure_omni_biglake_dataset_name}.rideshare_trips`;
+    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${azure_omni_biglake_dataset_name}.rideshare_trips_raw_parquet`;
+    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${azure_omni_biglake_dataset_name}.rideshare_trips_manifest`;
 
 Sample PySpark code to generate a manifest:
     %python
@@ -55,77 +53,74 @@ Sample PySpark code to generate a manifest:
     spark.conf.set("spark.databricks.delta.symlinkFormatManifest.fileSystemCheck.enabled", False)
 
     # Generate manifest
-    deltaTable = DeltaTable.forPath(spark,"azure://${omni_azure_adls_name}.blob.core.windows.net/datalake/delta_io/rideshare_trips/")
+    deltaTable = DeltaTable.forPath(spark,"azure://${azure_omni_biglake_adls_name}.blob.core.windows.net/datalake/delta_io/rideshare_trips/")
     deltaTable.generate("symlink_format_manifest")
 */
 
 
 -- Create an external table over the raw parquet files
--- ********************************************************************************************
--- NOTE: in this Shared Environment you do not have access to create this external table (it has already been created)
--- ********************************************************************************************
-CREATE OR REPLACE EXTERNAL TABLE `azure_omni_biglake.rideshare_trips_raw_parquet`
+-- NOTE: You do not have access to run this command (the table is already created)
+--       If you want to run this use the dataset "ce_playground_azure"
+CREATE OR REPLACE EXTERNAL TABLE `${project_id}.${azure_omni_biglake_dataset_name}.rideshare_trips_raw_parquet`
 WITH PARTITION COLUMNS 
   (
   Rideshare_Vendor_Id INTEGER, 
   Pickup_Date         DATE-- column order must match the external path
   )
-WITH CONNECTION `${omni_azure_connection}`
+WITH CONNECTION `${azure_omni_biglake_connection}`
 OPTIONS (
 format = "PARQUET",
-hive_partition_uri_prefix = "azure://${omni_azure_adls_name}.blob.core.windows.net/datalake/delta_io/rideshare_trips/",
-uris = ['azure://${omni_azure_adls_name}.blob.core.windows.net/datalake/delta_io/rideshare_trips/*.snappy.parquet']
+hive_partition_uri_prefix = "azure://${azure_omni_biglake_adls_name}.blob.core.windows.net/datalake/delta_io/rideshare_trips/",
+uris = ['azure://${azure_omni_biglake_adls_name}.blob.core.windows.net/datalake/delta_io/rideshare_trips/*.snappy.parquet']
 );
 
 -- This shows all the data (including the logically deleted Delta.IO data which is incorrect)
-SELECT * FROM `azure_omni_biglake.rideshare_trips_raw_parquet` LIMIT 1000;
+SELECT * FROM `${project_id}.${azure_omni_biglake_dataset_name}.rideshare_trips_raw_parquet` LIMIT 1000;
 
 -- Returns 54521
-SELECT COUNT(*) FROM `azure_omni_biglake.rideshare_trips_raw_parquet`;
+SELECT COUNT(*) FROM `${project_id}.${azure_omni_biglake_dataset_name}.rideshare_trips_raw_parquet`;
 
 -- Create an external table over the generated manifest files which has pointers to the actual parquet files
--- ********************************************************************************************
--- NOTE: in this Shared Environment you do not have access to create this external table (it has already been created)
--- ********************************************************************************************
-CREATE OR REPLACE EXTERNAL TABLE `azure_omni_biglake.rideshare_trips_manifest`
+-- NOTE: You do not have access to run this command (the table is already created)
+--       If you want to run this use the dataset "ce_playground_azure"
+CREATE OR REPLACE EXTERNAL TABLE `${project_id}.${azure_omni_biglake_dataset_name}.rideshare_trips_manifest`
 WITH PARTITION COLUMNS (
   Rideshare_Vendor_Id INTEGER, 
   Pickup_Date         DATE-- column order must match the external path
 )
-WITH CONNECTION `${omni_azure_connection}`
+WITH CONNECTION `${azure_omni_biglake_connection}`
 OPTIONS (
 format = "CSV", -- it is not really a CSV, it has just 1 column so CSV works
-hive_partition_uri_prefix = "azure://${omni_azure_adls_name}.blob.core.windows.net/datalake/delta_io/rideshare_trips/_symlink_format_manifest/",
-uris = ['azure://${omni_azure_adls_name}.blob.core.windows.net/datalake/delta_io/rideshare_trips/_symlink_format_manifest/*']
+hive_partition_uri_prefix = "azure://${azure_omni_biglake_adls_name}.blob.core.windows.net/datalake/delta_io/rideshare_trips/_symlink_format_manifest/",
+uris = ['azure://${azure_omni_biglake_adls_name}.blob.core.windows.net/datalake/delta_io/rideshare_trips/_symlink_format_manifest/*']
 );
 
 -- Show our manifest files
 -- This will only have files that are not logically deleted by Delta.IO
-SELECT * from `azure_omni_biglake.rideshare_trips_manifest` LIMIT 100;
+SELECT * from `${project_id}.${azure_omni_biglake_dataset_name}.rideshare_trips_manifest` LIMIT 100;
 
 
 -- Create our Final View (This is what Users will work with in BigQuery)
 -- This filter the parquet files by joining to the manifest (which only has pointers to non-logically deleted files)
--- ********************************************************************************************
--- NOTE: in this Shared Environment you do not have access to create this view (it has already been created)
--- ********************************************************************************************
-CREATE OR REPLACE VIEW `azure_omni_biglake.rideshare_trips` AS
+-- NOTE: You do not have access to run this command (the table is already created)
+--       If you want to run this use the dataset "ce_playground_azure"
+CREATE OR REPLACE VIEW `${project_id}.${azure_omni_biglake_dataset_name}.rideshare_trips` AS
 SELECT *
-FROM  `azure_omni_biglake.rideshare_trips_raw_parquet`
+FROM  `${project_id}.${azure_omni_biglake_dataset_name}.rideshare_trips_raw_parquet`
 WHERE REPLACE(_FILE_NAME, 
-             'azure://${omni_azure_adls_name}.blob.core.windows.net/datalake', 
-             'abfss://datalake@${omni_azure_adls_name}.dfs.core.windows.net')
-           IN (SELECT string_field_0 FROM `azure_omni_biglake.rideshare_trips_manifest`) ;
+             'azure://${azure_omni_biglake_adls_name}.blob.core.windows.net/datalake', 
+             'abfss://datalake@${azure_omni_biglake_adls_name}.dfs.core.windows.net')
+           IN (SELECT string_field_0 FROM `${project_id}.${azure_omni_biglake_dataset_name}.rideshare_trips_manifest`) ;
 
 /*
 -- In Azure
-CREATE OR REPLACE VIEW `azure_omni_biglake.rideshare_trips` AS
+CREATE OR REPLACE VIEW `${project_id}.${azure_omni_biglake_dataset_name}.rideshare_trips` AS
 SELECT *,
-FROM  `azure_omni_biglake.rideshare_trips_raw_parquet`
+FROM  `${project_id}.${azure_omni_biglake_dataset_name}.rideshare_trips_raw_parquet`
 WHERE REPLACE(_FILE_NAME, 
              'azure://STORAGE_ACCOUNT_NAME.blob.core.windows.net/CONTAINER_NAME', 
              'abfss://CONTAINER_NAME@STORAGE_ACCOUNT_NAME.dfs.core.windows.net')
-           IN (SELECT string_field_0 FROM `azure_omni_biglake.rideshare_trips_manifest`) ;
+           IN (SELECT string_field_0 FROM `${project_id}.${azure_omni_biglake_dataset_name}.rideshare_trips_manifest`) ;
 
 */
 
@@ -134,13 +129,11 @@ WHERE REPLACE(_FILE_NAME,
 -- We should not have any PULocationIds >= 100 in our results
 
 -- Show it works
-SELECT * FROM `azure_omni_biglake.rideshare_trips` LIMIT 100;
+SELECT * FROM `${project_id}.${azure_omni_biglake_dataset_name}.rideshare_trips` LIMIT 100;
 
 -- Shows that we are not returning delete rows
-SELECT * FROM `azure_omni_biglake.rideshare_trips` WHERE PULocationID >= 100 LIMIT 100;
+SELECT * FROM `${project_id}.${azure_omni_biglake_dataset_name}.rideshare_trips` WHERE PULocationID >= 100 LIMIT 100;
 
 -- Show the count 4521 as compared to the 54521 above
-SELECT COUNT(*) FROM `azure_omni_biglake.rideshare_trips`;
+SELECT COUNT(*) FROM `${project_id}.${azure_omni_biglake_dataset_name}.rideshare_trips`;
 
-
-END;

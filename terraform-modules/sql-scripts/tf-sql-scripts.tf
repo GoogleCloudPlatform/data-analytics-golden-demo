@@ -43,10 +43,14 @@ variable "random_extension" {}
 variable "project_number" {}
 variable "deployment_service_account_name" {}
 variable "bigquery_region" {}
-variable "omni_dataset" {}
-variable "omni_aws_connection" {}
-variable "omni_aws_s3_bucket_name" {}
-
+variable "shared_demo_project_id" {}
+variable "aws_omni_biglake_dataset_name" {}
+variable "aws_omni_biglake_dataset_region" {}
+variable "aws_omni_biglake_connection" {}
+variable "aws_omni_biglake_s3_bucket" {}
+variable "azure_omni_biglake_dataset_name" {}
+variable "azure_omni_biglake_connection" {}
+variable "azure_omni_biglake_adls_name" {}
 
 # Hardcoded
 variable "bigquery_taxi_dataset" {
@@ -59,12 +63,11 @@ variable "bigquery_thelook_ecommerce_dataset" {
 }
 
 
-
-####################################################################################
-####################################################################################
-# taxi_dataset
-####################################################################################
-####################################################################################
+#===================================================================================
+#===================================================================================
+# taxi_dataset Dataset
+#===================================================================================
+#===================================================================================
 
 
 ####################################################################################
@@ -116,33 +119,6 @@ resource "google_bigquery_routine" "sproc_sp_create_taxi_internal_tables" {
 
 
 
-####################################################################################
-# sp_demo_aws_omni
-####################################################################################
-data "template_file" "sproc_sp_demo_aws_omni" {
-  template = "${file("../sql-scripts/taxi_dataset/sp_demo_aws_omni.sql")}"
-  vars = {
-    project_id = var.project_id
-    region = var.region
-    bigquery_taxi_dataset = var.bigquery_taxi_dataset
-    bigquery_thelook_ecommerce_dataset = var.bigquery_thelook_ecommerce_dataset
-    bucket_name = "processed-${var.storage_bucket}"
-    bigquery_region = var.bigquery_region
-    gcp_account_name = var.gcp_account_name
-    omni_dataset = var.omni_dataset
-    omni_project = split(".",var.omni_dataset)[0]
-    omni_aws_connection = var.omni_aws_connection
-    omni_aws_s3_bucket_name = var.omni_aws_s3_bucket_name
-  }  
-}
-resource "google_bigquery_routine" "sproc_sp_demo_aws_omni" {
-  dataset_id      = var.bigquery_taxi_dataset
-  routine_id      = "sp_demo_aws_omni"
-  routine_type    = "PROCEDURE"
-  language        = "SQL"
-  definition_body = "${data.template_file.sproc_sp_demo_aws_omni.rendered}"
-}
-
 
 ####################################################################################
 # sp_demo_biglake
@@ -157,6 +133,7 @@ data "template_file" "sproc_sp_demo_biglake" {
     bucket_name = "processed-${var.storage_bucket}"
     bigquery_region = var.bigquery_region
     gcp_account_name = var.gcp_account_name
+    random_extension = var.random_extension
     # special case for embedded bash commands
     bqOutputJsonFile = "$${bqOutputJsonFile}"
     bqOutputJson = "$${bqOutputJson}"
@@ -232,7 +209,7 @@ data "template_file" "sproc_sp_demo_bigsearch" {
     bucket_name = "processed-${var.storage_bucket}"
     bigquery_region = var.bigquery_region
     gcp_account_name = var.gcp_account_name
-    omni_project = split(".",var.omni_dataset)[0]
+    shared_demo_project_id = var.shared_demo_project_id
   }  
 }
 resource "google_bigquery_routine" "sproc_sp_demo_bigsearch" {
@@ -465,10 +442,10 @@ resource "google_bigquery_routine" "sproc_sp_demo_json_datatype" {
 
 
 ####################################################################################
-# sp_demo_machine_leaning_anomoly_fee_amount
+# sp_demo_machine_learning_anomaly_fee_amount
 ####################################################################################
-data "template_file" "sproc_sp_demo_machine_leaning_anomoly_fee_amount" {
-  template = "${file("../sql-scripts/taxi_dataset/sp_demo_machine_leaning_anomoly_fee_amount.sql")}"
+data "template_file" "sproc_sp_demo_machine_learning_anomaly_fee_amount" {
+  template = "${file("../sql-scripts/taxi_dataset/sp_demo_machine_learning_anomaly_fee_amount.sql")}"
   vars = {
     project_id = var.project_id
     region = var.region
@@ -479,12 +456,12 @@ data "template_file" "sproc_sp_demo_machine_leaning_anomoly_fee_amount" {
     gcp_account_name = var.gcp_account_name
   }  
 }
-resource "google_bigquery_routine" "sproc_sp_demo_machine_leaning_anomoly_fee_amount" {
+resource "google_bigquery_routine" "sproc_sp_demo_machine_learning_anomaly_fee_amount" {
   dataset_id      = var.bigquery_taxi_dataset
-  routine_id      = "sp_demo_machine_leaning_anomoly_fee_amount"
+  routine_id      = "sp_demo_machine_learning_anomaly_fee_amount"
   routine_type    = "PROCEDURE"
   language        = "SQL"
-  definition_body = "${data.template_file.sproc_sp_demo_machine_leaning_anomoly_fee_amount.rendered}"
+  definition_body = "${data.template_file.sproc_sp_demo_machine_learning_anomaly_fee_amount.rendered}"
 }
 
 
@@ -680,11 +657,12 @@ resource "google_bigquery_routine" "sproc_sp_demo_transactions" {
 }
 
 
-####################################################################################
-####################################################################################
-# thelook_ecommerce
-####################################################################################
-####################################################################################
+#===================================================================================
+#===================================================================================
+# thelook_ecommerce Dataset
+#===================================================================================
+#===================================================================================
+
 
 ####################################################################################
 # churn_demo_step_0_create_artifacts
@@ -797,8 +775,11 @@ data "template_file" "sproc_demo_queries" {
     bucket_name = "processed-${var.storage_bucket}"
     bigquery_region = var.bigquery_region
     gcp_account_name = var.gcp_account_name
-    omni_dataset = var.omni_dataset
-    omni_project = split(".",var.omni_dataset)[0]
+    shared_demo_project_id          = var.shared_demo_project_id
+    aws_omni_biglake_dataset_name   = var.aws_omni_biglake_dataset_name
+    aws_omni_biglake_dataset_region = var.aws_omni_biglake_dataset_region
+    aws_omni_biglake_connection     = var.aws_omni_biglake_connection
+    aws_omni_biglake_s3_bucket      = var.aws_omni_biglake_s3_bucket
   }  
 }
 resource "google_bigquery_routine" "sproc_demo_queries" {
@@ -881,4 +862,261 @@ resource "google_bigquery_routine" "sproc_create_product_deliveries_streaming" {
   routine_type    = "PROCEDURE"
   language        = "SQL"
   definition_body = "${data.template_file.sproc_create_product_deliveries_streaming.rendered}"
+}
+
+
+#===================================================================================
+#===================================================================================
+# AWS Dataset
+#===================================================================================
+#===================================================================================
+
+
+####################################################################################
+# sp_demo_aws_omni_create_tables
+####################################################################################
+data "template_file" "sproc_sp_demo_aws_omni_create_tables" {
+  template = "${file("../sql-scripts/aws_omni_biglake/sp_demo_aws_omni_create_tables.sql")}"
+  vars = {
+    project_id = var.project_id
+    region = var.region
+    shared_demo_project_id          = var.shared_demo_project_id
+    aws_omni_biglake_dataset_region = var.aws_omni_biglake_dataset_region
+    aws_omni_biglake_dataset_name   = var.aws_omni_biglake_dataset_name
+    aws_omni_biglake_connection     = var.aws_omni_biglake_connection
+    aws_omni_biglake_s3_bucket      = var.aws_omni_biglake_s3_bucket
+  }  
+}
+resource "google_bigquery_routine" "sproc_sp_demo_aws_omni_create_tables" {
+  dataset_id      = var.aws_omni_biglake_dataset_name
+  routine_id      = "sp_demo_aws_omni_create_tables"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = "${data.template_file.sproc_sp_demo_aws_omni_create_tables.rendered}"
+}
+
+
+####################################################################################
+# sp_demo_aws_omni_delta_lake
+####################################################################################
+data "template_file" "sproc_sp_demo_aws_omni_delta_lake" {
+  template = "${file("../sql-scripts/aws_omni_biglake/sp_demo_aws_omni_delta_lake.sql")}"
+  vars = {
+    project_id = var.project_id
+    region = var.region
+    shared_demo_project_id          = var.shared_demo_project_id
+    aws_omni_biglake_dataset_region = var.aws_omni_biglake_dataset_region
+    aws_omni_biglake_dataset_name   = var.aws_omni_biglake_dataset_name
+    aws_omni_biglake_connection     = var.aws_omni_biglake_connection
+    aws_omni_biglake_s3_bucket      = var.aws_omni_biglake_s3_bucket
+  }  
+}
+resource "google_bigquery_routine" "sproc_sp_demo_aws_omni_delta_lake" {
+  dataset_id      = var.aws_omni_biglake_dataset_name
+  routine_id      = "sp_demo_aws_omni_delta_lake"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = "${data.template_file.sproc_sp_demo_aws_omni_delta_lake.rendered}"
+}
+
+
+####################################################################################
+# sp_demo_aws_omni_queries
+####################################################################################
+data "template_file" "sproc_sp_demo_aws_omni_queries" {
+  template = "${file("../sql-scripts/aws_omni_biglake/sp_demo_aws_omni_queries.sql")}"
+  vars = {
+    project_id = var.project_id
+    region = var.region
+    bigquery_taxi_dataset           = var.bigquery_taxi_dataset
+    shared_demo_project_id          = var.shared_demo_project_id
+    aws_omni_biglake_dataset_region = var.aws_omni_biglake_dataset_region
+    aws_omni_biglake_dataset_name   = var.aws_omni_biglake_dataset_name
+    aws_omni_biglake_connection     = var.aws_omni_biglake_connection
+    aws_omni_biglake_s3_bucket      = var.aws_omni_biglake_s3_bucket
+  }  
+}
+resource "google_bigquery_routine" "sproc_sp_demo_aws_omni_queries" {
+  dataset_id      = var.aws_omni_biglake_dataset_name
+  routine_id      = "sp_demo_aws_omni_queries"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = "${data.template_file.sproc_sp_demo_aws_omni_queries.rendered}"
+}
+
+
+####################################################################################
+# sp_demo_aws_omni_security_cls
+####################################################################################
+data "template_file" "sproc_sp_demo_aws_omni_security_cls" {
+  template = "${file("../sql-scripts/aws_omni_biglake/sp_demo_aws_omni_security_cls.sql")}"
+  vars = {
+    project_id                      = var.project_id
+    region                          = var.region
+    random_extension                = var.random_extension
+    shared_demo_project_id          = var.shared_demo_project_id
+    gcp_account_name                = var.gcp_account_name
+    aws_omni_biglake_dataset_region = var.aws_omni_biglake_dataset_region
+    aws_omni_biglake_dataset_name   = var.aws_omni_biglake_dataset_name
+    aws_omni_biglake_connection     = var.aws_omni_biglake_connection
+    aws_omni_biglake_s3_bucket      = var.aws_omni_biglake_s3_bucket
+  }  
+}
+resource "google_bigquery_routine" "sproc_sp_demo_aws_omni_security_cls" {
+  dataset_id      = var.aws_omni_biglake_dataset_name
+  routine_id      = "sp_demo_aws_omni_security_cls"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = "${data.template_file.sproc_sp_demo_aws_omni_security_cls.rendered}"
+}
+
+
+####################################################################################
+# sp_demo_aws_omni_security_rls
+####################################################################################
+data "template_file" "sproc_sp_demo_aws_omni_security_rls" {
+  template = "${file("../sql-scripts/aws_omni_biglake/sp_demo_aws_omni_security_rls.sql")}"
+  vars = {
+    project_id = var.project_id
+    region = var.region
+    shared_demo_project_id          = var.shared_demo_project_id
+    gcp_account_name                =  var.gcp_account_name
+    aws_omni_biglake_dataset_region = var.aws_omni_biglake_dataset_region
+    aws_omni_biglake_dataset_name   = var.aws_omni_biglake_dataset_name
+    aws_omni_biglake_connection     = var.aws_omni_biglake_connection
+    aws_omni_biglake_s3_bucket      = var.aws_omni_biglake_s3_bucket
+  }  
+}
+resource "google_bigquery_routine" "sproc_sp_demo_aws_omni_security_rls" {
+  dataset_id      = var.aws_omni_biglake_dataset_name
+  routine_id      = "sp_demo_aws_omni_security_rls"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = "${data.template_file.sproc_sp_demo_aws_omni_security_rls.rendered}"
+}
+
+
+#===================================================================================
+#===================================================================================
+# Azure Dataset
+#===================================================================================
+#===================================================================================
+
+
+####################################################################################
+# sp_demo_azure_omni_create_tables
+####################################################################################
+data "template_file" "sproc_sp_demo_azure_omni_create_tables" {
+  template = "${file("../sql-scripts/azure_omni_biglake/sp_demo_azure_omni_create_tables.sql")}"
+  vars = {
+    project_id = var.project_id
+    region = var.region
+    shared_demo_project_id          = var.shared_demo_project_id
+    azure_omni_biglake_dataset_name = var.azure_omni_biglake_dataset_name
+    azure_omni_biglake_adls_name    = var.azure_omni_biglake_adls_name
+    azure_omni_biglake_connection   = var.azure_omni_biglake_connection
+  }  
+}
+resource "google_bigquery_routine" "sproc_sp_demo_azure_omni_create_tables" {
+  dataset_id      = var.azure_omni_biglake_dataset_name
+  routine_id      = "sp_demo_azure_omni_create_tables"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = "${data.template_file.sproc_sp_demo_azure_omni_create_tables.rendered}"
+}
+
+
+####################################################################################
+# sp_demo_azure_omni_delta_lake
+####################################################################################
+data "template_file" "sproc_sp_demo_azure_omni_delta_lake" {
+  template = "${file("../sql-scripts/azure_omni_biglake/sp_demo_azure_omni_delta_lake.sql")}"
+  vars = {
+    project_id = var.project_id
+    region = var.region
+    shared_demo_project_id          = var.shared_demo_project_id
+    azure_omni_biglake_dataset_name = var.azure_omni_biglake_dataset_name
+    azure_omni_biglake_adls_name    = var.azure_omni_biglake_adls_name
+    azure_omni_biglake_connection   = var.azure_omni_biglake_connection
+  }  
+}
+resource "google_bigquery_routine" "sproc_sp_demo_azure_omni_delta_lake" {
+  dataset_id      = var.azure_omni_biglake_dataset_name
+  routine_id      = "sp_demo_azure_omni_delta_lake"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = "${data.template_file.sproc_sp_demo_azure_omni_delta_lake.rendered}"
+}
+
+
+####################################################################################
+# sp_demo_azure_omni_queries
+####################################################################################
+data "template_file" "sproc_sp_demo_azure_omni_queries" {
+  template = "${file("../sql-scripts/azure_omni_biglake/sp_demo_azure_omni_queries.sql")}"
+  vars = {
+    project_id = var.project_id
+    region = var.region
+    bigquery_taxi_dataset           = var.bigquery_taxi_dataset
+    shared_demo_project_id          = var.shared_demo_project_id
+    azure_omni_biglake_dataset_name = var.azure_omni_biglake_dataset_name
+    azure_omni_biglake_adls_name    = var.azure_omni_biglake_adls_name
+    azure_omni_biglake_connection   = var.azure_omni_biglake_connection
+  }  
+}
+resource "google_bigquery_routine" "sproc_sp_demo_azure_omni_queries" {
+  dataset_id      = var.azure_omni_biglake_dataset_name
+  routine_id      = "sp_demo_azure_omni_queries"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = "${data.template_file.sproc_sp_demo_azure_omni_queries.rendered}"
+}
+
+
+####################################################################################
+# sp_demo_azure_omni_security_cls
+####################################################################################
+data "template_file" "sproc_sp_demo_azure_omni_security_cls" {
+  template = "${file("../sql-scripts/azure_omni_biglake/sp_demo_azure_omni_security_cls.sql")}"
+  vars = {
+    project_id                      = var.project_id
+    region                          = var.region
+    random_extension                = var.random_extension
+    shared_demo_project_id          = var.shared_demo_project_id
+    gcp_account_name                = var.gcp_account_name
+    azure_omni_biglake_dataset_name = var.azure_omni_biglake_dataset_name
+    azure_omni_biglake_adls_name    = var.azure_omni_biglake_adls_name
+    azure_omni_biglake_connection   = var.azure_omni_biglake_connection
+  }  
+}
+resource "google_bigquery_routine" "sproc_sp_demo_azure_omni_security_cls" {
+  dataset_id      = var.azure_omni_biglake_dataset_name
+  routine_id      = "sp_demo_azure_omni_security_cls"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = "${data.template_file.sproc_sp_demo_azure_omni_security_cls.rendered}"
+}
+
+
+####################################################################################
+# sp_demo_azure_omni_security_rls
+####################################################################################
+data "template_file" "sproc_sp_demo_azure_omni_security_rls" {
+  template = "${file("../sql-scripts/azure_omni_biglake/sp_demo_azure_omni_security_rls.sql")}"
+  vars = {
+    project_id = var.project_id
+    region = var.region
+    shared_demo_project_id          = var.shared_demo_project_id
+    gcp_account_name                =  var.gcp_account_name
+    azure_omni_biglake_dataset_name = var.azure_omni_biglake_dataset_name
+    azure_omni_biglake_adls_name    = var.azure_omni_biglake_adls_name
+    azure_omni_biglake_connection   = var.azure_omni_biglake_connection
+  }  
+}
+resource "google_bigquery_routine" "sproc_sp_demo_azure_omni_security_rls" {
+  dataset_id      = var.azure_omni_biglake_dataset_name
+  routine_id      = "sp_demo_azure_omni_security_rls"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = "${data.template_file.sproc_sp_demo_azure_omni_security_rls.rendered}"
 }

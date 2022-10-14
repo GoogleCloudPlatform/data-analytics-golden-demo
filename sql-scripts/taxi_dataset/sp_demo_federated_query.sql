@@ -32,8 +32,9 @@ Clean up / Reset script:
 
 -- Query data directly in Spanner
 -- Station Id USW00094728 = NEW YORK CNTRL PK TWR   (SELECT * FROM `bigquery-public-data.ghcn_d.ghcnd_stations` WHERE id = 'USW00094728';)
--- NOTE: You need to run the Airflow DAG "sample-bigquery-export-spanner-import" before running this SQL
+-- NOTE: You need to run the Airflow DAG "sample-bigquery-start-spanner" before running this SQL
 --       You also need to wait for the Dataflow job "importspannerweatherdata" to complete (or else you will not see any data)
+--       Spanner will automatically be DELETED after 4 hours.  Create a calendar reminder to run this DAG before your demo.
 EXECUTE IMMEDIATE """
 SELECT *
   FROM EXTERNAL_QUERY(

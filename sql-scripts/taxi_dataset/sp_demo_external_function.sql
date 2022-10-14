@@ -33,15 +33,21 @@ Show:
     - The Cloud Function has been granted access to call to the processed storaged account (if we have images there)
     - The Cloud Funcation requires an authenicated call
 
+Download images:
+    gsutil cp gs://cloud-samples-data/vision/object_localization/duck_and_truck.jpg .
+    gsutil cp gs://cloud-samples-data/vision/label/setagaya.jpeg .
+    gsutil cp gs://cloud-samples-data/vision/landmark/eiffel_tower.jpg .
+    gsutil cp gs://cloud-samples-data/vision/logo/google_logo.jpg .  
+
 References:
     - https://cloud.google.com/bigquery/docs/reference/standard-sql/remote-functions
 
 Clean up / Reset script:
-    DROP FUNCTION IF EXISTS `${project_id}.${bigquery_taxi_dataset}.ext_udf_ai_localize_objects` 
-    DROP FUNCTION IF EXISTS `${project_id}.${bigquery_taxi_dataset}.ext_udf_ai_detect_labels`
-    DROP FUNCTION IF EXISTS `${project_id}.${bigquery_taxi_dataset}.ext_udf_ai_detect_landmarks`
-    DROP FUNCTION IF EXISTS `${project_id}.${bigquery_taxi_dataset}.ext_udf_ai_detect_logos`
-    DROP FUNCTION IF EXISTS `${project_id}.${bigquery_taxi_dataset}.ext_udf_taxi_zone_lookup`
+    DROP FUNCTION IF EXISTS `${project_id}.${bigquery_taxi_dataset}.ext_udf_ai_localize_objects`;
+    DROP FUNCTION IF EXISTS `${project_id}.${bigquery_taxi_dataset}.ext_udf_ai_detect_labels`;
+    DROP FUNCTION IF EXISTS `${project_id}.${bigquery_taxi_dataset}.ext_udf_ai_detect_landmarks`;
+    DROP FUNCTION IF EXISTS `${project_id}.${bigquery_taxi_dataset}.ext_udf_ai_detect_logos`;
+    DROP FUNCTION IF EXISTS `${project_id}.${bigquery_taxi_dataset}.ext_udf_taxi_zone_lookup`;
 */
 
 /*

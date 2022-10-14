@@ -1,6 +1,3 @@
-CREATE OR REPLACE PROCEDURE `azure_omni_biglake.sp_demo_azure_omni_queries`()
-OPTIONS (strict_mode=false)
-BEGIN
 /*##################################################################################
 # Copyright 2022 Google LLC
 #
@@ -27,7 +24,7 @@ Description:
     - Show many complex SQL statements along with Exporting data to S3 for ETL or other purposes
 
 Dependencies:
-    - You must open a new tab with the URL: https://console.cloud.google.com/bigquery?project=${omni_project}
+    - You must open a new tab with the URL: https://console.cloud.google.com/bigquery?project=${shared_demo_project_id}
 
 Show:
     - Just like regular external tables (see script create_azure_taxi_tables_s3.sql)
@@ -41,7 +38,7 @@ Clean up / Reset script:
 */
 
 -- 140 million rows of data
--- SELECT COUNT(*) FROM `azure_omni_biglake.taxi_azure_yellow_trips_parquet`;
+-- SELECT COUNT(*) FROM `${project_id}.${azure_omni_biglake_dataset_name}.taxi_azure_yellow_trips_parquet`;
 
 ------------------------------------------------------------------------------------
 -- Query 1
@@ -52,7 +49,7 @@ Clean up / Reset script:
 --       to set up and configure OMNI and Azure manually.
 ------------------------------------------------------------------------------------
 SELECT Vendor_Id, Rate_Code_Id, SUM(Total_Amount) AS GrandTotal
-FROM `azure_omni_biglake.taxi_azure_yellow_trips_parquet` 
+FROM `${project_id}.${azure_omni_biglake_dataset_name}.taxi_azure_yellow_trips_parquet` 
 WHERE year=2019
   AND month=1
 GROUP BY Vendor_Id, Rate_Code_Id;
@@ -63,10 +60,10 @@ GROUP BY Vendor_Id, Rate_Code_Id;
 -- Sum data for a single month
 ------------------------------------------------------------------------------------
 SELECT Vendor.Vendor_Description, RateCode.Rate_Code_Description, SUM(Trips.Total_Amount) AS GrandTotal
-  FROM `azure_omni_biglake.taxi_azure_yellow_trips_parquet` AS Trips
-       INNER JOIN `azure_omni_biglake.taxi_azure_vendor` AS Vendor
+  FROM `${project_id}.${azure_omni_biglake_dataset_name}.taxi_azure_yellow_trips_parquet` AS Trips
+       INNER JOIN `${project_id}.${azure_omni_biglake_dataset_name}.taxi_azure_vendor` AS Vendor
        ON Trips.Vendor_Id = Vendor.Vendor_Id  
-       INNER JOIN `azure_omni_biglake.taxi_azure_rate_code` AS RateCode
+       INNER JOIN `${project_id}.${azure_omni_biglake_dataset_name}.taxi_azure_rate_code` AS RateCode
        ON Trips.Rate_Code_Id = RateCode.Rate_Code_Id
 WHERE year=2019
   AND month=1
@@ -78,10 +75,10 @@ GROUP BY Vendor.Vendor_Description, RateCode.Rate_Code_Description;
 -- Sum data for an entire year
 ------------------------------------------------------------------------------------
 SELECT Vendor.Vendor_Description, RateCode.Rate_Code_Description,  SUM(Trips.Total_Amount) AS GrandTotal
-  FROM `azure_omni_biglake.taxi_azure_yellow_trips_parquet` AS Trips
-       INNER JOIN `azure_omni_biglake.taxi_azure_vendor` AS Vendor
+  FROM `${project_id}.${azure_omni_biglake_dataset_name}.taxi_azure_yellow_trips_parquet` AS Trips
+       INNER JOIN `${project_id}.${azure_omni_biglake_dataset_name}.taxi_azure_vendor` AS Vendor
        ON Trips.Vendor_Id = Vendor.Vendor_Id  
-       INNER JOIN `azure_omni_biglake.taxi_azure_rate_code` AS RateCode
+       INNER JOIN `${project_id}.${azure_omni_biglake_dataset_name}.taxi_azure_rate_code` AS RateCode
        ON Trips.Rate_Code_Id = RateCode.Rate_Code_Id
 WHERE year=2019
 GROUP BY Vendor.Vendor_Description, RateCode.Rate_Code_Description;
@@ -92,12 +89,12 @@ GROUP BY Vendor.Vendor_Description, RateCode.Rate_Code_Description;
 -- Sum data for an entire year
 ------------------------------------------------------------------------------------
 SELECT Vendor.Vendor_Description, RateCode.Rate_Code_Description, PaymentType.Payment_Type_Description, SUM(Trips.Total_Amount) AS GrandTotal
-  FROM `azure_omni_biglake.taxi_azure_yellow_trips_parquet` AS Trips
-       INNER JOIN `azure_omni_biglake.taxi_azure_vendor` AS Vendor
+  FROM `${project_id}.${azure_omni_biglake_dataset_name}.taxi_azure_yellow_trips_parquet` AS Trips
+       INNER JOIN `${project_id}.${azure_omni_biglake_dataset_name}.taxi_azure_vendor` AS Vendor
        ON Trips.Vendor_Id = Vendor.Vendor_Id  
-       INNER JOIN `azure_omni_biglake.taxi_azure_rate_code` AS RateCode
+       INNER JOIN `${project_id}.${azure_omni_biglake_dataset_name}.taxi_azure_rate_code` AS RateCode
        ON Trips.Rate_Code_Id = RateCode.Rate_Code_Id
-       INNER JOIN `azure_omni_biglake.taxi_azure_payment_type` AS PaymentType
+       INNER JOIN `${project_id}.${azure_omni_biglake_dataset_name}.taxi_azure_payment_type` AS PaymentType
        ON Trips.Payment_Type_Id = PaymentType.Payment_Type_Id       
 WHERE year=2019
 GROUP BY Vendor.Vendor_Description, RateCode.Rate_Code_Description, PaymentType.Payment_Type_Description;
@@ -108,12 +105,12 @@ GROUP BY Vendor.Vendor_Description, RateCode.Rate_Code_Description, PaymentType.
 -- Sum data for 3+ years
 ------------------------------------------------------------------------------------
 SELECT Vendor.Vendor_Description, RateCode.Rate_Code_Description, PaymentType.Payment_Type_Description, SUM(Trips.Total_Amount) AS GrandTotal
-  FROM `azure_omni_biglake.taxi_azure_yellow_trips_parquet` AS Trips
-       INNER JOIN `azure_omni_biglake.taxi_azure_vendor` AS Vendor
+  FROM `${project_id}.${azure_omni_biglake_dataset_name}.taxi_azure_yellow_trips_parquet` AS Trips
+       INNER JOIN `${project_id}.${azure_omni_biglake_dataset_name}.taxi_azure_vendor` AS Vendor
        ON Trips.Vendor_Id = Vendor.Vendor_Id  
-       INNER JOIN `azure_omni_biglake.taxi_azure_rate_code` AS RateCode
+       INNER JOIN `${project_id}.${azure_omni_biglake_dataset_name}.taxi_azure_rate_code` AS RateCode
        ON Trips.Rate_Code_Id = RateCode.Rate_Code_Id
-       INNER JOIN `azure_omni_biglake.taxi_azure_payment_type` AS PaymentType
+       INNER JOIN `${project_id}.${azure_omni_biglake_dataset_name}.taxi_azure_payment_type` AS PaymentType
        ON Trips.Payment_Type_Id = PaymentType.Payment_Type_Id       
 GROUP BY Vendor.Vendor_Description, RateCode.Rate_Code_Description, PaymentType.Payment_Type_Description;
 
@@ -126,12 +123,12 @@ WITH HighestPayment AS
 (
 SELECT Vendor.Vendor_Description, RateCode.Rate_Code_Description, PaymentType.Payment_Type_Description, Total_Amount,
        RANK() OVER (PARTITION BY Vendor.Vendor_Description, RateCode.Rate_Code_Description, PaymentType.Payment_Type_Description ORDER BY Total_Amount DESC) AS Ranking
-  FROM `azure_omni_biglake.taxi_azure_yellow_trips_parquet` AS Trips
-       INNER JOIN `azure_omni_biglake.taxi_azure_vendor` AS Vendor
+  FROM `${project_id}.${azure_omni_biglake_dataset_name}.taxi_azure_yellow_trips_parquet` AS Trips
+       INNER JOIN `${project_id}.${azure_omni_biglake_dataset_name}.taxi_azure_vendor` AS Vendor
        ON Trips.Vendor_Id = Vendor.Vendor_Id  
-       INNER JOIN `azure_omni_biglake.taxi_azure_rate_code` AS RateCode
+       INNER JOIN `${project_id}.${azure_omni_biglake_dataset_name}.taxi_azure_rate_code` AS RateCode
        ON Trips.Rate_Code_Id = RateCode.Rate_Code_Id
-       INNER JOIN `azure_omni_biglake.taxi_azure_payment_type` AS PaymentType
+       INNER JOIN `${project_id}.${azure_omni_biglake_dataset_name}.taxi_azure_payment_type` AS PaymentType
        ON Trips.Payment_Type_Id = PaymentType.Payment_Type_Id       
 )
 SELECT *
@@ -147,7 +144,7 @@ WHERE Ranking = 1;
 WITH DailyAverages AS
 (
     SELECT TIMESTAMP_TRUNC(Pickup_DateTime, DAY) AS TripDay, PULocationID, DOLocationID, avg(Tip_Amount) AvgTip, avg(Total_Amount) AS AvgTotal,
-    FROM `azure_omni_biglake.taxi_azure_yellow_trips_parquet`
+    FROM `${project_id}.${azure_omni_biglake_dataset_name}.taxi_azure_yellow_trips_parquet`
     GROUP BY TripDay, PULocationID, DOLocationID
 ),
 RankTable AS
@@ -170,13 +167,13 @@ ORDER BY TripDay;
 WITH MaxPickupTotalAmountPerDay AS
 (
     SELECT TIMESTAMP_TRUNC(Pickup_DateTime, DAY) AS TripDay, PULocationID, Max(Total_Amount) AS MaxPickup,
-      FROM `azure_omni_biglake.taxi_azure_yellow_trips_parquet`
+      FROM `${project_id}.${azure_omni_biglake_dataset_name}.taxi_azure_yellow_trips_parquet`
      GROUP BY TripDay, PULocationID
 ),
 MaxDropoffTotalAmountPerDay AS
 (
     SELECT TIMESTAMP_TRUNC(Pickup_DateTime, DAY) AS TripDay, DOLocationID, Max(Total_Amount) AS MaxDropOff,
-      FROM `azure_omni_biglake.taxi_azure_yellow_trips_parquet`
+      FROM `${project_id}.${azure_omni_biglake_dataset_name}.taxi_azure_yellow_trips_parquet`
      GROUP BY TripDay, DOLocationID
 ),
 PickupMax AS 
@@ -206,24 +203,24 @@ ORDER BY PickupMax.TripDay;
 ------------------------------------------------------------------------------------
 -- Query 7 (EXPORT DATA)
 -- Run the same query as Query 6, but now save to storage (S3)
--- NOTE: If two people are running this at the same time change the "query-7" in the uri="azure://${omni_azure_adls_name}.blob.core.windows.net/datalake/taxi-export/query-7/*" 
+-- NOTE: If two people are running this at the same time change the "query-7" in the uri="azure://${azure_omni_biglake_adls_name}.blob.core.windows.net/datalake/taxi-export/query-7/*" 
 ------------------------------------------------------------------------------------
-EXPORT DATA WITH CONNECTION `${omni_azure_connection}`
+EXPORT DATA WITH CONNECTION `${azure_omni_biglake_connection}`
 OPTIONS(
- uri="azure://${omni_azure_adls_name}.blob.core.windows.net/datalake/taxi-export/query-7/*",
+ uri="azure://${azure_omni_biglake_adls_name}.blob.core.windows.net/datalake/taxi-export/query-7/*",
  format="CSV"
 )
 AS 
 WITH MaxPickupTotalAmountPerDay AS
 (
     SELECT TIMESTAMP_TRUNC(Pickup_DateTime, DAY) AS TripDay, PULocationID, Max(Total_Amount) AS MaxPickup,
-      FROM `azure_omni_biglake.taxi_azure_yellow_trips_parquet`
+      FROM `${project_id}.${azure_omni_biglake_dataset_name}.taxi_azure_yellow_trips_parquet`
      GROUP BY TripDay, PULocationID
 ),
 MaxDropoffTotalAmountPerDay AS
 (
     SELECT TIMESTAMP_TRUNC(Pickup_DateTime, DAY) AS TripDay, DOLocationID, Max(Total_Amount) AS MaxDropOff,
-      FROM `azure_omni_biglake.taxi_azure_yellow_trips_parquet`
+      FROM `${project_id}.${azure_omni_biglake_dataset_name}.taxi_azure_yellow_trips_parquet`
      GROUP BY TripDay, DOLocationID
 ),
 PickupMax AS 
@@ -259,26 +256,24 @@ ORDER BY PickupMax.TripDay;
 -- Reference: https://cloud.google.com/bigquery/docs/omni-azure-cross-cloud-transfer
 */
 
--- Load the parquet files into the BigQuery US dataset: omni_cross_cloud_data_load
-LOAD DATA INTO `omni_cross_cloud_data_load.azure_results_parquet` 
-FROM FILES (uris = ['azure://${omni_azure_adls_name}.blob.core.windows.net/datalake/taxi-export/taxi-export-parquet/*'], format = 'PARQUET')
-WITH CONNECTION `${omni_azure_connection}`;
+-- Load the parquet files into the BigQuery US dataset: ${project_id}.${bigquery_taxi_dataset}
+LOAD DATA INTO `${project_id}.${bigquery_taxi_dataset}.azure_results_parquet` 
+FROM FILES (uris = ['azure://${azure_omni_biglake_adls_name}.blob.core.windows.net/datalake/taxi-export/taxi-export-parquet/*'], format = 'PARQUET')
+WITH CONNECTION `${azure_omni_biglake_connection}`;
 
 
--- Load the CSV files into the BigQuery US dataset: omni_cross_cloud_data_load
-LOAD DATA INTO `omni_cross_cloud_data_load.azure_results_csv` (
+-- Load the CSV files into the BigQuery US dataset: ${project_id}.${bigquery_taxi_dataset}
+LOAD DATA INTO `${project_id}.${bigquery_taxi_dataset}.azure_results_csv` (
   PickupMax_TripDay TIMESTAMP,
   PickupMax_PULocationID INTEGER,
   PickupMax_MaxPickup NUMERIC,
   DropOffMax_TripDay TIMESTAMP,
   DropOffMax_DOLocationID INTEGER,
   DropOffMax_MaxDropOff NUMERIC)
-FROM FILES (uris = ['azure://${omni_azure_adls_name}.blob.core.windows.net/datalake/taxi-export/taxi-export-csv/*'], format = 'CSV')
-WITH CONNECTION `${omni_azure_connection}`;
+FROM FILES (uris = ['azure://${azure_omni_biglake_adls_name}.blob.core.windows.net/datalake/taxi-export/taxi-export-csv/*'], format = 'CSV')
+WITH CONNECTION `${azure_omni_biglake_connection}`;
 
 
 -- Show the tables loaded with data from Azure
-SELECT * FROM `omni_cross_cloud_data_load.azure_results_csv`;
-SELECT * FROM `omni_cross_cloud_data_load.azure_results_parquet`;
-
-END;
+SELECT * FROM `${project_id}.${bigquery_taxi_dataset}.azure_results_csv`;
+SELECT * FROM `${project_id}.${bigquery_taxi_dataset}.azure_results_parquet`;

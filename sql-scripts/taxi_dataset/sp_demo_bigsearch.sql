@@ -39,8 +39,8 @@ Clean up / Reset script:
  More Data (BigSearch on more Data):
     - NOTE: To run some SQL on a 60TB, 50 billon row table head over to the shared project
     - Open a new tab and paste the URL below.  
-    - https://console.cloud.google.com/bigquery?project=${omni_project}
-    - OPEN the stored procedure: ${omni_project}.bigquery_features.sp_demo_bigsearch_50b_60t
+    - https://console.cloud.google.com/bigquery?project=${shared_demo_project_id}
+    - OPEN the stored procedure: ${shared_demo_project_id}.bigquery_features.sp_demo_bigsearch_50b_60t
 
 */
 
@@ -50,10 +50,10 @@ Clean up / Reset script:
 ---------------------------------------------------------------------------------------------------------
 
 CREATE TABLE `${project_id}.${bigquery_taxi_dataset}.bigsearch_log_5b_5t_json_hourly_NOT_INDEXED`
-COPY `${omni_project}.data_analytics_shared_data.bigsearch_log_5b_5t_json_hourly`;
+COPY `${shared_demo_project_id}.data_analytics_shared_data.bigsearch_log_5b_5t_json_hourly`;
 
 CREATE TABLE `${project_id}.${bigquery_taxi_dataset}.bigsearch_log_5b_5t_json_hourly_INDEXED`
-COPY `${omni_project}.data_analytics_shared_data.bigsearch_log_5b_5t_json_hourly`;
+COPY `${shared_demo_project_id}.data_analytics_shared_data.bigsearch_log_5b_5t_json_hourly`;
 
 
 ---------------------------------------------------------------------------------------------------------
@@ -169,6 +169,6 @@ DROP TABLE IF EXISTS `${project_id}.${bigquery_taxi_dataset}.bigsearch_log_5b_5t
 ---------------------------------------------------------------------------------------------------------
 -- NOTE: To run some SQL on a 60TB, 50 billon row table head over to the shared project
 -- Open a new tab and paste the URL below.  
--- https://console.cloud.google.com/bigquery?project=${omni_project}
--- OPEN the stored procedure: ${omni_project}.bigquery_features.sp_demo_bigsearch_50b_60t
+-- https://console.cloud.google.com/bigquery?project=${shared_demo_project_id}
+-- OPEN the stored procedure: ${shared_demo_project_id}.bigquery_features.sp_demo_bigsearch_50b_60t
 ---------------------------------------------------------------------------------------------------------

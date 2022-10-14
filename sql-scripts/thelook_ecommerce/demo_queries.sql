@@ -175,9 +175,34 @@ ORDER BY distribution_center_id;
 --       to set up and configure OMNI and AWS manually.
 ------------------------------------------------------------------------------------
 
--- Open a new tab and paste the URL below.  You must run OMNI from a shared project.
--- https://console.cloud.google.com/bigquery?project=${omni_project}
-EXECUTE IMMEDIATE format("""
-SELECT * FROM `${omni_dataset}.distribution_centers` LIMIT 1000;
-""");
+-- Create a table on data in AWS (S3)
+CREATE OR REPLACE EXTERNAL TABLE `${project_id}.${aws_omni_biglake_dataset_name}.distribution_centers`
+WITH CONNECTION `${shared_demo_project_id}.${aws_omni_biglake_dataset_region}.${aws_omni_biglake_connection}`
+    OPTIONS (
+    format = "PARQUET",
+    uris = ['s3://${aws_omni_biglake_s3_bucket}/distribution-center/distribution_centers.parquet']
+);
+
+-- Query the data in AWS
+SELECT * FROM `${project_id}.${aws_omni_biglake_dataset_name}.distribution_centers` LIMIT 1000;
+
+-- Export the data to S3 from the table
+-- We would typically grab a subset of data so we just transfer the results of the query
+EXPORT DATA WITH CONNECTION `${shared_demo_project_id}.${aws_omni_biglake_dataset_region}.${aws_omni_biglake_connection}`
+  OPTIONS(
+  uri="s3://${aws_omni_biglake_s3_bucket}/taxi-export/distribution_centers/*",
+  format="PARQUET"
+  )
+AS
+SELECT * FROM `${project_id}.aws_omni_biglake.distribution_centers`;
+
+-- Load into BigQuery
+-- We can now join the data to the rest of data in BigQuery as well as do machine learning
+-- This will appear in your dataset: ${bigquery_thelook_ecommerce_dataset}
+LOAD DATA INTO `${project_id}.${bigquery_thelook_ecommerce_dataset}.aws_distribution_centers`
+  FROM FILES (uris = ['s3://${aws_omni_biglake_s3_bucket}/taxi-export/distribution_centers/*'], format = 'PARQUET')
+  WITH CONNECTION `${shared_demo_project_id}.${aws_omni_biglake_dataset_region}.${aws_omni_biglake_connection}`;
+
+-- View the data just loaded
+SELECT * FROM `${project_id}.${bigquery_thelook_ecommerce_dataset}.aws_distribution_centers`;
 
