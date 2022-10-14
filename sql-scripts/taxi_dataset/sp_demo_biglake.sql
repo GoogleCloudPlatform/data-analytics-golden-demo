@@ -73,7 +73,7 @@ SELECT *
 
 -- NOTE: MANUAL STEPS
 -- Perform the below during the demo to show how to setup column level security (or data masking)
-
+--
 -- Open the table and view the schema
 -- Click the "EDIT SCHEMA" button at the bottom
 -- Go to Page 2 of the Fields (bottom right little arrow)
