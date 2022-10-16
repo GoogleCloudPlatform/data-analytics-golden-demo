@@ -20,9 +20,7 @@
 # This script can be run in a different ways:
 #  1. Run "source deploy.sh" in the root folder (this for for when you run locally or cloud shell).
 #     This will create the GCP project for you and deploy everything.  The logged in user needs to be
-#     an Org Admin so the project can be created and permissions set.  The deploy.sh populates the file 
-#     the JSON file terraform.tfvars.json with the values needed to execute Terraform
-#     terraform apply -var-file="../terraform.tfvars.json"
+#     an Org Admin so the project can be created and permissions set.
 #
 #  2. If you have a GCP project already created you would run just by passing in the parameters.
 #     Review the script deploy-use-existing-project.sh to see the requirements of what is
@@ -205,12 +203,6 @@ variable "azure_omni_biglake_adls_name" {
   default     = "REPLACE_ME_AZURE_ADLS_NAME"
 }
 
-variable "azure_omni_biglake_connection" {
-  type        = string
-  description = "The name of the Azure V2 storage account"
-  default     = "REPLACE_ME_AZURE_CONNECTION_NAME"
-}
-
 variable "azure_omni_biglake_dataset_name" {
   type        = string
   description = "The name of the Azure dataset"
@@ -222,6 +214,7 @@ variable "azure_omni_biglake_dataset_region" {
   description = "The region of Azure OMNI"
   default     = "azure-eastus2"
 }
+
 
 ########################################################################################################
 # Some deployments target different environments
@@ -277,6 +270,8 @@ locals {
   local_impersonation_account = var.deployment_service_account_name == "" ? "user:${var.gcp_account_name}" : length(regexall("^serviceAccount:", var.deployment_service_account_name)) > 0 ? "${var.deployment_service_account_name}" : "serviceAccount:${var.deployment_service_account_name}"
 
   local_curl_impersonation = var.environment == "GITHUB_ENVIRONMENT" ? "--impersonate-service-account=${var.deployment_service_account_name}" : ""
+
+  local_azure_omni_biglake_connection = "projects/${var.shared_demo_project_id}/locations/${var.azure_omni_biglake_dataset_region}/connections/bq_omni_azure_adls"
 }
 
 
@@ -454,7 +449,7 @@ module "sql-scripts" {
   aws_omni_biglake_connection     = var.aws_omni_biglake_connection
   aws_omni_biglake_s3_bucket      = var.aws_omni_biglake_s3_bucket
   azure_omni_biglake_dataset_name = var.azure_omni_biglake_dataset_name
-  azure_omni_biglake_connection   = var.azure_omni_biglake_connection
+  azure_omni_biglake_connection   = local.local_azure_omni_biglake_connection
   azure_omni_biglake_adls_name    = var.azure_omni_biglake_adls_name
 
   depends_on = [
