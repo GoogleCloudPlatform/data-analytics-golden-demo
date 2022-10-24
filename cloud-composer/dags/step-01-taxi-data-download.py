@@ -121,7 +121,7 @@ with airflow.DAG('step-01-taxi-data-download',
                         "color" : "yellow", 
                         "year" : "2022", 
                         "url" : "https://d37ci6vzurychx.cloudfront.net/trip-data/{COLOR}_tripdata_{YEAR}-{MONTH}.parquet",
-                        "max_month" : 4
+                        "max_month" : 6
                          },
         execution_timeout=timedelta(minutes=30),
         dag=dag,
@@ -135,7 +135,7 @@ with airflow.DAG('step-01-taxi-data-download',
                         "color" : "green", 
                         "year" : "2022", 
                         "url" : "https://d37ci6vzurychx.cloudfront.net/trip-data/{COLOR}_tripdata_{YEAR}-{MONTH}.parquet",
-                        "max_month" : 4
+                        "max_month" : 6
                          },
         execution_timeout=timedelta(minutes=30),
         dag=dag,
