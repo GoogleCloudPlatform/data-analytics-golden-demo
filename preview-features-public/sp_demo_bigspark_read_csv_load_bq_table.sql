@@ -43,7 +43,7 @@ WITH CONNECTION `us.bigspark-connection` OPTIONS (engine='SPARK',
 # To create the External Connection (you can use the BQ UI for this under "+ Add Data | External Data Source")
 # bq mk --connection \
 #       --connection_type='SPARK' \
-#       --project_id="data-analytics-golden-v1-share" \
+#       --project_id="REPLACE-ME" \
 #       --location="us" \
 #       "bigspark-connection"
 

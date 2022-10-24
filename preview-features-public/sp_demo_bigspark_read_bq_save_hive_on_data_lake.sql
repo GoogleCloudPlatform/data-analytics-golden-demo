@@ -44,7 +44,7 @@ WITH CONNECTION `us.bigspark-connection` OPTIONS (engine='SPARK',
 # To create the External Connection (you can use the BQ UI for this under "+ Add Data | External Data Source")
 # bq mk --connection \
 #       --connection_type='SPARK' \
-#       --project_id="data-analytics-golden-v1-share" \
+#       --project_id="REPLACE-ME" \
 #       --location="us" \
 #       "bigspark-connection"
 
@@ -79,7 +79,7 @@ test_parameter_value = str(json.loads(os.environ["BIGQUERY_PROC_PARAM.test_param
 print("test_parameter_value", test_parameter_value)
 
 temporaryGcsBucket = "sample-shared-data-temp"
-project_id = "data-analytics-golden-v1-share"
+project_id = "REPLACE-ME"
 taxi_dataset_id = "bigquery_preview_features"
 destination = "gs://sample-shared-data/customer-extract/taxi-data/"
 

@@ -53,7 +53,7 @@ This Connection has been created
 
 bq mk --connection \
   --location="US" \
-  --project_id="data-analytics-golden-v1-share" \
+  --project_id="REPLACE-ME" \
   --connection_type=CLOUD_RESOURCE \
   "caspian-connection"
 
@@ -292,7 +292,7 @@ OPTIONS (
   );
 
 -- Some of the images contain sensitive information that we 
--- View the files in https://console.cloud.google.com/storage/browser/sample-shared-data/bigquery-caspian/confidential?project=data-analytics-golden-v1-share
+-- View the files in https://console.cloud.google.com/storage/browser/sample-shared-data/bigquery-caspian/confidential?project=REPLACE-ME
 -- These files have "Custom Metadata" Key=pii Value=true
 SELECT *
   FROM `bigquery_preview_features.biglake_caspian` -- THE NON-SECURE TABLE (so we can see the data)

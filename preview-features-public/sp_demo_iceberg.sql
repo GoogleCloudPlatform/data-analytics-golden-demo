@@ -230,7 +230,7 @@ SELECT Passenger_Count, Surcharge FROM bigquery_preview_features.iceberg_yellow_
 CREATE OR REPLACE EXTERNAL TABLE bigquery_preview_features.iceberg_green_taxi_trips_autodetect
 OPTIONS (
          format = 'ICEBERG',
-         uris = ["blms://projects/data-analytics-golden-v1-share/locations/us/catalogs/blms/databases/mydb/tables/blms_table"]
+         uris = ["blms://projects/REPLACE-ME/locations/us/catalogs/blms/databases/mydb/tables/blms_table"]
        );
 */
 
