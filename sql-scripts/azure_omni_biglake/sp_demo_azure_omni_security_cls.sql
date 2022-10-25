@@ -55,6 +55,9 @@ Clean up / Reset script:
 -- Click the "SELECT" buttom
 -- On the "Edit Schema" screen press "SAVE"
 
+-- You may also add data masking to a field or two.  
+-- The data masking rule is a Nullable rule which will show all NULLs
+
 -- NOTE: The tables are named with a suffix of "_cls", this is so we do not affect the demo.  
 --       In the real application of CLS you do not need a seperate table.
 
