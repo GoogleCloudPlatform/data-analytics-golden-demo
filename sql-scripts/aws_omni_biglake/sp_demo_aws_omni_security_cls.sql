@@ -55,6 +55,9 @@ Clean up / Reset script:
 -- Select the "Low Security" option (you will have access to see this data)
 -- Click the "SELECT" buttom
 -- On the "Edit Schema" screen press "SAVE"
+
+-- You may also add data masking to a field or two.  
+-- The data masking rule is a Nullable rule which will show all NULLs
 	
 
 -- NOTE: The tables are named with a suffix of "_cls", this is so we do not affect the demo.  

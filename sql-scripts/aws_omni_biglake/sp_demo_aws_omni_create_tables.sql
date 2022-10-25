@@ -33,19 +33,19 @@ References:
     - https://cloud.google.com/bigquery/docs/omni-aws-create-external-table
 
 Clean up / Reset script:
-    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${aws_omni_biglake_dataset_region}.taxi_s3_yellow_trips_parquet`;
-    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${aws_omni_biglake_dataset_region}.taxi_s3_yellow_trips_parquet_cls`;
-    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${aws_omni_biglake_dataset_region}.taxi_s3_yellow_trips_parquet_rls`;
-    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${aws_omni_biglake_dataset_region}.taxi_s3_yellow_trips_csv`;
-    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${aws_omni_biglake_dataset_region}.taxi_s3_yellow_trips_csv_rls`;
-    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${aws_omni_biglake_dataset_region}.taxi_s3_yellow_trips_csv_cls`;
-    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${aws_omni_biglake_dataset_region}.taxi_s3_yellow_trips_json`;
-    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${aws_omni_biglake_dataset_region}.taxi_s3_yellow_trips_json_rls`;
-    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${aws_omni_biglake_dataset_region}.taxi_s3_yellow_trips_json_cls`;
-    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${aws_omni_biglake_dataset_region}.taxi_s3_vendor`;
-    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${aws_omni_biglake_dataset_region}.taxi_s3_rate_code`;
-    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${aws_omni_biglake_dataset_region}.taxi_s3_payment_type`;
-    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${aws_omni_biglake_dataset_region}.taxi_s3_trip_type`;
+    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${aws_omni_biglake_dataset_name}.taxi_s3_yellow_trips_parquet`;
+    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${aws_omni_biglake_dataset_name}.taxi_s3_yellow_trips_parquet_cls`;
+    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${aws_omni_biglake_dataset_name}.taxi_s3_yellow_trips_parquet_rls`;
+    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${aws_omni_biglake_dataset_name}.taxi_s3_yellow_trips_csv`;
+    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${aws_omni_biglake_dataset_name}.taxi_s3_yellow_trips_csv_rls`;
+    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${aws_omni_biglake_dataset_name}.taxi_s3_yellow_trips_csv_cls`;
+    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${aws_omni_biglake_dataset_name}.taxi_s3_yellow_trips_json`;
+    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${aws_omni_biglake_dataset_name}.taxi_s3_yellow_trips_json_rls`;
+    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${aws_omni_biglake_dataset_name}.taxi_s3_yellow_trips_json_cls`;
+    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${aws_omni_biglake_dataset_name}.taxi_s3_vendor`;
+    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${aws_omni_biglake_dataset_name}.taxi_s3_rate_code`;
+    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${aws_omni_biglake_dataset_name}.taxi_s3_payment_type`;
+    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${aws_omni_biglake_dataset_name}.taxi_s3_trip_type`;
 */
 
 -- NOTE: You do not have access to run this command (the table is already created)
