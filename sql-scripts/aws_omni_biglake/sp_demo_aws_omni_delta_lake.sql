@@ -42,9 +42,9 @@ Reference:
     - 
 
 Clean up / Reset script:
-    DROP VIEW IF EXISTS `${project_id}.${azure_omni_biglake_dataset_name}.rideshare_trips`;
-    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${azure_omni_biglake_dataset_name}.rideshare_trips_raw_parquet`;
-    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${azure_omni_biglake_dataset_name}.rideshare_trips_manifest`;
+    DROP VIEW IF EXISTS `${project_id}.${aws_omni_biglake_dataset_name}.rideshare_trips`;
+    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${aws_omni_biglake_dataset_name}.rideshare_trips_raw_parquet`;
+    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${aws_omni_biglake_dataset_name}.rideshare_trips_manifest`;
 
 Sample PySpark code to generate a manifest:
     %python
