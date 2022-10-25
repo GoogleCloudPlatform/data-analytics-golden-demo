@@ -45,7 +45,7 @@ Clean up / Reset script:
     DROP EXTERNAL TABLE IF EXISTS `${project_id}.${azure_omni_biglake_dataset_name}.taxi_azure_vendor`;
     DROP EXTERNAL TABLE IF EXISTS `${project_id}.${azure_omni_biglake_dataset_name}.taxi_azure_rate_code`;
     DROP EXTERNAL TABLE IF EXISTS `${project_id}.${azure_omni_biglake_dataset_name}.taxi_azure_payment_type`;
-    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${azure_omni_biglake_dataset_name}.taxi_azure_trip_type`;*/
+    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${azure_omni_biglake_dataset_name}.taxi_azure_trip_type`;
 
 -- NOTE: You do not have access to run this command (the table is already created)
 --       If you want to run this use the dataset "ce_playground_azure"
