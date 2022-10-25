@@ -23,9 +23,6 @@ Use Cases:
 Description: 
     - Show many complex SQL statements along with Exporting data to S3 for ETL or other purposes
 
-Dependencies:
-    - You must open a new tab with the URL: https://console.cloud.google.com/bigquery?project=${shared_demo_project_id}
-
 Show:
     - Just like regular external tables (see script create_azure_taxi_tables_s3.sql)
     - These are complex SQL across 100+M rows of data
