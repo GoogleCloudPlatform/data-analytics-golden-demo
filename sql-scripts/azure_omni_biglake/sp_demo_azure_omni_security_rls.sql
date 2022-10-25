@@ -22,9 +22,6 @@ Use Cases:
 Description: 
     - Filter rows by a Pickup Location
 
-Dependencies:
-    - You must open a new tab with the URL: https://console.cloud.google.com/bigquery?project=${shared_demo_project_id}
-
 Show:
     - Tables are filter by rows even though it is a parquet file
     

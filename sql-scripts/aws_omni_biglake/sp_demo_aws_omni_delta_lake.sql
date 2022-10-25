@@ -42,9 +42,9 @@ Reference:
     - 
 
 Clean up / Reset script:
-    DROP VIEW IF EXISTS `${project_id}.${azure_omni_biglake_dataset_name}.rideshare_trips`;
-    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${azure_omni_biglake_dataset_name}.rideshare_trips_raw_parquet`;
-    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${azure_omni_biglake_dataset_name}.rideshare_trips_manifest`;
+    DROP VIEW IF EXISTS `${project_id}.${aws_omni_biglake_dataset_name}.rideshare_trips`;
+    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${aws_omni_biglake_dataset_name}.rideshare_trips_raw_parquet`;
+    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${aws_omni_biglake_dataset_name}.rideshare_trips_manifest`;
 
 Sample PySpark code to generate a manifest:
     %python
@@ -75,10 +75,10 @@ uris = ['s3://${aws_omni_biglake_s3_bucket}/delta_io/rideshare_trips/*.snappy.pa
 );
 
 -- This shows all the data (including the logically deleted Delta.IO data which is incorrect)
-SELECT * FROM `${shared_demo_project_id}.${aws_omni_biglake_dataset_region}.rideshare_trips_raw_parquet` LIMIT 1000;
+SELECT * FROM `${project_id}.${aws_omni_biglake_dataset_name}.rideshare_trips_raw_parquet` LIMIT 1000;
 
 -- Returns 54521
-SELECT COUNT(*) FROM `${shared_demo_project_id}.${aws_omni_biglake_dataset_region}.rideshare_trips_raw_parquet`;
+SELECT COUNT(*) FROM `${project_id}.${aws_omni_biglake_dataset_name}.rideshare_trips_raw_parquet`;
 
 -- Create an external table over the generated manifest files which has pointers to the actual parquet files
 -- NOTE: You do not have access to run this command (the table is already created)
@@ -97,28 +97,28 @@ uris = ['s3://${aws_omni_biglake_s3_bucket}/delta_io/rideshare_trips/_symlink_fo
 
 -- Show our manifest files
 -- This will only have files that are not logically deleted by Delta.IO
-SELECT * from `${shared_demo_project_id}.${aws_omni_biglake_dataset_region}.rideshare_trips_manifest` LIMIT 100;
+SELECT * FROM `${project_id}.${aws_omni_biglake_dataset_name}.rideshare_trips_manifest` LIMIT 100;
 
 
 -- Create our Final View (This is what Users will work with in BigQuery)
 -- This filter the parquet files by joining to the manifest (which only has pointers to non-logically deleted files)
 -- NOTE: You do not have access to run this command (the table is already created)
 --       If you want to run this use the dataset "ce_playground_aws"
-CREATE OR REPLACE VIEW `${shared_demo_project_id}.${aws_omni_biglake_dataset_region}.rideshare_trips` AS
+CREATE OR REPLACE VIEW `${project_id}.${aws_omni_biglake_dataset_name}.rideshare_trips` AS
 SELECT *
-FROM  `${shared_demo_project_id}.${aws_omni_biglake_dataset_region}.rideshare_trips_raw_parquet`
+FROM  `${project_id}.${aws_omni_biglake_dataset_name}.rideshare_trips_raw_parquet`
 WHERE _FILE_NAME IN (SELECT REPLACE(string_field_0,'s3a://','s3://')
-                      FROM `${shared_demo_project_id}.${aws_omni_biglake_dataset_region}.rideshare_trips_manifest`) ;
+                      FROM `${project_id}.${aws_omni_biglake_dataset_name}.rideshare_trips_manifest`) ;
 
 /*
 -- In Azure
-CREATE OR REPLACE VIEW `${shared_demo_project_id}.${aws_omni_biglake_dataset_region}.rideshare_trips` AS
+CREATE OR REPLACE VIEW `${project_id}.${aws_omni_biglake_dataset_name}.rideshare_trips` AS
 SELECT *,
-FROM  `${shared_demo_project_id}.${aws_omni_biglake_dataset_region}.rideshare_trips_raw_parquet`
+FROM  `${project_id}.${aws_omni_biglake_dataset_name}.rideshare_trips_raw_parquet`
 WHERE REPLACE(_FILE_NAME, 
              'azure://STORAGE_ACCOUNT_NAME.blob.core.windows.net/CONTAINER_NAME', 
              'abfss://CONTAINER_NAME@STORAGE_ACCOUNT_NAME.dfs.core.windows.net')
-           IN (SELECT string_field_0 FROM `${shared_demo_project_id}.${aws_omni_biglake_dataset_region}.rideshare_trips_manifest`) ;
+           IN (SELECT string_field_0 FROM `${project_id}.${aws_omni_biglake_dataset_name}.rideshare_trips_manifest`) ;
 
 */
 
@@ -127,11 +127,11 @@ WHERE REPLACE(_FILE_NAME,
 -- We should not have any PULocationIds >= 100 in our results
 
 -- Show it works
-SELECT * FROM `${shared_demo_project_id}.${aws_omni_biglake_dataset_region}.rideshare_trips` LIMIT 100;
+SELECT * FROM `${project_id}.${aws_omni_biglake_dataset_name}.rideshare_trips` LIMIT 100;
 
 -- Shows that we are not returning delete rows
-SELECT * FROM `${shared_demo_project_id}.${aws_omni_biglake_dataset_region}.rideshare_trips` WHERE PULocationID >= 100 LIMIT 100;
+SELECT * FROM `${project_id}.${aws_omni_biglake_dataset_name}.rideshare_trips` WHERE PULocationID >= 100 LIMIT 100;
 
 -- Show the count 4521 as compared to the 54521 above
-SELECT COUNT(*) FROM `${shared_demo_project_id}.${aws_omni_biglake_dataset_region}.rideshare_trips`;
+SELECT COUNT(*) FROM `${project_id}.${aws_omni_biglake_dataset_name}.rideshare_trips`;
 
