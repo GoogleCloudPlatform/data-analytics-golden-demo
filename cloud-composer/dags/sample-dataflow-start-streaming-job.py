@@ -108,7 +108,8 @@ with airflow.DAG('sample-dataflow-start-streaming-job',
                 'streaming'       : True,
                 'serviceAccount'  : serviceAccount,
                 "network"         : "vpc-main",
-                'subnetwork'      : dataflow_subnet 
+                'subnetwork'      : dataflow_subnet,
+                'maxNumWorkers'   : 5
             },
             py_interpreter='python3',
             py_requirements=['google-cloud-pubsub==2.1.0','google-cloud-bigquery-storage==2.13.2','apache-beam[gcp]==2.41.0'],
@@ -121,6 +122,8 @@ with airflow.DAG('sample-dataflow-start-streaming-job',
                 wait_until_finished = False
             ),
     )
+
+    
 
     # Show starting a data tranfer via the REST API
     write_dataflow_job_id = PythonOperator(
