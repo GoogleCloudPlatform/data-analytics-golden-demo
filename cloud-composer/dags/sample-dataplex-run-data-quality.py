@@ -16,24 +16,29 @@
 
 # Author:  Adam Paternostro
 # Summary: Runs a data quality check against BigQuery
+# References: 
+#   https://github.com/GoogleCloudPlatform/cloud-data-quality/blob/main/scripts/dataproc-workflow-composer/clouddq_composer_dataplex_task_job.py
 
-
-# [START dag]
-from google.cloud import storage
 from datetime import datetime, timedelta
 import requests
 import sys
 import os
 import logging
+import json
+import time
+
 import airflow
 from airflow.operators import bash_operator
 from airflow.utils import trigger_rule
 from airflow.operators.python_operator import PythonOperator
+
+from airflow.providers.google.cloud.operators.bigquery import BigQueryCreateEmptyDatasetOperator
+from airflow.providers.google.cloud.operators.dataplex import DataplexCreateTaskOperator
+
+from google.protobuf.duration_pb2 import Duration
+
 import google.auth
 import google.auth.transport.requests
-from airflow.providers.google.cloud.operators.bigquery import BigQueryCreateEmptyDatasetOperator
-from airflow.providers.google.cloud.transfers.local_to_gcs import LocalFilesystemToGCSOperator
-import json
 
 default_args = {
     'owner': 'airflow',
@@ -46,37 +51,153 @@ default_args = {
     'dagrun_timeout' : timedelta(minutes=60),
 }
 
-project_id                      = os.environ['GCP_PROJECT'] 
-taxi_dataset_id                 = os.environ['ENV_TAXI_DATASET_ID']
-processed_bucket_name           = os.environ['ENV_PROCESSED_BUCKET'] 
-yaml_path                       = "gs://" + processed_bucket_name + "/dataplex/dataplex_data_quality_taxi.yaml"
-bigquery_region                 = os.environ['ENV_BIGQUERY_REGION']
-taxi_dataset_id                 = os.environ['ENV_TAXI_DATASET_ID']
-thelook_dataset_id              = "thelook_ecommerce"
-vpc_subnet_name                 = "bigspark-subnet"
-dataplex_region                 = "us-central1"
-service_account_to_run_dataplex = "dataproc-service-account@" + project_id + ".iam.gserviceaccount.com"
-random_extension                = os.environ['ENV_RANDOM_EXTENSION']
-taxi_dataplex_lake_name         = "taxi-data-lake-" + random_extension
-data_quality_dataset_id         = "dataplex_data_quality"
+project_id                            = os.environ['GCP_PROJECT'] 
+taxi_dataset_id                       = os.environ['ENV_TAXI_DATASET_ID']
+processed_bucket_name                 = os.environ['ENV_PROCESSED_BUCKET'] 
+yaml_path                             = "gs://" + processed_bucket_name + "/dataplex/dataplex_data_quality_taxi.yaml"
+bigquery_region                       = os.environ['ENV_BIGQUERY_REGION']
+taxi_dataset_id                       = os.environ['ENV_TAXI_DATASET_ID']
+thelook_dataset_id                    = "thelook_ecommerce"
+vpc_subnet_name                       = "bigspark-subnet"
+dataplex_region                       = "us-central1"
+service_account_to_run_dataplex       = "dataproc-service-account@" + project_id + ".iam.gserviceaccount.com"
+random_extension                      = os.environ['ENV_RANDOM_EXTENSION']
+taxi_dataplex_lake_name               = "taxi-data-lake-" + random_extension
+data_quality_dataset_id               = "dataplex_data_quality"
+data_quality_table_name               = "data_quality_results"
+DATAPLEX_PUBLIC_GCS_BUCKET_NAME       = f"dataplex-clouddq-artifacts-{dataplex_region}"
+CLOUDDQ_EXECUTABLE_FILE_PATH          = f"gs://{DATAPLEX_PUBLIC_GCS_BUCKET_NAME}/clouddq-executable.zip"
+CLOUDDQ_EXECUTABLE_HASHSUM_FILE_PATH  = f"gs://{DATAPLEX_PUBLIC_GCS_BUCKET_NAME}/clouddq-executable.zip.hashsum" 
+FULL_TARGET_TABLE_NAME                = f"{project_id}.{data_quality_dataset_id}.{data_quality_table_name}"  
+TRIGGER_SPEC_TYPE                     = "ON_DEMAND"  
+
+spark_python_script_file        = f"gs://{DATAPLEX_PUBLIC_GCS_BUCKET_NAME}/clouddq_pyspark_driver.py"
 
 # NOTE: This is case senstive for some reason
 bigquery_region = bigquery_region.upper()
 
-params_list = { 
-    "project_id" : project_id,
-    "taxi_dataset": taxi_dataset_id,
-    "thelook_dataset": thelook_dataset_id,
-    "yaml_path": yaml_path,
-    "bigquery_region": bigquery_region,
-    "thelook_dataset": thelook_dataset_id,
-    "taxi_dataplex_lake_name": taxi_dataplex_lake_name,
-    "vpc_subnet_name": vpc_subnet_name,
-    "dataplex_region": dataplex_region,
-    "service_account_to_run_dataplex": service_account_to_run_dataplex,
-    "random_extension": random_extension
+# https://cloud.google.com/dataplex/docs/reference/rpc/google.cloud.dataplex.v1
+# https://cloud.google.com/dataplex/docs/reference/rpc/google.cloud.dataplex.v1#google.cloud.dataplex.v1.Task.InfrastructureSpec.VpcNetwork
+data_quality_config = {
+    "spark": {
+        "python_script_file": spark_python_script_file,
+        "file_uris": [CLOUDDQ_EXECUTABLE_FILE_PATH,
+                      CLOUDDQ_EXECUTABLE_HASHSUM_FILE_PATH,
+                      yaml_path
+                      ],
+        "infrastructure_spec" : {
+            "vpc_network" : {
+                "sub_network" : vpc_subnet_name
+            }
+        },                      
+    },
+    "execution_spec": {
+        "service_account": service_account_to_run_dataplex,
+        "max_job_execution_lifetime" : Duration(seconds=2*60*60),
+        "args": {
+            "TASK_ARGS": f"clouddq-executable.zip, \
+                 ALL, \
+                 {yaml_path}, \
+                --gcp_project_id={project_id}, \
+                --gcp_region_id={bigquery_region}, \
+                --gcp_bq_dataset_id={data_quality_dataset_id}, \
+                --target_bigquery_summary_table={FULL_TARGET_TABLE_NAME}"
+        }
+    },
+    "trigger_spec": {
+        "type_": TRIGGER_SPEC_TYPE
+    },
+    "description": "CloudDQ Airflow Task"
+}
+
+
+# Check on the status of the job
+def get_clouddq_task_status(task_id):
+    # Wait for job to start
+    print ("get_clouddq_task_status STARTED, sleeping for 60 seconds for jobs to start")
+    time.sleep(60)
+
+    # Get auth (default service account running composer worker node)
+    creds, project = google.auth.default()
+    auth_req = google.auth.transport.requests.Request() # required to acess access token
+    creds.refresh(auth_req)
+    access_token=creds.token
+    auth_header = {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + access_token
     }
 
+    uri = f"https://dataplex.googleapis.com/v1/projects/{project_id}/locations/{dataplex_region}/lakes/{taxi_dataplex_lake_name}/tasks/{task_id}/jobs"
+    serviceJob = ""
+
+    # Get the jobs
+    # Get the status of each job (or the first for the demo)
+    try:
+        response = requests.get(uri, headers=auth_header)
+        print("get_clouddq_task_status response status code: ", response.status_code)
+        print("get_clouddq_task_status response status text: ", response.text)
+        response_json = json.loads(response.text)
+        if response.status_code == 200:
+            if ("jobs" in response_json and len(response_json["jobs"]) > 0):
+                serviceJob = response_json["jobs"][0]["serviceJob"]
+                print("get_clouddq_task_status serviceJob: ", serviceJob)
+            else:
+                errorMessage = "Could not find serviceJob in REST API response"
+                raise Exception(errorMessage)
+        else:
+            errorMessage = "REAT API (serviceJob) response returned response.status_code: " + str(response.status_code)
+            raise Exception(errorMessage)
+    except requests.exceptions.RequestException as err:
+        print(err)
+        raise err
+
+    dataproc_job_id = serviceJob.replace(f"projects/{project_id}/locations/{dataplex_region}/batches/","")
+    print ("dataproc_job_id: ", dataproc_job_id)
+    serviceJob_uri  = f"https://dataproc.googleapis.com/v1/projects/{project_id}/locations/{dataplex_region}/batches/{dataproc_job_id}"
+    print ("serviceJob_uri:", serviceJob_uri)
+
+    # Run for for so many interations
+    counter  = 1
+    while (counter < 60):    
+        try:
+            response = requests.get(serviceJob_uri, headers=auth_header)
+            print("get_clouddq_task_status response status code: ", response.status_code)
+            print("get_clouddq_task_status response status text: ", response.text)
+            response_json = json.loads(response.text)
+            if response.status_code == 200:
+                if ("state" in response_json):
+                    task_status = response_json["state"]
+                    print("get_clouddq_task_status task_status: ", task_status)
+                    if (task_status == 'SUCCEEDED'):
+                        return True
+                    
+                    if (task_status == 'FAILED' 
+                        or task_status == 'CANCELLED'
+                        or task_status == 'ABORTED'):
+                        errorMessage = "Task failed with status of: " + task_status
+                        raise Exception(errorMessage)
+
+                    # Assuming state is RUNNING or PENDING
+                    time.sleep(30)
+                else:
+                    errorMessage = "Could not find Job State in REST API response"
+                    raise Exception(errorMessage)
+            else:
+                errorMessage = "REAT API response returned response.status_code: " + str(response.status_code)
+                raise Exception(errorMessage)
+        except requests.exceptions.RequestException as err:
+            print(err)
+            raise err
+        counter = counter + 1
+
+    errorMessage = "The process (get_clouddq_task_status) run for too long.  Increase the number of iterations."
+    raise Exception(errorMessage)
+
+
+# SQL
+# For each table (sum the metics?)
+# For each col (place latest metrics on data catalog)
 
 # Create the dataset to hold the data quality results
 # NOTE: This has to be in the same region as the BigQuery dataset we are performing our data quality checks
@@ -99,16 +220,120 @@ with airflow.DAG('sample-dataplex-run-data-quality',
         exists_ok=True
     )
 
-    # Create a data quality task
-    dataplex_data_quality = bash_operator.BashOperator(
-          task_id='dataplex_data_quality',
-          bash_command='bash_deploy_dataplex_data_quality.sh',
-          params=params_list,
-          dag=dag
-      )
+    # https://airflow.apache.org/docs/apache-airflow-providers-google/stable/_api/airflow/providers/google/cloud/operators/dataplex/index.html#airflow.providers.google.cloud.operators.dataplex.DataplexCreateTaskOperator
+    create_dataplex_task = DataplexCreateTaskOperator(
+        project_id=project_id,
+        region=dataplex_region,
+        lake_id=taxi_dataplex_lake_name,
+        body=data_quality_config,
+        dataplex_task_id="cloud-dq-{{ ts_nodash.lower() }}",
+        task_id="create_dataplex_task",
+    )
+
+    get_clouddq_task_status = PythonOperator(
+        task_id='get_clouddq_task_status',
+        python_callable= get_clouddq_task_status,
+        op_kwargs = { "task_id" : "cloud-dq-{{ ts_nodash.lower() }}" },
+        execution_timeout=timedelta(minutes=300),
+        dag=dag,
+        ) 
+
+    create_data_quality_dataset >> create_dataplex_task >> get_clouddq_task_status
 
 
-    # DAG Graph
-    create_data_quality_dataset >> dataplex_data_quality
+"""
+Sample dataplex output from REST API call
+{
+  "jobs": [
+    {
+      "name": "projects/781192597639/locations/us-central1/lakes/taxi-data-lake-r8immkwx8o/tasks/cloud-dq-20221031t182959/jobs/de934178-cde0-489d-b16f-ac6c1e919431",
+      "uid": "de934178-cde0-489d-b16f-ac6c1e919431",
+      "startTime": "2022-10-31T18:30:40.959187Z",
+      "service": "DATAPROC",
+      "serviceJob": "projects/paternostro-9033-2022102613235/locations/us-central1/batches/de934178-cde0-489d-b16f-ac6c1e919431-0"
+    }
+  ],
+  "nextPageToken": "Cg5iDAiyqICbBhCQsqf7Ag"
+}
+"""
 
-# [END dag]
+"""
+Sample dataproc output from REST API call
+
+   curl \
+  'https://dataproc.googleapis.com/v1/projects/paternostro-9033-2022102613235/locations/us-central1/batches/de934178-cde0-489d-b16f-ac6c1e919431-0?key=[YOUR_API_KEY]' \
+  --header 'Authorization: Bearer [YOUR_ACCESS_TOKEN]' \
+  --header 'Accept: application/json' \
+  --compressed 
+
+{
+  "name": "projects/paternostro-9033-2022102613235/locations/us-central1/batches/de934178-cde0-489d-b16f-ac6c1e919431-0",
+  "uuid": "af6fd3a5-9ed3-4459-a13b-28d254732704",
+  "createTime": "2022-10-31T18:30:40.959187Z",
+  "pysparkBatch": {
+    "mainPythonFileUri": "gs://dataplex-clouddq-artifacts-us-central1/clouddq_pyspark_driver.py",
+    "args": [
+      "clouddq-executable.zip",
+      "ALL",
+      "gs://processed-paternostro-9033-2022102613235-r8immkwx8o/dataplex/dataplex_data_quality_taxi.yaml",
+      "--gcp_project_id=paternostro-9033-2022102613235",
+      "--gcp_region_id=US",
+      "--gcp_bq_dataset_id=dataplex_data_quality",
+      "--target_bigquery_summary_table=paternostro-9033-2022102613235.dataplex_data_quality.data_quality_results"
+    ],
+    "fileUris": [
+      "gs://dataplex-clouddq-artifacts-us-central1/clouddq-executable.zip",
+      "gs://dataplex-clouddq-artifacts-us-central1/clouddq-executable.zip.hashsum",
+      "gs://processed-paternostro-9033-2022102613235-r8immkwx8o/dataplex/dataplex_data_quality_taxi.yaml"
+    ]
+  },
+  "runtimeInfo": {
+    "outputUri": "gs://dataproc-staging-us-central1-781192597639-yjb84s0j/google-cloud-dataproc-metainfo/81e34cf5-9c71-41cc-98dd-751e70a0e1e5/jobs/srvls-batch-af6fd3a5-9ed3-4459-a13b-28d254732704/driveroutput",
+    "approximateUsage": {
+      "milliDcuSeconds": "3608000",
+      "shuffleStorageGbSeconds": "360800"
+    }
+  },
+  "state": "SUCCEEDED",
+  "stateTime": "2022-10-31T18:36:46.829934Z",
+  "creator": "service-781192597639@gcp-sa-dataplex.iam.gserviceaccount.com",
+  "labels": {
+    "goog-dataplex-task": "cloud-dq-20221031t182959",
+    "goog-dataplex-task-job": "de934178-cde0-489d-b16f-ac6c1e919431",
+    "goog-dataplex-workload": "task",
+    "goog-dataplex-project": "paternostro-9033-2022102613235",
+    "goog-dataplex-location": "us-central1",
+    "goog-dataplex-lake": "taxi-data-lake-r8immkwx8o"
+  },
+  "runtimeConfig": {
+    "version": "1.0",
+    "properties": {
+      "spark:spark.executor.instances": "2",
+      "spark:spark.driver.cores": "4",
+      "spark:spark.executor.cores": "4",
+      "spark:spark.dynamicAllocation.executorAllocationRatio": "0.3",
+      "spark:spark.app.name": "projects/paternostro-9033-2022102613235/locations/us-central1/batches/de934178-cde0-489d-b16f-ac6c1e919431-0"
+    }
+  },
+  "environmentConfig": {
+    "executionConfig": {
+      "serviceAccount": "dataproc-service-account@paternostro-9033-2022102613235.iam.gserviceaccount.com",
+      "subnetworkUri": "bigspark-subnet"
+    },
+    "peripheralsConfig": {
+      "sparkHistoryServerConfig": {}
+    }
+  },
+  "operation": "projects/paternostro-9033-2022102613235/regions/us-central1/operations/d209b731-7cdd-3db2-ba59-10c95ede9e75",
+  "stateHistory": [
+    {
+      "state": "PENDING",
+      "stateStartTime": "2022-10-31T18:30:40.959187Z"
+    },
+    {
+      "state": "RUNNING",
+      "stateStartTime": "2022-10-31T18:31:41.245940Z"
+    }
+  ]
+}
+"""
