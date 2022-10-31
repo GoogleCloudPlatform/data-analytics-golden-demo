@@ -82,7 +82,7 @@ SELECT record_count,
        latest_execution_ts,
        columns_validated,
        columns_count,
-       invocation_id.invocation_id,
+       invocation_id,
        CASE WHEN SUM(IFNULL(rows_validated,0)) = 0
             THEN CAST(1 AS NUMERIC)
             ELSE CAST(SUM(IFNULL(success_count,0)) / SUM(IFNULL(rows_validated,0)) AS NUMERIC)
