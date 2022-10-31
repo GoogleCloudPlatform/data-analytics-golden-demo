@@ -35,10 +35,12 @@ from airflow.operators.python_operator import PythonOperator
 from airflow.providers.google.cloud.operators.bigquery import BigQueryCreateEmptyDatasetOperator
 from airflow.providers.google.cloud.operators.dataplex import DataplexCreateTaskOperator
 
+from google.cloud import bigquery
 from google.protobuf.duration_pb2 import Duration
 
 import google.auth
 import google.auth.transport.requests
+from google.cloud import datacatalog_v1
 
 default_args = {
     'owner': 'airflow',
@@ -53,8 +55,8 @@ default_args = {
 
 project_id                            = os.environ['GCP_PROJECT'] 
 taxi_dataset_id                       = os.environ['ENV_TAXI_DATASET_ID']
-processed_bucket_name                 = os.environ['ENV_PROCESSED_BUCKET'] 
-yaml_path                             = "gs://" + processed_bucket_name + "/dataplex/dataplex_data_quality_taxi.yaml"
+code_bucket_name                      = os.environ['ENV_CODE_BUCKET'] 
+yaml_path                             = "gs://" + code_bucket_name + "/dataplex/data-quality/dataplex_data_quality_taxi.yaml"
 bigquery_region                       = os.environ['ENV_BIGQUERY_REGION']
 taxi_dataset_id                       = os.environ['ENV_TAXI_DATASET_ID']
 thelook_dataset_id                    = "thelook_ecommerce"
@@ -198,6 +200,60 @@ def get_clouddq_task_status(task_id):
 # SQL
 # For each table (sum the metics?)
 # For each col (place latest metrics on data catalog)
+def attach_tag_template_to_table():
+    client = bigquery.Client()
+    query_job = client.query(f"CALL `{project_id}.{taxi_dataset_id}.sp_demo_data_quality_table`();")
+    results = query_job.result()  # Waits for job to complete.
+
+    for row in results:
+      # print("{} : {} views".format(row.url, row.view_count))
+      datacatalog_client = datacatalog_v1.DataCatalogClient()
+
+      resource_name = (
+          f"//bigquery.googleapis.com/projects/{project_id}"
+          f"/datasets/{taxi_dataset_id}/tables/taxi_trips"
+      )
+      table_entry = datacatalog_client.lookup_entry(
+          request={"linked_resource": resource_name}
+      )
+
+      # Attach a Tag to the table.
+      tag = datacatalog_v1.types.Tag()
+
+      tag.template = f"projects/{project_id}/locations/{dataplex_region}/tagTemplates/table_dq_tag_template"
+      tag.name = "table_dq_tag_template"
+
+      tag.fields["table_name"] = datacatalog_v1.types.TagField()
+      tag.fields["table_name"].string_value = "taxi_trips"
+
+      tag.fields["record_count"] = datacatalog_v1.types.TagField()
+      tag.fields["record_count"].double_value = row.record_count
+
+      tag.fields["latest_execution_ts"] = datacatalog_v1.types.TagField()
+      tag.fields["latest_execution_ts"].timestamp_value = row.latest_execution_ts
+
+      tag.fields["columns_validated"] = datacatalog_v1.types.TagField()
+      tag.fields["columns_validated"].double_value = row.columns_validated
+
+      tag.fields["columns_count"] = datacatalog_v1.types.TagField()
+      tag.fields["columns_count"].double_value = row.columns_count
+
+      tag.fields["success_pct"] = datacatalog_v1.types.TagField()
+      tag.fields["success_pct"].double_value = row.success_percentage
+
+      tag.fields["failed_pct"] = datacatalog_v1.types.TagField()
+      tag.fields["failed_pct"].double_value = row.failed_percentage
+
+      tag.fields["invocation_id"] = datacatalog_v1.types.TagField()
+      tag.fields["invocation_id"].string_value = row.invocation_id
+
+      tag = datacatalog_client.create_tag(parent=table_entry.name, tag=tag)
+      print(f"Created tag: {tag.name}")
+
+
+    
+
+
 
 # Create the dataset to hold the data quality results
 # NOTE: This has to be in the same region as the BigQuery dataset we are performing our data quality checks
@@ -238,7 +294,14 @@ with airflow.DAG('sample-dataplex-run-data-quality',
         dag=dag,
         ) 
 
-    create_data_quality_dataset >> create_dataplex_task >> get_clouddq_task_status
+    attach_tag_template_to_table = PythonOperator(
+        task_id='attach_tag_template_to_table',
+        python_callable= attach_tag_template_to_table,
+        execution_timeout=timedelta(minutes=5),
+        dag=dag,
+        ) 
+
+    create_data_quality_dataset >> create_dataplex_task >> get_clouddq_task_status >> attach_tag_template_to_table
 
 
 """
