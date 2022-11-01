@@ -248,6 +248,7 @@ def attach_tag_template_to_table():
       tag.fields["invocation_id"].string_value = row.invocation_id
 
       # Get the existing tempates (we need to remove the existing one if it exists (we cannot have dups))
+      print ("attach_tag_template_to_table table_entry.name: ", table_entry.name)
       page_result = datacatalog_client.list_tags(parent=table_entry.name)
 
       existing_name = ""
@@ -268,9 +269,104 @@ def attach_tag_template_to_table():
       print(f"Created tag: {tag.name}")
 
 
-    
+# Run a SQL query to get the column result
+# Attach a tag template in data catalog at the column level for taxi trips
+# NOTE: This will overrite the template over and over (not add new one)
+def attach_tag_template_to_columns():
+    client = bigquery.Client()
+    query_job = client.query(f"CALL `{project_id}.{taxi_dataset_id}.sp_demo_data_quality_columns`();")
+    results = query_job.result()  # Waits for job to complete.
+
+    for row in results:
+      datacatalog_client = datacatalog_v1.DataCatalogClient()
+
+      resource_name = (
+          f"//bigquery.googleapis.com/projects/{project_id}"
+          f"/datasets/{taxi_dataset_id}/tables/taxi_trips"
+      )
+      table_entry = datacatalog_client.lookup_entry(
+          request={"linked_resource": resource_name}
+      )
+
+      # Attach a Tag to the table.
+      tag = datacatalog_v1.types.Tag()
+
+      tag.template = f"projects/{project_id}/locations/{dataplex_region}/tagTemplates/column_dq_tag_template"
+      tag.name = "column_dq_tag_template"
+      tag.column = row.column_id
 
 
+      tag.fields["table_name"] = datacatalog_v1.types.TagField()
+      tag.fields["table_name"].string_value = "taxi_trips"
+      
+      tag.fields["invocation_id"] = datacatalog_v1.types.TagField()
+      tag.fields["invocation_id"].string_value = row.invocation_id
+
+      tag.fields["execution_ts"] = datacatalog_v1.types.TagField()
+      tag.fields["execution_ts"].timestamp_value = row.execution_ts
+
+      tag.fields["column_id"] = datacatalog_v1.types.TagField()
+      tag.fields["column_id"].string_value = row.column_id
+
+      tag.fields["rule_binding_id"] = datacatalog_v1.types.TagField()
+      tag.fields["rule_binding_id"].string_value = row.rule_binding_id
+
+      tag.fields["rule_id"] = datacatalog_v1.types.TagField()
+      tag.fields["rule_id"].string_value = row.rule_id
+
+      tag.fields["dimension"] = datacatalog_v1.types.TagField()
+      tag.fields["dimension"].string_value = row.dimension
+
+      tag.fields["rows_validated"] = datacatalog_v1.types.TagField()
+      tag.fields["rows_validated"].double_value = row.rows_validated
+
+      tag.fields["success_count"] = datacatalog_v1.types.TagField()
+      tag.fields["success_count"].double_value = row.success_count
+
+      tag.fields["success_pct"] = datacatalog_v1.types.TagField()
+      tag.fields["success_pct"].double_value = row.success_percentage
+
+      tag.fields["failed_count"] = datacatalog_v1.types.TagField()
+      tag.fields["failed_count"].double_value = row.failed_count
+
+      tag.fields["failed_pct"] = datacatalog_v1.types.TagField()
+      tag.fields["failed_pct"].double_value = row.failed_percentage
+
+      tag.fields["null_count"] = datacatalog_v1.types.TagField()
+      tag.fields["null_count"].double_value = row.null_count
+
+      tag.fields["null_pct"] = datacatalog_v1.types.TagField()
+      tag.fields["null_pct"].double_value = row.null_percentage
+
+      # Get the existing tempates (we need to remove the existing one if it exists (we cannot have dups))
+      print ("attach_tag_template_to_columns table_entry.name: ", table_entry.name)
+      page_result = datacatalog_client.list_tags(parent=table_entry.name)
+
+      existing_name = ""
+      # template: "projects/data-analytics-demo-ra5migwp3l/locations/us-central1/tagTemplates/column_dq_tag_template"
+      # Handle the response
+      for response in page_result:
+        print("response: ", response)
+        if (response.template == tag.template):
+            existing_name = response.name
+            print(f"existing_name: {existing_name}")
+            break
+
+      #if (existing_name != ""):
+      #  print(f"Delete tag: {existing_name}")
+      #  datacatalog_client.delete_tag(name=existing_name)
+
+      # https://cloud.google.com/python/docs/reference/datacatalog/latest/google.cloud.datacatalog_v1.services.data_catalog.DataCatalogClient#google_cloud_datacatalog_v1_services_data_catalog_DataCatalogClient_create_tag
+      tag = datacatalog_client.create_tag(parent=table_entry.name, tag=tag)
+      print(f"Created tag: {tag.name} on {tag.column}")  
+
+
+"""
+              ListTagsPagedResponse tagsResponse = dataCatalogClient.listTags(entry.getName());
+              for(Tag tag : tagsResponse.iterateAll()) {
+                  System.out.println(tag);
+              }
+"""
 
 # Create the dataset to hold the data quality results
 # NOTE: This has to be in the same region as the BigQuery dataset we are performing our data quality checks
@@ -318,7 +414,16 @@ with airflow.DAG('sample-dataplex-run-data-quality',
         dag=dag,
         ) 
 
-    create_data_quality_dataset >> create_dataplex_task >> get_clouddq_task_status >> attach_tag_template_to_table
+    attach_tag_template_to_columns = PythonOperator(
+        task_id='attach_tag_template_to_columns',
+        python_callable= attach_tag_template_to_columns,
+        execution_timeout=timedelta(minutes=5),
+        dag=dag,
+        ) 
+
+    create_data_quality_dataset >> \
+      create_dataplex_task >> get_clouddq_task_status >> \
+      attach_tag_template_to_table >> attach_tag_template_to_columns
 
 
 """
