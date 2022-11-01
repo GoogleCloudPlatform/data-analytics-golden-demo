@@ -197,9 +197,9 @@ def get_clouddq_task_status(task_id):
     raise Exception(errorMessage)
 
 
-# SQL
-# For each table (sum the metics?)
-# For each col (place latest metrics on data catalog)
+# Run a SQL query to get the consolidated table results
+# Attach a tag template in data catalog at the table level for taxi trips
+# NOTE: This will overrite the template over and over (not add new one)
 def attach_tag_template_to_table():
     client = bigquery.Client()
     query_job = client.query(f"CALL `{project_id}.{taxi_dataset_id}.sp_demo_data_quality_table`();")
@@ -247,6 +247,23 @@ def attach_tag_template_to_table():
       tag.fields["invocation_id"] = datacatalog_v1.types.TagField()
       tag.fields["invocation_id"].string_value = row.invocation_id
 
+      # Get the existing tempates (we need to remove the existing one if it exists (we cannot have dups))
+      page_result = datacatalog_client.list_tags(parent=table_entry.name)
+
+      existing_name = ""
+      # template: "projects/data-analytics-demo-ra5migwp3l/locations/us-central1/tagTemplates/table_dq_tag_template"
+      # Handle the response
+      for response in page_result:
+        print("response: ", response)
+        if (response.template == tag.template):
+            existing_name = response.name
+            break
+
+      if (existing_name != ""):
+        print(f"Delete tag: {existing_name}")
+        datacatalog_client.delete_tag(name=existing_name)
+
+      # https://cloud.google.com/python/docs/reference/datacatalog/latest/google.cloud.datacatalog_v1.services.data_catalog.DataCatalogClient#google_cloud_datacatalog_v1_services_data_catalog_DataCatalogClient_create_tag
       tag = datacatalog_client.create_tag(parent=table_entry.name, tag=tag)
       print(f"Created tag: {tag.name}")
 
