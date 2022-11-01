@@ -15,7 +15,13 @@
 ####################################################################################
 
 # Author:  Adam Paternostro
-# Summary: Runs a data quality check against BigQuery
+# Summary: Runs a dataplex data quality job against the taxi trips table
+#          Polls the job until it completes
+#          Reads the data quality results (from BigQuery) and updates the taxi trips in the data catalog assigning a tag template
+#          The user can see the data quality results by searching for the taxi trips table in data catalog
+#          Reads the data quality results (from BigQuery) and updates the taxi trips [COLUMN Level] in the data catalog assigning a tag template
+#          The user can see the data quality results by searching for the taxi trips table in data catalog by clicking on the Schema view
+#
 # References: 
 #   https://github.com/GoogleCloudPlatform/cloud-data-quality/blob/main/scripts/dataproc-workflow-composer/clouddq_composer_dataplex_task_job.py
 
@@ -114,6 +120,7 @@ data_quality_config = {
 
 
 # Check on the status of the job
+# Call the rest API of dataplex and then get the dataproc job and then check the status of the dataproc job
 def get_clouddq_task_status(task_id):
     # Wait for job to start
     print ("get_clouddq_task_status STARTED, sleeping for 60 seconds for jobs to start")
@@ -298,7 +305,7 @@ def attach_tag_template_to_columns():
 
       tag.fields["table_name"] = datacatalog_v1.types.TagField()
       tag.fields["table_name"].string_value = "taxi_trips"
-      
+
       tag.fields["invocation_id"] = datacatalog_v1.types.TagField()
       tag.fields["invocation_id"].string_value = row.invocation_id
 
@@ -344,32 +351,44 @@ def attach_tag_template_to_columns():
 
       existing_name = ""
       # template: "projects/data-analytics-demo-ra5migwp3l/locations/us-central1/tagTemplates/column_dq_tag_template"
+      """ Sample Response
+      name: "projects/data-analytics-demo-ra5migwp3l/locations/us/entryGroups/@bigquery/entries/cHJvamVjdHMvZGF0YS1hbmFseXRpY3MtZGVtby1yYTVtaWd3cDNsL2RhdGFzZXRzL3RheGlfZGF0YXNldC90YWJsZXMvdGF4aV90cmlwcw/tags/CVg1OS7dOJhY"
+      template: "projects/data-analytics-demo-ra5migwp3l/locations/us-central1/tagTemplates/column_dq_tag_template"
+      fields {
+        key: "column_id"
+        value {
+          display_name: "Column Name"
+          string_value: "DOLocationID"
+        }
+      }
+      fields {
+        key: "dimension"
+        value {
+          display_name: "Dimension"
+          string_value: "INTEGRITY"
+        }
+      }      
+      """
       # Handle the response
       for response in page_result:
         print("response: ", response)
-        if (response.template == tag.template):
+        print("response.fields[column_id]: ", response.fields["column_id"])
+        if (response.template  == tag.template and 
+            response.fields["column_id"].string_value == tag.column):
             existing_name = response.name
             print(f"existing_name: {existing_name}")
             break
 
-      #if (existing_name != ""):
-      #  print(f"Delete tag: {existing_name}")
-      #  datacatalog_client.delete_tag(name=existing_name)
+      if (existing_name != ""):
+        print(f"Delete tag: {existing_name}")
+        datacatalog_client.delete_tag(name=existing_name)
 
       # https://cloud.google.com/python/docs/reference/datacatalog/latest/google.cloud.datacatalog_v1.services.data_catalog.DataCatalogClient#google_cloud_datacatalog_v1_services_data_catalog_DataCatalogClient_create_tag
       tag = datacatalog_client.create_tag(parent=table_entry.name, tag=tag)
       print(f"Created tag: {tag.name} on {tag.column}")  
 
 
-"""
-              ListTagsPagedResponse tagsResponse = dataCatalogClient.listTags(entry.getName());
-              for(Tag tag : tagsResponse.iterateAll()) {
-                  System.out.println(tag);
-              }
-"""
 
-# Create the dataset to hold the data quality results
-# NOTE: This has to be in the same region as the BigQuery dataset we are performing our data quality checks
 with airflow.DAG('sample-dataplex-run-data-quality',
                  default_args=default_args,
                  start_date=datetime(2021, 1, 1),
@@ -381,6 +400,7 @@ with airflow.DAG('sample-dataplex-run-data-quality',
     # NOTE: The service account of the Composer worker node must have access to run these commands
 
     # Create the dataset for holding dataplex data quality results
+    # NOTE: This has to be in the same region as the BigQuery dataset we are performing our data quality checks
     create_data_quality_dataset = BigQueryCreateEmptyDatasetOperator(
         task_id="create_dataset", 
         location=bigquery_region,
