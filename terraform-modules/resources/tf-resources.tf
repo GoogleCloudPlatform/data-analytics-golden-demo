@@ -1305,7 +1305,7 @@ resource "google_data_catalog_tag_template" "table_dq_tag_template" {
 
   fields {
     field_id = "invocation_id"
-    display_name = "Data Quality Ivocation Id"
+    display_name = "Data Quality Invocation Id"
     type {
       primitive_type = "STRING"
     }
@@ -1341,7 +1341,7 @@ resource "google_data_catalog_tag_template" "column_dq_tag_template" {
 
   fields {
     field_id = "execution_ts"
-    display_name = "Last Data Quality Run Date"
+    display_name = "Last Run Date"
     type {
       primitive_type = "TIMESTAMP"
     }
@@ -1429,7 +1429,7 @@ resource "google_data_catalog_tag_template" "column_dq_tag_template" {
 
   fields {
     field_id = "invocation_id"
-    display_name = "Data Quality Ivocation Id"
+    display_name = "Invocation Id"
     type {
       primitive_type = "STRING"
     }

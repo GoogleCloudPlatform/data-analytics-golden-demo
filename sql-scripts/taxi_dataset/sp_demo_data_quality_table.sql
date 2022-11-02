@@ -50,7 +50,7 @@ WITH LatestExecution AS
 (
   SELECT COUNT(DISTINCT column_id) AS columns_validated
     FROM `${project_id}.dataplex_data_quality.data_quality_results` 
-   WHERE invocation_id = (SELECT invocation_id 
+   WHERE invocation_id = (SELECT DISTINCT invocation_id 
                             FROM `${project_id}.dataplex_data_quality.data_quality_results` 
                            WHERE execution_ts = (SELECT latest_execution_ts FROM LatestExecution))
 )
@@ -73,7 +73,7 @@ WITH LatestExecution AS
          CROSS JOIN ColumnsValidated
          CROSS JOIN ColumnsTotal
 
-   WHERE invocation_id = (SELECT invocation_id 
+   WHERE invocation_id = (SELECT DISTINCT invocation_id 
                             FROM `${project_id}.dataplex_data_quality.data_quality_results` 
                            WHERE execution_ts = (SELECT latest_execution_ts FROM LatestExecution))
 )

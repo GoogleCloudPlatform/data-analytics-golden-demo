@@ -61,7 +61,7 @@ WITH LatestExecution AS
     FROM `${project_id}.dataplex_data_quality.data_quality_results` AS data_quality_results
          CROSS JOIN LatestExecution
 
-   WHERE invocation_id = (SELECT invocation_id 
+   WHERE invocation_id = (SELECT DISTINCT invocation_id 
                             FROM `${project_id}.dataplex_data_quality.data_quality_results` 
                            WHERE execution_ts = (SELECT latest_execution_ts FROM LatestExecution))
     AND column_id IS NOT NULL

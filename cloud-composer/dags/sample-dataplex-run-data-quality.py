@@ -23,6 +23,8 @@
 #          The user can see the data quality results by searching for the taxi trips table in data catalog by clicking on the Schema view
 #
 # References: 
+#   https://github.com/GoogleCloudPlatform/cloud-data-quality
+#   https://cloud.google.com/dataplex/docs/check-data-quality
 #   https://github.com/GoogleCloudPlatform/cloud-data-quality/blob/main/scripts/dataproc-workflow-composer/clouddq_composer_dataplex_task_job.py
 
 from datetime import datetime, timedelta
@@ -378,8 +380,9 @@ def attach_tag_template_to_columns():
       # Handle the response
       for response in page_result:
         print("response: ", response)
-        print("response.fields[column_id]: ", response.fields["column_id"])
+        # print("response.fields[column_id]: ", response.fields["column_id"])
         if (response.template  == tag.template and 
+            "column_id" in response.fields and
             response.fields["column_id"].string_value == tag.column):
             existing_name = response.name
             print(f"existing_name: {existing_name}")
