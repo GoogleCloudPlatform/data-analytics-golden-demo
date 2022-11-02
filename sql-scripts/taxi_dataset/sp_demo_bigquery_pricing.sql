@@ -49,19 +49,35 @@ Clean up / Reset script:
 
 -- Query 1: Compute the price for the past 5 days per user using retail costs $5 per TB scanned
 -- The reservation_id will be NULL since you do not have any reservations
+-- See the physical SQL statement that was run 
+
+-- References:
+-- https://cloud.google.com/blog/topics/developers-practitioners/monitoring-bigquery-reservations-and-slot-utilization-information_schema
+-- https://cloud.google.com/bigquery/docs/information-schema-jobs
+
+-- Compute the cost per Job, Average slots per Job and Max slots per Job (at the job stage level)
+-- This will show you the cost for the Query and the Maximum number of slots used (to help gauge for reservations)
 SELECT project_id,
-       user_email,
-       job_type,
+       job_id,
        reservation_id,
-       EXTRACT(DATE FROM  creation_time) AS execution_date, 
-       SUM(total_slot_ms) / (1000*60*60*24*7) AS avg_slots,
-       SUM(total_bytes_billed) AS total_bytes_billed,
+       EXTRACT(DATE FROM creation_time) AS creation_date,
+       TIMESTAMP_DIFF(end_time, creation_time, SECOND) AS job_duration_seconds,
+       job_type,
+       user_email,
+       total_bytes_billed,
        -- 5 / 1,099,511,627,776 = 0.00000000000454747350886464 ($5 per TB so cost per byte is 0.00000000000454747350886464)
-       CAST(SUM(total_bytes_billed) AS BIGDECIMAL) * CAST(0.00000000000454747350886464 AS BIGDECIMAL) as est_cost
-  FROM `region-${bigquery_region}`.INFORMATION_SCHEMA.JOBS_BY_PROJECT
- WHERE creation_time BETWEEN TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 5 DAY) AND CURRENT_TIMESTAMP()
-   AND end_time      BETWEEN TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 1 DAY) AND CURRENT_TIMESTAMP()
-GROUP BY project_id, user_email, job_type, reservation_id, EXTRACT(DATE FROM  creation_time);
+       CAST(total_bytes_billed AS BIGDECIMAL) * CAST(0.00000000000454747350886464 AS BIGDECIMAL) as est_cost,
+       -- Average slot utilization per job is calculated by dividing
+       -- total_slot_ms by the millisecond duration of the job
+       SAFE_DIVIDE(total_slot_ms,(TIMESTAMP_DIFF(end_time, start_time, MILLISECOND))) AS job_avg_slots,
+       query,
+       MAX(SAFE_DIVIDE(unnest_job_stages.slot_ms,unnest_job_stages.end_ms - unnest_job_stages.start_ms)) AS jobstage_max_slots
+  FROM `region-${bigquery_region}`.INFORMATION_SCHEMA.JOBS
+       CROSS JOIN UNNEST(job_stages) as unnest_job_stages
+ WHERE project_id = '${project_id}'
+ GROUP BY 1,2,3,4,5,6,7,8,9,10,11
+ORDER BY job_id ;
+
 
 
 -- Query 2: Allocate Capacity which will later be assigned
@@ -133,18 +149,33 @@ SELECT project_id,
 
 
 -- See the physical SQL statement that was run 
+
+-- References:
+-- https://cloud.google.com/blog/topics/developers-practitioners/monitoring-bigquery-reservations-and-slot-utilization-information_schema
+-- https://cloud.google.com/bigquery/docs/information-schema-jobs
+
+-- Compute the cost per Job, Average slots per Job and Max slots per Job (at the job stage level)
+-- This will show you the cost for the Query and the Maximum number of slots used (to help gauge for reservations)
 SELECT project_id,
-       user_email,
+       job_id,
+       reservation_id,
+       EXTRACT(DATE FROM creation_time) AS creation_date,
+       TIMESTAMP_DIFF(end_time, creation_time, SECOND) AS job_duration_seconds,
        job_type,
-       EXTRACT(DATE FROM  creation_time) AS execution_date, 
-       (total_slot_ms / (1000*60*60*24*7)) AS avg_slots,
-       total_bytes_billed AS total_bytes_billed,
+       user_email,
+       total_bytes_billed,
        -- 5 / 1,099,511,627,776 = 0.00000000000454747350886464 ($5 per TB so cost per byte is 0.00000000000454747350886464)
        CAST(total_bytes_billed AS BIGDECIMAL) * CAST(0.00000000000454747350886464 AS BIGDECIMAL) as est_cost,
-       query
-FROM `region-${bigquery_region}`.INFORMATION_SCHEMA.JOBS_BY_PROJECT
-WHERE EXTRACT(DATE FROM  creation_time) BETWEEN  DATE_SUB(current_date(), INTERVAL 10 DAY)  AND  current_date()
-ORDER BY 7  DESC;
+       -- Average slot utilization per job is calculated by dividing
+       -- total_slot_ms by the millisecond duration of the job
+       SAFE_DIVIDE(total_slot_ms,(TIMESTAMP_DIFF(end_time, start_time, MILLISECOND))) AS job_avg_slots,
+       query,
+       MAX(SAFE_DIVIDE(unnest_job_stages.slot_ms,unnest_job_stages.end_ms - unnest_job_stages.start_ms)) AS jobstage_max_slots
+  FROM `region-${bigquery_region}`.INFORMATION_SCHEMA.JOBS
+       CROSS JOIN UNNEST(job_stages) as unnest_job_stages
+ WHERE project_id = '${project_id}'
+ GROUP BY 1,2,3,4,5,6,7,8,9,10,11
+ORDER BY job_id ;
 
 
 -- ******************************************************************************************
