@@ -355,6 +355,7 @@ resource "google_composer_environment" "composer_env" {
       env_variables = {
         ENV_RAW_BUCKET               = "raw-${var.storage_bucket}",
         ENV_PROCESSED_BUCKET         = "processed-${var.storage_bucket}",
+        ENV_CODE_BUCKET              = "code-${var.storage_bucket}",
         ENV_REGION                   = var.region,
         ENV_ZONE                     = var.zone,
         ENV_DATAPROC_BUCKET          = "dataproc-${var.storage_bucket}",
@@ -1234,3 +1235,208 @@ output "output-spanner-instance-id" {
   value = google_spanner_instance.spanner_instance.name
 }
 */
+
+
+####################################################################################
+# Dataplex (Tag Templates)
+####################################################################################
+
+# https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/data_catalog_tag_template
+resource "google_data_catalog_tag_template" "table_dq_tag_template" {
+  tag_template_id = "table_dq_tag_template"
+  region = "us-central1"
+  display_name = "Data-Quality-Table"
+
+  fields {
+    field_id = "table_name"
+    display_name = "Table Name"
+    type {
+      primitive_type = "STRING"
+    }
+    is_required = true
+  }
+
+  fields {
+    field_id = "record_count"
+    display_name = "Number of rows in the data asset"
+    type {
+      primitive_type = "DOUBLE"
+    }
+  }
+
+  fields {
+    field_id = "latest_execution_ts"
+    display_name = "Last Data Quality Run Date"
+    type {
+      primitive_type = "TIMESTAMP"
+    }
+  }
+
+  fields {
+    field_id = "columns_validated"
+    display_name = "Number of columns validated"
+    type {
+      primitive_type = "DOUBLE"
+    }
+  }
+
+  fields {
+    field_id = "columns_count"
+    display_name = "Number of columns in data asset"
+    type {
+      primitive_type = "DOUBLE"
+    }
+  }
+
+  fields {
+    field_id = "success_pct"
+    display_name = "Success Percentage"
+    type {
+      primitive_type = "DOUBLE"
+    }
+  }
+  fields {
+    field_id = "failed_pct"
+    display_name = "Failed Percentage"
+    type {
+      primitive_type = "DOUBLE"
+    }
+  }
+
+  fields {
+    field_id = "invocation_id"
+    display_name = "Data Quality Invocation Id"
+    type {
+      primitive_type = "STRING"
+    }
+    is_required = true
+  }
+
+  force_delete = "false"
+}
+
+
+resource "google_data_catalog_tag_template" "column_dq_tag_template" {
+  tag_template_id = "column_dq_tag_template"
+  region = "us-central1"
+  display_name = "Data-Quality-Column"
+
+
+  fields {
+    field_id = "table_name"
+    display_name = "Table Name"
+    type {
+      primitive_type = "STRING"
+    }
+    is_required = true
+  }
+
+  fields {
+    field_id = "column_id"
+    display_name = "Column Name"
+    type {
+      primitive_type = "STRING"
+    }
+  }
+
+  fields {
+    field_id = "execution_ts"
+    display_name = "Last Run Date"
+    type {
+      primitive_type = "TIMESTAMP"
+    }
+  }
+
+  fields {
+    field_id = "rule_binding_id"
+    display_name = "Rule Binding"
+    type {
+      primitive_type = "STRING"
+    }
+  }
+
+  fields {
+    field_id = "rule_id"
+    display_name = "Rule Id"
+    type {
+      primitive_type = "STRING"
+    }
+  }
+
+  fields {
+    field_id = "dimension"
+    display_name = "Dimension"
+    type {
+      primitive_type = "STRING"
+    }
+  }
+
+  fields {
+    field_id = "rows_validated"
+    display_name = "Rows Validated"
+    type {
+      primitive_type = "DOUBLE"
+    }
+  }
+
+  fields {
+    field_id = "success_count"
+    display_name = "Success Count"
+    type {
+      primitive_type = "DOUBLE"
+    }
+  }
+
+  fields {
+    field_id = "success_pct"
+    display_name = "Success Percentage"
+    type {
+      primitive_type = "DOUBLE"
+    }
+  }
+
+  fields {
+    field_id = "failed_count"
+    display_name = "Failed Count"
+    type {
+      primitive_type = "DOUBLE"
+    }
+  }
+
+  fields {
+    field_id = "failed_pct"
+    display_name = "Failed Percentage"
+    type {
+      primitive_type = "DOUBLE"
+    }
+  }
+
+ fields {
+    field_id = "null_count"
+    display_name = "Null Count"
+    type {
+      primitive_type = "DOUBLE"
+    }
+  }
+
+  fields {
+    field_id = "null_pct"
+    display_name = "Null Percentage"
+    type {
+      primitive_type = "DOUBLE"
+    }
+  }
+
+  fields {
+    field_id = "invocation_id"
+    display_name = "Invocation Id"
+    type {
+      primitive_type = "STRING"
+    }
+    is_required = true
+  }
+
+  force_delete = "false"
+
+  depends_on      = [google_data_catalog_tag_template.table_dq_tag_template]
+}

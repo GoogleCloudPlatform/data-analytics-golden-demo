@@ -588,6 +588,35 @@ EOF
   ]
 }
 
+
+# Upload the Dataplex scripts
+data "template_file" "dataplex_data_quality_template" {
+  template = "${file("../dataplex/data-quality/dataplex_data_quality_taxi.yaml")}"
+  vars = {
+    project_id =local.local_project_id
+    dataplex_region = "us-central1"
+    random_extension = random_string.project_random.result
+  }  
+}
+
+resource "google_storage_bucket_object" "dataplex_data_quality_yaml" {
+  name        = "dataplex/data-quality/dataplex_data_quality_taxi.yaml"
+  content     = "${data.template_file.dataplex_data_quality_template.rendered}"
+  bucket      = "code-${local.local_storage_bucket}"
+  depends_on = [
+    module.project,
+    module.service-account,
+    module.apis-batch-enable,
+    time_sleep.service_account_api_activation_time_delay,
+    module.org-policies,
+    module.resources,
+    module.sql-scripts
+  ]
+}
+
+
+
+
 # Replace the Bucket Name in the Jupyter notebooks
 resource "null_resource" "deploy_vertex_notebooks" {
   provisioner "local-exec" {
