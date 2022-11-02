@@ -267,6 +267,9 @@ def attach_tag_template_to_table():
             existing_name = response.name
             break
 
+      # This technically will rermove the same template if we are in a loop
+      # We should ideally have more than 1 template for different reasons since a specific template cannot be assigned more than once to a table,
+      # but you can assign different templates.
       if (existing_name != ""):
         print(f"Delete tag: {existing_name}")
         datacatalog_client.delete_tag(name=existing_name)
@@ -281,6 +284,9 @@ def attach_tag_template_to_table():
 # NOTE: This will overrite the template over and over (not add new one)
 def attach_tag_template_to_columns():
     client = bigquery.Client()
+    # This should just return a single column once (this code is not meant to handle the same column twice)
+    # If you have the same column twice the code will overwrite the first results.  You should aggregate the
+    # results together or apply different tag templates per result.
     query_job = client.query(f"CALL `{project_id}.{taxi_dataset_id}.sp_demo_data_quality_columns`();")
     results = query_job.result()  # Waits for job to complete.
 
@@ -379,6 +385,10 @@ def attach_tag_template_to_columns():
             print(f"existing_name: {existing_name}")
             break
 
+      # This technically will rermove the same template if we are in a loop
+      # We should ideally have more than 1 template for different reasons since a specific template cannot be assigned more than once to a column,
+      # but you can assign different templates.
+      # One odd thing is that if you call create_tag and the template exists, it will overwrite. It errors when doing this for a table though.
       if (existing_name != ""):
         print(f"Delete tag: {existing_name}")
         datacatalog_client.delete_tag(name=existing_name)
