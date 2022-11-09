@@ -75,8 +75,9 @@ SELECT project_id,
   FROM `region-${bigquery_region}`.INFORMATION_SCHEMA.JOBS
        CROSS JOIN UNNEST(job_stages) as unnest_job_stages
  WHERE project_id = '${project_id}'
+   AND DATE(creation_time) BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY) AND CURRENT_DATE() 
  GROUP BY 1,2,3,4,5,6,7,8,9,10,11
-ORDER BY job_id ;
+ ORDER BY job_id ;
 
 
 
@@ -174,8 +175,9 @@ SELECT project_id,
   FROM `region-${bigquery_region}`.INFORMATION_SCHEMA.JOBS
        CROSS JOIN UNNEST(job_stages) as unnest_job_stages
  WHERE project_id = '${project_id}'
+   AND DATE(creation_time) BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY) AND CURRENT_DATE() 
  GROUP BY 1,2,3,4,5,6,7,8,9,10,11
-ORDER BY job_id ;
+ ORDER BY job_id ;
 
 
 -- ******************************************************************************************
