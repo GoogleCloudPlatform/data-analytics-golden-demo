@@ -56,7 +56,7 @@ Clean up / Reset script:
 -- https://cloud.google.com/bigquery/docs/information-schema-jobs
 
 -- Compute the cost per Job, Average slots per Job and Max slots per Job (at the job stage level)
--- This will show you the cost for the Query and the Maximum number of slots used (to help gauge for reservations)
+-- This will show you the cost for the Query and the Maximum number of slots used and if any additional slots where requested (to help gauge for reservations)
 SELECT project_id,
        job_id,
        reservation_id,
@@ -65,19 +65,30 @@ SELECT project_id,
        job_type,
        user_email,
        total_bytes_billed,
+
        -- 5 / 1,099,511,627,776 = 0.00000000000454747350886464 ($5 per TB so cost per byte is 0.00000000000454747350886464)
        CAST(total_bytes_billed AS BIGDECIMAL) * CAST(0.00000000000454747350886464 AS BIGDECIMAL) as est_cost,
+
        -- Average slot utilization per job is calculated by dividing
        -- total_slot_ms by the millisecond duration of the job
-       SAFE_DIVIDE(total_slot_ms,(TIMESTAMP_DIFF(end_time, start_time, MILLISECOND))) AS job_avg_slots,
+       SAFE_DIVIDE(job.total_slot_ms,(TIMESTAMP_DIFF(job.end_time, job.start_time, MILLISECOND))) AS job_avg_slots,
        query,
-       MAX(SAFE_DIVIDE(unnest_job_stages.slot_ms,unnest_job_stages.end_ms - unnest_job_stages.start_ms)) AS jobstage_max_slots
-  FROM `region-${bigquery_region}`.INFORMATION_SCHEMA.JOBS
-       CROSS JOIN UNNEST(job_stages) as unnest_job_stages
- WHERE project_id = '${project_id}'
-   AND DATE(creation_time) BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY) AND CURRENT_DATE() 
- GROUP BY 1,2,3,4,5,6,7,8,9,10,11
- ORDER BY job_id ;
+
+       -- Determine the max number of slots used at ANY stage in the query.  The average slots might be 55
+       -- but a single stage might spike to 2000 slots.  This is important to know when estimating when purchasing slots.
+       MAX(SAFE_DIVIDE(unnest_job_stages.slot_ms,unnest_job_stages.end_ms - unnest_job_stages.start_ms)) AS jobstage_max_slots,
+
+       -- Is the job requesting more units of works (slots).  If so you need more slots.
+       -- estimatedRunnableUnits = Units of work that can be scheduled immediately. 
+       -- Providing additional slots for these units of work will accelerate the query, if no other query in the reservation needs additional slots.
+       MAX(unnest_timeline.estimated_runnable_units) AS estimated_runnable_units
+FROM `region-${bigquery_region}`.INFORMATION_SCHEMA.JOBS AS job
+      CROSS JOIN UNNEST(job_stages) as unnest_job_stages
+      CROSS JOIN UNNEST(timeline) AS unnest_timeline
+WHERE project_id = '${project_id}'
+  AND DATE(creation_time) BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY) AND CURRENT_DATE() 
+GROUP BY 1,2,3,4,5,6,7,8,9,10,11
+ORDER BY job_id ;
 
 
 
@@ -156,7 +167,7 @@ SELECT project_id,
 -- https://cloud.google.com/bigquery/docs/information-schema-jobs
 
 -- Compute the cost per Job, Average slots per Job and Max slots per Job (at the job stage level)
--- This will show you the cost for the Query and the Maximum number of slots used (to help gauge for reservations)
+-- This will show you the cost for the Query and the Maximum number of slots used and if any additional slots where requested (to help gauge for reservations)
 SELECT project_id,
        job_id,
        reservation_id,
@@ -165,19 +176,30 @@ SELECT project_id,
        job_type,
        user_email,
        total_bytes_billed,
+
        -- 5 / 1,099,511,627,776 = 0.00000000000454747350886464 ($5 per TB so cost per byte is 0.00000000000454747350886464)
        CAST(total_bytes_billed AS BIGDECIMAL) * CAST(0.00000000000454747350886464 AS BIGDECIMAL) as est_cost,
+
        -- Average slot utilization per job is calculated by dividing
        -- total_slot_ms by the millisecond duration of the job
-       SAFE_DIVIDE(total_slot_ms,(TIMESTAMP_DIFF(end_time, start_time, MILLISECOND))) AS job_avg_slots,
+       SAFE_DIVIDE(job.total_slot_ms,(TIMESTAMP_DIFF(job.end_time, job.start_time, MILLISECOND))) AS job_avg_slots,
        query,
-       MAX(SAFE_DIVIDE(unnest_job_stages.slot_ms,unnest_job_stages.end_ms - unnest_job_stages.start_ms)) AS jobstage_max_slots
-  FROM `region-${bigquery_region}`.INFORMATION_SCHEMA.JOBS
-       CROSS JOIN UNNEST(job_stages) as unnest_job_stages
- WHERE project_id = '${project_id}'
-   AND DATE(creation_time) BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY) AND CURRENT_DATE() 
- GROUP BY 1,2,3,4,5,6,7,8,9,10,11
- ORDER BY job_id ;
+
+       -- Determine the max number of slots used at ANY stage in the query.  The average slots might be 55
+       -- but a single stage might spike to 2000 slots.  This is important to know when estimating when purchasing slots.
+       MAX(SAFE_DIVIDE(unnest_job_stages.slot_ms,unnest_job_stages.end_ms - unnest_job_stages.start_ms)) AS jobstage_max_slots,
+
+       -- Is the job requesting more units of works (slots).  If so you need more slots.
+       -- estimatedRunnableUnits = Units of work that can be scheduled immediately. 
+       -- Providing additional slots for these units of work will accelerate the query, if no other query in the reservation needs additional slots.
+       MAX(unnest_timeline.estimated_runnable_units) AS estimated_runnable_units
+FROM `region-${bigquery_region}`.INFORMATION_SCHEMA.JOBS AS job
+      CROSS JOIN UNNEST(job_stages) as unnest_job_stages
+      CROSS JOIN UNNEST(timeline) AS unnest_timeline
+WHERE project_id = '${project_id}'
+  AND DATE(creation_time) BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY) AND CURRENT_DATE() 
+GROUP BY 1,2,3,4,5,6,7,8,9,10,11
+ORDER BY job_id ;
 
 
 -- ******************************************************************************************
