@@ -37,9 +37,9 @@ You can deploy this to a new project or an existing project.
 
 
 ### Possible Errors:
-1. If the script fails to enable a service or timeouts, you can rerun and if that does not work, run ./clean.sh and start over
+1. If the script fails to enable a service or timeouts, you can rerun and if that does not work, run "source clean-up.sh" and start over
 2. If the script has security type message (unauthorized), then double check the configure roles/IAM security.
-3. If you get the error "Error: Error when reading or editing Project Service : Request `List Project Services data-analytics-demo-xxxxxxxxx` returned error: Failed to list enabled services for project data-analytics-demo-xxxxxxxxx: Get "https://serviceusage.googleapis.com/v1/projects/data-analytics-demo-xxxxxxxxx/services?alt=json&fields=services%2Fname%2CnextPageToken&filter=state%3AENABLED&prettyPrint=false".  You need to start over.  Run ./clean.sh and then run source deploy.sh again.  This is due to the service usage api not getting propagated with 4 minutes...
+3. If you get the error "Error: Error when reading or editing Project Service : Request `List Project Services data-analytics-demo-xxxxxxxxx` returned error: Failed to list enabled services for project data-analytics-demo-xxxxxxxxx: Get "https://serviceusage.googleapis.com/v1/projects/data-analytics-demo-xxxxxxxxx/services?alt=json&fields=services%2Fname%2CnextPageToken&filter=state%3AENABLED&prettyPrint=false".  You need to start over.  Run "source clean-up.sh" and then run source deploy.sh again.  This is due to the service usage api not getting propagated with 4 minutes...
   - Delete your failed project
 4. If you get a "networking error" with some dial tcp message [2607:f8b0:4001:c1a::5f], then your cloud shell had a networking glitch, not the Terraform network.  Restart the deployment "source deploy.sh". (e.g. Error creating Network: Post "https://compute.googleapis.com/compute/beta/projects/bigquery-demo-xvz1143xu9/global/networks?alt=json": dial tcp [2607:f8b0:4001:c1a::5f]:443: connect: cannot assign requested address)
 
