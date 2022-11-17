@@ -79,13 +79,20 @@ CLUSTER_CONFIG = {
         "disk_config": {"boot_disk_type": "pd-ssd", "boot_disk_size_gb": 30},
     },
     "gce_cluster_config" :{
-        "zone_uri" : zone,
         "subnetwork_uri" : dataproc_subnet,
         "service_account" : dataproc_service_account,
         "service_account_scopes" : ["https://www.googleapis.com/auth/cloud-platform"]
-
     }
 }
+
+# if you want to specify the zone
+#    "gce_cluster_config" :{
+#        "zone_uri" : zone,
+#        "subnetwork_uri" : dataproc_subnet,
+#        "service_account" : dataproc_service_account,
+#        "service_account_scopes" : ["https://www.googleapis.com/auth/cloud-platform"]
+#    }
+
 
 with airflow.DAG('step-02-taxi-data-processing',
                  default_args=default_args,
