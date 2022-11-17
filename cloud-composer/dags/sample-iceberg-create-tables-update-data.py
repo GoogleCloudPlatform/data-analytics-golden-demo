@@ -80,7 +80,6 @@ CLUSTER_CONFIG = {
         "disk_config": {"boot_disk_type": "pd-ssd", "boot_disk_size_gb": 30, "num_local_ssds":2},
     },
     "gce_cluster_config" :{
-        "zone_uri" : zone,
         "subnetwork_uri" : dataproc_subnet,
         "service_account" : dataproc_service_account,
         "service_account_scopes" : ["https://www.googleapis.com/auth/cloud-platform"]
