@@ -18,6 +18,8 @@
 # Create the GCP resources
 #
 # Author: Adam Paternostro
+#
+# https://github.com/GoogleCloudPlatform/magic-modules/blob/main/mmv1/templates/terraform/examples/dataform_repository.tf.erb
 ####################################################################################
 
 # Need this version to implement
@@ -35,6 +37,7 @@ terraform {
 # Variables
 ####################################################################################
 variable "project_id" {}
+variable "project_number" {}
 
 
 # Create a Git repo
@@ -70,18 +73,61 @@ resource "google_secret_manager_secret_version" "secret_version" {
   provider = google
   secret = google_secret_manager_secret.secret.id
   secret_data = "${random_string.secret_data.result}"
+  depends_on = [
+    google_secret_manager_secret.secret,
+  ]  
 }
 
 
 # Create Dataform repo with Git 
 resource "google_dataform_repository" "dataform_repository" {
   provider = google
-  project = var.project_id
-  name = "dataform_golden_demo"
+  project  = var.project_id
+  region   = "us-central1" # var.region - must be in central during preview
+  name     = "dataform_golden_demo"
 
   git_remote_settings {
       url = google_sourcerepo_repository.git_repository.url
       default_branch = "main"
       authentication_token_secret_version = google_secret_manager_secret_version.secret_version.id
   }
+
+  depends_on = [
+    google_secret_manager_secret_version.secret_version,
+  ]  
 }
+
+# Dataform will create a sevice account upon first call.  
+# Wait for IAM Sync
+# e.g. service-361618282238@gcp-sa-dataform.iam.gserviceaccount.com
+resource "time_sleep" "create_dataform_repository_time_delay" {
+  depends_on      = [google_dataform_repository.dataform_repository]
+  create_duration = "30s"
+}
+
+
+# Grant required BigQuery User access for Dataform
+resource "google_project_iam_member" "dataform_bigquery_user" {
+  project  = var.project_id
+  role     = "roles/bigquery.user"
+  member   = "serviceAccount:service-${var.project_number}@gcp-sa-dataform.iam.gserviceaccount.com"
+
+  depends_on = [
+    time_sleep.create_dataform_repository_time_delay
+  ]  
+}
+
+# The service account need to be able to access the secret
+# Dataform's service account is unable to access to the configured secret. 
+# Make sure the secret exists and is shared with your Dataform service account: service-361618282238@gcp-sa-dataform.iam.gserviceaccount.com.
+resource "google_secret_manager_secret_iam_member" "member" {
+  project   = var.project_id
+  secret_id = google_secret_manager_secret.secret.secret_id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:service-${var.project_number}@gcp-sa-dataform.iam.gserviceaccount.com"
+
+  depends_on = [
+    time_sleep.create_dataform_repository_time_delay
+  ]  
+}
+

@@ -290,3 +290,8 @@ resource "google_project_service" "service-secretmanager" {
   project = var.project_id
   service = "secretmanager.googleapis.com"
 }
+
+resource "google_project_service" "service-sourcerepo" {
+  project = var.project_id
+  service = "sourcerepo.googleapis.com"
+}
