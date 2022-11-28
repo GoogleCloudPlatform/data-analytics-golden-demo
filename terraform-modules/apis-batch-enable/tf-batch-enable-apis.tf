@@ -27,7 +27,7 @@ terraform {
   required_providers {
     google = {
       source  = "hashicorp/google-beta"
-      version = "4.30.0"
+      version = "4.42.0"
     }
   }
 }
@@ -275,8 +275,18 @@ resource "google_project_service" "service-vision" {
   project = var.project_id
   service = "vision.googleapis.com"
 }
-    
+
 resource "google_project_service" "service-datafusion" {
   project = var.project_id
   service = "datafusion.googleapis.com"
+}
+
+resource "google_project_service" "service-dataform" {
+  project = var.project_id
+  service = "dataform.googleapis.com"
+}
+
+resource "google_project_service" "service-secretmanager" {
+  project = var.project_id
+  service = "secretmanager.googleapis.com"
 }

@@ -1,0 +1,50 @@
+/*##################################################################################
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#     https://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+###################################################################################*/
+
+/* First step in the pipeline.
+takes events json data from taxi_trips_pub_sub table and parse the json into columns. */
+
+config {
+ type: "incremental", /* builds the incremental table from scratch only for the first time. During subsequent executions, Dataform only inserts or merges new rows into the incremental table according to the conditions that you configure. */
+ 
+ schema: "dataform_demo",
+ tags: ["staging"], /* To organize components of your SQL workflow into collections, you can add custom tags */
+ description: "Parse raw data into columns", /*Dataform allows you to add documentation to the table/columns*/
+  bigquery: {
+   partitionBy: 'DATETIME_TRUNC(timestamp, HOUR)'
+ },
+  assertions: {
+   /* data quality test query that finds rows that violate one or more rules specified in the query */
+   nonNull: ["ride_id", "timestamp"]
+}
+ 
+}
+ 
+/* Query to parse the Json data*/
+ 
+SELECT REPLACE(JSON_EXTRACT(data , "$.ride_id"),'"','')              AS ride_id,
+       JSON_EXTRACT_SCALAR(data , "$.point_idx")                     AS point_idx,
+       CAST(JSON_EXTRACT(data , "$.latitude") AS FLOAT64)            AS latitude,
+       CAST(JSON_EXTRACT(data , "$.longitude") AS FLOAT64 )          AS longitude,
+       TIMESTAMP(replace(JSON_EXTRACT(data , "$.timestamp"),'"','')) AS timestamp,
+       CAST(JSON_EXTRACT(data , "$.meter_reading") as FLOAT64)       AS meter_reading,
+       CAST(JSON_EXTRACT(data , "$.meter_increment") as FLOAT64)     AS meter_increment,
+       REPLACE(JSON_EXTRACT(data , "$.ride_status"),'"','')          AS ride_status,
+       JSON_EXTRACT_SCALAR(data , "$.passenger_count")               AS passenger_count,
+  FROM ${ref("taxi_trips_pub_sub")}
+/* condition and timeframe for the incremental inserts */
+/* Note before running - make sure there’s data from the past hour */
+${when(incremental(), `WHERE _PARTITIONTIME >= TIMESTAMP_SUB(current_TIMESTAMP(), INTERVAL 1 hour)`) }

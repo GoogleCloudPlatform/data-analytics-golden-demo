@@ -15,12 +15,12 @@
 ####################################################################################
 
 ####################################################################################
-# Create the GCP project
+# Create the GCP resources
 #
 # Author: Adam Paternostro
 ####################################################################################
 
-
+# Need this version to implement
 terraform {
   required_providers {
     google = {
@@ -35,27 +35,53 @@ terraform {
 # Variables
 ####################################################################################
 variable "project_id" {}
-variable "org_id" {}
-variable "billing_account" {}
 
 
-####################################################################################
-# New Project
-####################################################################################
-resource "google_project" "project" {
-  name            = var.project_id
-  project_id      = var.project_id
-  billing_account = var.billing_account
-  org_id          = var.org_id
-  timeouts {
-    create = "15m"
-  }
+# Create a Git repo
+resource "google_sourcerepo_repository" "git_repository" {
+  provider = google
+  project = var.project_id
+  name = "dataform_git_repo"
 }
 
 
-####################################################################################
-# Outputs
-####################################################################################
-output "output-project-number" {
-  value = google_project.project.number
+# Create a secret manager
+resource "google_secret_manager_secret" "secret" {
+  provider = google
+  secret_id = "secret"
+
+  replication {
+    automatic = true
+  }
+}
+
+# Random string for secret
+resource "random_string" "secret_data" {
+  length  = 10
+  upper   = false
+  lower   = true
+  numeric = true
+  special = false
+}
+
+
+# Set secret
+resource "google_secret_manager_secret_version" "secret_version" {
+  provider = google
+  secret = google_secret_manager_secret.secret.id
+  secret_data = "${random_string.secret_data.result}"
+}
+
+
+# Create Dataform repo with Git 
+resource "google_dataform_repository" "dataform_repository" {
+  provider = google
+  project = var.project_id
+  name = "dataform_golden_demo"
+
+  git_remote_settings {
+      url = google_sourcerepo_repository.git_repository.url
+      default_branch = "main"
+      authentication_token_secret_version = google_secret_manager_secret_version.secret_version.id
+  }
 }

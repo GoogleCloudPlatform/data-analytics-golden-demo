@@ -1,0 +1,45 @@
+/*##################################################################################
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#     https://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+###################################################################################*/
+
+/*
+Final step in the pipeline.
+Creates a summary table.
+Query joins the view results with a lookeup table for payment type (which is a BigLake table) 
+*/
+
+config {
+ type: "table",
+ schema: "dataform_demo",
+ tags: ["reporting"],
+ description: "Combine taxi grouped data with payment lookup",
+ columns: {
+   ride_id: `A unique identifier for a ride`,
+   meter_cost: `Total cost for a specific ride`,
+ },
+ 
+  bigquery: {
+   partitionBy: "DATETIME_TRUNC(start_time, HOUR)"
+ },
+  assertions: {
+   uniqueKey: ["ride_id"],
+   nonNull: ["ride_id", "start_time"]
+ }
+}
+ 
+SELECT taxi.*, payment.Payment_Type_Description
+  FROM ${ref("rides_group_data")} taxi 
+      INNER JOIN ${ref("biglake_payment_type")} payment
+              ON taxi.payment_type_id=payment.payment_type_id
