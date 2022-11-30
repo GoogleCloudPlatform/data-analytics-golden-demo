@@ -40,6 +40,12 @@ CREATE SCHEMA `${project_id}.dataform_demo`
     );
 
 
+-- Let Dataform access
+GRANT `roles/bigquery.dataEditor`
+   ON SCHEMA `${project_id}.${bigquery_taxi_dataset}`
+   TO "serviceAccount:service-${project_number}@gcp-sa-dataform.iam.gserviceaccount.com";
+
+
 --- Create table for pub_sub raw data 
 CREATE OR REPLACE TABLE `${project_id}.dataform_demo.taxi_trips_pub_sub`
 (

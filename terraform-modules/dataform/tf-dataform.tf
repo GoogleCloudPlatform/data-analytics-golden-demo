@@ -131,3 +131,21 @@ resource "google_secret_manager_secret_iam_member" "member" {
   ]  
 }
 
+# Required since we are setting BigTable permissions
+resource "google_project_iam_custom_role" "dataformrole" {
+  role_id     = "DataformRole"
+  title       = "Dataform Role"
+  description = "Used for Dataform automation"
+  permissions = ["bigquery.connections.delegate"]
+}
+
+# Add custom role to Dataform service account
+resource "google_project_iam_member" "dataform_custom_role" {
+  project  = var.project_id
+  role     = google_project_iam_custom_role.dataformrole.id
+  member   = "serviceAccount:service-${var.project_number}@gcp-sa-dataform.iam.gserviceaccount.com"
+
+  depends_on = [
+    google_project_iam_member.dataform_bigquery_user
+  ]  
+}

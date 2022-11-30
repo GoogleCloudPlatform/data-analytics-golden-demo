@@ -77,6 +77,7 @@ data "template_file" "sproc_sp_create_demo_dataform" {
   template = "${file("../sql-scripts/taxi_dataset/sp_create_demo_dataform.sql")}"
   vars = {
     project_id = var.project_id
+    project_number = var.project_number
     region = var.region
     bigquery_taxi_dataset = var.bigquery_taxi_dataset
     bigquery_thelook_ecommerce_dataset = var.bigquery_thelook_ecommerce_dataset

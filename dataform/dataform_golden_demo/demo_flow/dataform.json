@@ -1,0 +1,10 @@
+{
+  "defaultSchema": "dataform",
+  "assertionSchema": "dataform_assertions",
+  "warehouse": "bigquery",
+  "defaultDatabase": "data-analytics-demo-niltextn2k",
+  "defaultLocation": "US",
+  "vars": {
+    "processedBucket": "processed-data-analytics-demo-niltextn2k"
+  }
+}
