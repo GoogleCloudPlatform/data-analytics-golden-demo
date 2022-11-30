@@ -26,4 +26,4 @@ tags: ["stored procedure"]
 }
  
  
-${CreateBiglake.CreateBiglake("'biglake_payment_type'","'gs://dataform.projectConfig.vars.processedBucket/processed/taxi-data/payment_type_table/*.parquet'")} 
+${CreateBiglake.CreateBiglake("'biglake_payment_type'","'gs://PROCESSED_BUCKET/processed/taxi-data/payment_type_table/*.parquet'")} 

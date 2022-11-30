@@ -17,7 +17,7 @@
 --- Biglake table. contains lookup info for payment type
 config {
  type: "declaration",
- database: "[project id]",
+ database: dataform.projectConfig.defaultDatabase,
  schema: "dataform_demo",
  name: "biglake_payment_type"
 }

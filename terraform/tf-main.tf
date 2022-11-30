@@ -462,8 +462,10 @@ module "dataform-module" {
   # Use Service Account Impersonation for this step. 
   providers = { google = google.service_principal_impersonation }
 
-  project_id     = local.local_project_id
-  project_number = var.project_number == "" ? module.project[0].output-project-number : var.project_number
+  project_id         = local.local_project_id
+  project_number     = var.project_number == "" ? module.project[0].output-project-number : var.project_number
+  storage_bucket     = local.local_storage_bucket
+  curl_impersonation = local.local_curl_impersonation
   
   depends_on = [
     module.project,

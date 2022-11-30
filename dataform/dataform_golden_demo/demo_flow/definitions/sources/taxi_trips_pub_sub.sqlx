@@ -17,7 +17,7 @@
 --- raw data. taxi events ingested from pub/sub to BQ table
 config {
  type: "declaration",
- database: "[project id]",
+ database: dataform.projectConfig.defaultDatabase,
  schema: "dataform_demo",
  name: "taxi_trips_pub_sub"
 }
