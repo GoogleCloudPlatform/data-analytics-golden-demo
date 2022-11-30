@@ -48,13 +48,21 @@ CREATE OR REPLACE TABLE `${project_id}.dataform_demo.taxi_trips_pub_sub`
 PARTITION BY TIMESTAMP_TRUNC(_PARTITIONTIME, HOUR);
 
 
---- Create the BigLake table (there is no need to create the stored procedure like the video)
-CREATE OR REPLACE EXTERNAL TABLE `${project_id}.dataform_demo.big_lake_payment_type`
-    WITH CONNECTION `${project_id}.${bigquery_region}.biglake-connection`
-    OPTIONS(
-        uris=['gs://${bucket_name}/processed/taxi-data/payment_type_table/*.parquet'], 
-        format="PARQUET"
-    );
+-- For Dataform to call to create the BigLake table (yes, we are creating a stored procedure from within a stored procedure)
+     CREATE OR REPLACE PROCEDURE `${project_id}.dataform_demo.create_biglake_table`(name STRING, uris STRING)
+     BEGIN
+       EXECUTE IMMEDIATE FORMAT("""
+           CREATE OR REPLACE EXTERNAL TABLE `${project_id}.dataform_demo.%s`
+              WITH CONNECTION `${project_id}.${bigquery_region}.biglake-connection`
+              OPTIONS(
+                  uris=[%s], 
+                  format="PARQUET"
+              )
+          """,name,uris);
+     END;
+
+-- Call the stored procedure just created
+CALL `${project_id}.dataform_demo.create_biglake_table` ('big_lake_payment_type',"'gs://processed-${project_id}/processed/taxi-data/payment_type_table/*.parquet'");
 
 
 -- This replaces the Pub/Sub topic since we already have loaded the same data into a table

@@ -21,7 +21,7 @@ and calls a BQ stored procedure to create a biglake table */
 
 
 config {
-type: "operations", /*An operations file defines a set of SQL commands that will be executed in order against your warehous*/
+type: "operations", /*An operations file defines a set of SQL commands that will be executed in order against your warehouse */
 tags: ["stored procedure"]
 }
  
