@@ -172,7 +172,8 @@ provisioner "local-exec" {
     EOF
   }
   depends_on = [
-     google_dataform_repository.dataform_repository
+     google_dataform_repository.dataform_repository,
+     time_sleep.create_dataform_repository_time_delay,
     ]
 }
 
@@ -185,7 +186,7 @@ resource "null_resource" "dataform_upload_gitignore" {
 provisioner "local-exec" {
   when    = create
   command = <<EOF
-    data=$$(cat "../dataform/dataform_golden_demo/demo_flow/.gitignore" | base64)
+    data=$(cat "../dataform/dataform_golden_demo/demo_flow/.gitignore" | base64)
     curl \
       --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
       --header "Accept: application/json" \
@@ -195,7 +196,10 @@ provisioner "local-exec" {
     EOF
   }
   depends_on = [
-     null_resource.dataform_create_workspace
+    google_dataform_repository.dataform_repository,
+    time_sleep.create_dataform_repository_time_delay,
+    null_resource.dataform_create_workspace,
+
     ]
 }
 
@@ -204,7 +208,7 @@ resource "null_resource" "dataform_upload_dataform_json" {
 provisioner "local-exec" {
   when    = create
   command = <<EOF
-    file_data=$$(cat "../dataform/dataform_golden_demo/demo_flow/dataform.json")
+    file_data=$(cat "../dataform/dataform_golden_demo/demo_flow/dataform.json")
     echo "dataform_upload_dataform_json (file_data): $${file_data}"
     searchString="REPLACE_ME_PROJECT_NAME"
     replaceString="${var.project_id}"
@@ -220,7 +224,10 @@ provisioner "local-exec" {
     EOF
   }
   depends_on = [
-     null_resource.dataform_create_workspace
+    google_dataform_repository.dataform_repository,
+    time_sleep.create_dataform_repository_time_delay,
+    null_resource.dataform_create_workspace,
+    null_resource.dataform_upload_gitignore,
     ]
 }
 
@@ -229,7 +236,7 @@ resource "null_resource" "dataform_upload_package_json" {
 provisioner "local-exec" {
   when    = create
   command = <<EOF
-    data=$$(cat "../dataform/dataform_golden_demo/demo_flow/package.json" | base64)
+    data=$(cat "../dataform/dataform_golden_demo/demo_flow/package.json" | base64)
     curl \
       --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
       --header "Accept: application/json" \
@@ -239,7 +246,11 @@ provisioner "local-exec" {
     EOF
   }
   depends_on = [
-     null_resource.dataform_create_workspace
+    google_dataform_repository.dataform_repository,
+    time_sleep.create_dataform_repository_time_delay,
+    null_resource.dataform_create_workspace,
+    null_resource.dataform_upload_gitignore,
+    null_resource.dataform_upload_dataform_json,
     ]
 }
 
@@ -261,7 +272,12 @@ provisioner "local-exec" {
     EOF
   }
   depends_on = [
-     null_resource.dataform_create_workspace
+    google_dataform_repository.dataform_repository,
+    time_sleep.create_dataform_repository_time_delay,
+    null_resource.dataform_create_workspace,
+    null_resource.dataform_upload_gitignore,
+    null_resource.dataform_upload_dataform_json,
+    null_resource.dataform_upload_package_json,
     ]
 }
 
@@ -283,8 +299,13 @@ provisioner "local-exec" {
     EOF
   }
   depends_on = [
+    google_dataform_repository.dataform_repository,
+    time_sleep.create_dataform_repository_time_delay,
     null_resource.dataform_create_workspace,
-    null_resource.dataform_create_definitions_dir
+    null_resource.dataform_upload_gitignore,
+    null_resource.dataform_upload_dataform_json,
+    null_resource.dataform_upload_package_json,
+    null_resource.dataform_create_definitions_dir,
     ]
 }
 
@@ -294,7 +315,7 @@ resource "null_resource" "dataform_create_biglake_table" {
 provisioner "local-exec" {
   when    = create
   command = <<EOF
-    file_data=$$(cat "../dataform/dataform_golden_demo/demo_flow/definitions/operations/create_biglake_table.sqlx")
+    file_data=$(cat "../dataform/dataform_golden_demo/demo_flow/definitions/operations/create_biglake_table.sqlx")
     echo "dataform_upload_dadataform_create_biglake_tabletaform_json (file_data): $${file_data}"
     searchString="PROCESSED_BUCKET"
     replaceString="processed-${var.storage_bucket}"
@@ -310,9 +331,14 @@ provisioner "local-exec" {
     EOF
   }
   depends_on = [
+    google_dataform_repository.dataform_repository,
+    time_sleep.create_dataform_repository_time_delay,
     null_resource.dataform_create_workspace,
-    null_resource.dataform_create_definitions_dir,    
-    null_resource.dataform_create_operations_dir
+    null_resource.dataform_upload_gitignore,
+    null_resource.dataform_upload_dataform_json,
+    null_resource.dataform_upload_package_json,
+    null_resource.dataform_create_definitions_dir,
+    null_resource.dataform_create_operations_dir,
     ]
 }
 
@@ -334,8 +360,15 @@ provisioner "local-exec" {
     EOF
   }
   depends_on = [
+    google_dataform_repository.dataform_repository,
+    time_sleep.create_dataform_repository_time_delay,
     null_resource.dataform_create_workspace,
-    null_resource.dataform_create_definitions_dir
+    null_resource.dataform_upload_gitignore,
+    null_resource.dataform_upload_dataform_json,
+    null_resource.dataform_upload_package_json,
+    null_resource.dataform_create_definitions_dir,
+    null_resource.dataform_create_operations_dir,
+    null_resource.dataform_create_biglake_table,
     ]
 }
 
@@ -345,7 +378,7 @@ resource "null_resource" "dataform_taxi_rides_summary" {
 provisioner "local-exec" {
   when    = create
   command = <<EOF
-    data=$$(cat "../dataform/dataform_golden_demo/demo_flow/definitions/reporting/taxi_rides_summary.sqlx" | base64)
+    data=$(cat "../dataform/dataform_golden_demo/demo_flow/definitions/reporting/taxi_rides_summary.sqlx" | base64)
     curl \
       --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
       --header "Accept: application/json" \
@@ -355,9 +388,17 @@ provisioner "local-exec" {
     EOF
   }
   depends_on = [
+    google_dataform_repository.dataform_repository,
+    time_sleep.create_dataform_repository_time_delay,
     null_resource.dataform_create_workspace,
+    null_resource.dataform_upload_gitignore,
+    null_resource.dataform_upload_dataform_json,
+    null_resource.dataform_upload_package_json,
     null_resource.dataform_create_definitions_dir,
-    null_resource.dataform_create_reporting_dir
+    null_resource.dataform_create_operations_dir,
+    null_resource.dataform_create_biglake_table,
+    null_resource.dataform_create_reporting_dir,
+    null_resource.dataform_taxi_rides_summary,
     ]
 }
 
@@ -379,8 +420,18 @@ provisioner "local-exec" {
     EOF
   }
   depends_on = [
+    google_dataform_repository.dataform_repository,
+    time_sleep.create_dataform_repository_time_delay,
     null_resource.dataform_create_workspace,
-    null_resource.dataform_create_definitions_dir
+    null_resource.dataform_upload_gitignore,
+    null_resource.dataform_upload_dataform_json,
+    null_resource.dataform_upload_package_json,
+    null_resource.dataform_create_definitions_dir,
+    null_resource.dataform_create_operations_dir,
+    null_resource.dataform_create_biglake_table,
+    null_resource.dataform_create_reporting_dir,
+    null_resource.dataform_taxi_rides_summary,
+    null_resource.dataform_create_sources_dir,
     ]
 }
 
@@ -390,7 +441,7 @@ resource "null_resource" "dataform_biglake_payment_type" {
 provisioner "local-exec" {
   when    = create
   command = <<EOF
-    data=$$(cat "../dataform/dataform_golden_demo/demo_flow/definitions/sources/biglake_payment_type.sqlx" | base64)
+    data=$(cat "../dataform/dataform_golden_demo/demo_flow/definitions/sources/biglake_payment_type.sqlx" | base64)
     curl \
       --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
       --header "Accept: application/json" \
@@ -400,9 +451,18 @@ provisioner "local-exec" {
     EOF
   }
   depends_on = [
+    google_dataform_repository.dataform_repository,
+    time_sleep.create_dataform_repository_time_delay,
     null_resource.dataform_create_workspace,
+    null_resource.dataform_upload_gitignore,
+    null_resource.dataform_upload_dataform_json,
+    null_resource.dataform_upload_package_json,
     null_resource.dataform_create_definitions_dir,
-    null_resource.dataform_create_sources_dir
+    null_resource.dataform_create_operations_dir,
+    null_resource.dataform_create_biglake_table,
+    null_resource.dataform_create_reporting_dir,
+    null_resource.dataform_taxi_rides_summary,
+    null_resource.dataform_create_sources_dir,
     ]
 }
 
@@ -412,7 +472,7 @@ resource "null_resource" "dataform_taxi_trips_pub_sub" {
 provisioner "local-exec" {
   when    = create
   command = <<EOF
-    data=$$(cat "../dataform/dataform_golden_demo/demo_flow/definitions/sources/taxi_trips_pub_sub.sqlx" | base64)
+    data=$(cat "../dataform/dataform_golden_demo/demo_flow/definitions/sources/taxi_trips_pub_sub.sqlx" | base64)
     curl \
       --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
       --header "Accept: application/json" \
@@ -422,9 +482,19 @@ provisioner "local-exec" {
     EOF
   }
   depends_on = [
+    google_dataform_repository.dataform_repository,
+    time_sleep.create_dataform_repository_time_delay,
     null_resource.dataform_create_workspace,
+    null_resource.dataform_upload_gitignore,
+    null_resource.dataform_upload_dataform_json,
+    null_resource.dataform_upload_package_json,
     null_resource.dataform_create_definitions_dir,
-    null_resource.dataform_create_sources_dir
+    null_resource.dataform_create_operations_dir,
+    null_resource.dataform_create_biglake_table,
+    null_resource.dataform_create_reporting_dir,
+    null_resource.dataform_taxi_rides_summary,
+    null_resource.dataform_create_sources_dir,
+    null_resource.dataform_biglake_payment_type,
     ]
 }
 
@@ -446,8 +516,20 @@ provisioner "local-exec" {
     EOF
   }
   depends_on = [
+    google_dataform_repository.dataform_repository,
+    time_sleep.create_dataform_repository_time_delay,
     null_resource.dataform_create_workspace,
-    null_resource.dataform_create_definitions_dir
+    null_resource.dataform_upload_gitignore,
+    null_resource.dataform_upload_dataform_json,
+    null_resource.dataform_upload_package_json,
+    null_resource.dataform_create_definitions_dir,
+    null_resource.dataform_create_operations_dir,
+    null_resource.dataform_create_biglake_table,
+    null_resource.dataform_create_reporting_dir,
+    null_resource.dataform_taxi_rides_summary,
+    null_resource.dataform_create_sources_dir,
+    null_resource.dataform_biglake_payment_type,
+    null_resource.dataform_taxi_trips_pub_sub,
     ]
 }
 
@@ -457,7 +539,7 @@ resource "null_resource" "dataform_rides_group_data" {
 provisioner "local-exec" {
   when    = create
   command = <<EOF
-    data=$$(cat "../dataform/dataform_golden_demo/demo_flow/definitions/staging/rides_group_data.sqlx" | base64)
+    data=$(cat "../dataform/dataform_golden_demo/demo_flow/definitions/staging/rides_group_data.sqlx" | base64)
     curl \
       --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
       --header "Accept: application/json" \
@@ -467,9 +549,22 @@ provisioner "local-exec" {
     EOF
   }
   depends_on = [
+    google_dataform_repository.dataform_repository,
+    time_sleep.create_dataform_repository_time_delay,
     null_resource.dataform_create_workspace,
+    null_resource.dataform_upload_gitignore,
+    null_resource.dataform_upload_dataform_json,
+    null_resource.dataform_upload_package_json,
     null_resource.dataform_create_definitions_dir,
-    null_resource.dataform_create_staging_dir
+    null_resource.dataform_create_operations_dir,
+    null_resource.dataform_create_biglake_table,
+    null_resource.dataform_create_reporting_dir,
+    null_resource.dataform_taxi_rides_summary,
+    null_resource.dataform_create_sources_dir,
+    null_resource.dataform_biglake_payment_type,
+    null_resource.dataform_taxi_trips_pub_sub,
+    null_resource.dataform_create_staging_dir,
+    null_resource.dataform_rides_group_data,
     ]
 }
 
@@ -479,7 +574,7 @@ resource "null_resource" "dataform_taxi_parsed_data" {
 provisioner "local-exec" {
   when    = create
   command = <<EOF
-    data=$$(cat "../dataform/dataform_golden_demo/demo_flow/definitions/staging/taxi_parsed_data.sqlx" | base64)
+    data=$(cat "../dataform/dataform_golden_demo/demo_flow/definitions/staging/taxi_parsed_data.sqlx" | base64)
     curl \
       --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
       --header "Accept: application/json" \
@@ -489,9 +584,23 @@ provisioner "local-exec" {
     EOF
   }
   depends_on = [
+    google_dataform_repository.dataform_repository,
+    time_sleep.create_dataform_repository_time_delay,
     null_resource.dataform_create_workspace,
+    null_resource.dataform_upload_gitignore,
+    null_resource.dataform_upload_dataform_json,
+    null_resource.dataform_upload_package_json,
     null_resource.dataform_create_definitions_dir,
-    null_resource.dataform_create_staging_dir
+    null_resource.dataform_create_operations_dir,
+    null_resource.dataform_create_biglake_table,
+    null_resource.dataform_create_reporting_dir,
+    null_resource.dataform_taxi_rides_summary,
+    null_resource.dataform_create_sources_dir,
+    null_resource.dataform_biglake_payment_type,
+    null_resource.dataform_taxi_trips_pub_sub,
+    null_resource.dataform_create_staging_dir,
+    null_resource.dataform_rides_group_data,
+    null_resource.dataform_taxi_parsed_data,
     ]
 }
 
@@ -513,8 +622,23 @@ provisioner "local-exec" {
     EOF
   }
   depends_on = [
+    google_dataform_repository.dataform_repository,
+    time_sleep.create_dataform_repository_time_delay,
     null_resource.dataform_create_workspace,
-    null_resource.dataform_create_definitions_dir
+    null_resource.dataform_upload_gitignore,
+    null_resource.dataform_upload_dataform_json,
+    null_resource.dataform_upload_package_json,
+    null_resource.dataform_create_definitions_dir,
+    null_resource.dataform_create_operations_dir,
+    null_resource.dataform_create_biglake_table,
+    null_resource.dataform_create_reporting_dir,
+    null_resource.dataform_taxi_rides_summary,
+    null_resource.dataform_create_sources_dir,
+    null_resource.dataform_biglake_payment_type,
+    null_resource.dataform_taxi_trips_pub_sub,
+    null_resource.dataform_create_staging_dir,
+    null_resource.dataform_rides_group_data,
+    null_resource.dataform_taxi_parsed_data,
     ]
 }
 
@@ -524,7 +648,7 @@ resource "null_resource" "dataform_CreateBiglake" {
 provisioner "local-exec" {
   when    = create
   command = <<EOF
-    data=$$(cat "../dataform/dataform_golden_demo/demo_flow/includes/CreateBiglake.js" | base64)
+    data=$(cat "../dataform/dataform_golden_demo/demo_flow/includes/CreateBiglake.js" | base64)
     curl \
       --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
       --header "Accept: application/json" \
@@ -534,9 +658,24 @@ provisioner "local-exec" {
     EOF
   }
   depends_on = [
+    google_dataform_repository.dataform_repository,
+    time_sleep.create_dataform_repository_time_delay,
     null_resource.dataform_create_workspace,
+    null_resource.dataform_upload_gitignore,
+    null_resource.dataform_upload_dataform_json,
+    null_resource.dataform_upload_package_json,
     null_resource.dataform_create_definitions_dir,
-    null_resource.dataform_create_includes_dir
+    null_resource.dataform_create_operations_dir,
+    null_resource.dataform_create_biglake_table,
+    null_resource.dataform_create_reporting_dir,
+    null_resource.dataform_taxi_rides_summary,
+    null_resource.dataform_create_sources_dir,
+    null_resource.dataform_biglake_payment_type,
+    null_resource.dataform_taxi_trips_pub_sub,
+    null_resource.dataform_create_staging_dir,
+    null_resource.dataform_rides_group_data,
+    null_resource.dataform_taxi_parsed_data,
+    null_resource.dataform_create_includes_dir,
     ]
 }
 
@@ -561,6 +700,7 @@ provisioner "local-exec" {
   }
   depends_on = [
     google_dataform_repository.dataform_repository,
+    time_sleep.create_dataform_repository_time_delay,
     null_resource.dataform_create_workspace,
     null_resource.dataform_upload_gitignore,
     null_resource.dataform_upload_dataform_json,
@@ -602,6 +742,7 @@ provisioner "local-exec" {
   }
   depends_on = [
     google_dataform_repository.dataform_repository,
+    time_sleep.create_dataform_repository_time_delay,
     null_resource.dataform_create_workspace,
     null_resource.dataform_upload_gitignore,
     null_resource.dataform_upload_dataform_json,
