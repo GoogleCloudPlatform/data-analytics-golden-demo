@@ -68,7 +68,7 @@ PARTITION BY TIMESTAMP_TRUNC(_PARTITIONTIME, HOUR);
      END;
 
 -- Call the stored procedure just created
-CALL `${project_id}.dataform_demo.create_biglake_table` ('big_lake_payment_type',"'gs://processed-${project_id}/processed/taxi-data/payment_type_table/*.parquet'");
+CALL `${project_id}.dataform_demo.create_biglake_table` ('biglake_payment_type',"'gs://processed-${project_id}/processed/taxi-data/payment_type_table/*.parquet'");
 
 
 -- This replaces the Pub/Sub topic since we already have loaded the same data into a table
@@ -101,5 +101,5 @@ SELECT TIMESTAMP_TRUNC(timestamp, HOUR),
     " }") AS Data
  FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips_streaming` AS parent
 WHERE NOT EXISTS (SELECT 1
-                    FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips_streaming` AS child
-                   WHERE parent.ride_id = child.ride_id);
+                    FROM `${project_id}.dataform_demo.taxi_trips_pub_sub` AS child
+                   WHERE parent.ride_id = JSON_EXTRACT_SCALAR(TO_JSON(child.data),'$.ride_id'))
