@@ -15,12 +15,16 @@
 ####################################################################################
 
 ####################################################################################
-# Create the GCP resources
+# Create the Dataform resources
 #
 # Author: Adam Paternostro
 #
-# https://github.com/GoogleCloudPlatform/magic-modules/blob/main/mmv1/templates/terraform/examples/dataform_repository.tf.erb
+# References: https://github.com/GoogleCloudPlatform/magic-modules/blob/main/mmv1/templates/terraform/examples/dataform_repository.tf.erb
+#
+# Notes: Not all features of Dataform are supported via Terraform at the time this was authored
+#        REST API calls were used and can be replaced as additional Terraform support is added
 ####################################################################################
+
 
 # Need this version to implement
 terraform {
@@ -61,21 +65,13 @@ resource "google_secret_manager_secret" "secret" {
 }
 
 
-# Random string for secret (NOTE: You will need to replace with your GitHub PAT or GitLab PAT)
-resource "random_string" "secret_data" {
-  length  = 10
-  upper   = false
-  lower   = true
-  numeric = true
-  special = false
-}
-
-
-# Set secret
+# Set secret.  This is a placeholder so everything is in place, you just need to tie to your Git provider
+# NOTE: You will need to replace with your GitHub PAT or GitLab PAT (PAT = Personal Access Token)
+# https://cloud.google.com/dataform/docs/connect-repository
 resource "google_secret_manager_secret_version" "secret_version" {
   provider = google
   secret = google_secret_manager_secret.secret.id
-  secret_data = "${random_string.secret_data.result}"
+  secret_data = "REPLAC-ME-WITH-PAT-TOKEN"
   depends_on = [
     google_secret_manager_secret.secret,
   ]  
@@ -89,7 +85,7 @@ resource "google_dataform_repository" "dataform_repository" {
   region   = "us-central1" # var.region - must be in central during preview
   name     = "dataform_golden_demo"
 
-/*
+/* Not set for demo.  You will need to do this via the UI after updating the secret with your PAT token
   git_remote_settings {
       url = google_sourcerepo_repository.git_repository.url
       default_branch = "main"
@@ -105,6 +101,7 @@ resource "google_dataform_repository" "dataform_repository" {
 # Dataform will create a sevice account upon first call.  
 # Wait for IAM Sync
 # e.g. service-361618282238@gcp-sa-dataform.iam.gserviceaccount.com
+# The 361618282238 is your Project Number
 resource "time_sleep" "create_dataform_repository_time_delay" {
   depends_on      = [google_dataform_repository.dataform_repository]
   create_duration = "30s"
@@ -136,13 +133,15 @@ resource "google_secret_manager_secret_iam_member" "member" {
   ]  
 }
 
-# Required since we are setting BigTable permissions
+
+# Required since we are setting BigLake permissions
 resource "google_project_iam_custom_role" "dataformrole" {
   role_id     = "DataformRole"
   title       = "Dataform Role"
   description = "Used for Dataform automation"
   permissions = ["bigquery.connections.delegate","bigquery.routines.get"]
 }
+
 
 # Add custom role to Dataform service account
 resource "google_project_iam_member" "dataform_custom_role" {
@@ -203,7 +202,7 @@ provisioner "local-exec" {
     ]
 }
 
-# Upload the Dataplex scripts
+# Upload the Dataform.json file (we need to do some token replacements for "dataform variables")
 data "template_file" "dataform_upload_dataform_json_file" {
   template = "${file("../dataform/dataform_golden_demo/demo_flow/dataform.json")}"
   vars = {
@@ -211,7 +210,7 @@ data "template_file" "dataform_upload_dataform_json_file" {
   }  
 }
 
-
+# Upload the Dataform.json file 
 resource "null_resource" "dataform_upload_dataform_json" {
 provisioner "local-exec" {
   when    = create
@@ -311,6 +310,7 @@ provisioner "local-exec" {
 }
 
 
+# Template file that needs some token replacements
 data "template_file" "dataform_create_biglake_table_file" {
   template = "${file("../dataform/dataform_golden_demo/demo_flow/definitions/operations/create_biglake_table.sqlx")}"
   vars = {
