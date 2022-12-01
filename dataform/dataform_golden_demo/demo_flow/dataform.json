@@ -2,6 +2,6 @@
   "defaultSchema": "dataform",
   "assertionSchema": "dataform_assertions",
   "warehouse": "bigquery",
-  "defaultDatabase": "REPLACE_ME_PROJECT_NAME",
+  "defaultDatabase": "${project_id}",
   "defaultLocation": "US"
 }

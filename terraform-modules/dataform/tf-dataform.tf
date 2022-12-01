@@ -141,7 +141,7 @@ resource "google_project_iam_custom_role" "dataformrole" {
   role_id     = "DataformRole"
   title       = "Dataform Role"
   description = "Used for Dataform automation"
-  permissions = ["bigquery.connections.delegate"]
+  permissions = ["bigquery.connections.delegate","bigquery.routines.get"]
 }
 
 # Add custom role to Dataform service account
@@ -203,24 +203,25 @@ provisioner "local-exec" {
     ]
 }
 
+# Upload the Dataplex scripts
+data "template_file" "dataform_upload_dataform_json_file" {
+  template = "${file("../dataform/dataform_golden_demo/demo_flow/dataform.json")}"
+  vars = {
+    project_id = var.project_id
+  }  
+}
+
 
 resource "null_resource" "dataform_upload_dataform_json" {
 provisioner "local-exec" {
   when    = create
   command = <<EOF
-    file_data=$(cat "../dataform/dataform_golden_demo/demo_flow/dataform.json")
-    echo "dataform_upload_dataform_json (file_data): $${file_data}"
-    searchString="REPLACE_ME_PROJECT_NAME"
-    replaceString="${var.project_id}"
-    replaced_data=$(echo "$${file_data//$searchString/$replaceString}")
-    echo "dataform_upload_dataform_json (replaced_data): $${replaced_data}"
-    data=$(echo $$replaced_data | base64)
     curl \
       --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
       --header "Accept: application/json" \
       --header "Content-Type: application/json" \
       -X POST  https://dataform.googleapis.com/v1beta1/projects/${var.project_id}/locations/us-central1/repositories/dataform_golden_demo/workspaces/demo_flow:writeFile \
-      --data \ "{ \"path\" : \"dataform.json\", \"contents\" : \"$${data}\" }"
+      --data \ "{ \"path\" : \"dataform.json\", \"contents\" : \"${base64encode(data.template_file.dataform_upload_dataform_json_file.rendered)}\" }"
     EOF
   }
   depends_on = [
@@ -310,24 +311,25 @@ provisioner "local-exec" {
 }
 
 
+data "template_file" "dataform_create_biglake_table_file" {
+  template = "${file("../dataform/dataform_golden_demo/demo_flow/definitions/operations/create_biglake_table.sqlx")}"
+  vars = {
+    processed_bucket = "processed-${var.storage_bucket}"
+  }  
+}
+
+
 # definitions/operations/create_biglake_table.sqlx
 resource "null_resource" "dataform_create_biglake_table" {
 provisioner "local-exec" {
   when    = create
   command = <<EOF
-    file_data=$(cat "../dataform/dataform_golden_demo/demo_flow/definitions/operations/create_biglake_table.sqlx")
-    echo "dataform_upload_dadataform_create_biglake_tabletaform_json (file_data): $${file_data}"
-    searchString="PROCESSED_BUCKET"
-    replaceString="processed-${var.storage_bucket}"
-    replaced_data=$(echo "$${file_data//$searchString/$replaceString}")
-    echo "dataform_create_biglake_table (replaced_data): $${replaced_data}"
-    data=$(echo $$replaced_data | base64)    
     curl \
       --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
       --header "Accept: application/json" \
       --header "Content-Type: application/json" \
       -X POST  https://dataform.googleapis.com/v1beta1/projects/${var.project_id}/locations/us-central1/repositories/dataform_golden_demo/workspaces/demo_flow:writeFile \
-      --data \ "{ \"path\" : \"definitions/operations/create_biglake_table.sqlx\", \"contents\" : \"$${data}\" }"
+      --data \ "{ \"path\" : \"definitions/operations/create_biglake_table.sqlx\", \"contents\" : \"${base64encode(data.template_file.dataform_create_biglake_table_file.rendered)}\" }"
     EOF
   }
   depends_on = [

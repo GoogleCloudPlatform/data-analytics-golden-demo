@@ -42,7 +42,7 @@ CREATE SCHEMA `${project_id}.dataform_demo`
 
 -- Let Dataform access
 GRANT `roles/bigquery.dataEditor`
-   ON SCHEMA `${project_id}.${bigquery_taxi_dataset}`
+   ON SCHEMA `${project_id}.dataform_demo`
    TO "serviceAccount:service-${project_number}@gcp-sa-dataform.iam.gserviceaccount.com";
 
 
@@ -99,4 +99,7 @@ SELECT TIMESTAMP_TRUNC(timestamp, HOUR),
     '"ride_status"',":",'"',ride_status,'", ',
     '"passenger_count"',":",passenger_count,
     " }") AS Data
- FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips_streaming`;
+ FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips_streaming` AS parent
+WHERE NOT EXISTS (SELECT 1
+                    FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips_streaming` AS child
+                   WHERE parent.ride_id = child.ride_id);

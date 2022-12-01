@@ -25,5 +25,5 @@ type: "operations", /* An operations file defines a set of SQL commands that wil
 tags: ["stored procedure"]
 }
  
- 
-${CreateBiglake.CreateBiglake("'biglake_payment_type'","'gs://PROCESSED_BUCKET/processed/taxi-data/payment_type_table/*.parquet'")} 
+/* The double $$ is for escaping in Terraform */
+$${CreateBiglake.CreateBiglake("'biglake_payment_type'","'gs://${processed_bucket}/processed/taxi-data/payment_type_table/*.parquet'")} 

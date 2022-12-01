@@ -1001,6 +1001,8 @@ resource "google_bigquery_table" "taxi_trips_streaming" {
     type = "HOUR"
   }  
 
+  clustering = ["ride_id"]
+
   schema = <<EOF
 [
   {
