@@ -79,6 +79,8 @@ CALL `${project_id}.dataform_demo.create_biglake_table` ('biglake_payment_type',
 -- run the DAG "sample-dataflow-start-streaming-job" (wait a few minutes for it to start) and
 -- then re-run below SQL a second time.  This will add the new rows streamed into the taxi_trips_streaming
 -- to the dataform_demo.taxi_trips_pub_sub table.
+-- NOTE: The Dataform job does a Timestamp Subtract of 1 hour for data to load. The Dataflow job must be running for 1+ hours to 
+--       have data processed by dataform.
 /*
 {
     "ride_id": "1a80b0e2-2adb-431b-8455-aa7ee51839f3",
