@@ -72,6 +72,13 @@ CALL `${project_id}.dataform_demo.create_biglake_table` ('biglake_payment_type',
 
 
 -- This replaces the Pub/Sub topic since we already have loaded the same data into a table
+-- The DAG "sample-dataflow-start-streaming-job" runs for 4 hours when the Terraform is deployed, 
+-- so the taxi_trips_streaming table will have data.
+--
+-- If you want more data (to show the incremental features of Dataform), run Dataform, then
+-- run the DAG "sample-dataflow-start-streaming-job" (wait a few minutes for it to start) and
+-- then re-run below SQL a second time.  This will add the new rows streamed into the taxi_trips_streaming
+-- to the dataform_demo.taxi_trips_pub_sub table.
 /*
 {
     "ride_id": "1a80b0e2-2adb-431b-8455-aa7ee51839f3",
@@ -102,4 +109,5 @@ SELECT TIMESTAMP_TRUNC(timestamp, HOUR),
  FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips_streaming` AS parent
 WHERE NOT EXISTS (SELECT 1
                     FROM `${project_id}.dataform_demo.taxi_trips_pub_sub` AS child
-                   WHERE parent.ride_id = JSON_EXTRACT_SCALAR(TO_JSON(child.data),'$.ride_id'))
+                   WHERE parent.ride_id = JSON_EXTRACT_SCALAR(child.data,'$.ride_id'));
+
