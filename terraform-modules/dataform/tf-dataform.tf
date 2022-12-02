@@ -685,6 +685,7 @@ provisioner "local-exec" {
 
 ########################################################################################
 # Install the npm packages
+# This will create the "package-lock.json" file (which is managed by dataform)
 ########################################################################################
 # https://cloud.google.com/dataform/reference/rest/v1beta1/projects.locations.repositories.workspaces/installNpmPackages
 # POST https://dataform.googleapis.com/v1beta1/{workspace=projects/*/locations/*/repositories/*/workspaces/*}:installNpmPackages
