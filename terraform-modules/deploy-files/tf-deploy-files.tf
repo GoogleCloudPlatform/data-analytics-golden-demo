@@ -46,7 +46,7 @@ variable "composer_dag_bucket" {}
 ####################################################################################
 # Deploy "data" and "scripts"
 ###################################################################################
-# Upload the Airflow initial DAGs needed to run the system
+# Upload the Airflow initial DAGs needed to run the system (dependencies of run-all-dags)
 # Upload all the DAGs can cause issues since the Airflow instance is so small they call cannot sync
 # before run-all-dags is launched
 resource "null_resource" "deploy_initial_airflow_dags" {
@@ -61,11 +61,8 @@ else
     gcloud auth activate-service-account "${var.deployment_service_account_name}" --key-file="$${GOOGLE_APPLICATION_CREDENTIALS}" --project="${var.project_id}"
     gcloud config set account "${var.deployment_service_account_name}"
 fi  
-# gsutil cp ../cloud-composer/dags/* ${var.composer_dag_bucket}
-gsutil cp ../cloud-composer/dags/run-all-dags.py ${var.composer_dag_bucket}
 gsutil cp ../cloud-composer/dags/step-*.py ${var.composer_dag_bucket}
 gsutil cp ../cloud-composer/dags/sample-dataflow-start-streaming-job.py ${var.composer_dag_bucket}
-
 EOF    
   }
 }
@@ -248,6 +245,9 @@ resource "time_sleep" "wait_for_airflow_dag_sync" {
 
 
 # Kick off Airflow DAG
+/*  
+# The Run-All-Dags as been scheduled for @once.  
+# The below commands do not work for No External IPs
 resource "null_resource" "run_airflow_dag" {
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
@@ -267,10 +267,10 @@ EOF
     time_sleep.wait_for_airflow_dag_sync
   ]
 }
+*/
 
-
-# Deploy all the DAGs (hopefully the initial ones have synced)
-# We overwrite the initial ones, but that should not matter
+# Deploy all the remaining DAGs (hopefully the initial ones have synced)
+# When the Run-All-Dag deploys, it should run automatically
 resource "null_resource" "deploy_all_airflow_dags" {
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
@@ -288,8 +288,7 @@ gsutil cp -n ../cloud-composer/dags/* ${var.composer_dag_bucket}
 EOF    
   }
   depends_on = [
-    time_sleep.wait_for_airflow_dag_sync,
-    null_resource.run_airflow_dag
+    time_sleep.wait_for_airflow_dag_sync
   ]
 }
 

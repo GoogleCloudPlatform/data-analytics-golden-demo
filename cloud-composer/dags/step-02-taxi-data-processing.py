@@ -81,7 +81,8 @@ CLUSTER_CONFIG = {
     "gce_cluster_config" :{
         "subnetwork_uri" : dataproc_subnet,
         "service_account" : dataproc_service_account,
-        "service_account_scopes" : ["https://www.googleapis.com/auth/cloud-platform"]
+        "service_account_scopes" : ["https://www.googleapis.com/auth/cloud-platform"],
+        "internal_ip_only" : True
     }
 }
 

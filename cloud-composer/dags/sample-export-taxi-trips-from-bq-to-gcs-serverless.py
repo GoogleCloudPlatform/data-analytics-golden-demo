@@ -91,7 +91,8 @@ BATCH_CONFIG = {
         {'execution_config':
                 {
                     'subnetwork_uri': dataproc_subnet,
-                    'service_account' : dataproc_service_account
+                    'service_account' : dataproc_service_account,
+                    'internal_ip_only' : True
                     }
             },
     'runtime_config':
