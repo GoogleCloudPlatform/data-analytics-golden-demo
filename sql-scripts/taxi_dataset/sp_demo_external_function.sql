@@ -172,7 +172,7 @@ WITH Data AS
 SELECT item.description,
        item.score,
        json_result 
- FROM  Data, UNNEST(JSON_QUERY_ARRAY(Data.json_result.labelAnnotations)) AS item;
+ FROM  Data, UNNEST(JSON_QUERY_ARRAY(Data.json_result.logoAnnotations)) AS item;
 
 
 -- Function that looksup the pickup/dropoff location codes

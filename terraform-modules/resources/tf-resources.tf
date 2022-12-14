@@ -25,7 +25,7 @@ terraform {
   required_providers {
     google = {
       source  = "hashicorp/google-beta"
-      version = "4.30.0"
+      version = "4.42.0"
     }
   }
 }
@@ -348,7 +348,8 @@ resource "google_composer_environment" "composer_env" {
   config {
 
     software_config {
-      image_version = "composer-2.0.24-airflow-2.2.5"
+      image_version = "composer-2.0.31-airflow-2.3.3"
+      #"composer-2.0.24-airflow-2.2.5" (errors on webserver)
       #"composer-2.0.0-airflow-2.1.4"
       #"composer-2.0.7-airflow-2.2.3"
 
@@ -999,6 +1000,8 @@ resource "google_bigquery_table" "taxi_trips_streaming" {
     field = "timestamp"
     type = "HOUR"
   }  
+
+  clustering = ["ride_id"]
 
   schema = <<EOF
 [

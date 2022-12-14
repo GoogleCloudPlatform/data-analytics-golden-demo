@@ -266,7 +266,7 @@ SELECT uri,
        item.description,
        item.score,
        json_result 
- FROM  ScoreAI, UNNEST(JSON_QUERY_ARRAY(ScoreAI.json_result.labelAnnotations)) AS item;
+ FROM  ScoreAI, UNNEST(JSON_QUERY_ARRAY(ScoreAI.json_result.logoAnnotations)) AS item;
 
 
 -- You can also save the results in a BigQuery Table and now join the two 
@@ -357,6 +357,7 @@ CLUSTER BY uri;
 -- Score all the data in batches so we do not overwelm the function
 -- Typically you would score the data as it arrives or in small batches
 -- This takes a while, so you project do not want to run (plus you might affect other users)
+-- DECLARE loopCounter INT64 DEFAULT 0;
 LOOP
   INSERT INTO `bigquery_preview_features.biglake_vision_ai`
   (uri, vision_ai_localize_objects, vision_ai_detect_labels, vision_ai_detect_landmarks, vision_ai_detect_logos)

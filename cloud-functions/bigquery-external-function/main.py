@@ -162,7 +162,7 @@ def detect_logos_uri(calls):
         print("uri: ", uri)
         client = vision_v1.ImageAnnotatorClient()
         image = vision_v1.Image(source=vision_v1.ImageSource(image_uri=uri))
-        response = client.label_detection(image=image)
+        response = client.logo_detection(image=image)
         response_json = MessageToJson(response._pb)
         return_value.append(str(response_json))
     return json.dumps({"replies": return_value})
