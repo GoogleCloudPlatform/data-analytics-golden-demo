@@ -25,7 +25,7 @@ terraform {
   required_providers {
     google = {
       source  = "hashicorp/google-beta"
-      version = "4.30.0"
+      version = "4.42.0"
     }
   }
 }
@@ -68,6 +68,31 @@ variable "bigquery_thelook_ecommerce_dataset" {
 # taxi_dataset Dataset
 #===================================================================================
 #===================================================================================
+
+
+####################################################################################
+# sp_create_demo_dataform
+####################################################################################
+data "template_file" "sproc_sp_create_demo_dataform" {
+  template = "${file("../sql-scripts/taxi_dataset/sp_create_demo_dataform.sql")}"
+  vars = {
+    project_id = var.project_id
+    project_number = var.project_number
+    region = var.region
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+    bigquery_thelook_ecommerce_dataset = var.bigquery_thelook_ecommerce_dataset
+    bucket_name = "processed-${var.storage_bucket}"
+    bigquery_region = var.bigquery_region
+    gcp_account_name = var.gcp_account_name
+  }  
+}
+resource "google_bigquery_routine" "sproc_sp_create_demo_dataform" {
+  dataset_id      = var.bigquery_taxi_dataset
+  routine_id      = "sp_create_demo_dataform"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = "${data.template_file.sproc_sp_create_demo_dataform.rendered}"
+}
 
 
 ####################################################################################
