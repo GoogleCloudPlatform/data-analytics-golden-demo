@@ -245,9 +245,9 @@ resource "time_sleep" "wait_for_airflow_dag_sync" {
 
 
 # Kick off Airflow DAG
-/*  
 # The Run-All-Dags as been scheduled for @once.  
 # The below commands do not work for No External IPs
+/*
 resource "null_resource" "run_airflow_dag" {
   provisioner "local-exec" {
     interpreter = ["/bin/bash", "-c"]
