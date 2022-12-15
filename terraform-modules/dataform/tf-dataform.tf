@@ -185,13 +185,12 @@ resource "null_resource" "dataform_upload_gitignore" {
 provisioner "local-exec" {
   when    = create
   command = <<EOF
-    data=$(cat "../dataform/dataform_golden_demo/demo_flow/.gitignore" | base64)
     curl \
       --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
       --header "Accept: application/json" \
       --header "Content-Type: application/json" \
       -X POST  https://dataform.googleapis.com/v1beta1/projects/${var.project_id}/locations/us-central1/repositories/dataform_golden_demo/workspaces/demo_flow:writeFile \
-      --data \ "{ \"path\" : \".gitignore\", \"contents\" : \"$${data}\" }"
+      --data \ "{ \"path\" : \".gitignore\", \"contents\" : \"${filebase64("../dataform/dataform_golden_demo/demo_flow/.gitignore")}\" }"
     EOF
   }
   depends_on = [
@@ -236,13 +235,12 @@ resource "null_resource" "dataform_upload_package_json" {
 provisioner "local-exec" {
   when    = create
   command = <<EOF
-    data=$(cat "../dataform/dataform_golden_demo/demo_flow/package.json" | base64)
     curl \
       --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
       --header "Accept: application/json" \
       --header "Content-Type: application/json" \
       -X POST  https://dataform.googleapis.com/v1beta1/projects/${var.project_id}/locations/us-central1/repositories/dataform_golden_demo/workspaces/demo_flow:writeFile \
-      --data \ "{ \"path\" : \"package.json\", \"contents\" : \"$${data}\" }"
+      --data \ "{ \"path\" : \"package.json\", \"contents\" : \"${filebase64("../dataform/dataform_golden_demo/demo_flow/package.json")}\" }"
     EOF
   }
   depends_on = [
@@ -380,13 +378,12 @@ resource "null_resource" "dataform_taxi_rides_summary" {
 provisioner "local-exec" {
   when    = create
   command = <<EOF
-    data=$(cat "../dataform/dataform_golden_demo/demo_flow/definitions/reporting/taxi_rides_summary.sqlx" | base64)
     curl \
       --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
       --header "Accept: application/json" \
       --header "Content-Type: application/json" \
       -X POST  https://dataform.googleapis.com/v1beta1/projects/${var.project_id}/locations/us-central1/repositories/dataform_golden_demo/workspaces/demo_flow:writeFile \
-      --data \ "{ \"path\" : \"definitions/reporting/taxi_rides_summary.sqlx\", \"contents\" : \"$${data}\" }"
+      --data \ "{ \"path\" : \"definitions/reporting/taxi_rides_summary.sqlx\", \"contents\" : \"${filebase64("../dataform/dataform_golden_demo/demo_flow/definitions/reporting/taxi_rides_summary.sqlx")}\" }"
     EOF
   }
   depends_on = [
@@ -443,13 +440,12 @@ resource "null_resource" "dataform_biglake_payment_type" {
 provisioner "local-exec" {
   when    = create
   command = <<EOF
-    data=$(cat "../dataform/dataform_golden_demo/demo_flow/definitions/sources/biglake_payment_type.sqlx" | base64)
     curl \
       --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
       --header "Accept: application/json" \
       --header "Content-Type: application/json" \
       -X POST  https://dataform.googleapis.com/v1beta1/projects/${var.project_id}/locations/us-central1/repositories/dataform_golden_demo/workspaces/demo_flow:writeFile \
-      --data \ "{ \"path\" : \"definitions/sources/biglake_payment_type.sqlx\", \"contents\" : \"$${data}\" }"
+      --data \ "{ \"path\" : \"definitions/sources/biglake_payment_type.sqlx\", \"contents\" : \"${filebase64("../dataform/dataform_golden_demo/demo_flow/definitions/sources/biglake_payment_type.sqlx")}\" }"
     EOF
   }
   depends_on = [
@@ -474,13 +470,12 @@ resource "null_resource" "dataform_taxi_trips_pub_sub" {
 provisioner "local-exec" {
   when    = create
   command = <<EOF
-    data=$(cat "../dataform/dataform_golden_demo/demo_flow/definitions/sources/taxi_trips_pub_sub.sqlx" | base64)
     curl \
       --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
       --header "Accept: application/json" \
       --header "Content-Type: application/json" \
       -X POST  https://dataform.googleapis.com/v1beta1/projects/${var.project_id}/locations/us-central1/repositories/dataform_golden_demo/workspaces/demo_flow:writeFile \
-      --data \ "{ \"path\" : \"definitions/sources/taxi_trips_pub_sub.sqlx\", \"contents\" : \"$${data}\" }"
+      --data \ "{ \"path\" : \"definitions/sources/taxi_trips_pub_sub.sqlx\", \"contents\" : \"${filebase64("../dataform/dataform_golden_demo/demo_flow/definitions/sources/taxi_trips_pub_sub.sqlx")}\" }"
     EOF
   }
   depends_on = [
@@ -541,13 +536,12 @@ resource "null_resource" "dataform_rides_group_data" {
 provisioner "local-exec" {
   when    = create
   command = <<EOF
-    data=$(cat "../dataform/dataform_golden_demo/demo_flow/definitions/staging/rides_group_data.sqlx" | base64)
     curl \
       --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
       --header "Accept: application/json" \
       --header "Content-Type: application/json" \
       -X POST  https://dataform.googleapis.com/v1beta1/projects/${var.project_id}/locations/us-central1/repositories/dataform_golden_demo/workspaces/demo_flow:writeFile \
-      --data \ "{ \"path\" : \"definitions/staging/rides_group_data.sqlx\", \"contents\" : \"$${data}\" }"
+      --data \ "{ \"path\" : \"definitions/staging/rides_group_data.sqlx\", \"contents\" : \"${filebase64("../dataform/dataform_golden_demo/demo_flow/definitions/staging/rides_group_data.sqlx")}\" }"
     EOF
   }
   depends_on = [
@@ -576,13 +570,12 @@ resource "null_resource" "dataform_taxi_parsed_data" {
 provisioner "local-exec" {
   when    = create
   command = <<EOF
-    data=$(cat "../dataform/dataform_golden_demo/demo_flow/definitions/staging/taxi_parsed_data.sqlx" | base64)
     curl \
       --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
       --header "Accept: application/json" \
       --header "Content-Type: application/json" \
       -X POST  https://dataform.googleapis.com/v1beta1/projects/${var.project_id}/locations/us-central1/repositories/dataform_golden_demo/workspaces/demo_flow:writeFile \
-      --data \ "{ \"path\" : \"definitions/staging/taxi_parsed_data.sqlx\", \"contents\" : \"$${data}\" }"
+      --data \ "{ \"path\" : \"definitions/staging/taxi_parsed_data.sqlx\", \"contents\" : \"${filebase64("../dataform/dataform_golden_demo/demo_flow/definitions/staging/taxi_parsed_data.sqlx")}\" }"
     EOF
   }
   depends_on = [
@@ -650,13 +643,12 @@ resource "null_resource" "dataform_CreateBiglake" {
 provisioner "local-exec" {
   when    = create
   command = <<EOF
-    data=$(cat "../dataform/dataform_golden_demo/demo_flow/includes/CreateBiglake.js" | base64)
     curl \
       --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
       --header "Accept: application/json" \
       --header "Content-Type: application/json" \
       -X POST  https://dataform.googleapis.com/v1beta1/projects/${var.project_id}/locations/us-central1/repositories/dataform_golden_demo/workspaces/demo_flow:writeFile \
-      --data \ "{ \"path\" : \"includes/CreateBiglake.js\", \"contents\" : \"$${data}\" }"
+      --data \ "{ \"path\" : \"includes/CreateBiglake.js\", \"contents\" : \"${filebase64("../dataform/dataform_golden_demo/demo_flow/includes/CreateBiglake.js")}\" }"
     EOF
   }
   depends_on = [

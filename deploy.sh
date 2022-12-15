@@ -39,8 +39,8 @@
 #   - gcloud beta (sudo gcloud components install beta)
 #   - terraform
 #   - .jq (command line JSON parser)
-#   - kubectrl (sudo gcloud components install kubectl) to Trigger the Airflow 2 DAG (This is not installed on Cloud Shell by default)
 #   - curl
+#   - [NO LONGER NEEDED AS OF 12/2022 - kept of reference] kubectrl (sudo gcloud components install kubectl) to Trigger the Airflow 2 DAG (This is not installed on Cloud Shell by default)
 #
 # Author: Adam Paternostro
 # Terraform for Google: https://registry.terraform.io/providers/hashicorp/google/latest/docs
