@@ -105,6 +105,59 @@ resource "google_compute_network" "default_network" {
   mtu                     = 1460
 }
 
+# Firewall for NAT Router
+resource "google_compute_firewall" "subnet_firewall_rule" {
+  project  = var.project_id
+  name     = "subnet-nat-firewall"
+  network  = google_compute_network.default_network.id
+
+  allow {
+    protocol = "icmp"
+  }
+
+  allow {
+    protocol = "tcp"
+  }
+
+  allow {
+    protocol = "udp"
+  }
+  source_ranges = ["10.2.0.0/16","10.3.0.0/16","10.4.0.0/16","10.5.0.0/16"]
+
+  depends_on = [
+    google_compute_subnetwork.composer_subnet,
+    google_compute_subnetwork.dataproc_subnet,
+    google_compute_subnetwork.bigspark_subnet,
+    google_compute_subnetwork.dataflow_subnet
+  ]
+}
+
+
+# Creation of a router so private IPs can access the internet
+resource "google_compute_router" "nat-router" {
+  name    = "nat-router"
+  region  = var.region
+  network  = google_compute_network.default_network.id
+
+  depends_on = [
+    google_compute_firewall.subnet_firewall_rule
+  ]
+}
+
+
+# Creation of a NAT
+resource "google_compute_router_nat" "nat-config" {
+  name                               = "nat-config"
+  router                             = "${google_compute_router.nat-router.name}"
+  region                             = var.region
+  nat_ip_allocate_option             = "AUTO_ONLY"
+  source_subnetwork_ip_ranges_to_nat = "ALL_SUBNETWORKS_ALL_IP_RANGES"
+
+  depends_on = [
+    google_compute_router.nat-router
+  ]
+}
+
 
 ####################################################################################
 # Dataproc
@@ -116,6 +169,7 @@ resource "google_compute_subnetwork" "dataproc_subnet" {
   ip_cidr_range = "10.3.0.0/16"
   region        = var.region
   network       = google_compute_network.default_network.id
+  private_ip_google_access = true
 
   depends_on = [
     google_compute_network.default_network,
@@ -283,6 +337,7 @@ resource "google_compute_subnetwork" "composer_subnet" {
   ip_cidr_range = "10.2.0.0/16"
   region        = var.region
   network       = google_compute_network.default_network.id
+  private_ip_google_access = true
 
   depends_on = [
     google_compute_network.default_network
@@ -402,6 +457,10 @@ resource "google_composer_environment" "composer_env" {
       subnetwork      = google_compute_subnetwork.composer_subnet.id
       service_account = google_service_account.composer_service_account.name
     }
+
+    private_environment_config {
+      enable_private_endpoint = true
+    }
   }
 
   depends_on = [
@@ -464,7 +523,7 @@ resource "google_storage_bucket" "bigspark_bucket" {
   uniform_bucket_level_access = true
 }
 
-# Subnet for dataflow cluster
+# Subnet for bigspark / central region
 resource "google_compute_subnetwork" "bigspark_subnet" {
   project                  = var.project_id
   name                     = "bigspark-subnet"
@@ -1103,6 +1162,7 @@ resource "google_compute_subnetwork" "dataflow_subnet" {
   ip_cidr_range = "10.4.0.0/16"
   region        = var.region
   network       = google_compute_network.default_network.id
+  private_ip_google_access = true
 
   depends_on = [
     google_compute_network.default_network,
