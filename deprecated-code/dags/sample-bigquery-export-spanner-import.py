@@ -157,6 +157,7 @@ gcloud_load_weather_table=("gcloud dataflow jobs run importspannerweatherdata " 
   "--staging-location gs://{raw_bucket_name} " + \
   "--network vpc-main " + \
   "--subnetwork regions/{region}/subnetworks/dataflow-subnet  " + \
+  "--disable-public-ips " + \
   "--parameters " + \
   "instanceId={spanner_instance_id}," + \
   "databaseId=weather," + \
