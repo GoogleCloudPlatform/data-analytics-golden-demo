@@ -106,6 +106,27 @@ EOF
   }
 }
 
+# Download the BigQuery Spark JAR file
+# Download the Iceberg JAR File
+resource "null_resource" "deploy_dataproc_jars" {
+  provisioner "local-exec" {
+    interpreter = ["/bin/bash", "-c"]
+    command     = <<EOF
+if [ -z "$${GOOGLE_APPLICATION_CREDENTIALS}" ]
+then
+    echo "We are not running in a local docker container.  No need to login."
+else
+    echo "We are running in local docker container. Logging in."
+    gcloud auth activate-service-account "${var.deployment_service_account_name}" --key-file="$${GOOGLE_APPLICATION_CREDENTIALS}" --project="${var.project_id}"
+    gcloud config set account "${var.deployment_service_account_name}"
+fi  
+curl -L https://repo.maven.apache.org/maven2/org/apache/iceberg/iceberg-spark-runtime-3.1_2.12/0.14.0/iceberg-spark-runtime-3.1_2.12-0.14.0.jar   --output iceberg-spark-runtime-3.1_2.12-0.14.0.jar
+curl -L https://github.com/GoogleCloudDataproc/spark-bigquery-connector/releases/download/0.26.0/spark-bigquery-with-dependencies_2.12-0.26.0.jar --output spark-bigquery-with-dependencies_2.12-0.26.0.jar
+gsutil cp *.jar gs://raw-${var.storage_bucket}/pyspark-code/
+EOF
+  }
+}
+
 
 # Upload the Dataflow scripts
 resource "null_resource" "deploy_dataflow_scripts" {
