@@ -34,6 +34,8 @@ rm ./terraform/.terraform.lock.hcl
 rm ./terraform/terraform.tfstate
 rm ./terraform/terraform.tfstate.backup
 rm ./terraform/tf-output.json
+rm ./terraform/iceberg-spark-runtime-3.1_2.12-0.14.0.jar
+rm ./terraform/spark-bigquery-with-dependencies_2.12-0.26.0.jar
 
 rm notebooks-with-substitution/*.ipynb
 rm notebooks-with-substitution/*.tmp
