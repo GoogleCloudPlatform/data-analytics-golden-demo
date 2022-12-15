@@ -20,7 +20,7 @@
 # README: This script will use "bash" to deploy the code
 #         This will run the "terraform" folder entrypoint (uses the seed Terraform service account)
 #         This will emulates deploying into an existing project (it creates the project for you or you can hardcode)
-# NOTE:   You need to have run "souce deploy-terraform-seed-account.sh" to generate the Terraform Service Account
+# NOTE:   You need to have run "source deploy-terraform-seed-account.sh" to generate the Terraform Service Account
 # TO RUN: "source deploy-use-existing-project.sh"
 ####################################################################################
 
