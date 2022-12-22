@@ -67,7 +67,7 @@ PARTITION BY TIMESTAMP_TRUNC(_PARTITIONTIME, HOUR);
           """,name,uris);
      END;
 
--- Call the stored procedure just created
+-- Call the stored procedure just created (use the processed bucket)
 CALL `${project_id}.dataform_demo.create_biglake_table` ('biglake_payment_type',"'gs://${bucket_name}/processed/taxi-data/payment_type_table/*.parquet'");
 
 
