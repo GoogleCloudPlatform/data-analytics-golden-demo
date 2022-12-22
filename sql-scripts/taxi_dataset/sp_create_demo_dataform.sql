@@ -68,7 +68,7 @@ PARTITION BY TIMESTAMP_TRUNC(_PARTITIONTIME, HOUR);
      END;
 
 -- Call the stored procedure just created
-CALL `${project_id}.dataform_demo.create_biglake_table` ('biglake_payment_type',"'gs://processed-${project_id}/processed/taxi-data/payment_type_table/*.parquet'");
+CALL `${project_id}.dataform_demo.create_biglake_table` ('biglake_payment_type',"'gs://${bucket_name}/processed/taxi-data/payment_type_table/*.parquet'");
 
 
 -- This replaces the Pub/Sub topic since we already have loaded the same data into a table
