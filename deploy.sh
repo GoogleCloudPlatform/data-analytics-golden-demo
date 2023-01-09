@@ -145,8 +145,6 @@ terraform output -json > tf-output.json
 terrform_output_bucket=$(terraform output -raw terraform-output-bucket)
 echo "terrform_output_bucket: ${terrform_output_bucket}"
 
-terrform_output_bucket="code-data-analytics-demo-xebus4fdys"
-
 # Check to see if the user did not specify an output bucket
 if [[ $terrform_output_bucket == *"Error"* ]]; 
 then
