@@ -138,8 +138,23 @@ terraform apply \
 #  -var="aws_omni_biglake_s3_bucket=myS3Bucket" \
 #  -var="azure_omni_biglake_adls_name=myAzureADLSGen2StorageAccount"
  
-# Write out the output variables (currently not used)
-# terraform output -json > tf-output.json
+# Write out the output variables 
+terraform output -json > tf-output.json
+
+# Get the name of the bucket the user specified to upload the output file
+terrform_output_bucket=$(terraform output -raw terraform-output-bucket)
+echo "terrform_output_bucket: ${terrform_output_bucket}"
+
+terrform_output_bucket="code-data-analytics-demo-xebus4fdys"
+
+# Check to see if the user did not specify an output bucket
+if [[ $terrform_output_bucket == *"Error"* ]]; 
+then
+  echo "No terrform_output_bucket specified.  Not copying tf-output.json"
+else
+  echo "Copying tf-output.json: gsutil cp tf-output.json gs://${terrform_output_bucket}/terraform/output/"
+  gsutil cp tf-output.json "gs://${terrform_output_bucket}/terraform/output/"
+fi
 
 cd ..
 

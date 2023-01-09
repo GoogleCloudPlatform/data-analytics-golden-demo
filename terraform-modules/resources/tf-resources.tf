@@ -1277,28 +1277,6 @@ resource "google_service_account_iam_binding" "service_account_impersonation" {
 }
 */
 
-####################################################################################
-# Outputs
-####################################################################################
-
-output "output-composer-name" {
-  value = google_composer_environment.composer_env.name
-}
-
-output "output-composer-region" {
-  value = google_composer_environment.composer_env.region
-}
-
-output "output-composer-dag-bucket" {
-  value = google_composer_environment.composer_env.config.0.dag_gcs_prefix
-}
-
-/*
-output "output-spanner-instance-id" {
-  value = google_spanner_instance.spanner_instance.name
-}
-*/
-
 
 ####################################################################################
 # Dataplex (Tag Templates)
@@ -1502,4 +1480,117 @@ resource "google_data_catalog_tag_template" "column_dq_tag_template" {
   force_delete = "false"
 
   depends_on      = [google_data_catalog_tag_template.table_dq_tag_template]
+}
+
+
+####################################################################################
+# Outputs
+####################################################################################
+
+output "gcs_raw_bucket" {
+  value = google_storage_bucket.raw_bucket.name
+}
+
+output "gcs_processed_bucket" {
+  value = google_storage_bucket.processed_bucket.name
+}
+
+output "gcs_code_bucket" {
+  value = google_storage_bucket.code_bucket.name
+}
+
+output "default_network" {
+  value = google_compute_network.default_network.name
+}
+
+output "nat-router" {
+  value = google_compute_router.nat-router.name
+}
+
+output "dataproc_subnet_name" {
+  value = google_compute_subnetwork.dataproc_subnet.name
+}
+
+output "dataproc_subnet_name_ip_cidr_range" {
+  value = google_compute_subnetwork.dataproc_subnet.ip_cidr_range
+}
+
+output "gcs_dataproc_bucket" {
+  value = google_storage_bucket.dataproc_bucket.name
+}
+
+output "dataproc_service_account" {
+  value = google_service_account.dataproc_service_account.email
+}
+
+output "cloudcomposer_account_service_agent_v2_ext" {
+  value = google_project_iam_member.cloudcomposer_account_service_agent_v2_ext.member
+}
+
+output "composer_subnet" {
+  value = google_compute_subnetwork.composer_subnet.name
+}
+
+output "composer_subnet_ip_cidr_range" {
+  value = google_compute_subnetwork.composer_subnet.ip_cidr_range
+}
+
+output "composer_service_account" {
+  value = google_service_account.composer_service_account.email
+}
+
+output "composer_env_name" {
+  value = google_composer_environment.composer_env.name
+}
+
+output "composer_env_dag_bucket" {
+  value = google_composer_environment.composer_env.config.0.dag_gcs_prefix
+}
+
+output "gcs_bigspark_bucket" {
+  value = google_storage_bucket.bigspark_bucket.name
+}
+
+output "bigspark_subnet_name" {
+  value = google_compute_subnetwork.bigspark_subnet.name
+}
+
+output "bigspark_subnet_ip_cidr_range" {
+  value = google_compute_subnetwork.bigspark_subnet.ip_cidr_range
+}
+
+output "business_critical_taxonomy_aws_id" {
+  value = google_data_catalog_taxonomy.business_critical_taxonomy_aws.id
+}
+
+output "business_critical_taxonomy_azure_id" {
+  value = google_data_catalog_taxonomy.business_critical_taxonomy_azure.id
+}
+
+output "business_critical_taxonomy_id" {
+  value = google_data_catalog_taxonomy.business_critical_taxonomy.id
+}
+
+output "bigquery_external_function" {
+  value = google_cloudfunctions_function.bigquery_external_function.name
+}
+
+output "cloud_function_connection" {
+  value = google_bigquery_connection.cloud_function_connection.connection_id
+}
+
+output "biglake_connection" {
+  value = google_bigquery_connection.biglake_connection.connection_id
+}
+
+output "dataflow_subnet_name" {
+  value = google_compute_subnetwork.dataflow_subnet.name
+}
+
+output "dataflow_subnet_ip_cidr_range" {
+  value = google_compute_subnetwork.dataflow_subnet.ip_cidr_range
+}
+
+output "dataflow_service_account" {
+  value = google_service_account.dataflow_service_account.email
 }
