@@ -159,7 +159,7 @@ if [[ $terrform_output_bucket == *"Error"* ]];
 then
   echo "No terrform_output_bucket specified.  Not copying Terraform State file"
 else
-  echo "Copying terraform.tfstate: gsutil cp terraform.tfstate "gs://${terrform_output_bucket}/terraform/state/""
+  echo "Copying terraform.tfstate: gsutil cp terraform.tfstate gs://${terrform_output_bucket}/terraform/state/"
   gsutil cp terraform.tfstate "gs://${terrform_output_bucket}/terraform/state/"
 fi
 
