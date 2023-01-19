@@ -40,6 +40,13 @@ variable "project_id" {}
 ####################################################################################
 # Organizational Policies 
 ####################################################################################
+#
+# This file is empty on purpose.  We will run the Terraform apply command a second time with this file.
+# By running terraform apply with this empty file it will "destroy" the org policies.
+# This will set them back to "Inherit from Parent".
+#
+
+/*
 # Composer Policy
 # This fixes this Error: googleapi: Error 400: You can't create a Composer environment due to Organization Policy constraints in the selected project.
 # Policy constraints/compute.requireOsLogin must be disabled., failedPrecondition
@@ -133,3 +140,4 @@ resource "time_sleep" "time_sleep_org_policies" {
     google_org_policy_policy.org_policy_allowed_policy_member_domains
   ]
 }
+*/
