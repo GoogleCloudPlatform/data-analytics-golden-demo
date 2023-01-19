@@ -47,7 +47,7 @@ variable "project_id" {}
 #
 
 
-# Composer Policy and Dataproc Serverless
+# Composer Policy and Dataproc Serverless { this needs to remain until the Dataproc team changes their code }
 # This fixes this Error: googleapi: Error 400: You can't create a Composer environment due to Organization Policy constraints in the selected project.
 # Policy constraints/compute.requireOsLogin must be disabled., failedPrecondition
 resource "google_org_policy_policy" "org_policy_require_os_login" {
