@@ -171,19 +171,25 @@ then
 
   # Copy the EMPTY org policies over the existing one
   # Run Terraform apply again to then revert the org policies back to "inherit from parent"
-  cp ../terraform-modules/org-policies-destroy/tf-org-policies.tf ../terraform-modules/org-policies/tf-org-policies.tf
+  if [ -f "../terraform-modules/org-policies/tf-org-policies-original.tf" ]; then
+    echo "The Org Policies file has already been replaced"
+  else
+    mv ../terraform-modules/org-policies/tf-org-policies.tf ../terraform-modules/org-policies/tf-org-policies-original.tf
+    cp ../terraform-modules/org-policies-destroy/tf-org-policies.tf ../terraform-modules/org-policies/tf-org-policies.tf
 
-  # Run the Terraform Apply (to destroy the org policies)
-  terraform apply -auto-approve \
-    -var="gcp_account_name=${gcp_account_name}" \
-    -var="org_id=${org_id}" \
-    -var="billing_account=${billing_account}" \
-    -var="project_id=data-analytics-demo"
+    # Run the Terraform Apply (to destroy the org policies)
+    terraform apply -auto-approve \
+      -var="gcp_account_name=${gcp_account_name}" \
+      -var="org_id=${org_id}" \
+      -var="billing_account=${billing_account}" \
+      -var="project_id=data-analytics-demo"
 
-  # NOTE: To deploy for BQ OMNI you need to also include there arguments to the terraform apply
-  #  -var="shared_demo_project_id=mySharedProject" \
-  #  -var="aws_omni_biglake_s3_bucket=myS3Bucket" \
-  #  -var="azure_omni_biglake_adls_name=myAzureADLSGen2StorageAccount"  
+    # NOTE: To deploy for BQ OMNI you need to also include there arguments to the terraform apply
+    #  -var="shared_demo_project_id=mySharedProject" \
+    #  -var="aws_omni_biglake_s3_bucket=myS3Bucket" \
+    #  -var="azure_omni_biglake_adls_name=myAzureADLSGen2StorageAccount"  
+  fi  
+
 fi
 
 cd ..
