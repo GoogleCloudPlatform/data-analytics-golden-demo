@@ -189,6 +189,13 @@ then
     #  -var="shared_demo_project_id=mySharedProject" \
     #  -var="aws_omni_biglake_s3_bucket=myS3Bucket" \
     #  -var="azure_omni_biglake_adls_name=myAzureADLSGen2StorageAccount"  
+
+    # Move the files back so Git does not check in the wrong file
+    # Also, if we do another deployment we want to disable the policies so we do not interfere with the deployment
+    # and then re-enable them.
+    rm ../terraform-modules/org-policies/tf-org-policies.tf
+    mv ../terraform-modules/org-policies/tf-org-policies-original.txt ../terraform-modules/org-policies/tf-org-policies.tf
+
   fi  
 
 fi
