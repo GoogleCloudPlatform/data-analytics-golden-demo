@@ -15,14 +15,6 @@
 ####################################################################################
 
 
-#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-# ALERT: This file is EXCLUDED from source control (the .gitignore).  The reason for this is that
-#        the file get OVERWRITTEN during the deployment process (by the org-policies-destroy).  If
-#        you make changes to this file, you should update the .gitignore, check in the changes and then
-#        update the .gitignore again.
-#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-
 ####################################################################################
 # Deploys the Org Policies when running locally or cloud shell
 #
