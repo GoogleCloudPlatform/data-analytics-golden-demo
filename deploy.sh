@@ -171,10 +171,11 @@ then
 
   # Copy the EMPTY org policies over the existing one
   # Run Terraform apply again to then revert the org policies back to "inherit from parent"
-  if [ -f "../terraform-modules/org-policies/tf-org-policies-original.tf" ]; then
+  if [ -f "../terraform-modules/org-policies/tf-org-policies-original.txt" ]; then
     echo "The Org Policies file has already been replaced"
   else
-    mv ../terraform-modules/org-policies/tf-org-policies.tf ../terraform-modules/org-policies/tf-org-policies-original.tf
+    echo "Replacing the Org Policies file and revoking the policy exceptions used during the deployment"
+    mv ../terraform-modules/org-policies/tf-org-policies.tf ../terraform-modules/org-policies/tf-org-policies-original.txt
     cp ../terraform-modules/org-policies-destroy/tf-org-policies.tf ../terraform-modules/org-policies/tf-org-policies.tf
 
     # Run the Terraform Apply (to destroy the org policies)
