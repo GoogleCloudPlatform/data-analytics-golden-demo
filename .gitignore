@@ -34,3 +34,8 @@ replace-me-helper.txt
 terraform/iceberg-spark-runtime-3.1_2.12-0.14.0.jar
 terraform/spark-bigquery-with-dependencies_2.12-0.26.0.jar
 terraform-modules/org-policies/tf-org-policies-original.txt
+
+# This file is excluded, but if you make changes you will need to
+# temporary disable this file and then re-enable.  Open the file to
+# see the complete reason.
+terraform-modules/org-policies/tf-org-policies.tf
