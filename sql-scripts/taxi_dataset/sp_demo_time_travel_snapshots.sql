@@ -108,6 +108,8 @@ FROM `${project_id}.${bigquery_taxi_dataset}.green_trips_time_travel`
 -- Typically you would snapshot once a week to keep longer than 7 days the "INTERVAL 1 SECOND" is just for demo.
 -- You can schedule this BigQuery "Scheduled Queries" https://cloud.google.com/bigquery/docs/table-snapshots-scheduled
 -- Snapshots are only charged for the "delta" pricing of data from the base table
+-- NOTE: You can create the snapshot in a different project and then grant Viewer access to the snapshot.  This allows you
+--       to snapshot "prod" data into a "dev" project.
 CREATE SNAPSHOT TABLE `${project_id}.${bigquery_taxi_dataset}.green_trips_time_travel_snapshot` 
  CLONE `${project_id}.${bigquery_taxi_dataset}.green_trips_time_travel` 
    FOR SYSTEM_TIME AS OF TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 1 SECOND)
