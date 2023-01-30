@@ -47,6 +47,7 @@ sql_taxi_external_tables="CALL `{}.taxi_dataset.sp_create_taxi_external_tables`(
 sql_taxi_internal_tables="CALL `{}.taxi_dataset.sp_create_taxi_internal_tables`();".format(project_id)
 sql_create_product_deliveries="CALL `{}.thelook_ecommerce.create_product_deliveries`();".format(project_id)
 sql_create_thelook_tables="CALL `{}.thelook_ecommerce.create_thelook_tables`('{}');".format(project_id,bigquery_region)
+sql_taxi_biglake_tables="CALL `{}.taxi_dataset.sp_create_taxi_biglake_tables`();".format(project_id)
 
 with airflow.DAG('step-03-hydrate-tables',
                  default_args=default_args,
@@ -75,6 +76,16 @@ with airflow.DAG('step-03-hydrate-tables',
         }
     })
 
+    sql_taxi_biglake_tables = BigQueryInsertJobOperator(
+    task_id="sql_taxi_biglake_tables",
+    location=bigquery_region,
+    configuration={
+        "query": {
+            "query": sql_taxi_biglake_tables,
+            "useLegacySql": False,
+        }
+    })  
+    
     sql_create_product_deliveries = BigQueryInsertJobOperator(
     task_id="sql_create_product_deliveries",
     location=bigquery_region,
@@ -93,8 +104,10 @@ with airflow.DAG('step-03-hydrate-tables',
             "query": sql_create_thelook_tables,
             "useLegacySql": False,
         }
-    })   
+    }) 
+    
 
-    sql_taxi_external_tables >> sql_taxi_internal_tables >> sql_create_product_deliveries >> sql_create_thelook_tables
+    sql_taxi_external_tables >> sql_taxi_internal_tables >> sql_taxi_biglake_tables >> \
+        sql_create_product_deliveries >> sql_create_thelook_tables
 
 # [END dag]
