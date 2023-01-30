@@ -39,7 +39,7 @@ WITH CONNECTION `${project_id}.${bigquery_region}.biglake-connection`
 OPTIONS (
   uris=['gs://${bucket_name}/processed/taxi-data/green/trips_table/parquet/year=2019/month=1/*.parquet'], 
   format="PARQUET"
-  )
+  );
 
 
 -- See ALL the data
