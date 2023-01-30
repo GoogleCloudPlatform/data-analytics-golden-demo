@@ -84,7 +84,12 @@ CLUSTER_CONFIG = {
         "subnetwork_uri" : dataproc_subnet,
         "service_account" : dataproc_service_account,
         "internal_ip_only" : True,
-        "service_account_scopes" : ["https://www.googleapis.com/auth/cloud-platform"]
+        "service_account_scopes" : ["https://www.googleapis.com/auth/cloud-platform"],
+        "shielded_instance_config" : { 
+            "enable_secure_boot" : True,
+            "enable_vtpm": True,
+            "enable_integrity_monitoring": True
+            }
     }
 }
 

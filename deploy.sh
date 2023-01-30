@@ -137,9 +137,68 @@ terraform apply \
 #  -var="shared_demo_project_id=mySharedProject" \
 #  -var="aws_omni_biglake_s3_bucket=myS3Bucket" \
 #  -var="azure_omni_biglake_adls_name=myAzureADLSGen2StorageAccount"
- 
-# Write out the output variables (currently not used)
-# terraform output -json > tf-output.json
+
+terraform_exit_code=$?
+echo "Terraform exit code: ${terraform_exit_code}"
+
+if [ $terraform_exit_code -eq 0 ]
+then
+  
+  # Write out the output variables 
+  terraform output -json > tf-output.json
+
+  # Get the name of the bucket the user specified to upload the output file
+  terrform_output_bucket=$(terraform output -raw terraform-output-bucket)
+  echo "terrform_output_bucket: ${terrform_output_bucket}"
+
+  # Copy TF Output - Check to see if the user did not specify an output bucket
+  if [[ $terrform_output_bucket == *"Error"* ]]; 
+  then
+    echo "No terrform_output_bucket specified.  Not copying tf-output.json"
+  else
+    echo "Copying tf-output.json: gsutil cp tf-output.json gs://${terrform_output_bucket}/terraform/output/"
+    gsutil cp tf-output.json "gs://${terrform_output_bucket}/terraform/output/"
+  fi
+
+  # Copy TF State file - Check to see if the user did not specify an output bucket
+  if [[ $terrform_output_bucket == *"Error"* ]]; 
+  then
+    echo "No terrform_output_bucket specified.  Not copying Terraform State file"
+  else
+    echo "Copying terraform.tfstate: gsutil cp terraform.tfstate gs://${terrform_output_bucket}/terraform/state/"
+    gsutil cp terraform.tfstate "gs://${terrform_output_bucket}/terraform/state/"
+  fi
+
+  # Copy the EMPTY org policies over the existing one
+  # Run Terraform apply again to then revert the org policies back to "inherit from parent"
+  if [ -f "../terraform-modules/org-policies/tf-org-policies-original.txt" ]; then
+    echo "The Org Policies file has already been replaced"
+  else
+    echo "Replacing the Org Policies file and revoking the policy exceptions used during the deployment"
+    mv ../terraform-modules/org-policies/tf-org-policies.tf ../terraform-modules/org-policies/tf-org-policies-original.txt
+    cp ../terraform-modules/org-policies-destroy/tf-org-policies.tf ../terraform-modules/org-policies/tf-org-policies.tf
+
+    # Run the Terraform Apply (to destroy the org policies)
+    terraform apply -auto-approve \
+      -var="gcp_account_name=${gcp_account_name}" \
+      -var="org_id=${org_id}" \
+      -var="billing_account=${billing_account}" \
+      -var="project_id=data-analytics-demo"
+
+    # NOTE: To deploy for BQ OMNI you need to also include there arguments to the terraform apply
+    #  -var="shared_demo_project_id=mySharedProject" \
+    #  -var="aws_omni_biglake_s3_bucket=myS3Bucket" \
+    #  -var="azure_omni_biglake_adls_name=myAzureADLSGen2StorageAccount"  
+
+    # Move the files back so Git does not check in the wrong file
+    # Also, if we do another deployment we want to disable the policies so we do not interfere with the deployment
+    # and then re-enable them.
+    rm ../terraform-modules/org-policies/tf-org-policies.tf
+    mv ../terraform-modules/org-policies/tf-org-policies-original.txt ../terraform-modules/org-policies/tf-org-policies.tf
+
+  fi  
+
+fi
 
 cd ..
 

@@ -490,8 +490,8 @@ module "deploy-files-module" {
   storage_bucket                  = local.local_storage_bucket
   random_extension                = random_string.project_random.result
   deployment_service_account_name = var.deployment_service_account_name
-  composer_name                   = module.resources.output-composer-name
-  composer_dag_bucket             = module.resources.output-composer-dag-bucket
+  composer_name                   = module.resources.composer_env_name
+  composer_dag_bucket             = module.resources.composer_env_dag_bucket
 
   depends_on = [
     module.project,
@@ -508,30 +508,266 @@ module "deploy-files-module" {
 # Outputs (Gather from sub-modules)
 # Not really needed, but are outputted for viewing
 ####################################################################################
-output "output-project-id" {
+output "gcp_account_name" {
+  value = var.gcp_account_name
+}
+
+output "project_id" {
   value = local.local_project_id
 }
 
-output "output-project-number" {
+output "project_number" {
   value = var.project_number == "" ? module.project[0].output-project-number : var.project_number
 }
 
-output "output-region" {
+output "deployment_service_account_name" {
+  value = var.deployment_service_account_name
+}
+
+output "org_id" {
+  value = var.org_id
+}
+
+output "billing_account" {
+  value = var.billing_account
+}
+
+output "region" {
   value = var.region
 }
 
-output "output-bucket-name" {
+output "zone" {
+  value = var.zone
+}
+
+output "spanner_config" {
+  value = var.spanner_config
+}
+
+output "bigquery_region" {
+  value = var.bigquery_region
+}
+
+output "shared_demo_project_id" {
+  value = var.shared_demo_project_id
+}
+
+output "aws_omni_biglake_dataset_region" {
+  value = var.aws_omni_biglake_dataset_region
+}
+
+output "aws_omni_biglake_dataset_name" {
+  value = var.aws_omni_biglake_dataset_name
+}
+
+output "aws_omni_biglake_connection" {
+  value = var.aws_omni_biglake_connection
+}
+
+output "aws_omni_biglake_s3_bucket" {
+  value = var.aws_omni_biglake_s3_bucket
+}
+
+output "azure_omni_biglake_adls_name" {
+  value = var.azure_omni_biglake_adls_name
+}
+
+output "azure_omni_biglake_dataset_name" {
+  value = var.azure_omni_biglake_dataset_name
+}
+
+output "azure_omni_biglake_dataset_region" {
+  value = var.azure_omni_biglake_dataset_region
+}
+
+output "random_string" {
+  value = random_string.project_random.result
+}
+
+output "local_storage_bucket" {
   value = local.local_storage_bucket
 }
 
-output "output-composer-name" {
-  value = module.resources.output-composer-name
+output "local_impersonation_account" {
+  value = local.local_impersonation_account
 }
 
-output "output-composer-region" {
-  value = module.resources.output-composer-region
+output "local_curl_impersonation" {
+  value = local.local_curl_impersonation
 }
 
-output "output-composer-dag-bucket" {
-  value = module.resources.output-composer-dag-bucket
+output "local_azure_omni_biglake_connection" {
+  value = local.local_azure_omni_biglake_connection
+}
+
+output "deployment_service_account" {
+  value = module.service-account.deployment_service_account
+}
+
+output "bigquery_taxi_dataset" {
+  value = "bigquery_taxi_dataset"
+}
+
+output "bigquery_thelook_ecommerce_dataset" {
+  value = "bigquery_thelook_ecommerce_dataset"
+}
+
+output "gcs_raw_bucket" {
+  value = module.resources.gcs_raw_bucket
+}
+
+output "gcs_processed_bucket" {
+  value = module.resources.gcs_processed_bucket
+}
+
+output "gcs_code_bucket" {
+  value = module.resources.gcs_code_bucket
+}
+
+output "default_network" {
+  value = module.resources.default_network
+}
+
+output "nat-router" {
+  value = module.resources.nat-router
+}
+
+output "dataproc_subnet_name" {
+  value = module.resources.dataproc_subnet_name
+}
+
+output "dataproc_subnet_name_ip_cidr_range" {
+  value = module.resources.dataproc_subnet_name_ip_cidr_range
+}
+
+output "gcs_dataproc_bucket" {
+  value = module.resources.gcs_dataproc_bucket
+}
+
+output "dataproc_service_account" {
+  value = module.resources.dataproc_service_account
+}
+
+output "cloudcomposer_account_service_agent_v2_ext" {
+  value = module.resources.cloudcomposer_account_service_agent_v2_ext
+}
+
+output "composer_subnet" {
+  value = module.resources.composer_subnet
+}
+
+output "composer_subnet_ip_cidr_range" {
+  value = module.resources.composer_subnet_ip_cidr_range
+}
+
+output "composer_service_account" {
+  value = module.resources.composer_service_account
+}
+
+output "composer_env_name" {
+  value = module.resources.composer_env_name
+}
+
+output "composer_env_dag_bucket" {
+  value = module.resources.composer_env_dag_bucket
+}
+
+output "gcs_bigspark_bucket" {
+  value = module.resources.gcs_bigspark_bucket
+}
+
+output "bigspark_subnet_name" {
+  value = module.resources.bigspark_subnet_name
+}
+
+output "bigspark_subnet_ip_cidr_range" {
+  value = module.resources.bigspark_subnet_ip_cidr_range
+}
+
+output "business_critical_taxonomy_aws_id" {
+  value = module.resources.business_critical_taxonomy_aws_id
+}
+
+output "business_critical_taxonomy_azure_id" {
+  value = module.resources.business_critical_taxonomy_azure_id
+}
+
+output "business_critical_taxonomy_id" {
+  value = module.resources.business_critical_taxonomy_id
+}
+
+output "bigquery_external_function" {
+  value = module.resources.bigquery_external_function
+}
+
+output "cloud_function_connection" {
+  value = module.resources.cloud_function_connection
+}
+
+output "biglake_connection" {
+  value = module.resources.biglake_connection
+}
+
+output "dataflow_subnet_name" {
+  value = module.resources.dataflow_subnet_name
+}
+
+output "dataflow_subnet_ip_cidr_range" {
+  value = module.resources.dataflow_subnet_ip_cidr_range
+}
+
+output "dataflow_service_account" {
+  value = module.resources.dataflow_service_account
+}
+
+output "spanner_instance_id" {
+  value = "spanner-${random_string.project_random.result}"
+}
+
+output "dataform_repository" {
+  value = module.dataform-module.dataform_repository
+}
+
+output "dataplex_taxi_datalake" {
+  value = "taxi-data-lake-${random_string.project_random.result}"
+}
+
+output "dataplex_taxi_datalake_raw_zone" {
+  value = "taxi-raw-zone-${random_string.project_random.result}"
+}
+
+output "dataplex_taxi_datalake_curated_zone" {
+  value = "taxi-curated-zone-${random_string.project_random.result}"
+}
+
+output "dataplex_taxi_datalake_raw_bucket" {
+  value = "taxi-raw-bucket-${random_string.project_random.result}"
+}
+
+output "dataplex_taxi_datalake_processed_bucket" {
+  value = "taxi-processed-bucket-${random_string.project_random.result}"
+}
+
+output "dataplex_taxi_datalake_processed_datasets" {
+  value = "taxi-processed-datasets-${random_string.project_random.result}"
+}
+
+output "dataplex_ecommerce_datalake" {
+  value = "ecommerce-data-lake-${random_string.project_random.result}"
+}
+
+output "dataplex_ecommerce_datalake_curated_zone" {
+  value = "ecommerce-curated-zone-${random_string.project_random.result}"
+}
+
+output "dataplex_ecommerce_datalake_processed_datasets" {
+  value = "ecommerce-dataset-${random_string.project_random.result}"
+}
+
+
+
+# Tells the deploy.sh where to upload the "terraform" output json file
+# A file named "tf-output.json" will be places at gs://${terraform-output-bucket}/terraform/output
+output "terraform-output-bucket" {
+  value = module.resources.gcs_code_bucket
 }

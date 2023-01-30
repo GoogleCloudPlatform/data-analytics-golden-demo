@@ -34,12 +34,13 @@ Clean up / Reset script:
 */
 
 -- Query: Create an external table (this is some of the Green Taxi Trips data in Parquet format)
--- Preview features, plus the connection might not have been created.
-EXECUTE IMMEDIATE """
 CREATE OR REPLACE EXTERNAL TABLE `${project_id}.${bigquery_taxi_dataset}.biglake_green_trips`
 WITH CONNECTION `${project_id}.${bigquery_region}.biglake-connection`
-OPTIONS(uris=['gs://${bucket_name}/processed/taxi-data/green/trips_table/parquet/year=2019/month=1/*.parquet'], format="PARQUET")
-""";
+OPTIONS (
+  uris=['gs://${bucket_name}/processed/taxi-data/green/trips_table/parquet/year=2019/month=1/*.parquet'], 
+  format="PARQUET"
+  )
+
 
 -- See ALL the data
 SELECT *

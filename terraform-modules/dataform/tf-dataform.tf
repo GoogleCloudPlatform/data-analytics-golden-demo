@@ -758,3 +758,12 @@ provisioner "local-exec" {
     null_resource.dataform_install_npm_packages
     ]
 }
+
+
+####################################################################################
+# Outputs
+####################################################################################
+
+output "dataform_repository" {
+  value = google_dataform_repository.dataform_repository.name
+}

@@ -138,3 +138,12 @@ resource "google_service_account_iam_member" "service_account_impersonation" {
 #  depends_on      = [google_service_account_iam_member.service_account_impersonation]
 #  create_duration = "90s"
 #}
+
+
+####################################################################################
+# Outputs
+####################################################################################
+
+output "deployment_service_account" {
+  value = google_service_account.service_account.email
+}
