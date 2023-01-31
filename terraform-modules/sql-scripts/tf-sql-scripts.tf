@@ -115,7 +115,7 @@ resource "google_bigquery_routine" "sproc_sp_create_taxi_biglake_tables" {
   routine_id      = "sp_create_taxi_biglake_tables"
   routine_type    = "PROCEDURE"
   language        = "SQL"
-  definition_body = "${data.template_file.sproc_sp_create_taxi_external_tables.rendered}"
+  definition_body = "${data.template_file.sproc_sp_create_taxi_biglake_tables.rendered}"
 }
 
 
