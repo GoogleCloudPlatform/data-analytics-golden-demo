@@ -54,7 +54,7 @@ terraform {
 
 
 ####################################################################################
-# Variables (Set in the github.com/terraform.tfvars.json file) or passed viw command line
+# Variables (Set in the https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/terraform.tfvars.json file) or passed viw command line
 ####################################################################################
 
 # CONDITIONS: (Always Required)
@@ -296,7 +296,7 @@ provider "google" {
 module "project" {
   # Run this as the currently logged in user or the service account (assuming DevOps)
   count           = var.project_number == "" ? 1 : 0
-  source          = "github.com/terraform-modules/project"
+  source          = "https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/terraform-modules/project"
   project_id      = local.local_project_id
   org_id          = var.org_id
   billing_account = var.billing_account
@@ -305,7 +305,7 @@ module "project" {
 
 module "service-account" {
   # This creates a service account to run portions of the following deploy by impersonating this account
-  source                = "github.com/terraform-modules/service-account"
+  source                = "https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/terraform-modules/service-account"
   project_id            = local.local_project_id
   org_id                = var.org_id
   impersonation_account = local.local_impersonation_account 
@@ -321,7 +321,7 @@ module "service-account" {
 # Enable all the cloud APIs that will be used by using Batch Mode
 # Batch mode is enabled on the provider (by default)
 module "apis-batch-enable" {
-  source = "github.com/terraform-modules/apis-batch-enable"
+  source = "https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/terraform-modules/apis-batch-enable"
 
   project_id                      = local.local_project_id
   project_number                  = var.project_number == "" ? module.project[0].output-project-number : var.project_number
@@ -346,7 +346,7 @@ resource "time_sleep" "service_account_api_activation_time_delay" {
 # Uses the new Org Policies method (when a project is created by TF)
 module "org-policies" {
   count  = var.environment == "GITHUB_ENVIRONMENT" ? 1 : 0
-  source = "github.com/terraform-modules/org-policies"
+  source = "https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/terraform-modules/org-policies"
 
   # Use Service Account Impersonation for this step. 
   # NOTE: This step must be done using a service account (a user account cannot change these policies)
@@ -369,7 +369,7 @@ module "org-policies" {
 /*
 module "org-policies-deprecated" {
   count  = var.project_number == "" ? 0 : 1
-  source = "github.com/terraform-modules/org-policies-deprecated"
+  source = "https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/terraform-modules/org-policies-deprecated"
 
   # Use Service Account Impersonation for this step. 
   providers = { google = google.service_principal_impersonation }
@@ -386,7 +386,7 @@ module "org-policies-deprecated" {
 */
 
 module "resources" {
-  source = "github.com/terraform-modules/resources"
+  source = "https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/terraform-modules/resources"
 
   # Use Service Account Impersonation for this step. 
   providers = { google = google.service_principal_impersonation }
@@ -421,7 +421,7 @@ module "resources" {
 # Deploy BigQuery stored procedures / sql scripts
 ###################################################################################
 module "sql-scripts" {
-  source = "github.com/terraform-modules/sql-scripts"
+  source = "https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/terraform-modules/sql-scripts"
 
   # Use Service Account Impersonation for this step. 
   providers = { google = google.service_principal_impersonation }
@@ -457,7 +457,7 @@ module "sql-scripts" {
 
 # Deploy Dataform
 module "dataform-module" {
-  source = "github.com/terraform-modules/dataform"
+  source = "https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/terraform-modules/dataform"
 
   # Use Service Account Impersonation for this step. 
   providers = { google = google.service_principal_impersonation }
@@ -480,7 +480,7 @@ module "dataform-module" {
 
 # Upload files and scripts
 module "deploy-files-module" {
-  source = "github.com/terraform-modules/deploy-files"
+  source = "https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/terraform-modules/deploy-files"
 
   # Use Service Account Impersonation for this step. 
   providers = { google = google.service_principal_impersonation }
