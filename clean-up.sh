@@ -39,15 +39,4 @@ rm ./terraform/spark-bigquery-with-dependencies_2.12-0.26.0.jar
 
 rm ./terraform-modules/org-policies/tf-org-policies-original.txt
 
-rm notebooks-with-substitution/*.ipynb
-rm notebooks-with-substitution/*.tmp
-
-rm bigspark-with-substitution/*.py
-rm bigspark-with-substitution/*.tmp
-
-rm -rf sample-data/rideshare_trips-with-substitution/_delta_log/*
-rm -rf sample-data/rideshare_trips-with-substitution/_symlink_format_manifest/*
-rm -rf sample-data/rideshare_trips-with-substitution/Rideshare_Vendor_Id=1/*
-rm -rf sample-data/rideshare_trips-with-substitution/Rideshare_Vendor_Id=2/*
-
 #rm key-file-*.json

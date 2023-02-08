@@ -41,7 +41,7 @@ dfDiscount = spark.read.format("csv") \
     .option("header", True) \
     .option("delimiter", ",") \
     .schema(discountSchema) \
-    .load('gs://REPLACE-BUCKET-NAME/bigspark/sample-bigspark-discount-data.csv')
+    .load('gs://${bucket_name}/bigspark/sample-bigspark-discount-data.csv')
  
 print("Determine if discount is High, Medium or Low")
 dfDiscount = dfDiscount.withColumn("discount_rate", F.expr("CASE WHEN discount < 10 THEN 'Low' WHEN discount < 20 THEN 'Medium' ELSE 'High' END"))
@@ -51,7 +51,7 @@ dfDiscount.show(5)
 
 print("Saving results to BigQuery")
 dfDiscount.write.format("bigquery") \
-    .option("temporaryGcsBucket","REPLACE-BUCKET-NAME") \
+    .option("temporaryGcsBucket","${bucket_name}") \
     .option("table", "thelook_ecommerce.product_discounts") \
     .mode("overwrite") \
     .save()
