@@ -167,6 +167,31 @@ resource "google_bigquery_routine" "sproc_sp_create_taxi_internal_tables" {
 }
 
 
+####################################################################################
+# sp_demo_biglake_query_acceleration
+####################################################################################
+data "template_file" "sproc_sp_demo_biglake_query_acceleration" {
+  template = "${file("../sql-scripts/taxi_dataset/sp_demo_biglake_query_acceleration.sql")}"
+  vars = {
+    project_id = var.project_id
+    region = var.region
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+    bigquery_thelook_ecommerce_dataset = var.bigquery_thelook_ecommerce_dataset
+    bucket_name = "processed-${var.storage_bucket}"
+    bigquery_region = var.bigquery_region
+    gcp_account_name = var.gcp_account_name
+    random_extension = var.random_extension
+    five_million_small_files_bucket = "sample-shared-data-query-acceleration"
+    shared_demo_project_id = var.shared_demo_project_id
+  }  
+}
+resource "google_bigquery_routine" "sproc_sp_demo_biglake_query_acceleration" {
+  dataset_id      = var.bigquery_taxi_dataset
+  routine_id      = "sp_demo_biglake_query_acceleration"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = "${data.template_file.sproc_sp_demo_biglake_query_acceleration.rendered}"
+}
 
 
 ####################################################################################
