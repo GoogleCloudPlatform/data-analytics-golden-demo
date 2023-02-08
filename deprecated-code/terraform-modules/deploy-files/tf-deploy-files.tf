@@ -43,15 +43,6 @@ variable "composer_name" {}
 variable "composer_dag_bucket" {}
 
 
-
-locals {
-  # The project is the provided name OR the name with a random suffix
-  local_composer_dag_bucket_name = var.composer_dag_bucket replace(var.composer_dag_bucket, "gs://", "")
-
-  local_composer_dag_bucket_path = var.composer_dag_bucket
-
-}
-
 ####################################################################################
 # Deploy "data" and "scripts"
 ###################################################################################
@@ -75,20 +66,6 @@ gsutil cp ../cloud-composer/dags/sample-dataflow-start-streaming-job.py ${var.co
 EOF    
   }
 }
-
-
-# Upload code
-resource "google_storage_bucket_object" "deploy_airflow_dag_TTT" {
-  name   = "cloud-functions/bigquery-external-function/bigquery-external-function.zip"
-  name   = "${local.local_composer_dag_bucket_path}/TTT.py"
-  bucket = local.local_composer_dag_bucket_name
-  source = "../TTT????"
-
-  depends_on = [ 
-    ]  
-}
-
-
 
 
 # Upload the Airflow "data/template" files
