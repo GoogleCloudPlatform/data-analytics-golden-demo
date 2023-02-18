@@ -1,5 +1,3 @@
-CREATE OR REPLACE PROCEDURE `${project_id}.${bigquery_taxi_dataset}.sp_demo_ingest_data`()
-BEGIN
   /*##################################################################################
   # Copyright 2022 Google LLC
   #
@@ -103,7 +101,3 @@ AS (
   SELECT *
   FROM ${bigquery_taxi_dataset}.load_taxi_sql
 );
-
-
-
-END;

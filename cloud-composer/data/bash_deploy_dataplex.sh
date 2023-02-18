@@ -150,4 +150,117 @@ gcloud dataplex assets create "ecommerce-dataset-${RANDOM_EXTENSION}" \
     --resource-type=BIGQUERY_DATASET \
     --resource-name="projects/${PROJECT_ID}/datasets/${THELOOK_DATASET}" \
     --discovery-enabled
-    
+
+
+##########################################################################################
+# Rideshare Lakehouse
+##########################################################################################
+gcloud dataplex lakes create "rideshare-lakehouse-${RANDOM_EXTENSION}" \
+    --project="${PROJECT_ID}" \
+    --location="${LOCATION}" \
+    --description="Rideshare Lakehouse" \
+    --display-name="Rideshare Lakehouse"
+
+# RAW
+gcloud dataplex zones create "rideshare-raw-zone-${RANDOM_EXTENSION}" \
+    --lake="rideshare-lakehouse-${RANDOM_EXTENSION}" \
+    --type=RAW \
+    --resource-location-type=MULTI_REGION \
+    --project="${PROJECT_ID}" \
+    --location="${LOCATION}" \
+    --description="Raw Zone" \
+    --display-name="Raw Zone"
+
+gcloud dataplex assets create "rideshare-raw-unstructured-${RANDOM_EXTENSION}" \
+    --lake="rideshare-lakehouse-${RANDOM_EXTENSION}" \
+    --zone="rideshare-raw-zone-${RANDOM_EXTENSION}" \
+    --project="${PROJECT_ID}" \
+    --location="${LOCATION}" \
+    --description="Raw Zone - Unstructured" \
+    --display-name="Raw Zone - Unstructured" \
+    --resource-type=STORAGE_BUCKET \
+    --resource-name="projects/${PROJECT_ID}/buckets/rideshare-lakehouse-raw-${RANDOM_EXTENSION}" \
+    --discovery-enabled \
+    --csv-delimiter="|" \
+    --csv-header-rows=1 
+
+gcloud dataplex assets create "rideshare-raw-structured-${RANDOM_EXTENSION}" \
+    --lake="rideshare-lakehouse-${RANDOM_EXTENSION}" \
+    --zone="rideshare-raw-zone-${RANDOM_EXTENSION}" \
+    --project="${PROJECT_ID}" \
+    --location="${LOCATION}" \
+    --description="Raw Zone - Structured" \
+    --display-name="Raw Zone - Structured" \
+    --resource-type=BIGQUERY_DATASET \
+    --resource-name="projects/${PROJECT_ID}/datasets/rideshare_lakehouse_raw" \
+    --discovery-enabled
+
+
+# Enriched
+gcloud dataplex zones create "rideshare-enriched-zone-${RANDOM_EXTENSION}" \
+    --lake="rideshare-lakehouse-${RANDOM_EXTENSION}" \
+    --type=CURATED \
+    --resource-location-type=MULTI_REGION \
+    --project="${PROJECT_ID}" \
+    --location="${LOCATION}" \
+    --description="Enriched Zone" \
+    --display-name="Enriched Zone"
+
+gcloud dataplex assets create "rideshare-enriched-unstructured-${RANDOM_EXTENSION}" \
+    --lake="rideshare-lakehouse-${RANDOM_EXTENSION}" \
+    --zone="rideshare-enriched-zone-${RANDOM_EXTENSION}" \
+    --project="${PROJECT_ID}" \
+    --location="${LOCATION}" \
+    --description="Enriched Zone - Unstructured" \
+    --display-name="Enriched Zone - Unstructured" \
+    --resource-type=STORAGE_BUCKET \
+    --resource-name="projects/${PROJECT_ID}/buckets/rideshare-lakehouse-enriched-${RANDOM_EXTENSION}" \
+    --discovery-enabled \
+    --csv-delimiter="|" \
+    --csv-header-rows=1 
+
+gcloud dataplex assets create "rideshare-enriched-structured-${RANDOM_EXTENSION}" \
+    --lake="rideshare-lakehouse-${RANDOM_EXTENSION}" \
+    --zone="rideshare-enriched-zone-${RANDOM_EXTENSION}" \
+    --project="${PROJECT_ID}" \
+    --location="${LOCATION}" \
+    --description="Enriched Zone - Structured" \
+    --display-name="Enriched Zone - Structured" \
+    --resource-type=BIGQUERY_DATASET \
+    --resource-name="projects/${PROJECT_ID}/datasets/rideshare_lakehouse_enriched" \
+    --discovery-enabled
+
+
+# Curated
+gcloud dataplex zones create "rideshare-curated-zone-${RANDOM_EXTENSION}" \
+    --lake="rideshare-lakehouse-${RANDOM_EXTENSION}" \
+    --type=CURATED \
+    --resource-location-type=MULTI_REGION \
+    --project="${PROJECT_ID}" \
+    --location="${LOCATION}" \
+    --description="Curated Zone" \
+    --display-name="Curated Zone"
+
+gcloud dataplex assets create "rideshare-curated-unstructured-${RANDOM_EXTENSION}" \
+    --lake="rideshare-lakehouse-${RANDOM_EXTENSION}" \
+    --zone="rideshare-curated-zone-${RANDOM_EXTENSION}" \
+    --project="${PROJECT_ID}" \
+    --location="${LOCATION}" \
+    --description="Curated Zone - Unstructured" \
+    --display-name="Curated Zone - Unstructured" \
+    --resource-type=STORAGE_BUCKET \
+    --resource-name="projects/${PROJECT_ID}/buckets/rideshare-lakehouse-curated-${RANDOM_EXTENSION}" \
+    --discovery-enabled \
+    --csv-delimiter="|" \
+    --csv-header-rows=1 
+
+gcloud dataplex assets create "rideshare-curated-structured-${RANDOM_EXTENSION}" \
+    --lake="rideshare-lakehouse-${RANDOM_EXTENSION}" \
+    --zone="rideshare-curated-zone-${RANDOM_EXTENSION}" \
+    --project="${PROJECT_ID}" \
+    --location="${LOCATION}" \
+    --description="Curated Zone - Structured" \
+    --display-name="Curated Zone - Structured" \
+    --resource-type=BIGQUERY_DATASET \
+    --resource-name="projects/${PROJECT_ID}/datasets/rideshare_lakehouse_curated" \
+    --discovery-enabled

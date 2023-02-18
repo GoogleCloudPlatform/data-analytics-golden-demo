@@ -52,6 +52,13 @@ variable "azure_omni_biglake_dataset_name" {}
 variable "azure_omni_biglake_connection" {}
 variable "azure_omni_biglake_adls_name" {}
 
+variable "bigquery_rideshare_lakehouse_raw_dataset" {}
+variable "gcs_rideshare_lakehouse_raw_bucket" {}
+variable "bigquery_rideshare_lakehouse_enriched_dataset" {}
+variable "gcs_rideshare_lakehouse_enriched_bucket" {}
+variable "bigquery_rideshare_lakehouse_curated_dataset" {}
+variable "gcs_rideshare_lakehouse_curated_bucket" {}
+
 # Hardcoded
 variable "bigquery_taxi_dataset" {
   type        = string
@@ -1242,4 +1249,540 @@ resource "google_bigquery_routine" "sproc_sp_demo_azure_omni_security_rls" {
   routine_type    = "PROCEDURE"
   language        = "SQL"
   definition_body = "${data.template_file.sproc_sp_demo_azure_omni_security_rls.rendered}"
+}
+
+
+
+#===================================================================================
+#===================================================================================
+# Rideshare Lakehouse Raw Dataset
+#===================================================================================
+#===================================================================================
+
+####################################################################################
+# sp_create_biglake_object_table
+####################################################################################
+data "template_file" "sproc_sp_create_biglake_object_table" {
+  template = "${file("../sql-scripts/rideshare_lakehouse_raw/sp_create_biglake_object_table.sql")}"
+  vars = {
+    project_id = var.project_id
+    project_number = var.project_number
+    region = var.region
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+    bigquery_region = var.bigquery_region
+    gcp_account_name = var.gcp_account_name
+    bigquery_rideshare_lakehouse_raw_dataset = var.bigquery_rideshare_lakehouse_raw_dataset
+    gcs_rideshare_lakehouse_raw_bucket = var.gcs_rideshare_lakehouse_raw_bucket
+    bigquery_rideshare_lakehouse_enriched_dataset = var.bigquery_rideshare_lakehouse_enriched_dataset
+    gcs_rideshare_lakehouse_enriched_bucket = var.gcs_rideshare_lakehouse_enriched_bucket
+    bigquery_rideshare_lakehouse_curated_dataset = var.bigquery_rideshare_lakehouse_curated_dataset
+    gcs_rideshare_lakehouse_curated_bucket = var.gcs_rideshare_lakehouse_curated_bucket   
+  }  
+}
+resource "google_bigquery_routine" "sproc_sp_create_biglake_object_table" {
+  dataset_id      = var.bigquery_rideshare_lakehouse_raw_dataset
+  routine_id      = "sp_create_biglake_object_table"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = "${data.template_file.sproc_sp_create_biglake_object_table.rendered}"
+}
+
+
+####################################################################################
+# sp_create_biglake_tables
+####################################################################################
+data "template_file" "sproc_sp_create_biglake_tables" {
+  template = "${file("../sql-scripts/rideshare_lakehouse_raw/sp_create_biglake_tables.sql")}"
+  vars = {
+    project_id = var.project_id
+    project_number = var.project_number
+    region = var.region
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+    bigquery_region = var.bigquery_region
+    gcp_account_name = var.gcp_account_name
+    bigquery_rideshare_lakehouse_raw_dataset = var.bigquery_rideshare_lakehouse_raw_dataset
+    gcs_rideshare_lakehouse_raw_bucket = var.gcs_rideshare_lakehouse_raw_bucket
+    bigquery_rideshare_lakehouse_enriched_dataset = var.bigquery_rideshare_lakehouse_enriched_dataset
+    gcs_rideshare_lakehouse_enriched_bucket = var.gcs_rideshare_lakehouse_enriched_bucket
+    bigquery_rideshare_lakehouse_curated_dataset = var.bigquery_rideshare_lakehouse_curated_dataset
+    gcs_rideshare_lakehouse_curated_bucket = var.gcs_rideshare_lakehouse_curated_bucket   
+  }  
+}
+resource "google_bigquery_routine" "sproc_sproc_sp_create_biglake_tables" {
+  dataset_id      = var.bigquery_rideshare_lakehouse_raw_dataset
+  routine_id      = "sproc_sp_create_biglake_tables"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = "${data.template_file.sproc_sp_create_biglake_tables.rendered}"
+}
+
+
+####################################################################################
+# sp_create_raw_data
+####################################################################################
+data "template_file" "sproc_sp_create_raw_data" {
+  template = "${file("../sql-scripts/rideshare_lakehouse_raw/sp_create_raw_data.sql")}"
+  vars = {
+    project_id = var.project_id
+    project_number = var.project_number
+    region = var.region
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+    bigquery_region = var.bigquery_region
+    gcp_account_name = var.gcp_account_name
+    bigquery_rideshare_lakehouse_raw_dataset = var.bigquery_rideshare_lakehouse_raw_dataset
+    gcs_rideshare_lakehouse_raw_bucket = var.gcs_rideshare_lakehouse_raw_bucket
+    bigquery_rideshare_lakehouse_enriched_dataset = var.bigquery_rideshare_lakehouse_enriched_dataset
+    gcs_rideshare_lakehouse_enriched_bucket = var.gcs_rideshare_lakehouse_enriched_bucket
+    bigquery_rideshare_lakehouse_curated_dataset = var.bigquery_rideshare_lakehouse_curated_dataset
+    gcs_rideshare_lakehouse_curated_bucket = var.gcs_rideshare_lakehouse_curated_bucket   
+  }  
+}
+resource "google_bigquery_routine" "sproc_sp_create_raw_data" {
+  dataset_id      = var.bigquery_rideshare_lakehouse_raw_dataset
+  routine_id      = "sp_create_raw_data"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = "${data.template_file.sproc_sp_create_raw_data.rendered}"
+}
+
+
+####################################################################################
+# sp_create_streaming_view
+####################################################################################
+data "template_file" "sproc_sp_create_streaming_view_raw" {
+  template = "${file("../sql-scripts/rideshare_lakehouse_raw/sp_create_streaming_view.sql")}"
+  vars = {
+    project_id = var.project_id
+    project_number = var.project_number
+    region = var.region
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+    bigquery_region = var.bigquery_region
+    gcp_account_name = var.gcp_account_name
+    bigquery_rideshare_lakehouse_raw_dataset = var.bigquery_rideshare_lakehouse_raw_dataset
+    gcs_rideshare_lakehouse_raw_bucket = var.gcs_rideshare_lakehouse_raw_bucket
+    bigquery_rideshare_lakehouse_enriched_dataset = var.bigquery_rideshare_lakehouse_enriched_dataset
+    gcs_rideshare_lakehouse_enriched_bucket = var.gcs_rideshare_lakehouse_enriched_bucket
+    bigquery_rideshare_lakehouse_curated_dataset = var.bigquery_rideshare_lakehouse_curated_dataset
+    gcs_rideshare_lakehouse_curated_bucket = var.gcs_rideshare_lakehouse_curated_bucket   
+  }  
+}
+resource "google_bigquery_routine" "sproc_sp_create_streaming_view_raw" {
+  dataset_id      = var.bigquery_rideshare_lakehouse_raw_dataset
+  routine_id      = "sp_create_streaming_view"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = "${data.template_file.sproc_sp_create_streaming_view_raw.rendered}"
+}
+
+
+#===================================================================================
+#===================================================================================
+# Rideshare Lakehouse Enriched Dataset
+#===================================================================================
+#===================================================================================
+
+####################################################################################
+# sp_create_streaming_view
+####################################################################################
+data "template_file" "sproc_sp_create_streaming_view_enriched" {
+  template = "${file("../sql-scripts/rideshare_lakehouse_enriched/sp_create_streaming_view.sql")}"
+  vars = {
+    project_id = var.project_id
+    project_number = var.project_number
+    region = var.region
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+    bigquery_region = var.bigquery_region
+    gcp_account_name = var.gcp_account_name
+    bigquery_rideshare_lakehouse_raw_dataset = var.bigquery_rideshare_lakehouse_raw_dataset
+    gcs_rideshare_lakehouse_raw_bucket = var.gcs_rideshare_lakehouse_raw_bucket
+    bigquery_rideshare_lakehouse_enriched_dataset = var.bigquery_rideshare_lakehouse_enriched_dataset
+    gcs_rideshare_lakehouse_enriched_bucket = var.gcs_rideshare_lakehouse_enriched_bucket
+    bigquery_rideshare_lakehouse_curated_dataset = var.bigquery_rideshare_lakehouse_curated_dataset
+    gcs_rideshare_lakehouse_curated_bucket = var.gcs_rideshare_lakehouse_curated_bucket   
+  }  
+}
+resource "google_bigquery_routine" "sproc_sp_create_streaming_view_enriched" {
+  dataset_id      = var.bigquery_rideshare_lakehouse_enriched_dataset
+  routine_id      = "sp_create_streaming_view"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = "${data.template_file.sproc_sp_create_streaming_view_enriched.rendered}"
+}
+
+
+####################################################################################
+# sp_iceberg_spark_tranformation
+# NOTE: This is a BigSpark stored procedure (which currently does not have t
+#       terraform support).  The Spark specific elements have been commented out.data "
+#       Also, currently BigSpark requires allow listing
+####################################################################################
+data "template_file" "sproc_sp_iceberg_spark_tranformation" {
+  template = "${file("../sql-scripts/rideshare_lakehouse_enriched/sp_iceberg_spark_tranformation.sql")}"
+  vars = {
+    project_id = var.project_id
+    project_number = var.project_number
+    region = var.region
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+    bigquery_region = var.bigquery_region
+    gcp_account_name = var.gcp_account_name
+    bigquery_rideshare_lakehouse_raw_dataset = var.bigquery_rideshare_lakehouse_raw_dataset
+    gcs_rideshare_lakehouse_raw_bucket = var.gcs_rideshare_lakehouse_raw_bucket
+    bigquery_rideshare_lakehouse_enriched_dataset = var.bigquery_rideshare_lakehouse_enriched_dataset
+    gcs_rideshare_lakehouse_enriched_bucket = var.gcs_rideshare_lakehouse_enriched_bucket
+    bigquery_rideshare_lakehouse_curated_dataset = var.bigquery_rideshare_lakehouse_curated_dataset
+    gcs_rideshare_lakehouse_curated_bucket = var.gcs_rideshare_lakehouse_curated_bucket   
+  }  
+}
+resource "google_bigquery_routine" "sproc_sp_iceberg_spark_tranformation" {
+  dataset_id      = var.bigquery_rideshare_lakehouse_enriched_dataset
+  routine_id      = "sp_iceberg_spark_tranformation"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = "${data.template_file.sproc_sp_iceberg_spark_tranformation.rendered}"
+}
+
+
+####################################################################################
+# sp_process_data
+####################################################################################
+data "template_file" "sproc_sp_process_data_enriched" {
+  template = "${file("../sql-scripts/rideshare_lakehouse_enriched/sp_process_data.sql")}"
+  vars = {
+    project_id = var.project_id
+    project_number = var.project_number
+    region = var.region
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+    bigquery_region = var.bigquery_region
+    gcp_account_name = var.gcp_account_name
+    bigquery_rideshare_lakehouse_raw_dataset = var.bigquery_rideshare_lakehouse_raw_dataset
+    gcs_rideshare_lakehouse_raw_bucket = var.gcs_rideshare_lakehouse_raw_bucket
+    bigquery_rideshare_lakehouse_enriched_dataset = var.bigquery_rideshare_lakehouse_enriched_dataset
+    gcs_rideshare_lakehouse_enriched_bucket = var.gcs_rideshare_lakehouse_enriched_bucket
+    bigquery_rideshare_lakehouse_curated_dataset = var.bigquery_rideshare_lakehouse_curated_dataset
+    gcs_rideshare_lakehouse_curated_bucket = var.gcs_rideshare_lakehouse_curated_bucket   
+  }  
+}
+resource "google_bigquery_routine" "sproc_sp_process_data_enriched" {
+  dataset_id      = var.bigquery_rideshare_lakehouse_enriched_dataset
+  routine_id      = "sp_process_data"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = "${data.template_file.sproc_sp_process_data_enriched.rendered}"
+}
+
+
+####################################################################################
+# sp_unstructured_data_analysis
+####################################################################################
+data "template_file" "sproc_sp_unstructured_data_analysis" {
+  template = "${file("../sql-scripts/rideshare_lakehouse_enriched/sp_unstructured_data_analysis.sql")}"
+  vars = {
+    project_id = var.project_id
+    project_number = var.project_number
+    region = var.region
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+    bigquery_region = var.bigquery_region
+    gcp_account_name = var.gcp_account_name
+    bigquery_rideshare_lakehouse_raw_dataset = var.bigquery_rideshare_lakehouse_raw_dataset
+    gcs_rideshare_lakehouse_raw_bucket = var.gcs_rideshare_lakehouse_raw_bucket
+    bigquery_rideshare_lakehouse_enriched_dataset = var.bigquery_rideshare_lakehouse_enriched_dataset
+    gcs_rideshare_lakehouse_enriched_bucket = var.gcs_rideshare_lakehouse_enriched_bucket
+    bigquery_rideshare_lakehouse_curated_dataset = var.bigquery_rideshare_lakehouse_curated_dataset
+    gcs_rideshare_lakehouse_curated_bucket = var.gcs_rideshare_lakehouse_curated_bucket   
+  }  
+}
+resource "google_bigquery_routine" "sproc_sp_unstructured_data_analysis" {
+  dataset_id      = var.bigquery_rideshare_lakehouse_enriched_dataset
+  routine_id      = "sp_unstructured_data_analysis"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = "${data.template_file.sproc_sp_unstructured_data_analysis.rendered}"
+}
+
+
+#===================================================================================
+#===================================================================================
+# Rideshare Lakehouse Curated Dataset
+#===================================================================================
+#===================================================================================
+
+
+####################################################################################
+# sp_create_looker_studio_view
+####################################################################################
+data "template_file" "sproc_sp_create_looker_studio_view" {
+  template = "${file("../sql-scripts/rideshare_lakehouse_curated/sp_create_looker_studio_view.sql")}"
+  vars = {
+    project_id = var.project_id
+    project_number = var.project_number
+    region = var.region
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+    bigquery_region = var.bigquery_region
+    gcp_account_name = var.gcp_account_name
+    bigquery_rideshare_lakehouse_raw_dataset = var.bigquery_rideshare_lakehouse_raw_dataset
+    gcs_rideshare_lakehouse_raw_bucket = var.gcs_rideshare_lakehouse_raw_bucket
+    bigquery_rideshare_lakehouse_enriched_dataset = var.bigquery_rideshare_lakehouse_enriched_dataset
+    gcs_rideshare_lakehouse_enriched_bucket = var.gcs_rideshare_lakehouse_enriched_bucket
+    bigquery_rideshare_lakehouse_curated_dataset = var.bigquery_rideshare_lakehouse_curated_dataset
+    gcs_rideshare_lakehouse_curated_bucket = var.gcs_rideshare_lakehouse_curated_bucket   
+  }  
+}
+resource "google_bigquery_routine" "sproc_sp_create_looker_studio_view" {
+  dataset_id      = var.bigquery_rideshare_lakehouse_curated_dataset
+  routine_id      = "sp_create_looker_studio_view"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = "${data.template_file.sproc_sp_create_looker_studio_view.rendered}"
+}
+
+
+####################################################################################
+# sp_create_streaming_view
+####################################################################################
+data "template_file" "sproc_sp_create_streaming_view_curated" {
+  template = "${file("../sql-scripts/rideshare_lakehouse_curated/sp_create_streaming_view.sql")}"
+  vars = {
+    project_id = var.project_id
+    project_number = var.project_number
+    region = var.region
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+    bigquery_region = var.bigquery_region
+    gcp_account_name = var.gcp_account_name
+    bigquery_rideshare_lakehouse_raw_dataset = var.bigquery_rideshare_lakehouse_raw_dataset
+    gcs_rideshare_lakehouse_raw_bucket = var.gcs_rideshare_lakehouse_raw_bucket
+    bigquery_rideshare_lakehouse_enriched_dataset = var.bigquery_rideshare_lakehouse_enriched_dataset
+    gcs_rideshare_lakehouse_enriched_bucket = var.gcs_rideshare_lakehouse_enriched_bucket
+    bigquery_rideshare_lakehouse_curated_dataset = var.bigquery_rideshare_lakehouse_curated_dataset
+    gcs_rideshare_lakehouse_curated_bucket = var.gcs_rideshare_lakehouse_curated_bucket   
+  }  
+}
+resource "google_bigquery_routine" "sproc_sp_create_streaming_view" {
+  dataset_id      = var.bigquery_rideshare_lakehouse_curated_dataset
+  routine_id      = "sp_create_streaming_view"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = "${data.template_file.sproc_sp_create_streaming_view_curated.rendered}"
+}
+
+
+####################################################################################
+# sp_create_website_realtime_dashboard
+####################################################################################
+data "template_file" "sproc_sp_create_website_realtime_dashboard" {
+  template = "${file("../sql-scripts/rideshare_lakehouse_curated/sp_create_website_realtime_dashboard.sql")}"
+  vars = {
+    project_id = var.project_id
+    project_number = var.project_number
+    region = var.region
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+    bigquery_region = var.bigquery_region
+    gcp_account_name = var.gcp_account_name
+    bigquery_rideshare_lakehouse_raw_dataset = var.bigquery_rideshare_lakehouse_raw_dataset
+    gcs_rideshare_lakehouse_raw_bucket = var.gcs_rideshare_lakehouse_raw_bucket
+    bigquery_rideshare_lakehouse_enriched_dataset = var.bigquery_rideshare_lakehouse_enriched_dataset
+    gcs_rideshare_lakehouse_enriched_bucket = var.gcs_rideshare_lakehouse_enriched_bucket
+    bigquery_rideshare_lakehouse_curated_dataset = var.bigquery_rideshare_lakehouse_curated_dataset
+    gcs_rideshare_lakehouse_curated_bucket = var.gcs_rideshare_lakehouse_curated_bucket   
+  }  
+}
+resource "google_bigquery_routine" "sproc_sp_create_website_realtime_dashboard" {
+  dataset_id      = var.bigquery_rideshare_lakehouse_curated_dataset
+  routine_id      = "sp_create_website_realtime_dashboard"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = "${data.template_file.sproc_sp_create_website_realtime_dashboard.rendered}"
+}
+
+
+####################################################################################
+# sp_demo_data_quality_columns
+####################################################################################
+data "template_file" "sproc_sp_demo_data_quality_columns_rideshare" {
+  template = "${file("../sql-scripts/rideshare_lakehouse_curated/sp_demo_data_quality_columns.sql")}"
+  vars = {
+    project_id = var.project_id
+    project_number = var.project_number
+    region = var.region
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+    bigquery_region = var.bigquery_region
+    gcp_account_name = var.gcp_account_name
+    bigquery_rideshare_lakehouse_raw_dataset = var.bigquery_rideshare_lakehouse_raw_dataset
+    gcs_rideshare_lakehouse_raw_bucket = var.gcs_rideshare_lakehouse_raw_bucket
+    bigquery_rideshare_lakehouse_enriched_dataset = var.bigquery_rideshare_lakehouse_enriched_dataset
+    gcs_rideshare_lakehouse_enriched_bucket = var.gcs_rideshare_lakehouse_enriched_bucket
+    bigquery_rideshare_lakehouse_curated_dataset = var.bigquery_rideshare_lakehouse_curated_dataset
+    gcs_rideshare_lakehouse_curated_bucket = var.gcs_rideshare_lakehouse_curated_bucket   
+  }  
+}
+resource "google_bigquery_routine" "sproc_sp_demo_data_quality_columns_rideshare" {
+  dataset_id      = var.bigquery_rideshare_lakehouse_curated_dataset
+  routine_id      = "sp_demo_data_quality_columns"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = "${data.template_file.sproc_sp_demo_data_quality_columns_rideshare.rendered}"
+}
+
+
+####################################################################################
+# sp_demo_data_quality_table
+####################################################################################
+data "template_file" "sproc_sp_demo_data_quality_table_curated" {
+  template = "${file("../sql-scripts/rideshare_lakehouse_curated/sp_demo_data_quality_table.sql")}"
+  vars = {
+    project_id = var.project_id
+    project_number = var.project_number
+    region = var.region
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+    bigquery_region = var.bigquery_region
+    gcp_account_name = var.gcp_account_name
+    bigquery_rideshare_lakehouse_raw_dataset = var.bigquery_rideshare_lakehouse_raw_dataset
+    gcs_rideshare_lakehouse_raw_bucket = var.gcs_rideshare_lakehouse_raw_bucket
+    bigquery_rideshare_lakehouse_enriched_dataset = var.bigquery_rideshare_lakehouse_enriched_dataset
+    gcs_rideshare_lakehouse_enriched_bucket = var.gcs_rideshare_lakehouse_enriched_bucket
+    bigquery_rideshare_lakehouse_curated_dataset = var.bigquery_rideshare_lakehouse_curated_dataset
+    gcs_rideshare_lakehouse_curated_bucket = var.gcs_rideshare_lakehouse_curated_bucket   
+  }  
+}
+resource "google_bigquery_routine" "sproc_sp_demo_data_quality_table_curated" {
+  dataset_id      = var.bigquery_rideshare_lakehouse_curated_dataset
+  routine_id      = "sp_demo_data_quality_table"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = "${data.template_file.sproc_sp_demo_data_quality_table_curated.rendered}"
+}
+
+
+####################################################################################
+# sp_demo_script
+####################################################################################
+data "template_file" "sproc_sp_demo_script" {
+  template = "${file("../sql-scripts/rideshare_lakehouse_curated/sp_demo_script.sql")}"
+  vars = {
+    project_id = var.project_id
+    project_number = var.project_number
+    region = var.region
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+    bigquery_region = var.bigquery_region
+    gcp_account_name = var.gcp_account_name
+    bigquery_rideshare_lakehouse_raw_dataset = var.bigquery_rideshare_lakehouse_raw_dataset
+    gcs_rideshare_lakehouse_raw_bucket = var.gcs_rideshare_lakehouse_raw_bucket
+    bigquery_rideshare_lakehouse_enriched_dataset = var.bigquery_rideshare_lakehouse_enriched_dataset
+    gcs_rideshare_lakehouse_enriched_bucket = var.gcs_rideshare_lakehouse_enriched_bucket
+    bigquery_rideshare_lakehouse_curated_dataset = var.bigquery_rideshare_lakehouse_curated_dataset
+    gcs_rideshare_lakehouse_curated_bucket = var.gcs_rideshare_lakehouse_curated_bucket   
+  }  
+}
+resource "google_bigquery_routine" "sproc_sp_demo_script" {
+  dataset_id      = var.bigquery_rideshare_lakehouse_curated_dataset
+  routine_id      = "sp_demo_script"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = "${data.template_file.sproc_sp_demo_script.rendered}"
+}
+
+
+####################################################################################
+# sp_model_training
+####################################################################################
+data "template_file" "sproc_sp_model_training" {
+  template = "${file("../sql-scripts/rideshare_lakehouse_curated/sp_model_training.sql")}"
+  vars = {
+    project_id = var.project_id
+    project_number = var.project_number
+    region = var.region
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+    bigquery_region = var.bigquery_region
+    gcp_account_name = var.gcp_account_name
+    bigquery_rideshare_lakehouse_raw_dataset = var.bigquery_rideshare_lakehouse_raw_dataset
+    gcs_rideshare_lakehouse_raw_bucket = var.gcs_rideshare_lakehouse_raw_bucket
+    bigquery_rideshare_lakehouse_enriched_dataset = var.bigquery_rideshare_lakehouse_enriched_dataset
+    gcs_rideshare_lakehouse_enriched_bucket = var.gcs_rideshare_lakehouse_enriched_bucket
+    bigquery_rideshare_lakehouse_curated_dataset = var.bigquery_rideshare_lakehouse_curated_dataset
+    gcs_rideshare_lakehouse_curated_bucket = var.gcs_rideshare_lakehouse_curated_bucket   
+  }  
+}
+resource "google_bigquery_routine" "sproc_sp_model_training" {
+  dataset_id      = var.bigquery_rideshare_lakehouse_curated_dataset
+  routine_id      = "sp_model_training"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = "${data.template_file.sproc_sp_model_training.rendered}"
+}
+
+
+####################################################################################
+# sp_process_data
+####################################################################################
+data "template_file" "sproc_sp_process_data_curated" {
+  template = "${file("../sql-scripts/rideshare_lakehouse_curated/sp_process_data.sql")}"
+  vars = {
+    project_id = var.project_id
+    project_number = var.project_number
+    region = var.region
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+    bigquery_region = var.bigquery_region
+    gcp_account_name = var.gcp_account_name
+    bigquery_rideshare_lakehouse_raw_dataset = var.bigquery_rideshare_lakehouse_raw_dataset
+    gcs_rideshare_lakehouse_raw_bucket = var.gcs_rideshare_lakehouse_raw_bucket
+    bigquery_rideshare_lakehouse_enriched_dataset = var.bigquery_rideshare_lakehouse_enriched_dataset
+    gcs_rideshare_lakehouse_enriched_bucket = var.gcs_rideshare_lakehouse_enriched_bucket
+    bigquery_rideshare_lakehouse_curated_dataset = var.bigquery_rideshare_lakehouse_curated_dataset
+    gcs_rideshare_lakehouse_curated_bucket = var.gcs_rideshare_lakehouse_curated_bucket   
+  }  
+}
+resource "google_bigquery_routine" "sproc_sp_process_data_curated" {
+  dataset_id      = var.bigquery_rideshare_lakehouse_curated_dataset
+  routine_id      = "sp_process_data"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = "${data.template_file.sproc_sp_process_data_curated.rendered}"
+}
+
+
+####################################################################################
+# sp_website_score_data
+####################################################################################
+data "template_file" "sproc_sp_website_score_data" {
+  template = "${file("../sql-scripts/rideshare_lakehouse_curated/sp_website_score_data.sql")}"
+  vars = {
+    project_id = var.project_id
+    project_number = var.project_number
+    region = var.region
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+    bigquery_region = var.bigquery_region
+    gcp_account_name = var.gcp_account_name
+    bigquery_rideshare_lakehouse_raw_dataset = var.bigquery_rideshare_lakehouse_raw_dataset
+    gcs_rideshare_lakehouse_raw_bucket = var.gcs_rideshare_lakehouse_raw_bucket
+    bigquery_rideshare_lakehouse_enriched_dataset = var.bigquery_rideshare_lakehouse_enriched_dataset
+    gcs_rideshare_lakehouse_enriched_bucket = var.gcs_rideshare_lakehouse_enriched_bucket
+    bigquery_rideshare_lakehouse_curated_dataset = var.bigquery_rideshare_lakehouse_curated_dataset
+    gcs_rideshare_lakehouse_curated_bucket = var.gcs_rideshare_lakehouse_curated_bucket   
+  }  
+}
+resource "google_bigquery_routine" "sproc_sp_website_score_data" {
+  dataset_id      = var.bigquery_rideshare_lakehouse_curated_dataset
+  routine_id      = "sp_website_score_data"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  arguments {
+    name = "ride_distance"
+    data_type = "{\"typeKind\" :  \"STRING\"}"
+  }   
+  arguments {
+    name = "is_raining"
+    data_type = "{\"typeKind\" :  \"BOOL\"}"
+  }   
+  arguments {
+    name = "is_snowing"
+    data_type = "{\"typeKind\" :  \"BOOL\"}"
+  }     
+  arguments {
+    name = "people_traveling_cnt"
+    data_type = "{\"typeKind\" :  \"INT64\"}"
+  }    
+  arguments {
+    name = "people_traveling_cnt"
+    data_type = "{\"people_cnt\" :  \"INT64\"}"
+  }      
+  definition_body = "${data.template_file.sproc_sp_website_score_data.rendered}"
 }

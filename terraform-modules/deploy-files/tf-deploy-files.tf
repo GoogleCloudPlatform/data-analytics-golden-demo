@@ -289,6 +289,20 @@ resource "google_storage_bucket_object" "dataplex_data_quality_yaml" {
   bucket      = "code-${var.storage_bucket}"
 }
 
+data "template_file" "dataplex_data_quality_rideshare_template" {
+  template = "${file("../dataplex/data-quality/dataplex_data_quality_rideshare.yaml")}"
+  vars = {
+    project_id = var.project_id
+    dataplex_region = "us-central1"
+    random_extension = var.random_extension
+  }  
+}
+
+resource "google_storage_bucket_object" "dataplex_data_quality_rideshare_yaml" {
+  name        = "dataplex/data-quality/dataplex_data_quality_rideshare.yaml"
+  content     = "${data.template_file.dataplex_data_quality_rideshare_template.rendered}"
+  bucket      = "code-${var.storage_bucket}"
+}
 
 ####################################################################################
 # Deploy Jupyter notebooks

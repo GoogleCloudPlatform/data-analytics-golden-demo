@@ -39,12 +39,12 @@ WITH LatestExecution AS
 (
   SELECT MAX(execution_ts) AS latest_execution_ts
     FROM `${project_id}.dataplex_data_quality.data_quality_results` 
-  WHERE table_id = '${project_id}.${bigquery_taxi_dataset}.taxi_trips'
+  WHERE table_id = '${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.bigquery_rideshare_trip'
 )
 , TableRows AS
 (
   SELECT COUNT(*) AS record_count
-    FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips`
+    FROM `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.bigquery_rideshare_trip`
 )
 , ColumnsValidated AS
 (
@@ -57,8 +57,8 @@ WITH LatestExecution AS
 , ColumnsTotal AS
 (
   SELECT COUNT(column_name) AS columns_count
-    FROM `${project_id}.${bigquery_taxi_dataset}.INFORMATION_SCHEMA.COLUMNS`
-   WHERE table_name = 'taxi_trips'  
+    FROM `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.INFORMATION_SCHEMA.COLUMNS`
+   WHERE table_name = 'bigquery_rideshare_trip'  
 )
 , TableData AS
 (
@@ -89,10 +89,10 @@ SELECT record_count,
        END AS success_percentage,
        -- There is a failed_count field but it does not sum to 100% with the success count.
        -- This is used in the demo so the UI does not show two numbers that do not add up to 100%
+       -- We could add in the Null count to get a 100% total
        CAST(1 AS NUMERIC) - CASE WHEN SUM(IFNULL(rows_validated,0)) = 0
             THEN CAST(1 AS NUMERIC)
             ELSE CAST(SUM(IFNULL(success_count,0)) / SUM(IFNULL(rows_validated,0)) AS NUMERIC)
-       END AS failed_percentage  
+       END AS failed_percentage,   
   FROM TableData
 GROUP BY 1,2,3,4,5;
-
