@@ -139,6 +139,17 @@ resource "google_storage_bucket_object" "deploy_airflow_data_bash_deploy_dataple
 }
 
 
+# Upload the Airflow "data/template" files
+resource "google_storage_bucket_object" "deploy_airflow_data_bash_deploy_rideshare_website" {
+  name   = "${local.local_composer_data_path}/bash_deploy_rideshare_website.sh"
+  bucket = local.local_composer_bucket_name
+  source = "../cloud-composer/data/bash_deploy_rideshare_website.sh"
+
+  depends_on = [ 
+    ]  
+}
+
+
 ####################################################################################
 # Upload the PySpark scripts
 ###################################################################################
@@ -911,6 +922,17 @@ resource "google_storage_bucket_object" "deploy_airflow_dag_sample-iceberg-creat
 
 
 # Upload DAG
+resource "google_storage_bucket_object" "deploy_airflow_dag_sample-rideshare-website" {
+  name   = "${local.local_composer_dag_path}/sample-rideshare-website.py"
+  bucket = local.local_composer_bucket_name
+  source = "../cloud-composer/dags/sample-rideshare-website.py"
+
+  depends_on = [ 
+    time_sleep.wait_for_airflow_dag_sync
+    ]  
+}
+
+# Upload DAG
 resource "google_storage_bucket_object" "deploy_airflow_dag_sample-sla-miss-task-groups" {
   name   = "${local.local_composer_dag_path}/sample-sla-miss-task-groups.py"
   bucket = local.local_composer_bucket_name
@@ -920,3 +942,53 @@ resource "google_storage_bucket_object" "deploy_airflow_dag_sample-sla-miss-task
     time_sleep.wait_for_airflow_dag_sync
     ]  
 }
+
+####################################################################################
+# Deploy App Engine files
+####################################################################################
+# e.g. gcloud app deploy ./app.yaml --project=data-analytics-demo-02kg6c8jm9 --quiet
+
+# These are uploaded to the composer/data path where an Airflow job can deploy the website
+resource "google_storage_bucket_object" "deploy_rideshare_website_app_yaml" {
+  name    = "${local.local_composer_data_path}/rideshare-website/app.yaml"
+  bucket  = local.local_composer_bucket_name
+  source  = "../rideshare-website/app.yaml" 
+}
+
+resource "google_storage_bucket_object" "deploy_rideshare_website_gcloudignore" {
+  name    = "${local.local_composer_data_path}/rideshare-website/.gcloudignore"
+  bucket  = local.local_composer_bucket_name
+  source  = "../rideshare-website/.gcloudignore" 
+}
+
+resource "google_storage_bucket_object" "deploy_rideshare_website_www_configuration" {
+  name    = "${local.local_composer_data_path}/rideshare-website/www/configuration.html"
+  bucket  = local.local_composer_bucket_name
+  content = templatefile("../rideshare-website/www/configuration.html", { project_id =var.project_id })
+}
+
+resource "google_storage_bucket_object" "deploy_rideshare_website_www_index" {
+  name    = "${local.local_composer_data_path}/rideshare-website/www/index.html"
+  bucket  = local.local_composer_bucket_name
+  content = templatefile("../rideshare-website/www/index.html", { project_id =var.project_id })
+}
+
+resource "google_storage_bucket_object" "deploy_rideshare_website_www_predict" {
+  name    = "${local.local_composer_data_path}/rideshare-website/www/predict.html"
+  bucket  = local.local_composer_bucket_name
+  content = templatefile("../rideshare-website/www/predict.html", { project_id =var.project_id })
+}
+
+resource "google_storage_bucket_object" "deploy_rideshare_website_www_realtime" {
+  name    = "${local.local_composer_data_path}/rideshare-website/www/realtime.html"
+  bucket  = local.local_composer_bucket_name
+  content = templatefile("../rideshare-website/www/realtime.html", { project_id =var.project_id })
+}
+
+resource "google_storage_bucket_object" "deploy_rideshare_website_www_reports" {
+  name    = "${local.local_composer_data_path}/rideshare-website/www/reports.html"
+  bucket  = local.local_composer_bucket_name
+  content = templatefile("../rideshare-website/www/reports.html", { project_id =var.project_id })
+}
+
+

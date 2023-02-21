@@ -1027,6 +1027,24 @@ resource "google_project_iam_member" "bq_connection_iam_cloud_invoker" {
   ]
 }
 
+
+# The cloud function needs to read/write to this bucket (code bucket)
+resource "google_storage_bucket_iam_member" "function_code_bucket_storage_admin" {
+  bucket = google_storage_bucket.code_bucket.name
+  role   = "roles/storage.admin"
+  member = "serviceAccount:${var.project_id}@appspot.gserviceaccount.com"
+
+  depends_on = [ 
+    google_storage_bucket.code_bucket,
+    data.archive_file.bigquery_external_function_zip,
+    google_storage_bucket_object.bigquery_external_function_zip_upload,
+    google_cloudfunctions_function.bigquery_external_function,
+    google_bigquery_connection.cloud_function_connection,
+    google_project_iam_member.bq_connection_iam_cloud_invoker
+  ]  
+}
+
+
 # Allow cloud function to access Rideshare BQ Datasets
 resource "google_bigquery_dataset_access" "cloud_function_access_bq_rideshare_curated" {
   dataset_id    = google_bigquery_dataset.rideshare_lakehouse_curated_dataset.dataset_id
@@ -1657,6 +1675,15 @@ resource "google_data_catalog_tag_template" "column_dq_tag_template" {
   force_delete = "false"
 
   depends_on      = [google_data_catalog_tag_template.table_dq_tag_template]
+}
+
+
+####################################################################################
+# App Engine
+####################################################################################
+resource "google_app_engine_application" "rideshare_plus_app_engine" {
+  project     = var.project_id
+  location_id = "us-central"
 }
 
 
