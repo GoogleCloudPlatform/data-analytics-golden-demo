@@ -1099,7 +1099,7 @@ resource "google_project_iam_member" "cloud_function_bq_job_user" {
 # Allow cloud function to access Rideshare BQ Datasets
 resource "google_bigquery_dataset_access" "cloud_function_access_bq_rideshare_curated" {
   dataset_id    = google_bigquery_dataset.rideshare_lakehouse_curated_dataset.dataset_id
-  role          = "OWNER"
+  role          = "roles/bigquery.dataOwner"
   user_by_email = "${var.project_id}@appspot.gserviceaccount.com"
 
   depends_on = [ 
@@ -1113,7 +1113,7 @@ resource "google_bigquery_dataset_access" "cloud_function_access_bq_rideshare_cu
  # For streaming data / view
 resource "google_bigquery_dataset_access" "cloud_function_access_bq_rideshare_raw" {
   dataset_id    = google_bigquery_dataset.rideshare_lakehouse_raw_dataset.dataset_id
-  role          = "VIEWER"
+  role          = "roles/bigquery.dataViewer"
   user_by_email = "${var.project_id}@appspot.gserviceaccount.com"
 
   depends_on = [ 
@@ -1127,7 +1127,7 @@ resource "google_bigquery_dataset_access" "cloud_function_access_bq_rideshare_ra
  # For streaming data / view
 resource "google_bigquery_dataset_access" "cloud_function_access_bq_taxi_dataset" {
   dataset_id    = google_bigquery_dataset.taxi_dataset.dataset_id
-  role          = "VIEWER"
+  role          = "roles/bigquery.dataViewer"
   user_by_email = "${var.project_id}@appspot.gserviceaccount.com"
 
   depends_on = [ 

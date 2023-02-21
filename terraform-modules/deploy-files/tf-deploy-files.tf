@@ -921,6 +921,17 @@ resource "google_storage_bucket_object" "deploy_airflow_dag_sample-iceberg-creat
 }
 
 # Upload DAG
+resource "google_storage_bucket_object" "deploy_airflow_dag_sample-rideshare-hydrate-data" {
+  name   = "${local.local_composer_dag_path}/sample-rideshare-hydrate-data.py"
+  bucket = local.local_composer_bucket_name
+  source = "../cloud-composer/dags/sample-rideshare-hydrate-data.py"
+
+  depends_on = [ 
+    time_sleep.wait_for_airflow_dag_sync
+    ]  
+}
+
+# Upload DAG
 resource "google_storage_bucket_object" "deploy_airflow_dag_sample-rideshare-run-data-quality" {
   name   = "${local.local_composer_dag_path}/sample-rideshare-run-data-quality.py"
   bucket = local.local_composer_bucket_name
