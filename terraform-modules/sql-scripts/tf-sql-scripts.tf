@@ -1411,13 +1411,13 @@ resource "google_bigquery_routine" "sproc_sp_create_streaming_view_enriched" {
 
 
 ####################################################################################
-# sp_iceberg_spark_tranformation
+# sp_iceberg_spark_transformation
 # NOTE: This is a BigSpark stored procedure (which currently does not have t
 #       terraform support).  The Spark specific elements have been commented out.data "
 #       Also, currently BigSpark requires allow listing
 ####################################################################################
-data "template_file" "sproc_sp_iceberg_spark_tranformation" {
-  template = "${file("../sql-scripts/rideshare_lakehouse_enriched/sp_iceberg_spark_tranformation.sql")}"
+data "template_file" "sproc_sp_iceberg_spark_transformation" {
+  template = "${file("../sql-scripts/rideshare_lakehouse_enriched/sp_iceberg_spark_transformation.sql")}"
   vars = {
     project_id = var.project_id
     project_number = var.project_number
@@ -1433,12 +1433,12 @@ data "template_file" "sproc_sp_iceberg_spark_tranformation" {
     gcs_rideshare_lakehouse_curated_bucket = var.gcs_rideshare_lakehouse_curated_bucket   
   }  
 }
-resource "google_bigquery_routine" "sproc_sp_iceberg_spark_tranformation" {
+resource "google_bigquery_routine" "sproc_sp_iceberg_spark_transformation" {
   dataset_id      = var.bigquery_rideshare_lakehouse_enriched_dataset
-  routine_id      = "sp_iceberg_spark_tranformation"
+  routine_id      = "sp_iceberg_spark_transformation"
   routine_type    = "PROCEDURE"
   language        = "SQL"
-  definition_body = "${data.template_file.sproc_sp_iceberg_spark_tranformation.rendered}"
+  definition_body = "${data.template_file.sproc_sp_iceberg_spark_transformation.rendered}"
 }
 
 

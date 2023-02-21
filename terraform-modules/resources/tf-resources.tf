@@ -104,7 +104,7 @@ resource "google_storage_bucket" "code_bucket" {
 
 resource "google_storage_bucket" "rideshare_lakehouse_raw" {
   project                     = var.project_id
-  name                        = "rideshare-lakehouse-raw--${var.storage_bucket}"
+  name                        = "rideshare-lakehouse-raw-${var.storage_bucket}"
   location                    = var.bigquery_region
   force_destroy               = true
   uniform_bucket_level_access = true
@@ -112,7 +112,7 @@ resource "google_storage_bucket" "rideshare_lakehouse_raw" {
 
 resource "google_storage_bucket" "rideshare_lakehouse_enriched" {
   project                     = var.project_id
-  name                        = "rideshare-lakehouse-enriched--${var.storage_bucket}"
+  name                        = "rideshare-lakehouse-enriched-${var.storage_bucket}"
   location                    = var.bigquery_region
   force_destroy               = true
   uniform_bucket_level_access = true
@@ -120,7 +120,7 @@ resource "google_storage_bucket" "rideshare_lakehouse_enriched" {
 
 resource "google_storage_bucket" "rideshare_lakehouse_curated" {
   project                     = var.project_id
-  name                        = "rideshare-lakehouse-curated--${var.storage_bucket}"
+  name                        = "rideshare-lakehouse-curated-${var.storage_bucket}"
   location                    = var.bigquery_region
   force_destroy               = true
   uniform_bucket_level_access = true
@@ -475,6 +475,12 @@ resource "google_composer_environment" "composer_env" {
         ENV_DATAFLOW_SERVICE_ACCOUNT = "dataflow-service-account@${var.project_id}.iam.gserviceaccount.com",
         ENV_RANDOM_EXTENSION         = var.random_extension
         ENV_SPANNER_CONFIG           = var.spanner_config
+        ENV_RIDESHARE_LAKEHOUSE_RAW_BUCKET = google_storage_bucket.rideshare_lakehouse_raw.name
+        ENV_RIDESHARE_LAKEHOUSE_ENRICHED_BUCKET = google_storage_bucket.rideshare_lakehouse_enriched.name
+        ENV_RIDESHARE_LAKEHOUSE_CURATED_BUCKET = google_storage_bucket.rideshare_lakehouse_curated.name
+        ENV_RIDESHARE_LAKEHOUSE_RAW_DATASET = var.bigquery_rideshare_lakehouse_raw_dataset
+        ENV_RIDESHARE_LAKEHOUSE_ENRICHED_DATASET = var.bigquery_rideshare_lakehouse_enriched_dataset
+        ENV_RIDESHARE_LAKEHOUSE_CURATED_DATASET = var.bigquery_rideshare_lakehouse_curated_dataset
       }
     }
 

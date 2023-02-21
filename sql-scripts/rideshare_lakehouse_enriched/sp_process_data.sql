@@ -37,10 +37,20 @@
   */
 
 -- Remove existing tables (overwrite for demo so we can run over and over again)
-DROP EXTERNAL TABLE IF EXISTS `${project_id}.${bigquery_rideshare_lakehouse_enriched_dataset}.biglake_rideshare_payment_type_iceberg`;
-DROP EXTERNAL TABLE IF EXISTS `${project_id}.${bigquery_rideshare_lakehouse_enriched_dataset}.biglake_rideshare_trip_iceberg`;
-DROP EXTERNAL TABLE IF EXISTS `${project_id}.${bigquery_rideshare_lakehouse_enriched_dataset}.bigsearch_bigquery_rideshare_trip`;
-
+-- This for when we do not have Iceberg / BigSpark and cannot create an external table.  This can be removed in the future.
+IF EXISTS (SELECT  1
+             FROM `${project_id}.${bigquery_rideshare_lakehouse_enriched_dataset}`.INFORMATION_SCHEMA.TABLES
+            WHERE table_name = 'biglake_rideshare_payment_type_iceberg' 
+              AND table_type = 'EXTERNAL')
+    THEN
+        DROP EXTERNAL TABLE IF EXISTS `${project_id}.${bigquery_rideshare_lakehouse_enriched_dataset}.biglake_rideshare_payment_type_iceberg`;
+        DROP EXTERNAL TABLE IF EXISTS `${project_id}.${bigquery_rideshare_lakehouse_enriched_dataset}.biglake_rideshare_trip_iceberg`;
+        DROP EXTERNAL TABLE IF EXISTS `${project_id}.${bigquery_rideshare_lakehouse_enriched_dataset}.bigsearch_bigquery_rideshare_trip`;   
+    ELSE
+        DROP TABLE IF EXISTS `${project_id}.${bigquery_rideshare_lakehouse_enriched_dataset}.biglake_rideshare_payment_type_iceberg`;
+        DROP TABLE IF EXISTS `${project_id}.${bigquery_rideshare_lakehouse_enriched_dataset}.biglake_rideshare_trip_iceberg`;
+        DROP TABLE IF EXISTS `${project_id}.${bigquery_rideshare_lakehouse_enriched_dataset}.bigsearch_bigquery_rideshare_trip`;   
+END IF;
 
 /*
 Manual example w/o BigLake Metastore Service
@@ -64,4 +74,4 @@ OPTIONS (
 */
 
 -- CALL Spark job
-CALL `${project_id}.${bigquery_rideshare_lakehouse_enriched_dataset}.sp_iceberg_spark_tranformation`();
+CALL `${project_id}.${bigquery_rideshare_lakehouse_enriched_dataset}.sp_iceberg_spark_transformation`();

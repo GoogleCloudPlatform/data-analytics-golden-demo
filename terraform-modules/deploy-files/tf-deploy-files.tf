@@ -149,6 +149,15 @@ resource "google_storage_bucket_object" "deploy_airflow_data_bash_deploy_ridesha
     ]  
 }
 
+# Upload the Airflow "data/template" files
+resource "google_storage_bucket_object" "deploy_airflow_data_bash_download_rideshare_images" {
+  name   = "${local.local_composer_data_path}/bash_download_rideshare_images.sh"
+  bucket = local.local_composer_bucket_name
+  source = "../cloud-composer/data/bash_download_rideshare_images.sh"
+
+  depends_on = [ 
+    ]  
+}
 
 ####################################################################################
 # Upload the PySpark scripts
@@ -914,6 +923,17 @@ resource "google_storage_bucket_object" "deploy_airflow_dag_sample-iceberg-creat
   name   = "${local.local_composer_dag_path}/sample-iceberg-create-tables-update-data.py"
   bucket = local.local_composer_bucket_name
   source = "../cloud-composer/dags/sample-iceberg-create-tables-update-data.py"
+
+  depends_on = [ 
+    time_sleep.wait_for_airflow_dag_sync
+    ]  
+}
+
+# Upload DAG
+resource "google_storage_bucket_object" "deploy_airflow_dag_sample-rideshare-download-images" {
+  name   = "${local.local_composer_dag_path}/sample-rideshare-download-images.py"
+  bucket = local.local_composer_bucket_name
+  source = "../cloud-composer/dags/sample-rideshare-download-images.py"
 
   depends_on = [ 
     time_sleep.wait_for_airflow_dag_sync

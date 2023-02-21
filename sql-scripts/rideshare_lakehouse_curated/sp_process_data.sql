@@ -105,11 +105,15 @@ CREATE OR REPLACE TABLE `${project_id}.${bigquery_rideshare_lakehouse_curated_da
  OPTIONS (description = 'Holds the ML scoring results');
 
 
--- Create an index for exact matching
-CREATE SEARCH INDEX `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.bigsearch_bigquery_rideshare_trip` 
-    ON `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.bigquery_rideshare_trip` (ALL COLUMNS)
-    OPTIONS (analyzer = 'NO_OP_ANALYZER');
-
+-- Create an index (if not exists) for exact matching
+IF NOT EXISTS (SELECT  1
+                  FROM `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.INFORMATION_SCHEMA.SEARCH_INDEXES`
+                WHERE index_name = '${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.bigsearch_bigquery_rideshare_trip')
+  THEN
+    CREATE SEARCH INDEX `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.bigsearch_bigquery_rideshare_trip` 
+        ON `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.bigquery_rideshare_trip` (ALL COLUMNS)
+        OPTIONS (analyzer = 'NO_OP_ANALYZER');
+END IF;
 
 -- Check our index (index_status = "Active", "total storage bytes" = 117 GB)
 -- See the unindexed_row_count (rows not indexed)

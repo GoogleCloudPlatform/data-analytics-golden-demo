@@ -39,10 +39,11 @@ default_args = {
 }
 
 project_id = os.environ['GCP_PROJECT'] 
-
+rideshare_raw_bucket = os.environ['ENV_RIDESHARE_LAKEHOUSE_RAW_BUCKET']
 
 params_list = { 
-    "project_id" : project_id
+    "project_id" : project_id,
+    "rideshare_raw_bucket" : rideshare_raw_bucket
     }
 
 
@@ -56,17 +57,17 @@ with airflow.DAG('sample-rideshare-website',
 
     # NOTE: The service account of the Composer worker node must have access to run these commands
 
-    # Deploys an App Engine website
-    deploy_website = bash_operator.BashOperator(
-          task_id='deploy_website',
-          bash_command='bash_deploy_rideshare_website.sh',
+    # Download images and then upload to the raw lakehouse zone
+    download_and_upload_images = bash_operator.BashOperator(
+          task_id='download_and_upload_images',
+          bash_command='bash_download_rideshare_images.sh',
           params=params_list,
           dag=dag
       )
 
 
     # DAG Graph
-    deploy_website
+    download_and_upload_images
 
 
 # [END dag]
