@@ -34,9 +34,9 @@ THELOOK_DATASET="{{ params.thelook_dataset }}"
 RANDOM_EXTENSION="{{ params.random_extension }}"
 
 
-# Activate the services (TODO: Move the full TF script)
-gcloud services enable metastore.googleapis.com --project="${PROJECT_ID}"
-gcloud services enable dataplex.googleapis.com --project="${PROJECT_ID}"
+# Activate the services (TODO: Move the full TF script - DONE)
+# gcloud services enable metastore.googleapis.com --project="${PROJECT_ID}"
+# gcloud services enable dataplex.googleapis.com --project="${PROJECT_ID}"
 
 # Since the current version of gCloud does not have DataPlex, install it.
 # This is NOT a best practice

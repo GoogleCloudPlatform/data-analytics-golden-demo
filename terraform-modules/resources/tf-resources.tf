@@ -720,6 +720,37 @@ resource "google_data_catalog_policy_tag_iam_member" "member_azure" {
   ]
 }
 
+####################################################################################
+# Bring in Analytics Hub reference
+####################################################################################
+# https://cloud.google.com/bigquery/docs/reference/analytics-hub/rest/v1/projects.locations.dataExchanges.listings/subscribe
+/*
+# https://cloud.google.com/bigquery/docs/reference/analytics-hub/rest/v1/projects.locations.dataExchanges.listings/subscribe
+curl --request POST \
+  'https://analyticshub.googleapis.com/v1/projects/1057666841514/locations/us/dataExchanges/google_cloud_public_datasets_17e74966199/listings/ghcn_daily_17ee6ceb8e9:subscribe' \
+  --header "Authorization: Bearer $(gcloud auth application-default print-access-token)" \
+  --header 'Accept: application/json' \
+  --header 'Content-Type: application/json' \
+  --data '{"destinationDataset":{"datasetReference":{"datasetId":"ghcn_daily","projectId":"data-analytics-demo-5qiz4e36kf"},"friendlyName":"ghcn_daily","location":"us","description":"ghcn_daily"}}' \
+  --compressed
+*/
+resource "null_resource" "analyticshub_daily_weather_data" {
+provisioner "local-exec" {
+  when    = create
+  command = <<EOF
+  curl --request POST \
+    "https://analyticshub.googleapis.com/v1/projects/1057666841514/locations/us/dataExchanges/google_cloud_public_datasets_17e74966199/listings/ghcn_daily_17ee6ceb8e9:subscribe" \
+    --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
+    --header "Accept: application/json" \
+    --header "Content-Type: application/json" \
+    --data '{"destinationDataset":{"datasetReference":{"datasetId":"ghcn_daily","projectId":"${var.project_id}"},"friendlyName":"ghcn_daily","location":"us","description":"ghcn_daily"}}' \
+    --compressed
+    EOF
+  }
+  depends_on = [
+    ]
+}
+
 
 ####################################################################################
 # Data Catalog Taxonomy
@@ -952,6 +983,11 @@ resource "google_cloudfunctions_function" "rideshare_plus_function" {
   ingress_settings             = "ALLOW_ALL"
   https_trigger_security_level = "SECURE_ALWAYS"
   entry_point                  = "entrypoint"
+
+  environment_variables = {
+    PROJECT_ID = var.project_id
+  }
+
   depends_on = [ 
     google_storage_bucket.code_bucket,
     data.archive_file.rideshare_plus_function_zip,
@@ -1044,6 +1080,21 @@ resource "google_storage_bucket_iam_member" "function_code_bucket_storage_admin"
   ]  
 }
 
+# Allow cloud function service account to run BQ jobs
+resource "google_project_iam_member" "cloud_function_bq_job_user" {
+  project  = var.project_id
+  role     = "roles/bigquery.jobUser"
+  member   = "serviceAccount:${var.project_id}@appspot.gserviceaccount.com"
+
+  depends_on = [ 
+    google_storage_bucket.code_bucket,
+    data.archive_file.bigquery_external_function_zip,
+    google_storage_bucket_object.bigquery_external_function_zip_upload,
+    google_cloudfunctions_function.bigquery_external_function,
+    google_bigquery_connection.cloud_function_connection,
+    google_storage_bucket_iam_member.function_code_bucket_storage_admin
+  ]
+}
 
 # Allow cloud function to access Rideshare BQ Datasets
 resource "google_bigquery_dataset_access" "cloud_function_access_bq_rideshare_curated" {
@@ -1059,6 +1110,33 @@ resource "google_bigquery_dataset_access" "cloud_function_access_bq_rideshare_cu
   ]  
 }
 
+ # For streaming data / view
+resource "google_bigquery_dataset_access" "cloud_function_access_bq_rideshare_raw" {
+  dataset_id    = google_bigquery_dataset.rideshare_lakehouse_raw_dataset.dataset_id
+  role          = "VIEWER"
+  user_by_email = "${var.project_id}@appspot.gserviceaccount.com"
+
+  depends_on = [ 
+    data.archive_file.rideshare_plus_function_zip,
+    google_storage_bucket_object.rideshare_plus_function_zip_upload,
+    google_cloudfunctions_function.rideshare_plus_function,
+    google_bigquery_dataset.rideshare_lakehouse_raw_dataset
+  ]  
+}
+
+ # For streaming data / view
+resource "google_bigquery_dataset_access" "cloud_function_access_bq_taxi_dataset" {
+  dataset_id    = google_bigquery_dataset.taxi_dataset.dataset_id
+  role          = "VIEWER"
+  user_by_email = "${var.project_id}@appspot.gserviceaccount.com"
+
+  depends_on = [ 
+    data.archive_file.rideshare_plus_function_zip,
+    google_storage_bucket_object.rideshare_plus_function_zip_upload,
+    google_cloudfunctions_function.rideshare_plus_function,
+    google_bigquery_dataset.taxi_dataset
+  ]  
+}
 
 
 

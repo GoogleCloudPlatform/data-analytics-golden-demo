@@ -401,7 +401,7 @@ def attach_tag_template_to_columns():
 
 
 
-with airflow.DAG('sample-dataplex-run-data-quality-rideshare',
+with airflow.DAG('sample-rideshare-run-data-quality',
                  default_args=default_args,
                  start_date=datetime(2021, 1, 1),
                  # Add the Composer "Data" directory which will hold the SQL/Bash scripts for deployment

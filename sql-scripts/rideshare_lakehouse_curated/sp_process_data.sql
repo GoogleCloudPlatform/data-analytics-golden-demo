@@ -38,7 +38,7 @@
 
   */
 
-/*
+
 -- Ingest the data to BigQuery
 CREATE OR REPLACE TABLE `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.bigquery_rideshare_payment_type`
 CLUSTER BY payment_type_id
@@ -80,9 +80,9 @@ SELECT
     partition_date
   FROM `${project_id}.${bigquery_rideshare_lakehouse_enriched_dataset}.biglake_rideshare_trip_iceberg`;
   
-*/
+
 -- Holds the website scored data
-CREATE OR REPLACE TABLE `${project_id}.${bigquery_rideshare_lakehouse_enriched_dataset}.bigquery_predict_high_value_rides`
+CREATE OR REPLACE TABLE `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.bigquery_predict_high_value_rides`
   (location_id INTEGER,
   borough STRING,
   zone STRING,
@@ -119,7 +119,7 @@ SELECT * -- table_name, index_name, ddl, coverage_percentage
  WHERE index_status = 'ACTIVE';
 
 
-CREATE OR REPLACE TABLE `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.bigquery_rideshare_image_scoring`
+CREATE OR REPLACE TABLE `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.bigquery_rideshare_images_ml_detection`
 CLUSTER BY location_id,image_date
 AS
  
@@ -139,7 +139,7 @@ SELECT uri,
        location_id,
        image_date,
        REPLACE(JSON_VALUE(item.name),'"','') AS name,
-       item.score
+       CAST(REPLACE(JSON_VALUE(item.score),'"','') AS FLOAT64) AS score
  FROM  ScoreAI, UNNEST(JSON_QUERY_ARRAY(ScoreAI.vision_ai_localize_objects.localized_object_annotations)) AS item
 UNION ALL
 SELECT uri,
@@ -147,7 +147,7 @@ SELECT uri,
        location_id,
        image_date,
        REPLACE(JSON_VALUE(item.description),'"','') AS name,
-       item.score
+       CAST(REPLACE(JSON_VALUE(item.score),'"','') AS FLOAT64) AS score
  FROM  ScoreAI, UNNEST(JSON_QUERY_ARRAY(ScoreAI.vision_ai_detect_labels.label_annotations)) AS item
 UNION ALL
 SELECT uri,
@@ -155,7 +155,7 @@ SELECT uri,
        location_id,
        image_date,
        REPLACE(JSON_VALUE(item.description),'"','') AS name,
-       item.score
+       CAST(REPLACE(JSON_VALUE(item.score),'"','') AS FLOAT64) AS score
  FROM  ScoreAI, UNNEST(JSON_QUERY_ARRAY(ScoreAI.vision_ai_detect_landmarks.landmark_annotations)) AS item
 UNION ALL
 SELECT uri,
@@ -163,7 +163,7 @@ SELECT uri,
        location_id,
        image_date,
        REPLACE(JSON_VALUE(item.description),'"','') AS name,
-       item.score
+       CAST(REPLACE(JSON_VALUE(item.score),'"','') AS FLOAT64) AS score
  FROM  ScoreAI, UNNEST(JSON_QUERY_ARRAY(ScoreAI.vision_ai_detect_logos.logo_annotations)) AS item;
 
 

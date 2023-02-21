@@ -20,6 +20,7 @@ import functions_framework
 from google.cloud import bigquery
 from google.cloud import storage
 import json
+import os
 
 
 @functions_framework.http
@@ -76,10 +77,12 @@ def generate_predictions(request: flask.Request) -> flask.Response:
         is_snowing = str(request_json['is_snowing']).upper()
         print("ride_distance: ", ride_distance)
         print("is_raining: ", is_raining)
-        print("is_snowing: ", is_snowing)        
+        print("is_snowing: ", is_snowing)      
+        project_id = os.environ['PROJECT_ID']
+        print("project_id: ", project_id)      
 
         client = bigquery.Client()
-        sql = "CALL `data-analytics-demo-rexm45tpvr.rideshare_lakehouse_curated.sp_website_score_data`('" + \
+        sql = "CALL `" + project_id + ".rideshare_lakehouse_curated.sp_website_score_data`('" + \
                 ride_distance + "', " + is_raining + ", " + is_snowing + ", 0, 0);"
         print("sql: ", sql)
         query_job = client.query(sql);
@@ -101,8 +104,11 @@ def generate_predictions(request: flask.Request) -> flask.Response:
 def get_streaming_data(request: flask.Request) -> flask.Response:
     try:     
         print("BEGIN: get_streaming_data")
+        project_id = os.environ['PROJECT_ID']
+        print("project_id: ", project_id) 
+
         client = bigquery.Client()
-        sql = "SELECT * FROM `data-analytics-demo-rexm45tpvr.rideshare_lakehouse_curated.website_realtime_dashboard`"
+        sql = "SELECT * FROM `" + project_id + ".rideshare_lakehouse_curated.website_realtime_dashboard`"
         query_job = client.query(sql);
         results = query_job.result()
         replies = []
@@ -139,6 +145,8 @@ def save_configuration(request: flask.Request) -> flask.Response:
         print("request_json: ", request_json)
         looker_url = str(request_json['looker_url']).lower()
         print("looker_url: ", looker_url)
+        project_id = os.environ['PROJECT_ID']
+        print("project_id: ", project_id) 
 
         filename = "website/rideshareplusconfig.json";
         config_value = {
@@ -147,7 +155,7 @@ def save_configuration(request: flask.Request) -> flask.Response:
         default_json = json.dumps(config_value) 
        
         storage_client = storage.Client()
-        bucket = storage_client.get_bucket("code-data-analytics-demo-rexm45tpvr")
+        bucket = storage_client.get_bucket("code-" + project_id)
         blob = bucket.blob(filename)
         blob.upload_from_string(default_json, content_type='application/json', num_retries=3)
 
@@ -173,9 +181,11 @@ def get_configuration(request: flask.Request) -> flask.Response:
             "looker_url" : "https://REPLACE-ME"
         }
         default_json = json.dumps(default_config) 
+        project_id = os.environ['PROJECT_ID']
+        print("project_id: ", project_id) 
 
         storage_client = storage.Client()
-        bucket = storage_client.get_bucket("code-data-analytics-demo-rexm45tpvr")
+        bucket = storage_client.get_bucket("code-" + project_id)
         blob = bucket.blob(filename)
         if blob.exists() == False:
             print("Creating default configuration file.")

@@ -1,10 +1,12 @@
 /*
-NOTE: You need to be allowlisted to run BigSpark
-      You also need to be allowlisted for Iceberg
-      This code is also in an Airflow DAG so if you are not allowlisted, you can run that
-      You need to remove this text and the begin and end comments
-      Also remove the SQL statement "SELECT 1 AS RemoveMe;" at the bottom
-      That is here just so we can deploy something
+NOTE: 1. You need to be allowlisted to run BigSpark
+      2. You also need to be allowlisted for Iceberg
+      3. Remove this NOTE down to the line WITH CONNECTION `${project_id}.us.bigspark-connection`
+      4. Remove "-- REMOVE EVERYTHING BELOW THIS LINE TO USE BigSpark" at the bottom
+      5. You need to create a a connection named "us-bigspark"
+      6. For the service principal for the connection:
+         a. Grant the service principal an Editor role at the project level (this is being worked on to have less permissions)
+         b. Grant the service principal the custom role "CustomConnectionDelegate" 
 
 WITH CONNECTION `${project_id}.us.bigspark-connection`
 OPTIONS (engine='SPARK',
@@ -280,4 +282,74 @@ spark.sql("INSERT INTO rideshare_iceberg_catalog.${bigquery_rideshare_lakehouse_
          "FROM temp_view_rideshare_trip_json;")
 """;
 */
-SELECT 1 AS RemoveMe;
+-- REMOVE EVERYTHING BELOW THIS LINE TO USE BigSpark
+-- These tables ARE NOT Iceberg, they are here so the demo works in case you are NOT Allowlisted for Iceberg
+CREATE OR REPLACE TABLE `${project_id}.${bigquery_rideshare_lakehouse_enriched_dataset}.biglake_rideshare_payment_type_iceberg` AS
+SELECT payment_type_id,	
+       payment_type_description	
+ FROM `${project_id}.${bigquery_rideshare_lakehouse_raw_dataset}.biglake_rideshare_payment_type_json`;
+
+
+CREATE OR REPLACE TABLE `${project_id}.${bigquery_rideshare_lakehouse_enriched_dataset}.biglake_rideshare_zone_iceberg` AS
+SELECT location_id,	
+       borough,
+       zone,
+       service_zone
+ FROM `${project_id}.${bigquery_rideshare_lakehouse_raw_dataset}.biglake_rideshare_zone_csv`;
+
+	
+-- https://cloud.google.com/bigquery/docs/loading-data-cloud-storage-avro#logical_types (for Avro)
+CREATE OR REPLACE TABLE `${project_id}.${bigquery_rideshare_lakehouse_enriched_dataset}.biglake_rideshare_trip_iceberg` AS
+SELECT CAST(rideshare_trip_id AS STRING) AS rideshare_trip_id,
+       CAST(pickup_location_id AS INTEGER) AS pickup_location_id,
+       CAST(TIMESTAMP_MICROS(pickup_datetime) AS TIMESTAMP) AS pickup_datetime,
+       CAST(dropoff_location_id AS INTEGER) AS dropoff_location_id,
+       CAST(TIMESTAMP_MICROS(dropoff_datetime) AS TIMESTAMP) AS dropoff_datetime,
+       CAST(ride_distance AS FLOAT64) AS ride_distance,
+       CAST(is_airport AS BOOLEAN) AS is_airport,
+       CAST(payment_type_id AS FLOAT64) AS payment_type_id,
+       CAST(fare_amount AS FLOAT64) AS fare_amount,
+       CAST(tip_amount AS FLOAT64) AS tip_amount,
+       CAST(taxes_amount AS FLOAT64) AS taxes_amount,
+       CAST(total_amount AS FLOAT64) AS total_amount,
+       CAST(NULL AS STRING) AS credit_card_number,
+       CAST(NULL AS DATE) AS credit_card_expire_date,
+       CAST(NULL AS STRING) AS credit_card_cvv_code,
+       CAST(FORMAT_DATE('%Y-%m-01',cast(timestamp_micros(pickup_datetime) AS date)) AS DATE) AS partition_date
+  FROM `${project_id}.${bigquery_rideshare_lakehouse_raw_dataset}.biglake_rideshare_trip_avro`
+UNION ALL
+SELECT CAST(rideshare_trip_id AS STRING) AS rideshare_trip_id,
+       CAST(pickup_location_id AS INTEGER) AS pickup_location_id,
+       CAST(pickup_datetime AS TIMESTAMP) AS pickup_datetime,
+       CAST(dropoff_location_id AS INTEGER) AS dropoff_location_id,
+       CAST(dropoff_datetime AS TIMESTAMP) AS dropoff_datetime,
+       CAST(ride_distance AS FLOAT64) AS ride_distance,
+       CAST(is_airport AS BOOLEAN) AS is_airport,
+       CAST(payment_type_id AS FLOAT64) AS payment_type_id,
+       CAST(fare_amount AS FLOAT64) AS fare_amount,
+       CAST(tip_amount AS FLOAT64) AS tip_amount,
+       CAST(taxes_amount AS FLOAT64) AS taxes_amount,
+       CAST(total_amount AS FLOAT64) AS total_amount,
+       CAST(NULL AS STRING) AS credit_card_number,
+       CAST(NULL AS DATE) AS credit_card_expire_date,
+       CAST(NULL AS STRING) AS credit_card_cvv_code,
+       CAST(partition_date AS DATE) AS partition_date
+  FROM `${project_id}.${bigquery_rideshare_lakehouse_raw_dataset}.biglake_rideshare_trip_json`
+UNION ALL
+SELECT CAST(rideshare_trip_id AS STRING) AS rideshare_trip_id,
+       CAST(pickup_location_id AS INTEGER) AS pickup_location_id,
+       CAST(pickup_datetime AS TIMESTAMP) AS pickup_datetime,
+       CAST(dropoff_location_id AS INTEGER) AS dropoff_location_id,
+       CAST(dropoff_datetime AS TIMESTAMP) AS dropoff_datetime,
+       CAST(ride_distance AS FLOAT64) AS ride_distance,
+       CAST(is_airport AS BOOLEAN) AS is_airport,
+       CAST(payment_type_id AS FLOAT64) AS payment_type_id,
+       CAST(fare_amount AS FLOAT64) AS fare_amount,
+       CAST(tip_amount AS FLOAT64) AS tip_amount,
+       CAST(taxes_amount AS FLOAT64) AS taxes_amount,
+       CAST(total_amount AS FLOAT64) AS total_amount,
+       CAST(NULL AS STRING) AS credit_card_number,
+       CAST(NULL AS DATE) AS credit_card_expire_date,
+       CAST(NULL AS STRING) AS credit_card_cvv_code,
+       CAST(partition_date AS DATE) AS partition_date
+  FROM `${project_id}.${bigquery_rideshare_lakehouse_raw_dataset}.biglake_rideshare_trip_parquet`;
