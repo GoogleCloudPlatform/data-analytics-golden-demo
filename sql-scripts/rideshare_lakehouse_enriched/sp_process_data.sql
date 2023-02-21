@@ -41,8 +41,6 @@ DROP EXTERNAL TABLE IF EXISTS `${project_id}.${bigquery_rideshare_lakehouse_enri
 DROP EXTERNAL TABLE IF EXISTS `${project_id}.${bigquery_rideshare_lakehouse_enriched_dataset}.biglake_rideshare_trip_iceberg`;
 DROP EXTERNAL TABLE IF EXISTS `${project_id}.${bigquery_rideshare_lakehouse_enriched_dataset}.bigsearch_bigquery_rideshare_trip`;
 
--- CALL Spark job
-CALL `${project_id}.${bigquery_rideshare_lakehouse_enriched_dataset}.sp_iceberg_spark_tranformation`();
 
 /*
 Manual example w/o BigLake Metastore Service
@@ -65,3 +63,5 @@ OPTIONS (
        );
 */
 
+-- CALL Spark job
+CALL `${project_id}.${bigquery_rideshare_lakehouse_enriched_dataset}.sp_iceberg_spark_tranformation`();

@@ -34,6 +34,7 @@
       DROP TABLE IF EXISTS `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.bigquery_rideshare_payment_type`;
       DROP TABLE IF EXISTS `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.bigquery_rideshare_zone`;
       DROP TABLE IF EXISTS `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.bigquery_rideshare_payment_type`;
+      DROP TABLE IF EXISTS `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.bigquery_predict_high_value_rides`;
 
   */
 
@@ -58,7 +59,7 @@ SELECT *
 CREATE OR REPLACE TABLE `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.bigquery_rideshare_trip`
 CLUSTER BY pickup_datetime, pickup_location_id
 AS
-SELECT 	
+SELECT  
     rideshare_trip_id,
     pickup_location_id,
     pickup_datetime,
@@ -80,6 +81,29 @@ SELECT
   FROM `${project_id}.${bigquery_rideshare_lakehouse_enriched_dataset}.biglake_rideshare_trip_iceberg`;
   
 */
+-- Holds the website scored data
+CREATE OR REPLACE TABLE `${project_id}.${bigquery_rideshare_lakehouse_enriched_dataset}.bigquery_predict_high_value_rides`
+  (location_id INTEGER,
+  borough STRING,
+  zone STRING,
+  latitude FLOAT64,
+  longitude FLOAT64,
+  geo_point GEOGRAPHY,
+  pickup_year STRING,
+  pickup_month STRING,
+  pickup_day STRING,
+  pickup_day_of_week STRING,
+  pickup_hour STRING,
+  ride_distance STRING,
+  is_raining BOOLEAN,
+  is_snowing BOOLEAN,
+  people_traveling_cnt INTEGER,
+  people_cnt INTEGER,
+  is_high_value_ride BOOLEAN,  
+  predicted_is_high_value_ride FLOAT64,
+  execution_date DATETIME)
+ OPTIONS (description = 'Holds the ML scoring results');
+
 
 -- Create an index for exact matching
 CREATE SEARCH INDEX `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.bigsearch_bigquery_rideshare_trip` 

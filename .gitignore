@@ -38,3 +38,5 @@ bp-controller.sh
 bp-controller-log.txt
 bp-controller-log.json
 temp-sql-template.txt
+deploy-omni2.sh
+cloud-functions/rideshare-plus-rest-api.zip

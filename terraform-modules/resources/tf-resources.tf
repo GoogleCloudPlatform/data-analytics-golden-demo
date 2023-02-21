@@ -126,6 +126,22 @@ resource "google_storage_bucket" "rideshare_lakehouse_curated" {
   uniform_bucket_level_access = true
 }
 
+
+####################################################################################
+# Custom Roles
+####################################################################################
+# Required since we are setting BigLake permissions with BigSpark
+resource "google_project_iam_custom_role" "customconnectiondelegate" {
+  role_id     = "CustomConnectionDelegate"
+  title       = "Custom Connection Delegate"
+  description = "Used for BQ connections"
+  permissions = ["biglake.tables.create","biglake.tables.delete","biglake.tables.get",
+  "biglake.tables.list","biglake.tables.lock","biglake.tables.update",
+  "bigquery.connections.delegate"]
+}
+
+
+
 ####################################################################################
 # Default Network
 # The project was not created with the default network.  
@@ -1011,6 +1027,22 @@ resource "google_project_iam_member" "bq_connection_iam_cloud_invoker" {
   ]
 }
 
+# Allow cloud function to access Rideshare BQ Datasets
+resource "google_bigquery_dataset_access" "cloud_function_access_bq_rideshare_curated" {
+  dataset_id    = google_bigquery_dataset.rideshare_lakehouse_curated_dataset.dataset_id
+  role          = "OWNER"
+  user_by_email = "${var.project_id}@appspot.gserviceaccount.com"
+
+  depends_on = [ 
+    data.archive_file.rideshare_plus_function_zip,
+    google_storage_bucket_object.rideshare_plus_function_zip_upload,
+    google_cloudfunctions_function.rideshare_plus_function,
+    google_bigquery_dataset.rideshare_lakehouse_curated_dataset
+  ]  
+}
+
+
+
 
 # BigLake connection
 resource "google_bigquery_connection" "biglake_connection" {
@@ -1035,6 +1067,21 @@ resource "google_project_iam_member" "bq_connection_iam_object_viewer" {
     google_bigquery_connection.biglake_connection
   ]
 }
+
+
+# Allow BigLake to custom role
+resource "google_project_iam_member" "biglake_customconnectiondelegate" {
+  project  = var.project_id
+  role     = google_project_iam_custom_role.customconnectiondelegate.id
+  member   = "serviceAccount:${google_bigquery_connection.biglake_connection.cloud_resource[0].service_account_id}"
+
+  depends_on = [
+    google_bigquery_connection.biglake_connection,
+    google_project_iam_custom_role.customconnectiondelegate
+  ]  
+}
+
+
 
 
 

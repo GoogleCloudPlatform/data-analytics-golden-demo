@@ -32,7 +32,17 @@
   
   References:
       - 
-  
+  Notes:
+      - is holiday timeframe (need a list of holidays)
+      - images of people with packages (need images based upon day of year and pickup location)
+      - surge pricing
+      - is rush hour
+      -- short or long trip
+      - show the probablity of being high values
+      - Predict the dropoff location
+      - Predict the total amount
+      - Predict the tip amount
+
   Clean up / Reset script:
     DROP TABLE IF EXISTS `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.bigquery_model_training_data`
     DROP MODEL IF EXISTS `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.model_predict_high_value`
@@ -178,6 +188,7 @@ SELECT *  EXCEPT(rideshare_trip_id, predicted_is_high_value_ride)
 
 
 -- View a prediction with Explainable AI
+EXECUTE IMMEDIATE """
 SELECT *
   FROM ML.EXPLAIN_PREDICT (MODEL `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.model_predict_high_value`,
       (SELECT '138' AS location_id,
@@ -192,8 +203,10 @@ SELECT *
               0 AS people_traveling_cnt,
               0 AS people_cnt          
         ));
+""";
 
 -- Score all the results
+EXECUTE IMMEDIATE """
 UPDATE `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.bigquery_model_training_data` AS bigquery_model_training_data
     SET predicted_is_high_value_ride = CAST(ScoredData.predicted_is_high_value_ride AS NUMERIC)
   FROM (SELECT *
@@ -213,23 +226,10 @@ UPDATE `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.bigquery_m
                 FROM `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.bigquery_model_training_data`
                 ))) AS ScoredData
   WHERE ScoredData.rideshare_trip_id = bigquery_model_training_data.rideshare_trip_id;
-
+""";
 
 -- See the best scored data
 SELECT * 
   FROM `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.bigquery_model_training_data` 
 ORDER BY predicted_is_high_value_ride DESC
 LIMIT 500;
-
-
-/* Notes:
--- is holiday timeframe (need a list of holidays)
--- images of people with packages (need images based upon day of year and pickup location)
--- surge pricing
--- is rush hour
--- short or long trip
--- show the probablity of being high values
--- Predict the dropoff location
--- Predict the total amount
--- Predict the tip amount
-*/

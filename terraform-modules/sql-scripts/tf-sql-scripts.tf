@@ -1781,8 +1781,8 @@ resource "google_bigquery_routine" "sproc_sp_website_score_data" {
     data_type = "{\"typeKind\" :  \"INT64\"}"
   }    
   arguments {
-    name = "people_traveling_cnt"
-    data_type = "{\"people_cnt\" :  \"INT64\"}"
+    name = "people_cnt"
+    data_type = "{\"typeKind\" :  \"INT64\"}"
   }      
   definition_body = "${data.template_file.sproc_sp_website_score_data.rendered}"
 }

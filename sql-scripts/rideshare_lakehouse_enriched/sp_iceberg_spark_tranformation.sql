@@ -8,7 +8,7 @@ NOTE: You need to be allowlisted to run BigSpark
 
 WITH CONNECTION `${project_id}.us.bigspark-connection`
 OPTIONS (engine='SPARK',
-     runtime_version="2.0",
+     runtime_version="1.0",
      properties=[("spark.sql.catalog.rideshare_iceberg_catalog.blms_catalog","rideshare_iceberg_catalog"),
      ("spark.sql.catalog.rideshare_iceberg_catalog.gcp_project","${project_id}"),
      ("spark.jars.packages","org.apache.iceberg:iceberg-spark-runtime-3.2_2.12:0.14.1,org.apache.spark:spark-avro_2.12:3.3.1"),
