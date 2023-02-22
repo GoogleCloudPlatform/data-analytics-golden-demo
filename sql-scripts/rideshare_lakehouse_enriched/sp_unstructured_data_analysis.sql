@@ -102,10 +102,10 @@ CLUSTER BY uri;
 
 
 /* Testing with sample images
-SELECT `${bigquery_rideshare_lakehouse_enriched_dataset}.ext_udf_ai_localize_objects`('gs://cloud-samples-data/vision/object_localization/duck_and_truck.jpg')
-SELECT `${bigquery_rideshare_lakehouse_enriched_dataset}.ext_udf_ai_detect_labels`('gs://cloud-samples-data/vision/object_localization/duck_and_truck.jpg')
-SELECT `${bigquery_rideshare_lakehouse_enriched_dataset}.ext_udf_ai_detect_landmarks`('gs://cloud-samples-data/vision/object_localization/duck_and_truck.jpg')
-SELECT `${bigquery_rideshare_lakehouse_enriched_dataset}.ext_udf_ai_detect_logos`('gs://cloud-samples-data/vision/object_localization/duck_and_truck.jpg')
+SELECT `${project_id}.${bigquery_rideshare_lakehouse_enriched_dataset}.ext_udf_ai_localize_objects`('gs://cloud-samples-data/vision/object_localization/duck_and_truck.jpg')
+SELECT `${project_id}.${bigquery_rideshare_lakehouse_enriched_dataset}.ext_udf_ai_detect_labels`('gs://cloud-samples-data/vision/object_localization/duck_and_truck.jpg')
+SELECT `${project_id}.${bigquery_rideshare_lakehouse_enriched_dataset}.ext_udf_ai_detect_landmarks`('gs://cloud-samples-data/vision/object_localization/duck_and_truck.jpg')
+SELECT `${project_id}.${bigquery_rideshare_lakehouse_enriched_dataset}.ext_udf_ai_detect_logos`('gs://cloud-samples-data/vision/object_localization/duck_and_truck.jpg')
  */        
 
 
@@ -150,10 +150,10 @@ INSERT INTO `${project_id}.${bigquery_rideshare_lakehouse_enriched_dataset}.bigq
               THEN CAST(metadata[OFFSET(1)].value AS DATE)
               ELSE null
          END AS image_date,         
-         `${bigquery_rideshare_lakehouse_enriched_dataset}.ext_udf_ai_localize_objects`(uri),
-         `${bigquery_rideshare_lakehouse_enriched_dataset}.ext_udf_ai_detect_labels`(uri),
-         `${bigquery_rideshare_lakehouse_enriched_dataset}.ext_udf_ai_detect_landmarks`(uri),
-         `${bigquery_rideshare_lakehouse_enriched_dataset}.ext_udf_ai_detect_logos`(uri),
+         `${project_id}.${bigquery_rideshare_lakehouse_enriched_dataset}.ext_udf_ai_localize_objects`(uri),
+         `${project_id}.${bigquery_rideshare_lakehouse_enriched_dataset}.ext_udf_ai_detect_labels`(uri),
+         `${project_id}.${bigquery_rideshare_lakehouse_enriched_dataset}.ext_udf_ai_detect_landmarks`(uri),
+         `${project_id}.${bigquery_rideshare_lakehouse_enriched_dataset}.ext_udf_ai_detect_logos`(uri),
          updated
     FROM Data
    WHERE RowNumber BETWEEN (loopCounter + 1) AND (loopCounter + 10);
