@@ -20,7 +20,7 @@
 
 # Hardcoded for now (until more regions are activated)
 PROJECT_ID="{{ params.project_id }}"
-RIDESHARE_RAW_BUCKET="{{ params.project_id }}"
+RIDESHARE_RAW_BUCKET="{{ params.rideshare_raw_bucket }}"
 
 ##########################################################################################
 # https://www.pexels.com/license/

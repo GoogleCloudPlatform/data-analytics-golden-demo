@@ -193,7 +193,7 @@
             if (status == "success") {
                 looker_url = data.data[0].looker_url;
                 //alert(looker_url)
-                if (looker_url == "https://replace-me") {
+                if (looker_url.toLowerCase() == "https://replace-me") {
                     alert("You have not configured your Looker report for Embedding.  You will be redirected to the configuration page.")
                     window.location.assign('configuration.html');
                 }

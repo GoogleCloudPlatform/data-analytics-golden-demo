@@ -47,7 +47,7 @@ params_list = {
     }
 
 
-with airflow.DAG('sample-rideshare-website',
+with airflow.DAG('sample-rideshare-download-images',
                  default_args=default_args,
                  start_date=datetime(2021, 1, 1),
                  # Add the Composer "Data" directory which will hold the SQL/Bash scripts for deployment
