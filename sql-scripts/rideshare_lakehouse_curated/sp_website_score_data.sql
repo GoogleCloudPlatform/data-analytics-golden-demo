@@ -54,7 +54,7 @@ BEGIN TRANSACTION;
         pickup_day,
         pickup_day_of_week,
         pickup_hour,
-        ride_distance,
+        ride_distance AS ride_distance,
         is_raining,
         is_snowing,
         people_traveling_cnt,
