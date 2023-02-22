@@ -43,11 +43,12 @@
   */
 
 DECLARE loopCounter INT64 DEFAULT 0;
+DECLARE rowCount INT64 DEFAULT 0;
 
 
 -- Show our objects in GCS / Data Lake
 -- Metadata values are recorded as to where the image was taken
-SELECT * FROM `${project_id}.rideshare_lakehouse_raw.biglake_rideshare_images`;
+SELECT * FROM `${project_id}.${bigquery_rideshare_lakehouse_raw_dataset}.biglake_rideshare_images`;
 
 
 -- Create the Function Link between BQ and the Cloud Function
@@ -115,8 +116,11 @@ SELECT `${project_id}.${bigquery_rideshare_lakehouse_enriched_dataset}.ext_udf_a
 --        During the deployment the Airflow job waits for data in this table, before calling this procedure
 --!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
--- Score all the new items (that have not been scored) in batches
--- DECLARE loopCounter INT64 DEFAULT 0;
+-- Score all the new items (that have not been scored) in batches of 10
+-- DECLARE loopCounter INT64 DEFAULT 0; DECLARE rowCount INT64 DEFAULT 0;
+SET rowCount = (SELECT COUNT(1) 
+                  FROM `${project_id}.${bigquery_rideshare_lakehouse_raw_dataset}.biglake_rideshare_images` 
+                 WHERE content_type = 'image/jpeg');
 LOOP
 INSERT INTO `${project_id}.${bigquery_rideshare_lakehouse_enriched_dataset}.bigquery_rideshare_images_ml_score`
 (uri, location_id, image_date, vision_ai_localize_objects, vision_ai_detect_labels, vision_ai_detect_landmarks, vision_ai_detect_logos, updated)
@@ -126,7 +130,7 @@ INSERT INTO `${project_id}.${bigquery_rideshare_lakehouse_enriched_dataset}.bigq
            metadata,
            updated,
            ROW_NUMBER() OVER (ORDER BY updated) AS RowNumber
-      FROM `${project_id}.rideshare_lakehouse_raw.biglake_rideshare_images` AS ObjectTable
+      FROM `${project_id}.${bigquery_rideshare_lakehouse_raw_dataset}.biglake_rideshare_images` AS ObjectTable
     WHERE content_type = 'image/jpeg'
       AND NOT EXISTS (SELECT 1
                         FROM `${project_id}.${bigquery_rideshare_lakehouse_enriched_dataset}.bigquery_rideshare_images_ml_score` AS MLScoreTable
@@ -156,16 +160,16 @@ INSERT INTO `${project_id}.${bigquery_rideshare_lakehouse_enriched_dataset}.bigq
          `${project_id}.${bigquery_rideshare_lakehouse_enriched_dataset}.ext_udf_ai_detect_logos`(uri),
          updated
     FROM Data
-   WHERE RowNumber BETWEEN (loopCounter + 1) AND (loopCounter + 10);
+   WHERE RowNumber BETWEEN 1 AND 10; 
 
   SET loopCounter = loopCounter + 10;
   IF (SELECT COUNT(1)
-        FROM `${project_id}.rideshare_lakehouse_raw.biglake_rideshare_images` AS ObjectTable
+        FROM `${project_id}.${bigquery_rideshare_lakehouse_raw_dataset}.biglake_rideshare_images` AS ObjectTable
        WHERE content_type = 'image/jpeg'
          AND NOT EXISTS (SELECT 1
                            FROM `${project_id}.${bigquery_rideshare_lakehouse_enriched_dataset}.bigquery_rideshare_images_ml_score` AS MLScoreTable
                           WHERE ObjectTable.uri = MLScoreTable.uri
-                            AND ObjectTable.updated = MLScoreTable.updated) ) = 0 THEN
+                            AND ObjectTable.updated = MLScoreTable.updated) ) = 0 OR loopCounter > rowCount THEN
      LEAVE;
   END IF;
 END LOOP;
