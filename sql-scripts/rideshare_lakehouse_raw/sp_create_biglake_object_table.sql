@@ -41,15 +41,23 @@
 
 -- Create a table over GCS (we can now see our data lake in a table)
 -- Only the connection need access to the lake, not individual users which becomes unmanageable with billions/trillions of files
-CREATE OR REPLACE EXTERNAL TABLE `${project_id}.${bigquery_rideshare_lakehouse_raw_dataset}.biglake_rideshare_images`
-WITH CONNECTION `${project_id}.us.biglake-connection`
-OPTIONS (
-    object_metadata="DIRECTORY",
-    uris = ['gs://${gcs_rideshare_lakehouse_raw_bucket}/rideshare_images/*.jpg',
-            'gs://${gcs_rideshare_lakehouse_raw_bucket}/rideshare_images/*.jpeg'],
-    max_staleness=INTERVAL 30 MINUTE, 
-    metadata_cache_mode="AUTOMATIC"
-    );
+-- We do not want to recreate this each time since it takes a few minutes for the images to sync
+-- which can mess up the demo
+IF NOT EXISTS (SELECT  1
+             FROM `${project_id}.${bigquery_rideshare_lakehouse_raw_dataset}`.INFORMATION_SCHEMA.TABLES
+            WHERE table_name = 'biglake_rideshare_images' 
+              AND table_type = 'EXTERNAL')
+    THEN
+    CREATE OR REPLACE EXTERNAL TABLE `${project_id}.${bigquery_rideshare_lakehouse_raw_dataset}.biglake_rideshare_images`
+    WITH CONNECTION `${project_id}.us.biglake-connection`
+    OPTIONS (
+        object_metadata="DIRECTORY",
+        uris = ['gs://${gcs_rideshare_lakehouse_raw_bucket}/rideshare_images/*.jpg',
+                'gs://${gcs_rideshare_lakehouse_raw_bucket}/rideshare_images/*.jpeg'],
+        max_staleness=INTERVAL 30 MINUTE, 
+        metadata_cache_mode="AUTOMATIC"
+        ); 
+END IF;
 
 
 -- Show our objects in GCS / Data Lake
