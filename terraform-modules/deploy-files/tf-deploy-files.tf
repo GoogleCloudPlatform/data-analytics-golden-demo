@@ -773,9 +773,13 @@ resource "time_sleep" "wait_for_airflow_dag_sync" {
     google_storage_bucket_object.deploy_airflow_dag_step-02-taxi-data-processing,
     google_storage_bucket_object.deploy_airflow_dag_step-03-hydrate-tables,
     google_storage_bucket_object.deploy_airflow_dag_sample-dataflow-start-streaming-job,
-    google_storage_bucket_object.deploy_airflow_data_bash_create_managed_notebook,
-    google_storage_bucket_object.deploy_airflow_data_bash_create_spanner_connection,
-    google_storage_bucket_object.deploy_airflow_data_bash_deploy_dataplex
+
+    google_storage_bucket_object.deploy_airflow_dag_sample-rideshare-hydrate-object-table,
+    google_storage_bucket_object.deploy_airflow_dag_sample-rideshare-download-images,
+    google_storage_bucket_object.deploy_airflow_dag_sample-rideshare-website,
+    google_storage_bucket_object.deploy_airflow_dag_sample-rideshare-object-table-delay,
+    google_storage_bucket_object.deploy_airflow_dag_sample-rideshare-hydrate-data,
+
   ]
   # This just a "guess" and might need to be extended.  The Composer (Airflow) cluster is sized very small so it 
   # takes longer to sync the DAG files
@@ -936,7 +940,6 @@ resource "google_storage_bucket_object" "deploy_airflow_dag_sample-rideshare-dow
   source = "../cloud-composer/dags/sample-rideshare-download-images.py"
 
   depends_on = [ 
-    time_sleep.wait_for_airflow_dag_sync
     ]  
 }
 
@@ -947,7 +950,6 @@ resource "google_storage_bucket_object" "deploy_airflow_dag_sample-rideshare-hyd
   source = "../cloud-composer/dags/sample-rideshare-hydrate-data.py"
 
   depends_on = [ 
-    time_sleep.wait_for_airflow_dag_sync
     ]  
 }
 
@@ -958,10 +960,18 @@ resource "google_storage_bucket_object" "deploy_airflow_dag_sample-rideshare-hyd
   source = "../cloud-composer/dags/sample-rideshare-hydrate-object-table.py"
 
   depends_on = [ 
-    time_sleep.wait_for_airflow_dag_sync
     ]  
 }
 
+# Upload DAG
+resource "google_storage_bucket_object" "deploy_airflow_dag_sample-rideshare-object-table-delay" {
+  name   = "${local.local_composer_dag_path}/sample-rideshare-object-table-delay.py"
+  bucket = local.local_composer_bucket_name
+  source = "../cloud-composer/dags/sample-rideshare-object-table-delay.py"
+
+  depends_on = [ 
+    ]  
+}
 
 # Upload DAG
 resource "google_storage_bucket_object" "deploy_airflow_dag_sample-rideshare-run-data-quality" {
@@ -981,7 +991,6 @@ resource "google_storage_bucket_object" "deploy_airflow_dag_sample-rideshare-web
   source = "../cloud-composer/dags/sample-rideshare-website.py"
 
   depends_on = [ 
-    time_sleep.wait_for_airflow_dag_sync
     ]  
 }
 

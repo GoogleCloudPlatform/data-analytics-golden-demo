@@ -109,6 +109,12 @@ SELECT `${bigquery_rideshare_lakehouse_enriched_dataset}.ext_udf_ai_detect_logos
  */        
 
 
+--!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+-- ALERT: You need to make sure there is data in the table
+--        Object tables can take a few minutes to sync
+--        During the deployment the Airflow job waits for data in this table, before calling this procedure
+--!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 -- Score all the new items (that have not been scored) in batches
 -- DECLARE loopCounter INT64 DEFAULT 0;
 LOOP

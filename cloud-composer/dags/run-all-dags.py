@@ -107,9 +107,17 @@ with airflow.DAG('run-all-dags',
         wait_for_completion=True
     )  
 
+     # Wait for data in the object table
+    sample_rideshare_object_table_delay = TriggerDagRunOperator(
+        task_id="sample_rideshare_object_table_delay",
+        trigger_dag_id="sample-rideshare-object-table-delay",
+        wait_for_completion=True
+    )     
+
     # DAG Graph
     step_01_taxi_data_download >> [step_02_taxi_data_processing, sample_rideshare_hydrate_object_table, sample_rideshare_download_images]
     step_02_taxi_data_processing >> [step_03_hydrate_tables, sample_rideshare_website]
-    step_03_hydrate_tables >> [sample_dataflow_start_streaming_job, sample_rideshare_hydrate_data]
+    step_03_hydrate_tables >> [sample_dataflow_start_streaming_job, sample_rideshare_object_table_delay]
+    sample_rideshare_object_table_delay >> sample_rideshare_hydrate_data
 
 # [END dag]
