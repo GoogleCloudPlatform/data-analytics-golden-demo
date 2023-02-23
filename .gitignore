@@ -18,7 +18,6 @@ terraform/.terraform.tfstate.lock.info
 terraform/terraform.tfstate.backup
 terraform/tf-output.json
 temp.sql
-deploy-omni.sh
 datafusion/system/*
 datafusion/sample-json/*
 temp.py
@@ -40,3 +39,4 @@ bp-controller-log.json
 temp-sql-template.txt
 deploy-omni2.sh
 cloud-functions/rideshare-plus-rest-api.zip
+deploy-env-shortcut.sh
