@@ -15,7 +15,8 @@
 ####################################################################################
 
 # Author:  Adam Paternostro
-# Summary: Processes the downloaded Taxi data in the bucket to Parquet, CSV, JSON
+# Summary: Runs all the stored procedures necessary to hydrate the raw, enriched and curated zone of 
+#          the Rideshare Analytics Lakehouse
 
 # [START dag]
 from google.cloud import storage

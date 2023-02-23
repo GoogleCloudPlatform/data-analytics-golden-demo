@@ -15,7 +15,9 @@
 ####################################################################################
 
 # Author:  Adam Paternostro
-# Summary: Processes the downloaded Taxi data in the bucket to Parquet, CSV, JSON
+# Summary: Runs the procedure to create the Object Table.  This table is created first
+#          in a pipeline in order to provide time for it to automatically refresh data
+#          from the GCS bucket it is monitoring
 
 # [START dag]
 from google.cloud import storage

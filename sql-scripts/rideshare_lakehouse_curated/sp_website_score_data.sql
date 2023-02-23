@@ -17,10 +17,11 @@
     
   /*
   Use Cases:
-      - 
+      - For each pickup location this will use the AI/ML Model to score the data.  The results are then
+        placed in a table.  The top 10 results are then presented based upon the highest scoring. 
   
   Description: 
-      - 
+      - This is called by the Rideshare Plus website
       
   Show:
       - 
@@ -38,7 +39,7 @@ BEGIN TRANSACTION;
     DELETE FROM `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.bigquery_predict_high_value_rides` WHERE TRUE;
 
     -- Score every location to determine the highest value ones
-    EXECUTE IMMEDIATE """
+    EXECUTE IMMEDIATE format("""
     INSERT INTO `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.bigquery_predict_high_value_rides`
     (location_id, borough, zone, latitude, longitude, geo_point, pickup_year, pickup_month, pickup_day, 
     pickup_day_of_week, pickup_hour, ride_distance, is_raining, is_snowing, people_traveling_cnt, people_cnt, 
@@ -77,14 +78,18 @@ BEGIN TRANSACTION;
                 CAST(EXTRACT(DAY       FROM CURRENT_DATETIME()) AS STRING) AS pickup_day,
                 CAST(EXTRACT(DAYOFWEEK FROM CURRENT_DATETIME()) AS STRING) AS pickup_day_of_week,
                 CAST(EXTRACT(HOUR      FROM CURRENT_DATETIME()) AS STRING) AS pickup_hour,
-                ride_distance AS ride_distance,
-                is_raining AS is_raining,
-                is_snowing AS is_snowing,
-                people_traveling_cnt AS people_traveling_cnt,
-                people_cnt AS people_cnt
+                '%s' AS ride_distance,
+                %s AS is_raining,
+                %s AS is_snowing,
+                %s AS people_traveling_cnt,
+                %s AS people_cnt
             FROM `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.bigquery_rideshare_zone`
         ));
-    """;
+      """, ride_distance,
+           CAST(is_raining AS STRING),
+           CAST(is_snowing AS STRING),
+           CAST(people_traveling_cnt AS STRING),
+           CAST(people_cnt AS STRING));
 
     -- Just so we have some results for the demo
     UPDATE `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.bigquery_predict_high_value_rides` parent
@@ -100,6 +105,14 @@ BEGIN TRANSACTION;
             SELECT CAST(ROUND(1 + RAND() * (263 - 1)) AS INT) AS location_id) AS child
     WHERE parent.location_id = child.location_id;
 
+    -- Only show the top 10 rides (so the map is not too cluttered)
+    DELETE
+      FROM `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.bigquery_predict_high_value_rides`
+     WHERE location_id NOT IN (SELECT location_id
+                                 FROM `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.bigquery_predict_high_value_rides`
+                             ORDER BY predicted_is_high_value_ride DESC
+                                LIMIT 10);
+  
     -- Optional: View values
     /*
     SELECT *

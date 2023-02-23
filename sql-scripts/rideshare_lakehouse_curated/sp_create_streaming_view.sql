@@ -17,13 +17,15 @@
     
   /*
   Use Cases:
-      - Creates a View over the streaming data
+      - Creates a view over the streaming data so the data is summarized.
+        The (raw) data consists of many messages per ride, this will rank and partition the data
+        to find the ride start and ride end.       
   
   Description: 
       - 
   
   Show:
-      - 
+      - Analytic queries on lots of data arriving at a fast pace.
   
   References:
       - 

@@ -21,7 +21,7 @@
   
   Description: 
       - Process all data into the Iceberg format
-      - Generate credit card number for the system
+      - Generates "fake" credit card number for the system
       
   Show:
       - 

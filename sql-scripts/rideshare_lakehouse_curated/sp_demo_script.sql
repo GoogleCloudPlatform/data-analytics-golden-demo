@@ -21,7 +21,7 @@
       - This is the Main Demo script for the entire demo
 
   Show:
-      - The entire demo
+      - The entire demo and architecture slide
 
   References:
       - 

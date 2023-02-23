@@ -15,7 +15,9 @@
 ####################################################################################
 
 # Author:  Adam Paternostro
-# Summary: Processes the downloaded Taxi data in the bucket to Parquet, CSV, JSON
+# Summary: Waits until the table has data in it
+#          You could call: https://cloud.google.com/bigquery/docs/reference/system-procedures#bqrefresh_external_metadata_cache
+#          The above call requires your table refresh to be set to Manual.
 
 # [START dag]
 from google.cloud import storage

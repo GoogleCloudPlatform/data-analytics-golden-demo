@@ -15,12 +15,12 @@
 ####################################################################################
 
 # Author:  Adam Paternostro
-# Summary: Runs a dataplex data quality job against the rideshare trips table
-#          Polls the job until it completes
-#          Reads the data quality results (from BigQuery) and updates the rideshare trips in the data catalog assigning a tag template
-#          The user can see the data quality results by searching for the rideshare trips table in data catalog
-#          Reads the data quality results (from BigQuery) and updates the rideshare trips [COLUMN Level] in the data catalog assigning a tag template
-#          The user can see the data quality results by searching for the rideshare trips table in data catalog by clicking on the Schema view
+# Summary: Runs a dataplex data quality job against the rideshare_lakehouse_curated.bigquery_rideshare_trip
+#          Polls the DQ job until it completes
+#          Reads the data quality results (from BigQuery) and updates the rideshare_lakehouse_curated.bigquery_rideshare_trip in the data catalog assigning a tag template
+#          The user can see the data quality results by searching for the rideshare_lakehouse_curated.bigquery_rideshare_trip table in data catalog
+#          Reads the data quality results (from BigQuery) and updates the rideshare_lakehouse_curated.bigquery_rideshare_trip [COLUMN Level] in the data catalog assigning a tag template
+#          The user can see the data quality results by searching for the rideshare_lakehouse_curated.bigquery_rideshare_trip table in (Curated zone) data catalog by clicking on the Schema view
 #
 # References: 
 #   https://github.com/GoogleCloudPlatform/cloud-data-quality

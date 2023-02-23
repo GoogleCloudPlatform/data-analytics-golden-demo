@@ -28,7 +28,7 @@
       - Users want an easy way to navigate and find items on data lakes
   
   Show:
-      - 
+      - The scoring of each item identified in each image.
   
   References:
       - https://cloud.google.com/bigquery/docs/object-table-introduction

@@ -17,15 +17,14 @@
     
   /*
   Use Cases:
-      - Cleans up the tables and calls the Spark stored procedure
+      - Ingests the data from Iceberg into BigQuery internal tables.  This lets us create
+        items like BigSearch indexes and cluster more efficiently.
   
   Description: 
-      - Process all data into the Iceberg format
-      - Generate credit card number for the system
-      - Place an index over the Rideshare table for fast access
+      - 
       
   Show:
-      - BigSpark
+      - 
   
   References:
       - 

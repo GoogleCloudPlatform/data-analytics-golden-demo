@@ -17,10 +17,10 @@
     
   /*
   Use Cases:
-      - Perform AI/ML on unstructed data stored in a data lake
       - Be able to query your data lake files with SQL
       - Filter files by last updated and/or metadata
       - Apply row level secuirty to the files that users can view
+      - You can even use these tables to determine which files on your storage is new and should be processed
   
   Description: 
       - Customers have images, PDF and other types of data in their lakes.  

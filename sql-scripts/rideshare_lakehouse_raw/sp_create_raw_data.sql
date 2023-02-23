@@ -17,7 +17,7 @@
   
   /*
   Use Cases:
-      - Export existing data as raw data for loading into an enriched zone
+      - Export existing data as raw data for loading into the raw zone.  BigQuery can export, CVS, Json, Orc, Parquet, etc.
   
   Description: 
       - Export data with different formats

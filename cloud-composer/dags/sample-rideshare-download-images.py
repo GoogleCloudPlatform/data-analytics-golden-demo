@@ -15,8 +15,7 @@
 ####################################################################################
 
 # Author:  Adam Paternostro
-# Summary: 
-# Deploys the Rideshare Plus website
+# Summary: Deploys the Rideshare Plus website
 
 
 # [START dag]

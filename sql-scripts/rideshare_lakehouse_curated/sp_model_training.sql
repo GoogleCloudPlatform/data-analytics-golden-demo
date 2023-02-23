@@ -21,8 +21,8 @@
   
   Description: 
       - Trains the model with all the data
-      - Uses our unstructed data for the model
-      - Uses shared weather data for the model
+      - Uses the unstructed data for the model (processed images)
+      - Uses shared weather data for the model (Analytics Hub)
       
   Show:
       - Training Data
@@ -32,6 +32,7 @@
   
   References:
       - 
+      
   Notes:
       - is holiday timeframe (need a list of holidays)
       - images of people with packages (need images based upon day of year and pickup location)

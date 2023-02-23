@@ -17,7 +17,9 @@
     
   /*
   Use Cases:
-      - Creates a View over the streaming data
+      - Creates a View over the streaming data.  This will determine the pickup and dropoff location of each ride.
+        The raw telemetry data provide updates during the ride (latitude/longitude) and this ranks/partitions the
+        data to skip the intermediate updates.
   
   Description: 
       - 

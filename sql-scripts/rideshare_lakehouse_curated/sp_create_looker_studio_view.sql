@@ -17,13 +17,15 @@
     
   /*
   Use Cases:
-      - Creates a View over the streaming data
+      - Creates a View used by Looker that combines the AI/ML prediction results with the
+        realtime streaming data
   
   Description: 
-      - 
+      - Creates a View used by Looker that combines the AI/ML prediction results with the
+        realtime streaming data
   
   Show:
-      - 
+      - Realtime results combined with static data
   
   References:
       - 
@@ -40,7 +42,7 @@ SELECT high_value.location_id AS Location,
        high_value.ride_distance AS RideLength,
        high_value.is_raining AS isRaining,
        high_value.is_snowing AS isSnowing,
-       COUNT(*) AS CurrentTrips
+       COUNT(streaming_data.pickup_location_id) AS CurrentTrips
   FROM `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.bigquery_predict_high_value_rides` AS high_value
        LEFT JOIN `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.bigquery_streaming_rideshare_trips` AS streaming_data
               ON high_value.location_id = streaming_data.pickup_location_id

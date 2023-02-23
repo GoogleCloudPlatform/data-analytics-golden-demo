@@ -17,7 +17,8 @@
     
   /*
   Use Cases:
-      - 
+      - This is a view on the streaming view that further combines the data so it can be presented
+        on the Rideshare Plus website.
   
   Description: 
       - 
@@ -29,6 +30,7 @@
       - 
   
   Clean up / Reset script:
+    DROP VIEW IF EXISTS `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.website_realtime_dashboard`;
 
   */
 
