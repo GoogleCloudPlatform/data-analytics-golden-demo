@@ -219,7 +219,7 @@ then
     cp ../terraform-modules/org-policies-destroy/tf-org-policies.tf ../terraform-modules/org-policies/tf-org-policies.tf
 
     # Run the Terraform Apply (to destroy the org policies)
-    terraform apply \
+    terraform apply -auto-approve \
       -var="gcp_account_name=${gcp_account_name}" \
       -var="org_id=${org_id}" \
       -var="billing_account=${billing_account}" \
