@@ -110,6 +110,7 @@ BEGIN TRANSACTION;
       FROM `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.bigquery_predict_high_value_rides`
      WHERE location_id NOT IN (SELECT location_id
                                  FROM `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.bigquery_predict_high_value_rides`
+                                WHERE is_high_value_ride = TRUE
                              ORDER BY predicted_is_high_value_ride DESC
                                 LIMIT 10);
   

@@ -228,6 +228,16 @@ resource "google_storage_bucket_object" "deploy_pyspark_export_taxi_data_from_bq
 }
 
 
+# Upload PySpark
+resource "google_storage_bucket_object" "deploy_pyspark_rideshare_iceberg_serverless" {
+  name   = "${local.local_dataproc_pyspark_path}/rideshare_iceberg_serverless.py"
+  bucket = "raw-${var.storage_bucket}"
+  source = "../dataproc/rideshare_iceberg_serverless.py"
+
+  depends_on = [ 
+    ]  
+}
+
 
 ####################################################################################
 # Upload the PySpark scripts
@@ -775,6 +785,7 @@ resource "time_sleep" "wait_for_airflow_dag_sync" {
     google_storage_bucket_object.deploy_airflow_dag_sample-dataflow-start-streaming-job,
 
     google_storage_bucket_object.deploy_airflow_dag_sample-rideshare-hydrate-object-table,
+    google_storage_bucket_object.deploy_airflow_dag_sample-rideshare-iceberg-serverless,
     google_storage_bucket_object.deploy_airflow_dag_sample-rideshare-download-images,
     google_storage_bucket_object.deploy_airflow_dag_sample-rideshare-website,
     google_storage_bucket_object.deploy_airflow_dag_sample-rideshare-object-table-delay,
@@ -958,6 +969,16 @@ resource "google_storage_bucket_object" "deploy_airflow_dag_sample-rideshare-hyd
   name   = "${local.local_composer_dag_path}/sample-rideshare-hydrate-object-table.py"
   bucket = local.local_composer_bucket_name
   source = "../cloud-composer/dags/sample-rideshare-hydrate-object-table.py"
+
+  depends_on = [ 
+    ]  
+}
+
+# Upload DAG
+resource "google_storage_bucket_object" "deploy_airflow_dag_sample-rideshare-iceberg-serverless" {
+  name   = "${local.local_composer_dag_path}/sample-rideshare-iceberg-serverless.py"
+  bucket = local.local_composer_bucket_name
+  source = "../cloud-composer/dags/sample-rideshare-iceberg-serverless.py"
 
   depends_on = [ 
     ]  

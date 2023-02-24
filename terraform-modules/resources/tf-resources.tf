@@ -973,13 +973,53 @@ resource "google_storage_bucket_object" "rideshare_plus_function_zip_upload" {
     ]  
 }
 
+# Deploy the function V2
+resource "google_cloudfunctions2_function" "rideshare_plus_function" {
+  project     = var.project_id
+  location    = "us-central1"
+  name        = "demo-rest-api-service"
+  description = "demo-rest-api-service"
 
-# Deploy the function
+  build_config {
+    runtime = "python310"
+    entry_point = "entrypoint"  # Set the entry point 
+    source {
+      storage_source {
+        bucket = google_storage_bucket.code_bucket.name 
+        object = google_storage_bucket_object.rideshare_plus_function_zip_upload.name
+      }
+    }
+  }
+
+  service_config {
+    max_instance_count  = 10
+    min_instance_count = 1
+    available_memory    = "256M"
+    timeout_seconds     = 60
+    ingress_settings    = "ALLOW_ALL"
+    all_traffic_on_latest_revision = true
+    environment_variables = {
+        PROJECT_ID       = var.project_id,
+        ENV_CODE_BUCKET  = "code-${var.storage_bucket}"
+
+    }
+  }
+
+  depends_on = [ 
+    google_storage_bucket.code_bucket,
+    data.archive_file.rideshare_plus_function_zip,
+    google_storage_bucket_object.rideshare_plus_function_zip_upload
+  ]    
+}
+
+
+# Deploy the function (V1)
+/*
 resource "google_cloudfunctions_function" "rideshare_plus_function" {
   project     = var.project_id
   region      = "us-central1"
-  name        = "rideshare_plus_rest_api"
-  description = "rideshare_plus_rest_api"
+  name        = "demo-rest-api-service"
+  description = "demo-rest-api-service"
   runtime     = "python310"
 
   available_memory_mb          = 256
@@ -1017,6 +1057,7 @@ resource "google_cloudfunctions_function_iam_member" "rideshare_plus_function_in
     google_cloudfunctions_function.rideshare_plus_function
   ]    
 }
+*/
 
 ####################################################################################
 # BigQuery - Connections (BigLake, Functions, etc)
@@ -1054,7 +1095,7 @@ resource "google_cloudfunctions_function_iam_member" "invoker" {
 }
 
 
-# Allow cloud function service account to read storage
+# Allow cloud function service account to read storage [V1 Function]
 resource "google_project_iam_member" "bq_connection_iam_cloud_invoker" {
   project  = var.project_id
   role     = "roles/storage.objectViewer"
@@ -1069,12 +1110,28 @@ resource "google_project_iam_member" "bq_connection_iam_cloud_invoker" {
   ]
 }
 
+# Allow cloud function service account to read storage [V2 Function]
+resource "google_project_iam_member" "cloudfunction_rest_api_iam" {
+  project  = var.project_id
+  role     = "roles/storage.objectViewer"
+  member   = "serviceAccount:${var.project_number}-compute@developer.gserviceaccount.com"
+
+  depends_on = [ 
+    google_storage_bucket.code_bucket,
+    data.archive_file.bigquery_external_function_zip,
+    google_storage_bucket_object.bigquery_external_function_zip_upload,
+    google_cloudfunctions_function.bigquery_external_function,
+    google_bigquery_connection.cloud_function_connection
+  ]
+}
+
+
 
 # The cloud function needs to read/write to this bucket (code bucket)
 resource "google_storage_bucket_iam_member" "function_code_bucket_storage_admin" {
   bucket = google_storage_bucket.code_bucket.name
   role   = "roles/storage.admin"
-  member = "serviceAccount:${var.project_id}@appspot.gserviceaccount.com"
+  member = "serviceAccount:${var.project_number}-compute@developer.gserviceaccount.com"
 
   depends_on = [ 
     google_storage_bucket.code_bucket,
@@ -1090,7 +1147,7 @@ resource "google_storage_bucket_iam_member" "function_code_bucket_storage_admin"
 resource "google_project_iam_member" "cloud_function_bq_job_user" {
   project  = var.project_id
   role     = "roles/bigquery.jobUser"
-  member   = "serviceAccount:${var.project_id}@appspot.gserviceaccount.com"
+  member   = "serviceAccount:${var.project_number}-compute@developer.gserviceaccount.com"
 
   depends_on = [ 
     google_storage_bucket.code_bucket,
@@ -1106,12 +1163,12 @@ resource "google_project_iam_member" "cloud_function_bq_job_user" {
 resource "google_bigquery_dataset_access" "cloud_function_access_bq_rideshare_curated" {
   dataset_id    = google_bigquery_dataset.rideshare_lakehouse_curated_dataset.dataset_id
   role          = "roles/bigquery.dataOwner"
-  user_by_email = "${var.project_id}@appspot.gserviceaccount.com"
+  user_by_email = "${var.project_number}-compute@developer.gserviceaccount.com"
 
   depends_on = [ 
     data.archive_file.rideshare_plus_function_zip,
     google_storage_bucket_object.rideshare_plus_function_zip_upload,
-    google_cloudfunctions_function.rideshare_plus_function,
+    google_cloudfunctions2_function.rideshare_plus_function,
     google_bigquery_dataset.rideshare_lakehouse_curated_dataset
   ]  
 }
@@ -1120,17 +1177,17 @@ resource "google_bigquery_dataset_access" "cloud_function_access_bq_rideshare_cu
 resource "google_bigquery_dataset_access" "cloud_function_access_bq_rideshare_raw" {
   dataset_id    = google_bigquery_dataset.rideshare_lakehouse_raw_dataset.dataset_id
   role          = "roles/bigquery.dataViewer"
-  user_by_email = "${var.project_id}@appspot.gserviceaccount.com"
+  user_by_email = "${var.project_number}-compute@developer.gserviceaccount.com"
 
   depends_on = [ 
     data.archive_file.rideshare_plus_function_zip,
     google_storage_bucket_object.rideshare_plus_function_zip_upload,
-    google_cloudfunctions_function.rideshare_plus_function,
+    google_cloudfunctions2_function.rideshare_plus_function,
     google_bigquery_dataset.rideshare_lakehouse_raw_dataset
   ]  
 }
 
- # For streaming data / view
+ # For streaming data / view [V1 Function]
 resource "google_bigquery_dataset_access" "cloud_function_access_bq_taxi_dataset" {
   dataset_id    = google_bigquery_dataset.taxi_dataset.dataset_id
   role          = "roles/bigquery.dataViewer"
@@ -1139,7 +1196,7 @@ resource "google_bigquery_dataset_access" "cloud_function_access_bq_taxi_dataset
   depends_on = [ 
     data.archive_file.rideshare_plus_function_zip,
     google_storage_bucket_object.rideshare_plus_function_zip_upload,
-    google_cloudfunctions_function.rideshare_plus_function,
+    google_cloudfunctions2_function.rideshare_plus_function,
     google_bigquery_dataset.taxi_dataset
   ]  
 }

@@ -296,4 +296,9 @@ resource "google_project_service" "service-appengine" {
   service = "appengine.googleapis.com"
 }
 
+resource "google_project_service" "service-cloudrun" {
+  project = var.project_id
+  service = "run.googleapis.com"
+}
+
 
