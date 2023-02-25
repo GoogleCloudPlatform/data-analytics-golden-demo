@@ -202,7 +202,7 @@ with airflow.DAG('sample-rideshare-hydrate-data',
     # Run Dataproc (until BigSpark is public)
     sample_rideshare_iceberg_serverless = TriggerDagRunOperator(
         task_id="sample_rideshare_iceberg_serverless",
-        trigger_dag_id="sample-rideshare-iceberg-serverlesse",
+        trigger_dag_id="sample-rideshare-iceberg-serverless",
         wait_for_completion=True
     )          
 
