@@ -301,4 +301,7 @@ resource "google_project_service" "service-cloudrun" {
   service = "run.googleapis.com"
 }
 
-
+resource "google_project_service" "service-biglake" {
+  project = var.project_id
+  service = "biglake.googleapis.com"
+}

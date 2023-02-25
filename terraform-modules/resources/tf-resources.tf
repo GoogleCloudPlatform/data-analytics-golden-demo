@@ -1030,6 +1030,24 @@ resource "google_cloudfunctions2_function_iam_member" "rideshare_plus_function_i
   ]    
 }
 
+# Update the Cloud Run to support allUsers used by Cloud Function V2
+resource "google_cloud_run_service_iam_binding" "rideshare_plus_function_cloudrun" {
+  project  = google_cloudfunctions2_function.rideshare_plus_function.project
+  location = google_cloudfunctions2_function.rideshare_plus_function.location
+  service  = google_cloudfunctions2_function.rideshare_plus_function.name
+
+  role     = "roles/run.invoker"
+  members  = ["allUsers"]
+
+  depends_on = [ 
+    google_storage_bucket.code_bucket,
+    data.archive_file.rideshare_plus_function_zip,
+    google_storage_bucket_object.rideshare_plus_function_zip_upload,
+    google_cloudfunctions2_function.rideshare_plus_function
+  ]    
+}
+
+
 # Deploy the function (V1)
 /*
 resource "google_cloudfunctions_function" "rideshare_plus_function" {
@@ -1204,11 +1222,11 @@ resource "google_bigquery_dataset_access" "cloud_function_access_bq_rideshare_ra
   ]  
 }
 
- # For streaming data / view [V1 Function]
+ # For streaming data / view [V2 function]
 resource "google_bigquery_dataset_access" "cloud_function_access_bq_taxi_dataset" {
   dataset_id    = google_bigquery_dataset.taxi_dataset.dataset_id
   role          = "roles/bigquery.dataViewer"
-  user_by_email = "${var.project_id}@appspot.gserviceaccount.com"
+  user_by_email = "${var.project_number}-compute@developer.gserviceaccount.com"
 
   depends_on = [ 
     data.archive_file.rideshare_plus_function_zip,
