@@ -28,6 +28,7 @@ import logging
 import airflow
 from airflow.utils import trigger_rule
 from airflow.providers.google.cloud.operators.bigquery import BigQueryInsertJobOperator
+from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 
 
 default_args = {
@@ -44,20 +45,21 @@ default_args = {
 project_id            = os.environ['GCP_PROJECT'] 
 bigquery_region       = os.environ['ENV_BIGQUERY_REGION'] 
 
-rideshare_lakehouse_raw_sp_create_raw_data="CALL `{}.rideshare_lakehouse_raw.sp_create_raw_data`();".format(project_id)
-rideshare_lakehouse_raw_sp_create_biglake_object_table="CALL `{}.rideshare_lakehouse_raw.sp_create_biglake_object_table`();".format(project_id)
-rideshare_lakehouse_raw_sp_create_streaming_view="CALL `{}.rideshare_lakehouse_raw.sp_create_streaming_view`();".format(project_id)
-rideshare_lakehouse_raw_sproc_sp_create_biglake_tables="CALL `{}.rideshare_lakehouse_raw.sproc_sp_create_biglake_tables`();".format(project_id)
+sp_rideshare_lakehouse_raw_sp_create_raw_data="CALL `{}.rideshare_lakehouse_raw.sp_create_raw_data`();".format(project_id)
+sp_rideshare_lakehouse_raw_sp_create_biglake_object_table="CALL `{}.rideshare_lakehouse_raw.sp_create_biglake_object_table`();".format(project_id)
+sp_rideshare_lakehouse_raw_sp_create_streaming_view="CALL `{}.rideshare_lakehouse_raw.sp_create_streaming_view`();".format(project_id)
+sp_rideshare_lakehouse_raw_sproc_sp_create_biglake_tables="CALL `{}.rideshare_lakehouse_raw.sproc_sp_create_biglake_tables`();".format(project_id)
 
-rideshare_lakehouse_enriched_sp_process_data="CALL `{}.rideshare_lakehouse_enriched.sp_process_data`();".format(project_id)
-rideshare_lakehouse_enriched_sp_unstructured_data_analysis="CALL `{}.rideshare_lakehouse_enriched.sp_unstructured_data_analysis`();".format(project_id)
-rideshare_lakehouse_enriched_sp_create_streaming_view="CALL `{}.rideshare_lakehouse_enriched.sp_create_streaming_view`();".format(project_id)
+sp_rideshare_lakehouse_enriched_sp_process_data="CALL `{}.rideshare_lakehouse_enriched.sp_process_data`();".format(project_id)
+sp_rideshare_lakehouse_enriched_sp_iceberg_spark_transformation="CALL `{}.rideshare_lakehouse_enriched.sp_iceberg_spark_transformation`();".format(project_id)
+sp_rideshare_lakehouse_enriched_sp_unstructured_data_analysis="CALL `{}.rideshare_lakehouse_enriched.sp_unstructured_data_analysis`();".format(project_id)
+sp_rideshare_lakehouse_enriched_sp_create_streaming_view="CALL `{}.rideshare_lakehouse_enriched.sp_create_streaming_view`();".format(project_id)
 
-rideshare_lakehouse_curated_sp_process_data="CALL `{}.rideshare_lakehouse_curated.sp_process_data`();".format(project_id)
-rideshare_lakehouse_curated_sp_create_streaming_view="CALL `{}.rideshare_lakehouse_curated.sp_create_streaming_view`();".format(project_id)
-rideshare_lakehouse_curated_sp_create_looker_studio_view="CALL `{}.rideshare_lakehouse_curated.sp_create_looker_studio_view`();".format(project_id)
-rideshare_lakehouse_curated_sp_create_website_realtime_dashboard="CALL `{}.rideshare_lakehouse_curated.sp_create_website_realtime_dashboard`();".format(project_id)
-rideshare_lakehouse_curated_sp_model_training="CALL `{}.rideshare_lakehouse_curated.sp_model_training`();".format(project_id)
+sp_rideshare_lakehouse_curated_sp_process_data="CALL `{}.rideshare_lakehouse_curated.sp_process_data`();".format(project_id)
+sp_rideshare_lakehouse_curated_sp_create_streaming_view="CALL `{}.rideshare_lakehouse_curated.sp_create_streaming_view`();".format(project_id)
+sp_rideshare_lakehouse_curated_sp_create_looker_studio_view="CALL `{}.rideshare_lakehouse_curated.sp_create_looker_studio_view`();".format(project_id)
+sp_rideshare_lakehouse_curated_sp_create_website_realtime_dashboard="CALL `{}.rideshare_lakehouse_curated.sp_create_website_realtime_dashboard`();".format(project_id)
+sp_rideshare_lakehouse_curated_sp_model_training="CALL `{}.rideshare_lakehouse_curated.sp_model_training`();".format(project_id)
 
 
 with airflow.DAG('sample-rideshare-hydrate-data',
@@ -71,7 +73,7 @@ with airflow.DAG('sample-rideshare-hydrate-data',
         location=bigquery_region,
         configuration={
             "query": {
-                "query": rideshare_lakehouse_raw_sp_create_raw_data,
+                "query": sp_rideshare_lakehouse_raw_sp_create_raw_data,
                 "useLegacySql": False,
             }
         })
@@ -81,7 +83,7 @@ with airflow.DAG('sample-rideshare-hydrate-data',
         location=bigquery_region,
         configuration={
             "query": {
-                "query": rideshare_lakehouse_raw_sp_create_biglake_object_table,
+                "query": sp_rideshare_lakehouse_raw_sp_create_biglake_object_table,
                 "useLegacySql": False,
             }
         })  
@@ -91,7 +93,7 @@ with airflow.DAG('sample-rideshare-hydrate-data',
         location=bigquery_region,
         configuration={
             "query": {
-                "query": rideshare_lakehouse_raw_sp_create_streaming_view,
+                "query": sp_rideshare_lakehouse_raw_sp_create_streaming_view,
                 "useLegacySql": False,
             }
         })  
@@ -101,7 +103,7 @@ with airflow.DAG('sample-rideshare-hydrate-data',
         location=bigquery_region,
         configuration={
             "query": {
-                "query": rideshare_lakehouse_raw_sproc_sp_create_biglake_tables,
+                "query": sp_rideshare_lakehouse_raw_sproc_sp_create_biglake_tables,
                 "useLegacySql": False,
             }
         })            
@@ -111,7 +113,7 @@ with airflow.DAG('sample-rideshare-hydrate-data',
         location=bigquery_region,
         configuration={
             "query": {
-                "query": rideshare_lakehouse_enriched_sp_process_data,
+                "query": sp_rideshare_lakehouse_enriched_sp_process_data,
                 "useLegacySql": False,
             }
         })  
@@ -121,7 +123,7 @@ with airflow.DAG('sample-rideshare-hydrate-data',
         location=bigquery_region,
         configuration={
             "query": {
-                "query": rideshare_lakehouse_enriched_sp_unstructured_data_analysis,
+                "query": sp_rideshare_lakehouse_enriched_sp_unstructured_data_analysis,
                 "useLegacySql": False,
             }
         })  
@@ -131,7 +133,7 @@ with airflow.DAG('sample-rideshare-hydrate-data',
         location=bigquery_region,
         configuration={
             "query": {
-                "query": rideshare_lakehouse_enriched_sp_create_streaming_view,
+                "query": sp_rideshare_lakehouse_enriched_sp_create_streaming_view,
                 "useLegacySql": False,
             }
         })  
@@ -141,7 +143,7 @@ with airflow.DAG('sample-rideshare-hydrate-data',
         location=bigquery_region,
         configuration={
             "query": {
-                "query": rideshare_lakehouse_curated_sp_process_data,
+                "query": sp_rideshare_lakehouse_curated_sp_process_data,
                 "useLegacySql": False,
             }
         })  
@@ -151,7 +153,7 @@ with airflow.DAG('sample-rideshare-hydrate-data',
         location=bigquery_region,
         configuration={
             "query": {
-                "query": rideshare_lakehouse_curated_sp_create_streaming_view,
+                "query": sp_rideshare_lakehouse_curated_sp_create_streaming_view,
                 "useLegacySql": False,
             }
         })  
@@ -161,7 +163,7 @@ with airflow.DAG('sample-rideshare-hydrate-data',
         location=bigquery_region,
         configuration={
             "query": {
-                "query": rideshare_lakehouse_curated_sp_create_looker_studio_view,
+                "query": sp_rideshare_lakehouse_curated_sp_create_looker_studio_view,
                 "useLegacySql": False,
             }
         })  
@@ -171,7 +173,7 @@ with airflow.DAG('sample-rideshare-hydrate-data',
         location=bigquery_region,
         configuration={
             "query": {
-                "query": rideshare_lakehouse_curated_sp_create_website_realtime_dashboard,
+                "query": sp_rideshare_lakehouse_curated_sp_create_website_realtime_dashboard,
                 "useLegacySql": False,
             }
         })  
@@ -181,18 +183,47 @@ with airflow.DAG('sample-rideshare-hydrate-data',
         location=bigquery_region,
         configuration={
             "query": {
-                "query": rideshare_lakehouse_curated_sp_model_training,
+                "query": sp_rideshare_lakehouse_curated_sp_model_training,
                 "useLegacySql": False,
             }
         })  
 
+    # BigSpark
+    #rideshare_lakehouse_enriched_sp_iceberg_spark_transformation = BigQueryInsertJobOperator(
+    #    task_id="rideshare_lakehouse_enriched_sp_iceberg_spark_transformation",
+    #    location=bigquery_region,
+    #    configuration={
+    #        "query": {
+    #            "query": sp_rideshare_lakehouse_enriched_sp_iceberg_spark_transformation,
+    #            "useLegacySql": False,
+    #        }
+    #    })  
 
+    # Run Dataproc (until BigSpark is public)
+    sample_rideshare_iceberg_serverless = TriggerDagRunOperator(
+        task_id="sample_rideshare_iceberg_serverless",
+        trigger_dag_id="sample-rideshare-iceberg-serverlesse",
+        wait_for_completion=True
+    )          
+
+    # Process Iceberg using Dataproc Serverless Spark
     rideshare_lakehouse_raw_sp_create_raw_data >> rideshare_lakehouse_raw_sp_create_biglake_object_table >> \
         rideshare_lakehouse_raw_sp_create_streaming_view >> rideshare_lakehouse_raw_sproc_sp_create_biglake_tables >> \
-        rideshare_lakehouse_enriched_sp_process_data >> rideshare_lakehouse_enriched_sp_unstructured_data_analysis >> \
+        rideshare_lakehouse_enriched_sp_process_data >> sample_rideshare_iceberg_serverless >> \
+        rideshare_lakehouse_enriched_sp_unstructured_data_analysis >> \
         rideshare_lakehouse_enriched_sp_create_streaming_view >> \
         rideshare_lakehouse_curated_sp_process_data >> rideshare_lakehouse_curated_sp_create_streaming_view >> \
         rideshare_lakehouse_curated_sp_create_looker_studio_view >> rideshare_lakehouse_curated_sp_create_website_realtime_dashboard >> \
         rideshare_lakehouse_curated_sp_model_training
+
+    # Process Iceberg using BigSpark (still in preview)
+    #rideshare_lakehouse_raw_sp_create_raw_data >> rideshare_lakehouse_raw_sp_create_biglake_object_table >> \
+    #    rideshare_lakehouse_raw_sp_create_streaming_view >> rideshare_lakehouse_raw_sproc_sp_create_biglake_tables >> \
+    #    rideshare_lakehouse_enriched_sp_process_data >> rideshare_lakehouse_enriched_sp_iceberg_spark_transformation >> \
+    #    rideshare_lakehouse_enriched_sp_unstructured_data_analysis >> \
+    #    rideshare_lakehouse_enriched_sp_create_streaming_view >> \
+    #    rideshare_lakehouse_curated_sp_process_data >> rideshare_lakehouse_curated_sp_create_streaming_view >> \
+    #    rideshare_lakehouse_curated_sp_create_looker_studio_view >> rideshare_lakehouse_curated_sp_create_website_realtime_dashboard >> \
+    #    rideshare_lakehouse_curated_sp_model_training
 
 # [END dag]

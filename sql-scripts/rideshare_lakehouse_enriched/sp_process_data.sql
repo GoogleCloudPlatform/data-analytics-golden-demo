@@ -73,5 +73,5 @@ OPTIONS (
        );
 */
 
--- CALL Spark job
-CALL `${project_id}.${bigquery_rideshare_lakehouse_enriched_dataset}.sp_iceberg_spark_transformation`();
+-- CALL Spark job (if not calling from Airflow DAG you can comment this out)
+-- CALL `${project_id}.${bigquery_rideshare_lakehouse_enriched_dataset}.sp_iceberg_spark_transformation`();
