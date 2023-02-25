@@ -1013,6 +1013,23 @@ resource "google_cloudfunctions2_function" "rideshare_plus_function" {
 }
 
 
+# IAM entry for all users to invoke the function
+resource "google_cloudfunctions2_function_iam_member" "rideshare_plus_function_invoker" {
+  project        = google_cloudfunctions2_function.rideshare_plus_function.project
+  location       = google_cloudfunctions2_function.rideshare_plus_function.location
+  cloud_function = google_cloudfunctions2_function.rideshare_plus_function.name
+
+  role   = "roles/cloudfunctions.invoker"
+  member = "allUsers"
+
+  depends_on = [ 
+    google_storage_bucket.code_bucket,
+    data.archive_file.rideshare_plus_function_zip,
+    google_storage_bucket_object.rideshare_plus_function_zip_upload,
+    google_cloudfunctions2_function.rideshare_plus_function
+  ]    
+}
+
 # Deploy the function (V1)
 /*
 resource "google_cloudfunctions_function" "rideshare_plus_function" {
@@ -1970,4 +1987,8 @@ output "gcs_rideshare_lakehouse_enriched_bucket" {
 
 output "gcs_rideshare_lakehouse_curated_bucket" {
   value = google_storage_bucket.rideshare_lakehouse_curated.name
+}
+
+output "demo_rest_api_service_uri" { 
+  value = google_cloudfunctions2_function.rideshare_plus_function.service_config[0].uri
 }

@@ -41,6 +41,7 @@ variable "random_extension" {}
 variable "deployment_service_account_name" {}
 variable "composer_name" {}
 variable "composer_dag_bucket" {}
+variable "demo_rest_api_service_uri" {}
 
 
 locals {
@@ -1047,31 +1048,31 @@ resource "google_storage_bucket_object" "deploy_rideshare_website_gcloudignore" 
 resource "google_storage_bucket_object" "deploy_rideshare_website_www_configuration" {
   name    = "${local.local_composer_data_path}/rideshare-website/www/configuration.html"
   bucket  = local.local_composer_bucket_name
-  content = templatefile("../rideshare-website/www/configuration.html", { project_id =var.project_id })
+  content = templatefile("../rideshare-website/www/configuration.html", { project_id =var.project_id, demo_rest_api_service_uri=var.demo_rest_api_service_uri })
 }
 
 resource "google_storage_bucket_object" "deploy_rideshare_website_www_index" {
   name    = "${local.local_composer_data_path}/rideshare-website/www/index.html"
   bucket  = local.local_composer_bucket_name
-  content = templatefile("../rideshare-website/www/index.html", { project_id =var.project_id })
+  content = templatefile("../rideshare-website/www/index.html", { project_id =var.project_id, demo_rest_api_service_uri=var.demo_rest_api_service_uri })
 }
 
 resource "google_storage_bucket_object" "deploy_rideshare_website_www_predict" {
   name    = "${local.local_composer_data_path}/rideshare-website/www/predict.html"
   bucket  = local.local_composer_bucket_name
-  content = templatefile("../rideshare-website/www/predict.html", { project_id =var.project_id })
+  content = templatefile("../rideshare-website/www/predict.html", { project_id =var.project_id, demo_rest_api_service_uri=var.demo_rest_api_service_uri })
 }
 
 resource "google_storage_bucket_object" "deploy_rideshare_website_www_realtime" {
   name    = "${local.local_composer_data_path}/rideshare-website/www/realtime.html"
   bucket  = local.local_composer_bucket_name
-  content = templatefile("../rideshare-website/www/realtime.html", { project_id =var.project_id })
+  content = templatefile("../rideshare-website/www/realtime.html", { project_id =var.project_id, demo_rest_api_service_uri=var.demo_rest_api_service_uri })
 }
 
 resource "google_storage_bucket_object" "deploy_rideshare_website_www_reports" {
   name    = "${local.local_composer_data_path}/rideshare-website/www/reports.html"
   bucket  = local.local_composer_bucket_name
-  content = templatefile("../rideshare-website/www/reports.html", { project_id =var.project_id })
+  content = templatefile("../rideshare-website/www/reports.html", { project_id =var.project_id, demo_rest_api_service_uri=var.demo_rest_api_service_uri })
 }
 
 

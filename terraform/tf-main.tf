@@ -498,6 +498,7 @@ module "deploy-files-module" {
   deployment_service_account_name = var.deployment_service_account_name
   composer_name                   = module.resources.composer_env_name
   composer_dag_bucket             = module.resources.composer_env_dag_bucket
+  demo_rest_api_service_uri       = module.resources.demo_rest_api_service_uri
 
   depends_on = [
     module.project,
@@ -792,6 +793,10 @@ output "dataplex_ecommerce_datalake_curated_zone" {
 
 output "dataplex_ecommerce_datalake_processed_datasets" {
   value = "ecommerce-dataset-${random_string.project_random.result}"
+}
+
+output "demo_rest_api_service_uri" {
+  value = module.resources.demo_rest_api_service_uri
 }
 
 

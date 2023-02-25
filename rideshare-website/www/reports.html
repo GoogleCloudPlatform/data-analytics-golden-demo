@@ -166,7 +166,7 @@
 
     function loadConfig() {
         try {
-            var serviceURL = "https://us-central1-${project_id}.cloudfunctions.net/demo-rest-api-service";
+            var serviceURL = "${demo_rest_api_service_uri}";
             var jsonData = {
                 mode: "get_configuration"
             };
