@@ -293,6 +293,16 @@ resource "google_project_iam_member" "dataproc_service_account_editor_role" {
   ]
 }
 
+# So dataproc can call theh BigLake connection in BigQuery
+resource "google_project_iam_member" "dataproc_customconnectiondelegate" {
+  project  = var.project_id
+  role     = google_project_iam_custom_role.customconnectiondelegate.id
+  member   = "serviceAccount:${google_service_account.dataproc_service_account.email}"
+
+  depends_on = [
+    google_project_iam_member.dataproc_service_account_editor_role
+  ]  
+}
 
 # Create the cluster
 # NOTE: This is now done in Airflow, but has kept for reference
