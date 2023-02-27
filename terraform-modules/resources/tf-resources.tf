@@ -104,7 +104,7 @@ resource "google_storage_bucket" "code_bucket" {
 
 resource "google_storage_bucket" "rideshare_lakehouse_raw" {
   project                     = var.project_id
-  name                        = "rideshare-lakehouse-raw-${var.storage_bucket}"
+  name                        = "rideshare-lakehouse-raw-${var.random_extension}"
   location                    = var.bigquery_region
   force_destroy               = true
   uniform_bucket_level_access = true
@@ -112,7 +112,7 @@ resource "google_storage_bucket" "rideshare_lakehouse_raw" {
 
 resource "google_storage_bucket" "rideshare_lakehouse_enriched" {
   project                     = var.project_id
-  name                        = "rideshare-lakehouse-enriched-${var.storage_bucket}"
+  name                        = "rideshare-lakehouse-enriched-${var.random_extension}"
   location                    = var.bigquery_region
   force_destroy               = true
   uniform_bucket_level_access = true
@@ -120,7 +120,7 @@ resource "google_storage_bucket" "rideshare_lakehouse_enriched" {
 
 resource "google_storage_bucket" "rideshare_lakehouse_curated" {
   project                     = var.project_id
-  name                        = "rideshare-lakehouse-curated-${var.storage_bucket}"
+  name                        = "rideshare-lakehouse-curated-${var.random_extension}"
   location                    = var.bigquery_region
   force_destroy               = true
   uniform_bucket_level_access = true
