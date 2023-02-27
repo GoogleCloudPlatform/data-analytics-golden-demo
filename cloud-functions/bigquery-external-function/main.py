@@ -1,67 +1,28 @@
-####################################################################################
 # Copyright 2022 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
-#     https://www.apache.org/licenses/LICENSE-2.0
-# 
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-####################################################################################
 
-# Author:  Steve Walker, Jeff Nelson, Adam Paternostro 
-# Summary: Sample BigQuery External Function code
-#          The entry point is: bigquery_external_function which allows one entry point and the call is 
-#          directed to the appropriate function.
-#          The first set of functions call an external API (cloud vision)
-#          The last function does a lookup (hardcode as an example).  This could be custom encryption or a call 
-#          to any REST API.
-#
-# Reference: https://cloud.google.com/bigquery/docs/reference/standard-sql/remote-functions
-#
-# Deployment: 
-#   Enable Cloud Functions API
-#   Copy the main.py and requirements.txt to a directory and run the following:
-#   gcloud functions deploy bigquery_external_function \
-#       --project="${project}" \
-#       --region="us-central1" \
-#       --runtime="python310" \
-#       --ingress-settings="all" \
-#       --no-allow-unauthenticated \
-#       --trigger-http
-#
-# To test the function from Cloud Shell
-# curl -m 70 -X POST https://us-central1-${project}.cloudfunctions.net/bigquery_external_function \
-#     -H "Authorization: bearer $(gcloud auth print-identity-token)" \
-#     -H "Content-Type: application/json" \
-#     -d '{ 
-#         "userDefinedContext": {"mode":"detect_labels_uri" },
-#         "calls":[ ["gs://cloud-samples-data/vision/label/setagaya.jpeg"]]
-#     }'
- 
- 
-from __future__ import print_function
-import base64
-import json
-import os
-from google.cloud import aiplatform
-import time
-from datetime import datetime
+# https://cloud.google.com/bigquery/docs/remote-function-tutorial
+# import urllib.request
 
+import flask
+import functions_framework
+from google.cloud import vision
 
 # Entry point (we recevice an element named "userDefinedContext").  The userDefinedContext 
 # tells us which method to call
-def bigquery_external_function(request):
-    from google.protobuf.json_format import MessageToJson
-    from google.cloud import vision_v1 # Uses vision_v1 per https://github.com/googleapis/python-vision/issues/64#issuecomment-712617747
-    from google.cloud.vision_v1 import AnnotateImageResponse
-    import json    
-    
+@functions_framework.http
+def bigquery_external_function(request: flask.Request) -> flask.Response:
     print("BEGIN: bigquery_external_function")
     request_json = request.get_json()
     print("request_json: ", request_json)
@@ -71,126 +32,113 @@ def bigquery_external_function(request):
     print("calls: ", calls)
     print("END: bigquery_external_function")
     if mode == "localize_objects_uri":
-        return localize_objects_uri(calls)
+        return localize_objects_uri(request)
     elif mode == "detect_labels_uri":
-        return detect_labels_uri(calls)
+        return detect_labels_uri(request)
     elif mode == "detect_landmarks_uri":
-        return detect_landmarks_uri(calls)
+        return detect_landmarks_uri(request)
     elif mode == "detect_logos_uri":
-        return detect_logos_uri(calls)
+        return detect_logos_uri(request)
     elif mode == "taxi_zone_lookup":
-        return taxi_zone_lookup(calls)
+        return taxi_zone_lookup(request)
 
-
-# Call the vision API
-def localize_objects_uri(calls):
-    return_value = []
-    from google.protobuf.json_format import MessageToJson
-    from google.cloud import vision_v1 # Uses vision_v1 per https://github.com/googleapis/python-vision/issues/64#issuecomment-712617747
-    from google.cloud.vision_v1 import AnnotateImageResponse
-    import json    
-    try: 
-        client = vision_v1.ImageAnnotatorClient()
+# https://cloud.google.com/vision/docs/object-localizer#vision_localize_objects-python
+@functions_framework.http
+def localize_objects_uri(request: flask.Request) -> flask.Response:
+    try:
+        client = vision.ImageAnnotatorClient()
+        calls = request.get_json()['calls']
+        replies = []
         for call in calls:
+            image = vision.Image()
             uri=call[0]
             print("uri: ", uri)
-            image = vision_v1.Image(source=vision_v1.ImageSource(image_uri=uri))
-            response = client.object_localization(image=image)  
-            serialized_proto_plus = AnnotateImageResponse.serialize(response)
-            response = AnnotateImageResponse.deserialize(serialized_proto_plus)
-            response_json = MessageToJson(response._pb)
-            return_value.append(str(response_json))
-            return_json = json.dumps({"replies": return_value})
-        return return_json
-    except: 
-        return json.dumps( { "errorMessage": 'check function logs: https://pantheon.corp.google.com/functions/details/us-central1/cloud_ai_vision?env=gen1&project=bq-huron&tab=logs' } ), 400
-    
-
-# Call the vision API
-def detect_labels_uri(calls):
-    from google.cloud import vision
-    from google.protobuf.json_format import MessageToJson
-    from google.cloud import vision_v1 # Uses vision_v1 per https://github.com/googleapis/python-vision/issues/64#issuecomment-712617747
-    from google.cloud.vision_v1 import AnnotateImageResponse
-    import json    
-
-    return_value = []
-
-    for call in calls:
-        uri=call[0]
-        print("uri: ", uri)
-        client = vision_v1.ImageAnnotatorClient()
-        image = vision_v1.Image(source=vision_v1.ImageSource(image_uri=uri))
-        response = client.label_detection(image=image)
-        response_json = MessageToJson(response._pb)
-        return_value.append(str(response_json))
-    return json.dumps({"replies": return_value})
+            image.source.image_uri = uri
+            results = client.object_localization(image=image)
+            replies.append(vision.AnnotateImageResponse.to_dict(results))
+        print ("results: " + str(flask.jsonify({'replies': replies})))
+        return flask.make_response(flask.jsonify({'replies': replies}))
+    except Exception as e:
+        return flask.make_response(flask.jsonify({'errorMessage': str(e)}), 400)
 
 
-# Call the vision API
-def detect_landmarks_uri(calls):
-    return_value = []
-    from google.protobuf.json_format import MessageToJson
-    from google.cloud import vision_v1 # Uses vision_v1 per https://github.com/googleapis/python-vision/issues/64#issuecomment-712617747
-    from google.cloud.vision_v1 import AnnotateImageResponse
-    import json    
-    from google.cloud import vision
-    client = vision_v1.ImageAnnotatorClient()
-    for call in calls:
-        uri=call[0]
-        print("uri: ", uri)
-        image = vision.Image()
-        image.source.image_uri = uri
-        response = client.landmark_detection(image=image)
-        serialized_proto_plus = AnnotateImageResponse.serialize(response)
-        response = AnnotateImageResponse.deserialize(serialized_proto_plus)
-        response_json = MessageToJson(response._pb)
-        return_value.append(str(response_json))
-    return json.dumps({"replies": return_value})
+@functions_framework.http
+def detect_labels_uri(request: flask.Request) -> flask.Response:
+    try:
+        client = vision.ImageAnnotatorClient()
+        calls = request.get_json()['calls']
+        replies = []
+        for call in calls:
+            image = vision.Image()
+            uri=call[0]
+            print("uri: ", uri)
+            image.source.image_uri = uri
+            results = client.label_detection(image=image)
+            replies.append(vision.AnnotateImageResponse.to_dict(results))
+        return flask.make_response(flask.jsonify({'replies': replies}))
+    except Exception as e:
+        return flask.make_response(flask.jsonify({'errorMessage': str(e)}), 400)
 
 
-# Call the vision API
-def detect_logos_uri(calls):
-    from google.cloud import vision
-    from google.protobuf.json_format import MessageToJson
-    from google.cloud import vision_v1 # Uses vision_v1 per https://github.com/googleapis/python-vision/issues/64#issuecomment-712617747
-    from google.cloud.vision_v1 import AnnotateImageResponse
-    import json    
-    return_value = []
-    for call in calls:
-        uri=call[0]
-        print("uri: ", uri)
-        client = vision_v1.ImageAnnotatorClient()
-        image = vision_v1.Image(source=vision_v1.ImageSource(image_uri=uri))
-        response = client.logo_detection(image=image)
-        response_json = MessageToJson(response._pb)
-        return_value.append(str(response_json))
-    return json.dumps({"replies": return_value})
-    
+
+@functions_framework.http
+def detect_landmarks_uri(request: flask.Request) -> flask.Response:
+    try:
+        client = vision.ImageAnnotatorClient()
+        calls = request.get_json()['calls']
+        replies = []
+        for call in calls:
+            image = vision.Image()
+            uri=call[0]
+            print("uri: ", uri)
+            image.source.image_uri = uri
+            results = client.landmark_detection(image=image)
+            replies.append(vision.AnnotateImageResponse.to_dict(results))
+        return flask.make_response(flask.jsonify({'replies': replies}))
+    except Exception as e:
+        return flask.make_response(flask.jsonify({'errorMessage': str(e)}), 400)
+
+
+@functions_framework.http
+def detect_logos_uri(request: flask.Request) -> flask.Response:
+    try:
+        client = vision.ImageAnnotatorClient()
+        calls = request.get_json()['calls']
+        replies = []
+        for call in calls:
+            image = vision.Image()
+            uri=call[0]
+            print("uri: ", uri)
+            image.source.image_uri = uri
+            results = client.logo_detection(image=image)
+            replies.append(vision.AnnotateImageResponse.to_dict(results))
+        return flask.make_response(flask.jsonify({'replies': replies}))
+    except Exception as e:
+        return flask.make_response(flask.jsonify({'errorMessage': str(e)}), 400)
+
 
 # Hard coded lookup that could contain any custom code
 # Look through the "calls" and process each element
-def taxi_zone_lookup (calls):
-    import json    
+@functions_framework.http
+def taxi_zone_lookup(request: flask.Request) -> flask.Response:
     try:
         print("BEGIN: taxi_zone_lookup")
-        return_value = []
+        replies = []
         lookup_dict = load_lookups()
+        calls = request.get_json()['calls']
         for call in calls:
             locationCode=int(str(call[0]))
             print("locationCode: ", locationCode)
             results=(list(filter(lambda o: o['LocationId'] == locationCode, lookup_dict)))
             if len(results) == 1:
-                response_json = json.dumps(results[0])
+                replies.append(results[0])
             else:
-                response_json = '{ "LocationID" : ' + str(call[0]) + ', "Borough" : "(unknown)", "Zone": "(unknown)", "service_zone":"(unknown)" }'
-            return_value.append(response_json)
-        print("END: taxi_zone_lookup")
-        return json.dumps({"replies": return_value})
-    except Exception as ex:
-        print ("Exception (taxi_zone_lookup): ", str(ex))
-        return json.dumps( { "errorMessage": str(ex) } ), 400
+                replies.append('{ "LocationID" : ' + str(call[0]) + ', "Borough" : "(unknown)", "Zone": "(unknown)", "service_zone":"(unknown)" }')
 
+        print("END: taxi_zone_lookup")
+        return flask.make_response(flask.jsonify({'replies': replies}))
+    except Exception as e:
+        return flask.make_response(flask.jsonify({'errorMessage': str(e)}), 400)
 
 
 # Created using a spreadsheet from the NYC download

@@ -1,5 +1,3 @@
-CREATE OR REPLACE PROCEDURE `bigquery_preview_features.sp_demo_biglake_query_acceleration`()
-BEGIN
 /*##################################################################################
 # Copyright 2022 Google LLC
 #
@@ -18,6 +16,9 @@ BEGIN
 
   
 /*
+NOTE: This requires access to a shared project until allowlisting is no longer required
+      You will also need to run an Airflow job to copy the 5 million files locally
+
 Use Cases:
     - Small files are a problem with you have external tables on data lakes
     - Most storage systems take ~ 1-5 minutes to list 1 million files
@@ -51,15 +52,13 @@ Description:
 
 Show:
     - BQ support for GCS
-    - BQ importing models
-    - BQ scoring image data using a model
 
 References:
     - go/biglake-query-acceleration-preview-guide 
 
 Clean up / Reset script:
-    DROP EXTERNAL TABLE IF EXISTS `bigquery_preview_features.biglake_query_acceleration`;
-    DROP EXTERNAL TABLE IF EXISTS `bigquery_preview_features.biglake_no_acceleration`;
+    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${bigquery_taxi_dataset}.biglake_query_acceleration`;
+    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${bigquery_taxi_dataset}.biglake_no_acceleration`;
 */
 
 
@@ -69,9 +68,7 @@ Clean up / Reset script:
 -- You need to wait for Cloud Storage to be indexed....
 -- The metadata collection for < 10 million files should take < 30 minutes 
 -- (we will have something in the future to help see into this)
--- NOTE: You do not have access to run this command (the table is already created)
---       If you want to run this use the dataset "ce_playground_google"
-CREATE OR REPLACE EXTERNAL TABLE `bigquery_preview_features.biglake_query_acceleration`
+CREATE OR REPLACE EXTERNAL TABLE `${project_id}.${bigquery_taxi_dataset}.biglake_query_acceleration`
   WITH PARTITION COLUMNS (
       year  INTEGER, 
       month INTEGER,
@@ -79,19 +76,17 @@ CREATE OR REPLACE EXTERNAL TABLE `bigquery_preview_features.biglake_query_accele
       hour INTEGER,
       minute INTEGER
   )
-  WITH CONNECTION `us.biglake-connection`
+  WITH CONNECTION `${shared_demo_project_id}.us.biglake-connection`
   OPTIONS(
-    hive_partition_uri_prefix = "gs://sample-shared-data-query-acceleration/taxi-trips-query-acceleration/",
-    uris=['gs://sample-shared-data-query-acceleration/taxi-trips-query-acceleration/*.parquet'], 
+    hive_partition_uri_prefix = "gs://${five_million_small_files_bucket}/taxi-trips-query-acceleration/",
+    uris=['gs://${five_million_small_files_bucket}/taxi-trips-query-acceleration/*.parquet'], 
     metadata_cache_mode="AUTOMATIC", 
     max_staleness=INTERVAL '1' HOUR,
     format="PARQUET");
 
 
 -- External table WITHOUT query acceleration
--- NOTE: You do not have access to run this command (the table is already created)
---       If you want to run this use the dataset "ce_playground_google"
-CREATE OR REPLACE EXTERNAL TABLE `bigquery_preview_features.biglake_no_acceleration`
+CREATE OR REPLACE EXTERNAL TABLE `${project_id}.${bigquery_taxi_dataset}.biglake_no_acceleration`
   WITH PARTITION COLUMNS (
       year  INTEGER, 
       month INTEGER,
@@ -100,8 +95,8 @@ CREATE OR REPLACE EXTERNAL TABLE `bigquery_preview_features.biglake_no_accelerat
       minute INTEGER
   )
   OPTIONS(
-    hive_partition_uri_prefix = "gs://sample-shared-data-query-acceleration/taxi-trips-query-acceleration/",
-    uris=['gs://sample-shared-data-query-acceleration/taxi-trips-query-acceleration/*.parquet'], 
+    hive_partition_uri_prefix = "gs://${five_million_small_files_bucket}/taxi-trips-query-acceleration/",
+    uris=['gs://${five_million_small_files_bucket}/taxi-trips-query-acceleration/*.parquet'], 
     format="PARQUET");
 
 
@@ -113,7 +108,7 @@ CREATE OR REPLACE EXTERNAL TABLE `bigquery_preview_features.biglake_no_accelerat
 -- Duration: 3 min 22 sec 
 -- Bytes processed: 1.36 KB
 SELECT *
-  FROM `bigquery_preview_features.biglake_no_acceleration`
+  FROM `${project_id}.${bigquery_taxi_dataset}.biglake_no_acceleration`
  WHERE year   = 2021
    AND month  = 1
    AND day    = 1
@@ -126,7 +121,7 @@ SELECT *
 -- Bytes processed: 1.36 KB 
 -- Bytes billed: 10 MB 
 SELECT *
-  FROM `bigquery_preview_features.biglake_query_acceleration`
+  FROM `${project_id}.${bigquery_taxi_dataset}.biglake_query_acceleration`
  WHERE year   = 2021
    AND month  = 1
    AND day    = 1
@@ -142,7 +137,7 @@ SELECT *
 -- Duration: 3 min 21 se
 -- Bytes processed: 184.76 KB 
 SELECT *
-  FROM `bigquery_preview_features.biglake_no_acceleration`
+  FROM `${project_id}.${bigquery_taxi_dataset}.biglake_no_acceleration`
  WHERE year   = 2021
    AND month  = 1
    AND day    = 1
@@ -153,7 +148,7 @@ SELECT *
 -- Duration: 3 sec 
 -- Bytes processed: 184.76 KB 
 SELECT *
-  FROM `bigquery_preview_features.biglake_query_acceleration`
+  FROM `${project_id}.${bigquery_taxi_dataset}.biglake_query_acceleration`
  WHERE year   = 2021
    AND month  = 1
    AND day    = 1
@@ -168,7 +163,7 @@ SELECT *
 -- Duration: 3 min 24 sec 
 -- Bytes processed: 3.77 MB 
 SELECT *
-  FROM `bigquery_preview_features.biglake_no_acceleration`
+  FROM `${project_id}.${bigquery_taxi_dataset}.biglake_no_acceleration`
  WHERE year   = 2021
    AND month  = 1
    AND day    = 1;
@@ -178,9 +173,7 @@ SELECT *
 -- Duration: 3 sec 
 -- Bytes processed: 3.77 MB 
 SELECT *
-  FROM `bigquery_preview_features.biglake_query_acceleration`
+  FROM `${project_id}.${bigquery_taxi_dataset}.biglake_query_acceleration`
  WHERE year   = 2021
    AND month  = 1
    AND day    = 1;
-
-END;

@@ -426,23 +426,29 @@ module "sql-scripts" {
   # Use Service Account Impersonation for this step. 
   providers = { google = google.service_principal_impersonation }
 
-  gcp_account_name                = var.gcp_account_name
-  project_id                      = local.local_project_id
-  region                          = var.region
-  zone                            = var.zone
-  storage_bucket                  = local.local_storage_bucket
-  random_extension                = random_string.project_random.result
-  project_number                  = var.project_number == "" ? module.project[0].output-project-number : var.project_number
-  deployment_service_account_name = var.deployment_service_account_name
-  bigquery_region                 = var.bigquery_region
-  shared_demo_project_id          = var.shared_demo_project_id
-  aws_omni_biglake_dataset_name   = var.aws_omni_biglake_dataset_name
-  aws_omni_biglake_dataset_region = var.aws_omni_biglake_dataset_region
-  aws_omni_biglake_connection     = var.aws_omni_biglake_connection
-  aws_omni_biglake_s3_bucket      = var.aws_omni_biglake_s3_bucket
-  azure_omni_biglake_dataset_name = var.azure_omni_biglake_dataset_name
-  azure_omni_biglake_connection   = local.local_azure_omni_biglake_connection
-  azure_omni_biglake_adls_name    = var.azure_omni_biglake_adls_name
+  gcp_account_name                              = var.gcp_account_name
+  project_id                                    = local.local_project_id
+  region                                        = var.region
+  zone                                          = var.zone
+  storage_bucket                                = local.local_storage_bucket
+  random_extension                              = random_string.project_random.result
+  project_number                                = var.project_number == "" ? module.project[0].output-project-number : var.project_number
+  deployment_service_account_name               = var.deployment_service_account_name
+  bigquery_region                               = var.bigquery_region
+  shared_demo_project_id                        = var.shared_demo_project_id
+  aws_omni_biglake_dataset_name                 = var.aws_omni_biglake_dataset_name
+  aws_omni_biglake_dataset_region               = var.aws_omni_biglake_dataset_region
+  aws_omni_biglake_connection                   = var.aws_omni_biglake_connection
+  aws_omni_biglake_s3_bucket                    = var.aws_omni_biglake_s3_bucket
+  azure_omni_biglake_dataset_name               = var.azure_omni_biglake_dataset_name
+  azure_omni_biglake_connection                 = local.local_azure_omni_biglake_connection
+  azure_omni_biglake_adls_name                  = var.azure_omni_biglake_adls_name
+  bigquery_rideshare_lakehouse_raw_dataset      = module.resources.bigquery_rideshare_lakehouse_raw_dataset
+  gcs_rideshare_lakehouse_raw_bucket            = module.resources.gcs_rideshare_lakehouse_raw_bucket
+  bigquery_rideshare_lakehouse_enriched_dataset = module.resources.bigquery_rideshare_lakehouse_enriched_dataset
+  gcs_rideshare_lakehouse_enriched_bucket       = module.resources.gcs_rideshare_lakehouse_enriched_bucket
+  bigquery_rideshare_lakehouse_curated_dataset  = module.resources.bigquery_rideshare_lakehouse_curated_dataset
+  gcs_rideshare_lakehouse_curated_bucket        = module.resources.gcs_rideshare_lakehouse_curated_bucket
 
   depends_on = [
     module.project,
@@ -492,6 +498,7 @@ module "deploy-files-module" {
   deployment_service_account_name = var.deployment_service_account_name
   composer_name                   = module.resources.composer_env_name
   composer_dag_bucket             = module.resources.composer_env_dag_bucket
+  demo_rest_api_service_uri       = module.resources.demo_rest_api_service_uri
 
   depends_on = [
     module.project,
@@ -604,14 +611,6 @@ output "deployment_service_account" {
   value = module.service-account.deployment_service_account
 }
 
-output "bigquery_taxi_dataset" {
-  value = "bigquery_taxi_dataset"
-}
-
-output "bigquery_thelook_ecommerce_dataset" {
-  value = "bigquery_thelook_ecommerce_dataset"
-}
-
 output "gcs_raw_bucket" {
   value = module.resources.gcs_raw_bucket
 }
@@ -720,6 +719,38 @@ output "dataflow_service_account" {
   value = module.resources.dataflow_service_account
 }
 
+output "bigquery_taxi_dataset" {
+  value = module.resources.bigquery_taxi_dataset
+}
+
+output "bigquery_thelook_ecommerce_dataset" {
+  value = module.resources.bigquery_thelook_ecommerce_dataset
+}
+
+output "bigquery_rideshare_lakehouse_raw_dataset" {
+  value = module.resources.bigquery_rideshare_lakehouse_raw_dataset
+}
+
+output "bigquery_rideshare_lakehouse_enriched_dataset" {
+  value = module.resources.bigquery_rideshare_lakehouse_enriched_dataset
+}
+
+output "bigquery_rideshare_lakehouse_curated_dataset" {
+  value = module.resources.bigquery_rideshare_lakehouse_curated_dataset
+}
+
+output "gcs_rideshare_lakehouse_raw_bucket" {
+  value = module.resources.gcs_rideshare_lakehouse_raw_bucket
+}
+
+output "gcs_rideshare_lakehouse_enriched_bucket" {
+  value = module.resources.gcs_rideshare_lakehouse_enriched_bucket
+}
+
+output "gcs_rideshare_lakehouse_curated_bucket" {
+  value = module.resources.gcs_rideshare_lakehouse_curated_bucket
+}
+
 output "spanner_instance_id" {
   value = "spanner-${random_string.project_random.result}"
 }
@@ -762,6 +793,10 @@ output "dataplex_ecommerce_datalake_curated_zone" {
 
 output "dataplex_ecommerce_datalake_processed_datasets" {
   value = "ecommerce-dataset-${random_string.project_random.result}"
+}
+
+output "demo_rest_api_service_uri" {
+  value = module.resources.demo_rest_api_service_uri
 }
 
 

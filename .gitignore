@@ -18,7 +18,6 @@ terraform/.terraform.tfstate.lock.info
 terraform/terraform.tfstate.backup
 terraform/tf-output.json
 temp.sql
-deploy-omni.sh
 datafusion/system/*
 datafusion/sample-json/*
 temp.py
@@ -34,3 +33,11 @@ replace-me-helper.txt
 terraform/iceberg-spark-runtime-3.1_2.12-0.14.0.jar
 terraform/spark-bigquery-with-dependencies_2.12-0.26.0.jar
 terraform-modules/org-policies/tf-org-policies-original.txt
+bp-controller.sh
+bp-controller-log.txt
+bp-controller-log.json
+temp-sql-template.txt
+deploy-omni2.sh
+cloud-functions/rideshare-plus-rest-api.zip
+deploy-env-shortcut.sh
+temp.html

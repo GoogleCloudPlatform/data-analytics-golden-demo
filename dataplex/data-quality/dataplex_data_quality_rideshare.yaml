@@ -1,0 +1,239 @@
+####################################################################################
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#     https://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+####################################################################################
+
+# Summary: Performs a validation check on the Taxi Trips table.
+#          This highlights just a few features of data quality, see the links for all the features
+#
+#          The results will then be placed on a Tag Template on the Table in Data Catalog.
+#          This way users can see the results in the cloud console.
+#
+# References:
+#   https://github.com/GoogleCloudPlatform/cloud-data-quality/tree/main/docs/examples
+#   https://cloud.google.com/dataplex/docs/check-data-quality
+
+############################################################
+# The row filter is for 2022 (1 month) so the check does not run too long during a demo
+# You have to define a NONE row filter
+############################################################
+row_filters:
+  NONE:
+    filter_sql_expr: |-
+      partition_date = '2022-11-01'
+
+
+############################################################
+# Rule dimensions are optional but allow you to aggregate reporting.
+############################################################
+rule_dimensions:
+  - consistency
+  - correctness
+  - duplication
+  - completeness
+  - conformance
+  - integrity
+
+
+############################################################
+# Rules can be shared across tables or columns.
+############################################################
+rules:
+  VALUE_UUID:
+    rule_type: CUSTOM_SQL_EXPR
+    dimension: correctness
+    params:
+      custom_sql_expr: |-
+        LENGTH($column) = 36
+
+  VALUE_ZERO_OR_POSITIVE:
+    rule_type: CUSTOM_SQL_EXPR
+    dimension: correctness
+    params:
+      custom_sql_expr: |-
+        $column >= 0
+
+  VALID_NOT_NULL:
+   rule_type: CUSTOM_SQL_EXPR
+   dimension: integrity
+   params:
+     custom_sql_expr: |-
+        $column is not null
+
+  VALID_PAYMENT_TYPE:
+   rule_type: CUSTOM_SQL_EXPR
+   dimension: integrity
+   params:
+     custom_sql_expr: |-
+        $column BETWEEN 1 AND 6
+
+  VALID_LOCATION_ID:
+    rule_type: CUSTOM_SQL_EXPR
+    dimension: integrity
+    params:
+      custom_sql_expr: |-
+        $column BETWEEN 1 AND 265
+
+  VALID_RIDE_DISTANCE:
+    rule_type: CUSTOM_SQL_EXPR
+    dimension: integrity
+    params:
+      custom_sql_expr: |-
+        $column BETWEEN 0 AND 100
+
+  VALID_PICKUP_DATE:
+    rule_type: CUSTOM_SQL_EXPR
+    dimension: integrity
+    params:
+      custom_sql_expr: |-
+        $column < dropoff_datetime
+
+  VALID_DROPOFF_DATE:
+    rule_type: CUSTOM_SQL_EXPR
+    dimension: integrity
+    params:
+      custom_sql_expr: |-
+        $column > pickup_datetime
+
+  VALUE_CREDIT_CARD:
+    rule_type: CUSTOM_SQL_EXPR
+    dimension: integrity
+    params:
+      custom_sql_expr: |-
+        $column IS NULL OR STARTS_WITH($column, "3") OR STARTS_WITH($column, "4") OR STARTS_WITH($column, "5") OR STARTS_WITH($column, "6")
+
+  VALID_CREDIT_CARD_DATE:
+    rule_type: CUSTOM_SQL_EXPR
+    dimension: integrity
+    params:
+      custom_sql_expr: |-
+        CAST($column AS TIMESTAMP) > dropoff_datetime
+
+  VALID_CREDIT_CARD_CVV:
+    rule_type: CUSTOM_SQL_EXPR
+    dimension: integrity
+    params:
+      custom_sql_expr: |-
+        $column IS NULL OR LENGTH($column) = 3
+
+
+
+############################################################
+# Rule bindings associate rules to {table, column}
+############################################################
+rule_bindings:
+  RIDESHARE_TRIP_ID_VALID:
+    entity_uri: dataplex://projects/${project_id}/locations/${dataplex_region}/lakes/rideshare-lakehouse-${random_extension}/zones/rideshare-curated-zone-${random_extension}/entities/bigquery_rideshare_trip
+    column_id: rideshare_trip_id
+    row_filter_id: NONE
+    rule_ids:
+      - VALUE_UUID
+
+  PICKUP_LOCATION_ID_VALID:
+    entity_uri: dataplex://projects/${project_id}/locations/${dataplex_region}/lakes/rideshare-lakehouse-${random_extension}/zones/rideshare-curated-zone-${random_extension}/entities/bigquery_rideshare_trip
+    column_id: pickup_location_id
+    row_filter_id: NONE
+    rule_ids:
+      - VALID_LOCATION_ID
+
+  PICKUP_DATETIME_VALID:
+    entity_uri: dataplex://projects/${project_id}/locations/${dataplex_region}/lakes/rideshare-lakehouse-${random_extension}/zones/rideshare-curated-zone-${random_extension}/entities/bigquery_rideshare_trip
+    column_id: pickup_datetime
+    row_filter_id: NONE
+    rule_ids:
+      - VALID_PICKUP_DATE
+
+  DROPOFF_LOCATION_ID_VALID:
+    entity_uri: dataplex://projects/${project_id}/locations/${dataplex_region}/lakes/rideshare-lakehouse-${random_extension}/zones/rideshare-curated-zone-${random_extension}/entities/bigquery_rideshare_trip
+    column_id: dropoff_location_id
+    row_filter_id: NONE
+    rule_ids:
+      - VALID_LOCATION_ID
+
+  DROPOFF_DATETIME_VALID:
+    entity_uri: dataplex://projects/${project_id}/locations/${dataplex_region}/lakes/rideshare-lakehouse-${random_extension}/zones/rideshare-curated-zone-${random_extension}/entities/bigquery_rideshare_trip
+    column_id: dropoff_datetime
+    row_filter_id: NONE
+    rule_ids:
+      - VALID_DROPOFF_DATE
+
+  RIDE_DISTANCE_VALID:
+    entity_uri: dataplex://projects/${project_id}/locations/${dataplex_region}/lakes/rideshare-lakehouse-${random_extension}/zones/rideshare-curated-zone-${random_extension}/entities/bigquery_rideshare_trip
+    column_id: ride_distance
+    row_filter_id: NONE
+    rule_ids:
+      - VALID_RIDE_DISTANCE
+
+  IS_AIRPORT_VALID:
+    entity_uri: dataplex://projects/${project_id}/locations/${dataplex_region}/lakes/rideshare-lakehouse-${random_extension}/zones/rideshare-curated-zone-${random_extension}/entities/bigquery_rideshare_trip
+    column_id: is_airport
+    row_filter_id: NONE
+    rule_ids:
+      - VALID_NOT_NULL
+
+  PAYMENT_TYPE_ID_VALID:
+    entity_uri: dataplex://projects/${project_id}/locations/${dataplex_region}/lakes/rideshare-lakehouse-${random_extension}/zones/rideshare-curated-zone-${random_extension}/entities/bigquery_rideshare_trip
+    column_id: payment_type_id
+    row_filter_id: NONE
+    rule_ids:
+      - VALID_PAYMENT_TYPE
+
+  FARE_AMOUNT_VALID:
+    entity_uri: dataplex://projects/${project_id}/locations/${dataplex_region}/lakes/rideshare-lakehouse-${random_extension}/zones/rideshare-curated-zone-${random_extension}/entities/bigquery_rideshare_trip
+    column_id: fare_amount
+    row_filter_id: NONE
+    rule_ids:
+      - VALUE_ZERO_OR_POSITIVE
+
+  TIP_AMOUNT_VALID:
+    entity_uri: dataplex://projects/${project_id}/locations/${dataplex_region}/lakes/rideshare-lakehouse-${random_extension}/zones/rideshare-curated-zone-${random_extension}/entities/bigquery_rideshare_trip
+    column_id: tip_amount
+    row_filter_id: NONE
+    rule_ids:
+      - VALUE_ZERO_OR_POSITIVE
+
+  TAXES_AMOUNT_VALID:
+    entity_uri: dataplex://projects/${project_id}/locations/${dataplex_region}/lakes/rideshare-lakehouse-${random_extension}/zones/rideshare-curated-zone-${random_extension}/entities/bigquery_rideshare_trip
+    column_id: taxes_amount
+    row_filter_id: NONE
+    rule_ids:
+      - VALUE_ZERO_OR_POSITIVE
+
+  TOTAL_AMOUNT_VALID:
+    entity_uri: dataplex://projects/${project_id}/locations/${dataplex_region}/lakes/rideshare-lakehouse-${random_extension}/zones/rideshare-curated-zone-${random_extension}/entities/bigquery_rideshare_trip
+    column_id: total_amount
+    row_filter_id: NONE
+    rule_ids:
+      - VALUE_ZERO_OR_POSITIVE
+
+  CREDIT_CARD_NUMBER_VALID:
+    entity_uri: dataplex://projects/${project_id}/locations/${dataplex_region}/lakes/rideshare-lakehouse-${random_extension}/zones/rideshare-curated-zone-${random_extension}/entities/bigquery_rideshare_trip
+    column_id: credit_card_number
+    row_filter_id: NONE
+    rule_ids:
+      - VALUE_CREDIT_CARD
+
+  CREDIT_CARD_EXPIRE_DATE_VALID:
+    entity_uri: dataplex://projects/${project_id}/locations/${dataplex_region}/lakes/rideshare-lakehouse-${random_extension}/zones/rideshare-curated-zone-${random_extension}/entities/bigquery_rideshare_trip
+    column_id: credit_card_expire_date
+    row_filter_id: NONE
+    rule_ids:
+      - VALID_CREDIT_CARD_DATE
+
+  CREDIT_CARD_CVV_CODE_VALID:
+    entity_uri: dataplex://projects/${project_id}/locations/${dataplex_region}/lakes/rideshare-lakehouse-${random_extension}/zones/rideshare-curated-zone-${random_extension}/entities/bigquery_rideshare_trip
+    column_id: credit_card_cvv_code
+    row_filter_id: NONE
+    rule_ids:
+      - VALID_CREDIT_CARD_CVV

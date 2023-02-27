@@ -21,19 +21,14 @@
 
 
 # [START dag]
-from google.cloud import storage
 from datetime import datetime, timedelta
-import requests
 import sys
 import os
 import logging
 import airflow
-#from airflow.operators import bash_operator
-#from airflow.contrib.operators import dataproc_operator
 from airflow.utils import trigger_rule
-#from airflow.contrib.operators import bigquery_operator
-#from airflow.operators.python_operator import PythonOperator
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
+
 
 default_args = {
     'owner': 'airflow',
@@ -71,23 +66,58 @@ with airflow.DAG('run-all-dags',
         task_id="step_03_hydrate_tables",
         trigger_dag_id="step-03-hydrate-tables",
         wait_for_completion=True
-    ) 
+    )    
 
-    #step_04_create_biglake_connection = TriggerDagRunOperator(
-    #    task_id="step_04_create_biglake_connection",
-    #    trigger_dag_id="step-04-create-biglake-connection",
-    #    wait_for_completion=True
-    #)      
-
-    # Seed some initial data in case the user forgets
+    # Start the streaming job so we have some seed data
+    # This job will be stopped after 4 hours (by the stop job)
     sample_dataflow_start_streaming_job = TriggerDagRunOperator(
         task_id="sample_dataflow_start_streaming_job",
         trigger_dag_id="sample-dataflow-start-streaming-job",
         wait_for_completion=True
     )  
 
+    # Rideshare Analytics Lakehouse demo
+    # This table takes a few minutes to get populated with the GCS metadata
+    # It is done in advance of the full script so the full script has data to process
+    # The dataproc job (step 2) can take a while
+    sample_rideshare_hydrate_object_table = TriggerDagRunOperator(
+        task_id="sample_rideshare_hydrate_object_table",
+        trigger_dag_id="sample-rideshare-hydrate-object-table",
+        wait_for_completion=True
+    )  
+
+    # Download 250+ images for the object table
+    sample_rideshare_download_images = TriggerDagRunOperator(
+        task_id="sample_rideshare_download_images",
+        trigger_dag_id="sample-rideshare-download-images",
+        wait_for_completion=True
+    )  
+
+    # Deploy website to App Engine
+    sample_rideshare_website = TriggerDagRunOperator(
+        task_id="sample_rideshare_website",
+        trigger_dag_id="sample-rideshare-website",
+        wait_for_completion=True
+    )  
+    
+    # Run all stored procedures in the raw, enriched and curated zone
+    sample_rideshare_hydrate_data = TriggerDagRunOperator(
+        task_id="sample_rideshare_hydrate_data",
+        trigger_dag_id="sample-rideshare-hydrate-data",
+        wait_for_completion=True
+    )  
+
+     # Wait for data in the object table
+    sample_rideshare_object_table_delay = TriggerDagRunOperator(
+        task_id="sample_rideshare_object_table_delay",
+        trigger_dag_id="sample-rideshare-object-table-delay",
+        wait_for_completion=True
+    )     
+
     # DAG Graph
-    step_01_taxi_data_download >> step_02_taxi_data_processing >> step_03_hydrate_tables >> \
-        sample_dataflow_start_streaming_job
+    step_01_taxi_data_download >> [step_02_taxi_data_processing, sample_rideshare_hydrate_object_table, sample_rideshare_download_images]
+    step_02_taxi_data_processing >> [step_03_hydrate_tables, sample_rideshare_website]
+    step_03_hydrate_tables >> [sample_dataflow_start_streaming_job, sample_rideshare_object_table_delay]
+    sample_rideshare_object_table_delay >> sample_rideshare_hydrate_data
 
 # [END dag]
