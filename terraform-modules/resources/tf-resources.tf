@@ -60,7 +60,18 @@ variable "bigquery_thelook_ecommerce_dataset" {
   type        = string
   default     = "thelook_ecommerce"
 }
-
+variable "bigquery_rideshare_lakehouse_raw_dataset" {
+  type        = string
+  default     = "rideshare_lakehouse_raw"
+}
+variable "bigquery_rideshare_lakehouse_enriched_dataset" {
+  type        = string
+  default     = "rideshare_lakehouse_enriched"
+}
+variable "bigquery_rideshare_lakehouse_curated_dataset" {
+  type        = string
+  default     = "rideshare_lakehouse_curated"
+}
 
 ####################################################################################
 # Bucket for all data (BigQuery, Spark, etc...)
@@ -90,6 +101,45 @@ resource "google_storage_bucket" "code_bucket" {
   force_destroy               = true
   uniform_bucket_level_access = true
 }
+
+resource "google_storage_bucket" "rideshare_lakehouse_raw" {
+  project                     = var.project_id
+  name                        = "rideshare-lakehouse-raw-${var.storage_bucket}"
+  location                    = var.bigquery_region
+  force_destroy               = true
+  uniform_bucket_level_access = true
+}
+
+resource "google_storage_bucket" "rideshare_lakehouse_enriched" {
+  project                     = var.project_id
+  name                        = "rideshare-lakehouse-enriched-${var.storage_bucket}"
+  location                    = var.bigquery_region
+  force_destroy               = true
+  uniform_bucket_level_access = true
+}
+
+resource "google_storage_bucket" "rideshare_lakehouse_curated" {
+  project                     = var.project_id
+  name                        = "rideshare-lakehouse-curated-${var.storage_bucket}"
+  location                    = var.bigquery_region
+  force_destroy               = true
+  uniform_bucket_level_access = true
+}
+
+
+####################################################################################
+# Custom Roles
+####################################################################################
+# Required since we are setting BigLake permissions with BigSpark
+resource "google_project_iam_custom_role" "customconnectiondelegate" {
+  role_id     = "CustomConnectionDelegate"
+  title       = "Custom Connection Delegate"
+  description = "Used for BQ connections"
+  permissions = ["biglake.tables.create","biglake.tables.delete","biglake.tables.get",
+  "biglake.tables.list","biglake.tables.lock","biglake.tables.update",
+  "bigquery.connections.delegate"]
+}
+
 
 
 ####################################################################################
@@ -243,6 +293,16 @@ resource "google_project_iam_member" "dataproc_service_account_editor_role" {
   ]
 }
 
+# So dataproc can call theh BigLake connection in BigQuery
+resource "google_project_iam_member" "dataproc_customconnectiondelegate" {
+  project  = var.project_id
+  role     = google_project_iam_custom_role.customconnectiondelegate.id
+  member   = "serviceAccount:${google_service_account.dataproc_service_account.email}"
+
+  depends_on = [
+    google_project_iam_member.dataproc_service_account_editor_role
+  ]  
+}
 
 # Create the cluster
 # NOTE: This is now done in Airflow, but has kept for reference
@@ -425,6 +485,12 @@ resource "google_composer_environment" "composer_env" {
         ENV_DATAFLOW_SERVICE_ACCOUNT = "dataflow-service-account@${var.project_id}.iam.gserviceaccount.com",
         ENV_RANDOM_EXTENSION         = var.random_extension
         ENV_SPANNER_CONFIG           = var.spanner_config
+        ENV_RIDESHARE_LAKEHOUSE_RAW_BUCKET = google_storage_bucket.rideshare_lakehouse_raw.name
+        ENV_RIDESHARE_LAKEHOUSE_ENRICHED_BUCKET = google_storage_bucket.rideshare_lakehouse_enriched.name
+        ENV_RIDESHARE_LAKEHOUSE_CURATED_BUCKET = google_storage_bucket.rideshare_lakehouse_curated.name
+        ENV_RIDESHARE_LAKEHOUSE_RAW_DATASET = var.bigquery_rideshare_lakehouse_raw_dataset
+        ENV_RIDESHARE_LAKEHOUSE_ENRICHED_DATASET = var.bigquery_rideshare_lakehouse_enriched_dataset
+        ENV_RIDESHARE_LAKEHOUSE_CURATED_DATASET = var.bigquery_rideshare_lakehouse_curated_dataset
       }
     }
 
@@ -497,6 +563,36 @@ resource "google_bigquery_dataset" "thelook_ecommerce_dataset" {
   description   = "This contains the Looker eCommerce data"
   location      = var.bigquery_region
 }
+
+resource "google_bigquery_dataset" "rideshare_lakehouse_raw_dataset" {
+  project       = var.project_id
+  dataset_id    = var.bigquery_rideshare_lakehouse_raw_dataset
+  friendly_name = var.bigquery_rideshare_lakehouse_raw_dataset
+  description   = "This contains the rideshare plus raw zone"
+  location      = var.bigquery_region
+}
+
+resource "google_bigquery_dataset" "rideshare_lakehouse_enriched_dataset" {
+  project       = var.project_id
+  dataset_id    = var.bigquery_rideshare_lakehouse_enriched_dataset
+  friendly_name = var.bigquery_rideshare_lakehouse_enriched_dataset
+  description   = "This contains the rideshare plus enriched zone"
+  location      = var.bigquery_region
+}
+
+resource "google_bigquery_dataset" "rideshare_lakehouse_curated_dataset" {
+  project       = var.project_id
+  dataset_id    = var.bigquery_rideshare_lakehouse_curated_dataset
+  friendly_name = var.bigquery_rideshare_lakehouse_curated_dataset
+  description   = "This contains the rideshare plus curated zone"
+  location      = var.bigquery_region
+}
+
+
+
+
+
+
 
 resource "google_bigquery_dataset" "aws_omni_biglake_dataset" {
   project       = var.project_id
@@ -640,6 +736,37 @@ resource "google_data_catalog_policy_tag_iam_member" "member_azure" {
   ]
 }
 
+####################################################################################
+# Bring in Analytics Hub reference
+####################################################################################
+# https://cloud.google.com/bigquery/docs/reference/analytics-hub/rest/v1/projects.locations.dataExchanges.listings/subscribe
+/*
+# https://cloud.google.com/bigquery/docs/reference/analytics-hub/rest/v1/projects.locations.dataExchanges.listings/subscribe
+curl --request POST \
+  'https://analyticshub.googleapis.com/v1/projects/1057666841514/locations/us/dataExchanges/google_cloud_public_datasets_17e74966199/listings/ghcn_daily_17ee6ceb8e9:subscribe' \
+  --header "Authorization: Bearer $(gcloud auth application-default print-access-token)" \
+  --header 'Accept: application/json' \
+  --header 'Content-Type: application/json' \
+  --data '{"destinationDataset":{"datasetReference":{"datasetId":"ghcn_daily","projectId":"data-analytics-demo-5qiz4e36kf"},"friendlyName":"ghcn_daily","location":"us","description":"ghcn_daily"}}' \
+  --compressed
+*/
+resource "null_resource" "analyticshub_daily_weather_data" {
+provisioner "local-exec" {
+  when    = create
+  command = <<EOF
+  curl --request POST \
+    "https://analyticshub.googleapis.com/v1/projects/1057666841514/locations/us/dataExchanges/google_cloud_public_datasets_17e74966199/listings/ghcn_daily_17ee6ceb8e9:subscribe" \
+    --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
+    --header "Accept: application/json" \
+    --header "Content-Type: application/json" \
+    --data '{"destinationDataset":{"datasetReference":{"datasetId":"ghcn_daily","projectId":"${var.project_id}"},"friendlyName":"ghcn_daily","location":"us","description":"ghcn_daily"}}' \
+    --compressed
+    EOF
+  }
+  depends_on = [
+    ]
+}
+
 
 ####################################################################################
 # Data Catalog Taxonomy
@@ -779,7 +906,7 @@ provisioner "local-exec" {
 }
 
 ####################################################################################
-# Cloud Function
+# Cloud Function (BigQuery)
 ####################################################################################
 # Zip the source code
 data "archive_file" "bigquery_external_function_zip" {
@@ -831,6 +958,153 @@ resource "google_cloudfunctions_function" "bigquery_external_function" {
 
 
 ####################################################################################
+# Cloud Function (Rideshare Plis)
+####################################################################################
+# Zip the source code
+data "archive_file" "rideshare_plus_function_zip" {
+  type        = "zip"
+  source_dir  = "../cloud-functions/rideshare-plus-rest-api" 
+  output_path = "../cloud-functions/rideshare-plus-rest-api.zip"
+
+  depends_on = [ 
+    google_storage_bucket.code_bucket
+    ]  
+}
+
+# Upload code
+resource "google_storage_bucket_object" "rideshare_plus_function_zip_upload" {
+  name   = "cloud-functions/rideshare-plus-rest-api/rideshare-plus-rest-api.zip"
+  bucket = google_storage_bucket.code_bucket.name
+  source = data.archive_file.rideshare_plus_function_zip.output_path
+
+  depends_on = [ 
+    google_storage_bucket.code_bucket,
+    data.archive_file.rideshare_plus_function_zip
+    ]  
+}
+
+# Deploy the function V2
+resource "google_cloudfunctions2_function" "rideshare_plus_function" {
+  project     = var.project_id
+  location    = "us-central1"
+  name        = "demo-rest-api-service"
+  description = "demo-rest-api-service"
+
+  build_config {
+    runtime = "python310"
+    entry_point = "entrypoint"  # Set the entry point 
+    source {
+      storage_source {
+        bucket = google_storage_bucket.code_bucket.name 
+        object = google_storage_bucket_object.rideshare_plus_function_zip_upload.name
+      }
+    }
+  }
+
+  service_config {
+    max_instance_count  = 10
+    min_instance_count = 1
+    available_memory    = "256M"
+    timeout_seconds     = 60
+    ingress_settings    = "ALLOW_ALL"
+    all_traffic_on_latest_revision = true
+    environment_variables = {
+        PROJECT_ID       = var.project_id,
+        ENV_CODE_BUCKET  = "code-${var.storage_bucket}"
+
+    }
+  }
+
+  depends_on = [ 
+    google_storage_bucket.code_bucket,
+    data.archive_file.rideshare_plus_function_zip,
+    google_storage_bucket_object.rideshare_plus_function_zip_upload
+  ]    
+}
+
+
+# IAM entry for all users to invoke the function
+resource "google_cloudfunctions2_function_iam_member" "rideshare_plus_function_invoker" {
+  project        = google_cloudfunctions2_function.rideshare_plus_function.project
+  location       = google_cloudfunctions2_function.rideshare_plus_function.location
+  cloud_function = google_cloudfunctions2_function.rideshare_plus_function.name
+
+  role   = "roles/cloudfunctions.invoker"
+  member = "allUsers"
+
+  depends_on = [ 
+    google_storage_bucket.code_bucket,
+    data.archive_file.rideshare_plus_function_zip,
+    google_storage_bucket_object.rideshare_plus_function_zip_upload,
+    google_cloudfunctions2_function.rideshare_plus_function
+  ]    
+}
+
+# Update the Cloud Run to support allUsers used by Cloud Function V2
+resource "google_cloud_run_service_iam_binding" "rideshare_plus_function_cloudrun" {
+  project  = google_cloudfunctions2_function.rideshare_plus_function.project
+  location = google_cloudfunctions2_function.rideshare_plus_function.location
+  service  = google_cloudfunctions2_function.rideshare_plus_function.name
+
+  role     = "roles/run.invoker"
+  members  = ["allUsers"]
+
+  depends_on = [ 
+    google_storage_bucket.code_bucket,
+    data.archive_file.rideshare_plus_function_zip,
+    google_storage_bucket_object.rideshare_plus_function_zip_upload,
+    google_cloudfunctions2_function.rideshare_plus_function
+  ]    
+}
+
+
+# Deploy the function (V1)
+/*
+resource "google_cloudfunctions_function" "rideshare_plus_function" {
+  project     = var.project_id
+  region      = "us-central1"
+  name        = "demo-rest-api-service"
+  description = "demo-rest-api-service"
+  runtime     = "python310"
+
+  available_memory_mb          = 256
+  source_archive_bucket        = google_storage_bucket.code_bucket.name
+  source_archive_object        = google_storage_bucket_object.rideshare_plus_function_zip_upload.name
+  trigger_http                 = true
+  ingress_settings             = "ALLOW_ALL"
+  https_trigger_security_level = "SECURE_ALWAYS"
+  entry_point                  = "entrypoint"
+
+  environment_variables = {
+    PROJECT_ID = var.project_id
+  }
+
+  depends_on = [ 
+    google_storage_bucket.code_bucket,
+    data.archive_file.rideshare_plus_function_zip,
+    google_storage_bucket_object.rideshare_plus_function_zip_upload
+  ]  
+}
+
+# IAM entry for all users to invoke the function
+resource "google_cloudfunctions_function_iam_member" "rideshare_plus_function_invoker" {
+  project        = var.project_id
+  region         = "us-central1"
+  cloud_function = google_cloudfunctions_function.rideshare_plus_function.name
+
+  role   = "roles/cloudfunctions.invoker"
+  member = "allUsers"
+
+  depends_on = [ 
+    google_storage_bucket.code_bucket,
+    data.archive_file.rideshare_plus_function_zip,
+    google_storage_bucket_object.rideshare_plus_function_zip_upload,
+    google_cloudfunctions_function.rideshare_plus_function
+  ]    
+}
+*/
+
+####################################################################################
 # BigQuery - Connections (BigLake, Functions, etc)
 ####################################################################################
 # Cloud Function connection
@@ -866,7 +1140,7 @@ resource "google_cloudfunctions_function_iam_member" "invoker" {
 }
 
 
-# Allow cloud function service account to read storage
+# Allow cloud function service account to read storage [V1 Function]
 resource "google_project_iam_member" "bq_connection_iam_cloud_invoker" {
   project  = var.project_id
   role     = "roles/storage.objectViewer"
@@ -880,6 +1154,98 @@ resource "google_project_iam_member" "bq_connection_iam_cloud_invoker" {
     google_bigquery_connection.cloud_function_connection
   ]
 }
+
+# Allow cloud function service account to read storage [V2 Function]
+resource "google_project_iam_member" "cloudfunction_rest_api_iam" {
+  project  = var.project_id
+  role     = "roles/storage.objectViewer"
+  member   = "serviceAccount:${var.project_number}-compute@developer.gserviceaccount.com"
+
+  depends_on = [ 
+    google_storage_bucket.code_bucket,
+    data.archive_file.bigquery_external_function_zip,
+    google_storage_bucket_object.bigquery_external_function_zip_upload,
+    google_cloudfunctions_function.bigquery_external_function,
+    google_bigquery_connection.cloud_function_connection
+  ]
+}
+
+
+
+# The cloud function needs to read/write to this bucket (code bucket)
+resource "google_storage_bucket_iam_member" "function_code_bucket_storage_admin" {
+  bucket = google_storage_bucket.code_bucket.name
+  role   = "roles/storage.admin"
+  member = "serviceAccount:${var.project_number}-compute@developer.gserviceaccount.com"
+
+  depends_on = [ 
+    google_storage_bucket.code_bucket,
+    data.archive_file.bigquery_external_function_zip,
+    google_storage_bucket_object.bigquery_external_function_zip_upload,
+    google_cloudfunctions_function.bigquery_external_function,
+    google_bigquery_connection.cloud_function_connection,
+    google_project_iam_member.bq_connection_iam_cloud_invoker
+  ]  
+}
+
+# Allow cloud function service account to run BQ jobs
+resource "google_project_iam_member" "cloud_function_bq_job_user" {
+  project  = var.project_id
+  role     = "roles/bigquery.jobUser"
+  member   = "serviceAccount:${var.project_number}-compute@developer.gserviceaccount.com"
+
+  depends_on = [ 
+    google_storage_bucket.code_bucket,
+    data.archive_file.bigquery_external_function_zip,
+    google_storage_bucket_object.bigquery_external_function_zip_upload,
+    google_cloudfunctions_function.bigquery_external_function,
+    google_bigquery_connection.cloud_function_connection,
+    google_storage_bucket_iam_member.function_code_bucket_storage_admin
+  ]
+}
+
+# Allow cloud function to access Rideshare BQ Datasets
+resource "google_bigquery_dataset_access" "cloud_function_access_bq_rideshare_curated" {
+  dataset_id    = google_bigquery_dataset.rideshare_lakehouse_curated_dataset.dataset_id
+  role          = "roles/bigquery.dataOwner"
+  user_by_email = "${var.project_number}-compute@developer.gserviceaccount.com"
+
+  depends_on = [ 
+    data.archive_file.rideshare_plus_function_zip,
+    google_storage_bucket_object.rideshare_plus_function_zip_upload,
+    google_cloudfunctions2_function.rideshare_plus_function,
+    google_bigquery_dataset.rideshare_lakehouse_curated_dataset
+  ]  
+}
+
+ # For streaming data / view
+resource "google_bigquery_dataset_access" "cloud_function_access_bq_rideshare_raw" {
+  dataset_id    = google_bigquery_dataset.rideshare_lakehouse_raw_dataset.dataset_id
+  role          = "roles/bigquery.dataViewer"
+  user_by_email = "${var.project_number}-compute@developer.gserviceaccount.com"
+
+  depends_on = [ 
+    data.archive_file.rideshare_plus_function_zip,
+    google_storage_bucket_object.rideshare_plus_function_zip_upload,
+    google_cloudfunctions2_function.rideshare_plus_function,
+    google_bigquery_dataset.rideshare_lakehouse_raw_dataset
+  ]  
+}
+
+ # For streaming data / view [V2 function]
+resource "google_bigquery_dataset_access" "cloud_function_access_bq_taxi_dataset" {
+  dataset_id    = google_bigquery_dataset.taxi_dataset.dataset_id
+  role          = "roles/bigquery.dataViewer"
+  user_by_email = "${var.project_number}-compute@developer.gserviceaccount.com"
+
+  depends_on = [ 
+    data.archive_file.rideshare_plus_function_zip,
+    google_storage_bucket_object.rideshare_plus_function_zip_upload,
+    google_cloudfunctions2_function.rideshare_plus_function,
+    google_bigquery_dataset.taxi_dataset
+  ]  
+}
+
 
 
 # BigLake connection
@@ -905,6 +1271,21 @@ resource "google_project_iam_member" "bq_connection_iam_object_viewer" {
     google_bigquery_connection.biglake_connection
   ]
 }
+
+
+# Allow BigLake to custom role
+resource "google_project_iam_member" "biglake_customconnectiondelegate" {
+  project  = var.project_id
+  role     = google_project_iam_custom_role.customconnectiondelegate.id
+  member   = "serviceAccount:${google_bigquery_connection.biglake_connection.cloud_resource[0].service_account_id}"
+
+  depends_on = [
+    google_bigquery_connection.biglake_connection,
+    google_project_iam_custom_role.customconnectiondelegate
+  ]  
+}
+
+
 
 
 
@@ -1484,6 +1865,15 @@ resource "google_data_catalog_tag_template" "column_dq_tag_template" {
 
 
 ####################################################################################
+# App Engine
+####################################################################################
+resource "google_app_engine_application" "rideshare_plus_app_engine" {
+  project     = var.project_id
+  location_id = "us-central"
+}
+
+
+####################################################################################
 # Outputs
 ####################################################################################
 
@@ -1593,4 +1983,40 @@ output "dataflow_subnet_ip_cidr_range" {
 
 output "dataflow_service_account" {
   value = google_service_account.dataflow_service_account.email
+}
+
+output "bigquery_taxi_dataset" {
+  value = var.bigquery_taxi_dataset
+}
+
+output "bigquery_thelook_ecommerce_dataset" {
+  value = var.bigquery_thelook_ecommerce_dataset
+}
+
+output "bigquery_rideshare_lakehouse_raw_dataset" {
+  value = var.bigquery_rideshare_lakehouse_raw_dataset
+}
+
+output "bigquery_rideshare_lakehouse_enriched_dataset" {
+  value = var.bigquery_rideshare_lakehouse_enriched_dataset
+}
+
+output "bigquery_rideshare_lakehouse_curated_dataset" {
+  value = var.bigquery_rideshare_lakehouse_curated_dataset
+}
+
+output "gcs_rideshare_lakehouse_raw_bucket" {
+  value = google_storage_bucket.rideshare_lakehouse_raw.name
+}
+
+output "gcs_rideshare_lakehouse_enriched_bucket" {
+  value = google_storage_bucket.rideshare_lakehouse_enriched.name
+}
+
+output "gcs_rideshare_lakehouse_curated_bucket" {
+  value = google_storage_bucket.rideshare_lakehouse_curated.name
+}
+
+output "demo_rest_api_service_uri" { 
+  value = google_cloudfunctions2_function.rideshare_plus_function.service_config[0].uri
 }

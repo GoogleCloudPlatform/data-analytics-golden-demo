@@ -87,10 +87,12 @@ SELECT record_count,
             THEN CAST(1 AS NUMERIC)
             ELSE CAST(SUM(IFNULL(success_count,0)) / SUM(IFNULL(rows_validated,0)) AS NUMERIC)
        END AS success_percentage,
-       CASE WHEN SUM(IFNULL(success_count,0)) = 0
+       -- There is a failed_count field but it does not sum to 100% with the success count.
+       -- This is used in the demo so the UI does not show two numbers that do not add up to 100%
+       CAST(1 AS NUMERIC) - CASE WHEN SUM(IFNULL(rows_validated,0)) = 0
             THEN CAST(1 AS NUMERIC)
-            ELSE CAST(SUM(IFNULL(failed_count,0)) / SUM(IFNULL(success_count,0)) AS NUMERIC)
-       END AS failed_percentage,   
+            ELSE CAST(SUM(IFNULL(success_count,0)) / SUM(IFNULL(rows_validated,0)) AS NUMERIC)
+       END AS failed_percentage  
   FROM TableData
 GROUP BY 1,2,3,4,5;
 

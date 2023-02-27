@@ -90,6 +90,18 @@ resource "google_project_iam_member" "service_account_owner" {
 }
 
 
+resource "google_project_iam_member" "service_account_cloud_function_v2" {
+  project  = var.project_id
+  role     = "roles/cloudfunctions.admin"
+  member   = "serviceAccount:${google_service_account.service_account.email}"
+
+  depends_on = [
+    google_service_account.service_account,
+    google_project_iam_member.service_account_owner
+  ]
+}
+
+
 # Allow the service account to override organization policies on this project
 resource "google_organization_iam_member" "organization" {
   count  = var.environment == "GITHUB_ENVIRONMENT" ? 1 : 0

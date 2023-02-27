@@ -97,16 +97,58 @@ else
   fi
 fi
 
-
-
 echo "gcp_account_name: ${gcp_account_name}"
 echo "billing_account:  ${billing_account}"
 echo "org_id:           ${org_id}"
 
-
 echo "*********************************************************"
 read -p "Press [Enter] key if all the above items are set (gcp_account_name, org_id, billing_account). If not press Ctrl+C ..."
 echo "*********************************************************"
+
+shared_demo_project_id="mySharedProject"
+aws_omni_biglake_s3_bucket="myS3Bucket"
+azure_omni_biglake_adls_name="myAzureADLSGen2Account"
+
+if [[ $gcp_account_name == *"altostrat"* ]]; 
+then
+  echo "You are deploying to Argolis.  Additional information is required."
+
+  # Read the values for Argolis (or get from environment variables [during local development])
+  echo "Please enter the following values (or leave them blank):"
+  echo "Open this link: http://go/argolis-values to get their values."
+
+  if [[ -z "${ENV_SHARED_DEMO_PROJECT_ID}" ]]; then
+    read -p "Please enter [shared_demo_project_id]:" shared_demo_project_id
+  else
+    shared_demo_project_id=${ENV_SHARED_DEMO_PROJECT_ID} 
+    echo "Read environment variable [ENV_SHARED_DEMO_PROJECT_ID]: ${shared_demo_project_id}"
+  fi
+
+  if [[ -z "${ENV_AWS_OMNI_BIGLAKE_S3_BUCKET}" ]]; then
+    read -p "Please enter [aws_omni_biglake_s3_bucket]:" aws_omni_biglake_s3_bucket
+  else
+    aws_omni_biglake_s3_bucket=${ENV_AWS_OMNI_BIGLAKE_S3_BUCKET} 
+    echo "Read environment variable [ENV_AWS_OMNI_BIGLAKE_S3_BUCKET]: ${aws_omni_biglake_s3_bucket}"
+  fi  
+
+  if [[ -z "${ENV_AZURE_OMNI_BIGLAKE_ADLS_NAME}" ]]; then
+    read -p "Please enter [azure_omni_biglake_adls_name]:" azure_omni_biglake_adls_name
+  else
+    azure_omni_biglake_adls_name=${ENV_AZURE_OMNI_BIGLAKE_ADLS_NAME} 
+    echo "Read environment variable [ENV_AZURE_OMNI_BIGLAKE_ADLS_NAME]: ${azure_omni_biglake_adls_name}"
+  fi  
+
+  # if they are blank then use defaults
+  if [ -z "${shared_demo_project_id}" ]; then
+    shared_demo_project_id="mySharedProject"
+  fi 
+  if [ -z "${aws_omni_biglake_s3_bucket}" ]; then
+    aws_omni_biglake_s3_bucket="myS3Bucket"
+  fi 
+  if [ -z "${azure_omni_biglake_adls_name}" ]; then
+    azure_omni_biglake_adls_name="myAzureADLSGen2Account"
+  fi   
+fi
 
 
 ####################################################################################
@@ -124,19 +166,17 @@ terraform init
 # Validate
 terraform validate
 
-echo "terraform apply -var=\"gcp_account_name=${gcp_account_name}\" -var=\"org_id=${org_id}\" -var=\"billing_account=${billing_account}\" -var=\"project_id=data-analytics-demo\""
+echo "terraform apply -var=\"gcp_account_name=${gcp_account_name}\" -var=\"org_id=${org_id}\" -var=\"billing_account=${billing_account}\" -var=\"project_id=data-analytics-demo\" -var=\"shared_demo_project_id=${shared_demo_project_id}\" -var=\"aws_omni_biglake_s3_bucket=${aws_omni_biglake_s3_bucket}\" -var=\"azure_omni_biglake_adls_name=${azure_omni_biglake_adls_name}\""
 
 # Run the Terraform Apply
 terraform apply \
   -var="gcp_account_name=${gcp_account_name}" \
   -var="org_id=${org_id}" \
   -var="billing_account=${billing_account}" \
-  -var="project_id=data-analytics-demo"
-
-# NOTE: To deploy for BQ OMNI you need to also include there arguments to the terraform apply
-#  -var="shared_demo_project_id=mySharedProject" \
-#  -var="aws_omni_biglake_s3_bucket=myS3Bucket" \
-#  -var="azure_omni_biglake_adls_name=myAzureADLSGen2StorageAccount"
+  -var="project_id=data-analytics-demo" \
+  -var="shared_demo_project_id=${shared_demo_project_id}" \
+  -var="aws_omni_biglake_s3_bucket=${aws_omni_biglake_s3_bucket}" \
+  -var="azure_omni_biglake_adls_name=${azure_omni_biglake_adls_name}"
 
 terraform_exit_code=$?
 echo "Terraform exit code: ${terraform_exit_code}"
@@ -183,7 +223,10 @@ then
       -var="gcp_account_name=${gcp_account_name}" \
       -var="org_id=${org_id}" \
       -var="billing_account=${billing_account}" \
-      -var="project_id=data-analytics-demo"
+      -var="project_id=data-analytics-demo" \
+      -var="shared_demo_project_id=${shared_demo_project_id}" \
+      -var="aws_omni_biglake_s3_bucket=${aws_omni_biglake_s3_bucket}" \
+      -var="azure_omni_biglake_adls_name=${azure_omni_biglake_adls_name}"
 
     # NOTE: To deploy for BQ OMNI you need to also include there arguments to the terraform apply
     #  -var="shared_demo_project_id=mySharedProject" \
@@ -195,14 +238,12 @@ then
     # and then re-enable them.
     rm ../terraform-modules/org-policies/tf-org-policies.tf
     mv ../terraform-modules/org-policies/tf-org-policies-original.txt ../terraform-modules/org-policies/tf-org-policies.tf
-
   fi  
-
 fi
 
 cd ..
 
-echo "terraform apply -var=\"gcp_account_name=${gcp_account_name}\" -var=\"org_id=${org_id}\" -var=\"billing_account=${billing_account}\" -var=\"project_id=data-analytics-demo\""
+echo "terraform apply -var=\"gcp_account_name=${gcp_account_name}\" -var=\"org_id=${org_id}\" -var=\"billing_account=${billing_account}\" -var=\"project_id=data-analytics-demo\" -var=\"shared_demo_project_id=${shared_demo_project_id}\" -var=\"aws_omni_biglake_s3_bucket=${aws_omni_biglake_s3_bucket}\" -var=\"azure_omni_biglake_adls_name=${azure_omni_biglake_adls_name}\""
 
 echo "*********************************************************"
 echo "Done"
