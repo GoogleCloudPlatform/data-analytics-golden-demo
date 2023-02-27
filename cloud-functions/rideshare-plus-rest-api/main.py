@@ -147,6 +147,8 @@ def save_configuration(request: flask.Request) -> flask.Response:
         print("looker_url: ", looker_url)
         project_id = os.environ['PROJECT_ID']
         print("project_id: ", project_id) 
+        code_bucket = os.environ['ENV_CODE_BUCKET']
+        print("code_bucket: ", code_bucket) 
 
         filename = "website/rideshareplusconfig.json";
         config_value = {
@@ -155,7 +157,7 @@ def save_configuration(request: flask.Request) -> flask.Response:
         default_json = json.dumps(config_value) 
        
         storage_client = storage.Client()
-        bucket = storage_client.get_bucket("code-" + project_id)
+        bucket = storage_client.get_bucket(code_bucket)
         blob = bucket.blob(filename)
         blob.upload_from_string(default_json, content_type='application/json', num_retries=3)
 
@@ -183,9 +185,11 @@ def get_configuration(request: flask.Request) -> flask.Response:
         default_json = json.dumps(default_config) 
         project_id = os.environ['PROJECT_ID']
         print("project_id: ", project_id) 
+        code_bucket = os.environ['ENV_CODE_BUCKET']
+        print("code_bucket: ", code_bucket) 
 
         storage_client = storage.Client()
-        bucket = storage_client.get_bucket("code-" + project_id)
+        bucket = storage_client.get_bucket(code_bucket)
         blob = bucket.blob(filename)
         if blob.exists() == False:
             print("Creating default configuration file.")
