@@ -50,13 +50,16 @@ default_args = {
     'dagrun_timeout' : timedelta(minutes=60),
 }
 
-project_id               = os.environ['GCP_PROJECT'] 
-raw_bucket_name          = os.environ['ENV_RAW_BUCKET'] 
-processed_bucket_name    = os.environ['ENV_PROCESSED_BUCKET'] 
-region                   = os.environ['ENV_REGION'] 
-taxi_dataset_id          = os.environ['ENV_TAXI_DATASET_ID']
-thelook_dataset_id       = "thelook_ecommerce"
-random_extension         = os.environ['ENV_RANDOM_EXTENSION']
+project_id                = os.environ['GCP_PROJECT'] 
+raw_bucket_name           = os.environ['ENV_RAW_BUCKET'] 
+processed_bucket_name     = os.environ['ENV_PROCESSED_BUCKET'] 
+region                    = os.environ['ENV_REGION'] 
+taxi_dataset_id           = os.environ['ENV_TAXI_DATASET_ID']
+thelook_dataset_id        = "thelook_ecommerce"
+random_extension          = os.environ['ENV_RANDOM_EXTENSION']
+rideshare_raw_bucket      = os.environ['ENV_RIDESHARE_LAKEHOUSE_RAW_BUCKET']
+rideshare_enriched_bucket = os.environ['ENV_RIDESHARE_LAKEHOUSE_ENRICHED_BUCKET']
+rideshare_curated_bucket  = os.environ['ENV_RIDESHARE_LAKEHOUSE_CURATED_BUCKET']
 
 params_list = { 
     "project_id" : project_id,
@@ -66,6 +69,9 @@ params_list = {
     "taxi_dataset": taxi_dataset_id,
     "thelook_dataset": thelook_dataset_id,
     "random_extension": random_extension,
+    "rideshare_raw_bucket": rideshare_raw_bucket,
+    "rideshare_enriched_bucket": rideshare_enriched_bucket,
+    "rideshare_curated_bucket": rideshare_curated_bucket,
     }
 
 
