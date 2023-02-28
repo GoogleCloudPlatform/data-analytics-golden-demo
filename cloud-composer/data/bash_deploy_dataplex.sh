@@ -32,7 +32,9 @@ PROCESSED_BUCKET="{{ params.processed_bucket }}"
 TAXI_DATASET="{{ params.taxi_dataset }}"
 THELOOK_DATASET="{{ params.thelook_dataset }}"
 RANDOM_EXTENSION="{{ params.random_extension }}"
-
+RIDESHARE_RAW_BUCKET="{{ params.rideshare_raw_bucket }}"
+RIDESHARE_ENRICHED_BUCKET="{{ params.rideshare_enriched_bucket }}"
+RIDESHARE_CURATED_BUCKET="{{ params.rideshare_curated_bucket }}"
 
 # Activate the services (TODO: Move the full TF script - DONE)
 # gcloud services enable metastore.googleapis.com --project="${PROJECT_ID}"
@@ -179,7 +181,7 @@ gcloud dataplex assets create "rideshare-raw-unstructured-${RANDOM_EXTENSION}" \
     --description="Raw Zone - Unstructured" \
     --display-name="Raw Zone - Unstructured" \
     --resource-type=STORAGE_BUCKET \
-    --resource-name="projects/${PROJECT_ID}/buckets/rideshare-lakehouse-raw-${RANDOM_EXTENSION}" \
+    --resource-name="projects/${PROJECT_ID}/buckets/${RIDESHARE_RAW_BUCKET}" \
     --discovery-enabled \
     --csv-delimiter="|" \
     --csv-header-rows=1 
@@ -214,7 +216,7 @@ gcloud dataplex assets create "rideshare-enriched-unstructured-${RANDOM_EXTENSIO
     --description="Enriched Zone - Unstructured" \
     --display-name="Enriched Zone - Unstructured" \
     --resource-type=STORAGE_BUCKET \
-    --resource-name="projects/${PROJECT_ID}/buckets/rideshare-lakehouse-enriched-${RANDOM_EXTENSION}" \
+    --resource-name="projects/${PROJECT_ID}/buckets/${RIDESHARE_ENRICHED_BUCKET}" \
     --discovery-enabled \
     --csv-delimiter="|" \
     --csv-header-rows=1 
@@ -249,7 +251,7 @@ gcloud dataplex assets create "rideshare-curated-unstructured-${RANDOM_EXTENSION
     --description="Curated Zone - Unstructured" \
     --display-name="Curated Zone - Unstructured" \
     --resource-type=STORAGE_BUCKET \
-    --resource-name="projects/${PROJECT_ID}/buckets/rideshare-lakehouse-curated-${RANDOM_EXTENSION}" \
+    --resource-name="projects/${PROJECT_ID}/buckets/${RIDESHARE_CURATED_BUCKET}" \
     --discovery-enabled \
     --csv-delimiter="|" \
     --csv-header-rows=1 
