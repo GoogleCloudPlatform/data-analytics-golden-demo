@@ -110,7 +110,7 @@ WITH UnstructuredData AS
   -- get the image from the oject table
   SELECT * 
     FROM `${project_id}.${bigquery_rideshare_lakehouse_raw_dataset}.biglake_rideshare_images` 
-    WHERE uri = 'gs://${gcs_rideshare_lakehouse_raw_bucket}/rideshare_images/pexels-oleksandr-pidvalnyi-1008155.jpg'
+    WHERE uri = (SELECT uri FROM `${project_id}.${bigquery_rideshare_lakehouse_raw_dataset}.biglake_rideshare_images` LIMIT 1)
 )
 , ScoreAI AS 
 (
