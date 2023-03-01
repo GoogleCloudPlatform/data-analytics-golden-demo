@@ -31,11 +31,21 @@
   
   Clean up / Reset script:
 
+  -- CALL `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.sp_website_score_data`('short', FALSE, FALSE, 0, 0);
   */
 
--- CALL `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.sp_website_score_data`('short', FALSE, FALSE, 0, 0);
+DECLARE Max_people_cnt, Max_people_traveling_cnt INT64;
+
 BEGIN
 BEGIN TRANSACTION;
+    IF people_cnt = 0 AND people_traveling_cnt = 0 THEN 
+       -- random counts if both values are zero (random up to our training data)
+       SET (Max_people_cnt, Max_people_traveling_cnt) = (SELECT AS STRUCT CAST(MAX(people_cnt) AS INT64), CAST(MAX(people_traveling_cnt) AS INT64)
+                                                           FROM `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.bigquery_model_training_data`);
+       SET people_cnt           = CAST(ROUND(1 + RAND() * (Max_people_cnt - 1)) AS INT);
+       SET people_traveling_cnt = CAST(ROUND(1 + RAND() * (Max_people_traveling_cnt - 1)) AS INT);
+    END IF;   
+
     DELETE FROM `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.bigquery_predict_high_value_rides` WHERE TRUE;
 
     -- Score every location to determine the highest value ones
@@ -58,8 +68,8 @@ BEGIN TRANSACTION;
         ride_distance AS ride_distance,
         is_raining,
         is_snowing,
-        people_traveling_cnt,
-        people_cnt,
+        CAST(people_traveling_cnt AS INT),
+        CAST(people_cnt AS INT),
         CASE WHEN predicted_is_high_value_ride > .5 THEN TRUE
                 ELSE FALSE
             END AS is_high_value_ride,
@@ -81,8 +91,8 @@ BEGIN TRANSACTION;
                 '%s' AS ride_distance,
                 %s AS is_raining,
                 %s AS is_snowing,
-                %s AS people_traveling_cnt,
-                %s AS people_cnt
+                CAST(%s AS STRING) AS people_traveling_cnt,
+                CAST(%s AS STRING) AS people_cnt
             FROM `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.bigquery_rideshare_zone`
         ));
       """, ride_distance,
@@ -93,17 +103,11 @@ BEGIN TRANSACTION;
 
     -- Just so we have some results for the demo
     UPDATE `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.bigquery_predict_high_value_rides` parent
-    SET is_high_value_ride = TRUE, predicted_is_high_value_ride = 1.00
-    FROM (SELECT CAST(ROUND(1 + RAND() * (263 - 1)) AS INT) AS location_id
-            UNION ALL
-            SELECT CAST(ROUND(1 + RAND() * (263 - 1)) AS INT) AS location_id
-            UNION ALL
-            SELECT CAST(ROUND(1 + RAND() * (263 - 1)) AS INT) AS location_id
-            UNION ALL
-            SELECT CAST(ROUND(1 + RAND() * (263 - 1)) AS INT) AS location_id
-            UNION ALL
-            SELECT CAST(ROUND(1 + RAND() * (263 - 1)) AS INT) AS location_id) AS child
-    WHERE parent.location_id = child.location_id;
+         SET is_high_value_ride = TRUE
+       WHERE parent.location_id IN (SELECT location_id 
+                                      FROM `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.bigquery_predict_high_value_rides`
+                                     ORDER BY predicted_is_high_value_ride DESC
+                                     LIMIT 5);
 
     -- Only show the top 10 rides (so the map is not too cluttered)
     DELETE
