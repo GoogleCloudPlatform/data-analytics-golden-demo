@@ -149,8 +149,8 @@ SELECT rideshare_trip_id,
        CASE WHEN IFNULL(WeatherSnowData.value,0) > 0 THEN TRUE
             ELSE FALSE
        END AS is_snowing,
-       IFNULL(PeopleTraveling.cnt,0) AS people_traveling_cnt,      
-       IFNULL(People.cnt,0) AS people_cnt,
+       CAST(IFNULL(PeopleTraveling.cnt,0) AS STRING) AS people_traveling_cnt,      
+       CAST(IFNULL(People.cnt,0)          AS STRING) AS people_cnt,
        CASE WHEN ride_distance > 5 AND fare_amount> 25 AND tip_amount > (fare_amount * .30) THEN 1
             WHEN ride_distance > 4 AND fare_amount> 20 AND tip_amount > (fare_amount * .25) THEN 1
             WHEN ride_distance > 3 AND fare_amount> 15 AND tip_amount > (fare_amount * .20) THEN 1
@@ -201,8 +201,8 @@ SELECT *
               'short' AS ride_distance,
               FALSE AS is_raining,
               FALSE AS is_snowing,
-              0 AS people_traveling_cnt,
-              0 AS people_cnt          
+              '0' AS people_traveling_cnt,
+              '0' AS people_cnt          
         ));
 """;
 
