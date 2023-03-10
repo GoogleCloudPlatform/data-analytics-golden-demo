@@ -25,13 +25,31 @@ PROJECT_ID="{{ params.project_id }}"
 AUTH_TOKEN=$(gcloud auth application-default print-access-token)
 RUNTIME_ID="demo-runtime"
 OWNER_EMAIL="{{ params.gcp_account_name }}"
+DATAPROC_SERVICE_ACCOUNT="{{ params.dataproc_account_name }}"
+# The image URL is set to specific version
+IMAGE_URL=projects/cloud-notebooks-managed/global/images/beatrix-notebooks-v20221108
+
+# As a specific user using the latest image version
+#RUNTIME_BODY='{
+#  "access_config": {
+#    "access_type": "SINGLE_USER",
+#    "runtime_owner": "${OWNER_EMAIL}"
+#  }
+#}'
+
+# Run as a service account with a specific notebook version
 RUNTIME_BODY="{
   'access_config': {
-      'access_type': 'SINGLE_USER',
-          'runtime_owner': '${OWNER_EMAIL}'
+      'access_type': 'SERVICE_ACCOUNT',
+          'runtime_owner': '${DATAPROC_SERVICE_ACCOUNT}'
 	    },
+  'virtual_machine': {
+      'virtual_machine_config': {
+          'metadata': {'image-url': '${IMAGE_URL}'},
+    }  
+  }      
 }"
 
 curl -X POST https://${BASE_ADDRESS}/v1/projects/$PROJECT_ID/locations/$LOCATION/runtimes?runtime_id=${RUNTIME_ID} -d "${RUNTIME_BODY}" \
 	 -H "Content-Type: application/json" \
-	  -H "Authorization: Bearer $AUTH_TOKEN" -v
+	 -H "Authorization: Bearer $AUTH_TOKEN" -v
