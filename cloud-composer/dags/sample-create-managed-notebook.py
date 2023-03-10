@@ -47,14 +47,16 @@ default_args = {
     'dagrun_timeout' : timedelta(minutes=60),
 }
 
-project_id          = os.environ['GCP_PROJECT'] 
-region              = os.environ['ENV_REGION'] 
-gcp_account_name    = os.environ['ENV_GCP_ACCOUNT_NAME']
+project_id            = os.environ['GCP_PROJECT'] 
+region                = os.environ['ENV_REGION'] 
+gcp_account_name      = os.environ['ENV_GCP_ACCOUNT_NAME']
+dataproc_account_name = os.environ['ENV_DATAPROC_SERVICE_ACCOUNT']
 
 params_list = { 
     "project_id" : project_id,
     "region": region,
     "gcp_account_name": gcp_account_name,
+    "dataproc_account_name" : dataproc_account_name
     }
 
 
