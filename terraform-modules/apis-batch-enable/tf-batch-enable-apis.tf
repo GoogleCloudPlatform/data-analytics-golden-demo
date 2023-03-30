@@ -305,3 +305,8 @@ resource "google_project_service" "service-biglake" {
   project = var.project_id
   service = "biglake.googleapis.com"
 }
+
+resource "google_project_service" "service-datalineage" {
+  project = var.project_id
+  service = "datalineage.googleapis.com"
+}
