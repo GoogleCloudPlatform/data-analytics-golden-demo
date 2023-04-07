@@ -42,8 +42,21 @@ terraform {
 ####################################################################################
 variable "project_id" {}
 variable "project_number" {}
+variable "dataform_region" {}
 variable "storage_bucket" {}
 variable "curl_impersonation" {}
+
+locals {
+  dataform_upload_dataform_json_file = templatefile("../dataform/dataform_golden_demo/demo_flow/dataform.json", 
+  { 
+    project_id = var.project_id
+  })
+  dataform_create_biglake_table_file = templatefile("../dataform/dataform_golden_demo/demo_flow/definitions/operations/create_biglake_table.sqlx", 
+  { 
+    processed_bucket = "processed-${var.storage_bucket}"
+  })
+}
+
 
 # Create a Git repo
 /*
@@ -82,7 +95,7 @@ resource "google_secret_manager_secret_version" "secret_version" {
 resource "google_dataform_repository" "dataform_repository" {
   provider = google
   project  = var.project_id
-  region   = "us-central1" # var.region - must be in central during preview
+  region   = var.dataform_region
   name     = "dataform_golden_demo"
 
 /* Not set for demo.  You will need to do this via the UI after updating the secret with your PAT token
@@ -201,13 +214,6 @@ provisioner "local-exec" {
     ]
 }
 
-# Upload the Dataform.json file (we need to do some token replacements for "dataform variables")
-data "template_file" "dataform_upload_dataform_json_file" {
-  template = "${file("../dataform/dataform_golden_demo/demo_flow/dataform.json")}"
-  vars = {
-    project_id = var.project_id
-  }  
-}
 
 # Upload the Dataform.json file 
 resource "null_resource" "dataform_upload_dataform_json" {
@@ -219,7 +225,7 @@ provisioner "local-exec" {
       --header "Accept: application/json" \
       --header "Content-Type: application/json" \
       -X POST  https://dataform.googleapis.com/v1beta1/projects/${var.project_id}/locations/us-central1/repositories/dataform_golden_demo/workspaces/demo_flow:writeFile \
-      --data \ "{ \"path\" : \"dataform.json\", \"contents\" : \"${base64encode(data.template_file.dataform_upload_dataform_json_file.rendered)}\" }"
+      --data \ "{ \"path\" : \"dataform.json\", \"contents\" : \"${base64encode(local.dataform_upload_dataform_json_file)}\" }"
     EOF
   }
   depends_on = [
@@ -308,15 +314,6 @@ provisioner "local-exec" {
 }
 
 
-# Template file that needs some token replacements
-data "template_file" "dataform_create_biglake_table_file" {
-  template = "${file("../dataform/dataform_golden_demo/demo_flow/definitions/operations/create_biglake_table.sqlx")}"
-  vars = {
-    processed_bucket = "processed-${var.storage_bucket}"
-  }  
-}
-
-
 # definitions/operations/create_biglake_table.sqlx
 resource "null_resource" "dataform_create_biglake_table" {
 provisioner "local-exec" {
@@ -327,7 +324,7 @@ provisioner "local-exec" {
       --header "Accept: application/json" \
       --header "Content-Type: application/json" \
       -X POST  https://dataform.googleapis.com/v1beta1/projects/${var.project_id}/locations/us-central1/repositories/dataform_golden_demo/workspaces/demo_flow:writeFile \
-      --data \ "{ \"path\" : \"definitions/operations/create_biglake_table.sqlx\", \"contents\" : \"${base64encode(data.template_file.dataform_create_biglake_table_file.rendered)}\" }"
+      --data \ "{ \"path\" : \"definitions/operations/create_biglake_table.sqlx\", \"contents\" : \"${base64encode(local.dataform_create_biglake_table_file)}\" }"
     EOF
   }
   depends_on = [

@@ -51,7 +51,7 @@ default_args = {
 }
 
 project_id            = os.environ['GCP_PROJECT'] 
-region                = os.environ['ENV_REGION'] 
+region                = os.environ['ENV_SPANNER_REGION'] 
 bigquery_region       = os.environ['ENV_BIGQUERY_REGION'] 
 spanner_instance_id   = os.environ['ENV_SPANNER_INSTANCE_ID']
 processed_bucket_name = os.environ['ENV_PROCESSED_BUCKET'] 

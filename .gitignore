@@ -41,3 +41,4 @@ deploy-omni2.sh
 cloud-functions/rideshare-plus-rest-api.zip
 deploy-env-shortcut.sh
 temp.html
+temp.tf

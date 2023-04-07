@@ -22,9 +22,14 @@
 ####################################################################################
 # REPLACE_WITH_FILENAME
 ####################################################################################
-data "template_file" "sproc_REPLACE_WITH_FILENAME" {
-  template = "${file("../sql-scripts/DIRECTORY/REPLACE_WITH_FILENAME.sql")}"
-  vars = {
+resource "google_bigquery_routine" "sproc_REPLACE_WITH_FILENAME" {
+  dataset_id      = var.bigquery_taxi_dataset
+  routine_id      = "REPLACE_WITH_FILENAME"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = "${data.template_file.sproc_REPLACE_WITH_FILENAME.rendered}"
+  definition_body = templatefile("../sql-scripts/DIRECTORY/REPLACE_WITH_FILENAME.sql", 
+  { 
     project_id = var.project_id
     region = var.region
     bigquery_taxi_dataset = var.bigquery_taxi_dataset
@@ -32,13 +37,6 @@ data "template_file" "sproc_REPLACE_WITH_FILENAME" {
     bucket_name = var.storage_bucket
     bigquery_region = var.bigquery_region
     gcp_account_name = var.gcp_account_name
-  }  
-}
-resource "google_bigquery_routine" "sproc_REPLACE_WITH_FILENAME" {
-  dataset_id      = var.bigquery_taxi_dataset
-  routine_id      = "REPLACE_WITH_FILENAME"
-  routine_type    = "PROCEDURE"
-  language        = "SQL"
-  definition_body = "${data.template_file.sproc_REPLACE_WITH_FILENAME.rendered}"
+  })
 }
 ```

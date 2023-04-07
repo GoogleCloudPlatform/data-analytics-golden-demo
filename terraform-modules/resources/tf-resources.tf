@@ -36,14 +36,22 @@ terraform {
 ####################################################################################
 variable "gcp_account_name" {}
 variable "project_id" {}
-variable "region" {}
-variable "zone" {}
+variable "composer_region" {}
+variable "dataform_region" {}
+variable "dataplex_region" {}
+variable "nat_router_region" {}
+variable "dataproc_region" {}
+variable "dataflow_region" {}
+variable "bigquery_region" {}
+variable "bigquery_non_multi_region" {}
+variable "spanner_region" {}
+variable "datafusion_region" {}
+variable "vertex_ai_region" {}
 variable "storage_bucket" {}
 variable "spanner_config" {}
 variable "random_extension" {}
 variable "project_number" {}
 variable "deployment_service_account_name" {}
-variable "bigquery_region" {}
 variable "curl_impersonation" {}
 
 variable "aws_omni_biglake_dataset_region" {}
@@ -186,7 +194,7 @@ resource "google_compute_firewall" "subnet_firewall_rule" {
 # Creation of a router so private IPs can access the internet
 resource "google_compute_router" "nat-router" {
   name    = "nat-router"
-  region  = var.region
+  region  = var.nat_router_region
   network  = google_compute_network.default_network.id
 
   depends_on = [
@@ -199,7 +207,7 @@ resource "google_compute_router" "nat-router" {
 resource "google_compute_router_nat" "nat-config" {
   name                               = "nat-config"
   router                             = "${google_compute_router.nat-router.name}"
-  region                             = var.region
+  region                             = var.nat_router_region
   nat_ip_allocate_option             = "AUTO_ONLY"
   source_subnetwork_ip_ranges_to_nat = "ALL_SUBNETWORKS_ALL_IP_RANGES"
 
@@ -217,7 +225,7 @@ resource "google_compute_subnetwork" "dataproc_subnet" {
   project       = var.project_id
   name          = "dataproc-subnet"
   ip_cidr_range = "10.3.0.0/16"
-  region        = var.region
+  region        = var.dataproc_region
   network       = google_compute_network.default_network.id
   private_ip_google_access = true
 
@@ -256,7 +264,7 @@ resource "google_compute_firewall" "dataproc_subnet_firewall_rule" {
 resource "google_storage_bucket" "dataproc_bucket" {
   project                     = var.project_id
   name                        = "dataproc-${var.storage_bucket}"
-  location                    = var.region
+  location                    = var.dataproc_region
   force_destroy               = true
   uniform_bucket_level_access = true
 }
@@ -310,7 +318,7 @@ resource "google_project_iam_member" "dataproc_customconnectiondelegate" {
 resource "google_dataproc_cluster" "mycluster" {
   name     = "testcluster"
   project  = var.project_id
-  region   = var.region
+  region   = var.dataproc_region
   graceful_decommission_timeout = "120s"
 
   cluster_config {
@@ -395,7 +403,7 @@ resource "google_compute_subnetwork" "composer_subnet" {
   project       = var.project_id
   name          = "composer-subnet"
   ip_cidr_range = "10.2.0.0/16"
-  region        = var.region
+  region        = var.composer_region
   network       = google_compute_network.default_network.id
   private_ip_google_access = true
 
@@ -458,7 +466,7 @@ resource "google_project_iam_member" "cloudcomposer_act_as" {
 resource "google_composer_environment" "composer_env" {
   project  = var.project_id
   name     = "data-analytics-demo-composer-2"
-  region   = var.region
+  region   = var.composer_region
 
   config {
 
@@ -469,19 +477,29 @@ resource "google_composer_environment" "composer_env" {
       #"composer-2.0.7-airflow-2.2.3"
 
       env_variables = {
-        ENV_RAW_BUCKET               = "raw-${var.storage_bucket}",
-        ENV_PROCESSED_BUCKET         = "processed-${var.storage_bucket}",
-        ENV_CODE_BUCKET              = "code-${var.storage_bucket}",
-        ENV_REGION                   = var.region,
-        ENV_ZONE                     = var.zone,
+        ENV_RAW_BUCKET                = "raw-${var.storage_bucket}",
+        ENV_PROCESSED_BUCKET          = "processed-${var.storage_bucket}",
+        ENV_CODE_BUCKET               = "code-${var.storage_bucket}",
+
+        ENV_COMPOSER_REGION           = var.composer_region
+        ENV_DATAFORM_REGION           = var.dataform_region
+        ENV_DATAPLEX_REGION           = var.dataplex_region
+        ENV_NAT_ROUTER_REGION         = var.nat_router_region
+        ENV_DATAPROC_REGION           = var.dataproc_region
+        ENV_DATAFLOW_REGION           = var.dataflow_region
+        ENV_BIGQUERY_REGION           = var.bigquery_region
+        ENV_BIGQUERY_NON_MULTI_REGION = var.bigquery_non_multi_region
+        ENV_SPANNER_REGION            = var.spanner_region
+        ENV_DATAFUSION_REGION         = var.datafusion_region
+        ENV_VERTEX_AI_REGION          = var.vertex_ai_region   
+
         ENV_DATAPROC_BUCKET          = "dataproc-${var.storage_bucket}",
-        ENV_DATAPROC_SUBNET          = "projects/${var.project_id}/regions/${var.region}/subnetworks/dataproc-subnet",
+        ENV_DATAPROC_SUBNET          = "projects/${var.project_id}/regions/${var.dataproc_region}/subnetworks/dataproc-subnet",
         ENV_DATAPROC_SERVICE_ACCOUNT = "dataproc-service-account@${var.project_id}.iam.gserviceaccount.com",
         ENV_GCP_ACCOUNT_NAME         = "${var.gcp_account_name}",
         ENV_TAXI_DATASET_ID          = google_bigquery_dataset.taxi_dataset.dataset_id,
         ENV_SPANNER_INSTANCE_ID      = "spanner-${var.random_extension}" //google_spanner_instance.spanner_instance.name,
-        ENV_BIGQUERY_REGION          = var.bigquery_region,
-        ENV_DATAFLOW_SUBNET          = "regions/${var.region}/subnetworks/dataflow-subnet",
+        ENV_DATAFLOW_SUBNET          = "regions/${var.dataflow_region}/subnetworks/dataflow-subnet",
         ENV_DATAFLOW_SERVICE_ACCOUNT = "dataflow-service-account@${var.project_id}.iam.gserviceaccount.com",
         ENV_RANDOM_EXTENSION         = var.random_extension
         ENV_SPANNER_CONFIG           = var.spanner_config
@@ -624,7 +642,7 @@ resource "google_compute_subnetwork" "bigspark_subnet" {
   project                  = var.project_id
   name                     = "bigspark-subnet"
   ip_cidr_range            = "10.5.0.0/16"
-  region                   = "us-central1" # var.region - must be in central during preview
+  region                   = var.bigquery_non_multi_region
   network                  = google_compute_network.default_network.id
   private_ip_google_access = true
 
@@ -1541,7 +1559,7 @@ resource "google_compute_subnetwork" "dataflow_subnet" {
   project       = var.project_id
   name          = "dataflow-subnet"
   ip_cidr_range = "10.4.0.0/16"
-  region        = var.region
+  region        = var.dataflow_region
   network       = google_compute_network.default_network.id
   private_ip_google_access = true
 
@@ -1616,7 +1634,7 @@ else
     gcloud auth activate-service-account "${var.deployment_service_account_name}" --key-file="$${GOOGLE_APPLICATION_CREDENTIALS}" --project="${var.project_id}"
     gcloud config set account "${var.deployment_service_account_name}"
 fi 
-curl "https://bigquerydatatransfer.googleapis.com/v1/projects/${var.project_id}/locations/${var.region}/transferConfigs" \
+curl "https://bigquerydatatransfer.googleapis.com/v1/projects/${var.project_id}/locations/${var.bigquery_non_multi_region}/transferConfigs" \
   --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})"  \
   --header "Accept: application/json" \
   --compressed

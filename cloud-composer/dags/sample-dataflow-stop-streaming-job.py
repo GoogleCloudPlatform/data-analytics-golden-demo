@@ -44,7 +44,7 @@ default_args = {
 }
 
 project_id            = os.environ['GCP_PROJECT'] 
-region                = os.environ['ENV_REGION'] 
+region                = os.environ['ENV_DATAFLOW_REGION'] 
 
 # Opens the json written out when the job was started
 # Checks for 4 hours
