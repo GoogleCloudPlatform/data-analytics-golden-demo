@@ -68,7 +68,7 @@ yaml_path                             = "gs://" + code_bucket_name + "/dataplex/
 bigquery_region                       = os.environ['ENV_BIGQUERY_REGION']
 thelook_dataset_id                    = "thelook_ecommerce"
 vpc_subnet_name                       = "bigspark-subnet"
-dataplex_region                       = "us-central1"
+dataplex_region                       = os.environ['ENV_DATAPLEX_REGION']
 service_account_to_run_dataplex       = "dataproc-service-account@" + project_id + ".iam.gserviceaccount.com"
 random_extension                      = os.environ['ENV_RANDOM_EXTENSION']
 rideshare_dataplex_lake_name          = "rideshare-lakehouse-" + random_extension
@@ -260,7 +260,7 @@ def attach_tag_template_to_table():
       page_result = datacatalog_client.list_tags(parent=table_entry.name)
 
       existing_name = ""
-      # template: "projects/data-analytics-demo-ra5migwp3l/locations/us-central1/tagTemplates/table_dq_tag_template"
+      # template: "projects/data-analytics-demo-ra5migwp3l/locations/REPLACE-REGION/tagTemplates/table_dq_tag_template"
       # Handle the response
       for response in page_result:
         print("response: ", response)
@@ -357,10 +357,10 @@ def attach_tag_template_to_columns():
       page_result = datacatalog_client.list_tags(parent=table_entry.name)
 
       existing_name = ""
-      # template: "projects/data-analytics-demo-ra5migwp3l/locations/us-central1/tagTemplates/column_dq_tag_template"
+      # template: "projects/data-analytics-demo-ra5migwp3l/locations/REPLACE-REGION/tagTemplates/column_dq_tag_template"
       """ Sample Response
       name: "projects/data-analytics-demo-ra5migwp3l/locations/us/entryGroups/@bigquery/entries/cHJvamVjdHMvZGF0YS1hbmFseXRpY3MtZGVtby1yYTVtaWd3cDNsL2RhdGFzZXRzL3RheGlfZGF0YXNldC90YWJsZXMvdGF4aV90cmlwcw/tags/CVg1OS7dOJhY"
-      template: "projects/data-analytics-demo-ra5migwp3l/locations/us-central1/tagTemplates/column_dq_tag_template"
+      template: "projects/data-analytics-demo-ra5migwp3l/locations/REPLACE-REGION/tagTemplates/column_dq_tag_template"
       fields {
         key: "column_id"
         value {
@@ -463,11 +463,11 @@ Sample dataplex output from REST API call
 {
   "jobs": [
     {
-      "name": "projects/781192597639/locations/us-central1/lakes/rideshare-data-lake-r8immkwx8o/tasks/cloud-dq-20221031t182959/jobs/de934178-cde0-489d-b16f-ac6c1e919431",
+      "name": "projects/781192597639/locations/REPLACE-REGION/lakes/rideshare-data-lake-r8immkwx8o/tasks/cloud-dq-20221031t182959/jobs/de934178-cde0-489d-b16f-ac6c1e919431",
       "uid": "de934178-cde0-489d-b16f-ac6c1e919431",
       "startTime": "2022-10-31T18:30:40.959187Z",
       "service": "DATAPROC",
-      "serviceJob": "projects/paternostro-9033-2022102613235/locations/us-central1/batches/de934178-cde0-489d-b16f-ac6c1e919431-0"
+      "serviceJob": "projects/paternostro-9033-2022102613235/locations/REPLACE-REGION/batches/de934178-cde0-489d-b16f-ac6c1e919431-0"
     }
   ],
   "nextPageToken": "Cg5iDAiyqICbBhCQsqf7Ag"
@@ -478,17 +478,17 @@ Sample dataplex output from REST API call
 Sample dataproc output from REST API call
 
    curl \
-  'https://dataproc.googleapis.com/v1/projects/paternostro-9033-2022102613235/locations/us-central1/batches/de934178-cde0-489d-b16f-ac6c1e919431-0?key=[YOUR_API_KEY]' \
+  'https://dataproc.googleapis.com/v1/projects/paternostro-9033-2022102613235/locations/REPLACE-REGION/batches/de934178-cde0-489d-b16f-ac6c1e919431-0?key=[YOUR_API_KEY]' \
   --header 'Authorization: Bearer [YOUR_ACCESS_TOKEN]' \
   --header 'Accept: application/json' \
   --compressed 
 
 {
-  "name": "projects/paternostro-9033-2022102613235/locations/us-central1/batches/de934178-cde0-489d-b16f-ac6c1e919431-0",
+  "name": "projects/paternostro-9033-2022102613235/locations/REPLACE-REGION/batches/de934178-cde0-489d-b16f-ac6c1e919431-0",
   "uuid": "af6fd3a5-9ed3-4459-a13b-28d254732704",
   "createTime": "2022-10-31T18:30:40.959187Z",
   "pysparkBatch": {
-    "mainPythonFileUri": "gs://dataplex-clouddq-artifacts-us-central1/clouddq_pyspark_driver.py",
+    "mainPythonFileUri": "gs://dataplex-clouddq-artifacts-REPLACE-REGION/clouddq_pyspark_driver.py",
     "args": [
       "clouddq-executable.zip",
       "ALL",
@@ -499,13 +499,13 @@ Sample dataproc output from REST API call
       "--target_bigquery_summary_table=paternostro-9033-2022102613235.dataplex_data_quality.data_quality_results"
     ],
     "fileUris": [
-      "gs://dataplex-clouddq-artifacts-us-central1/clouddq-executable.zip",
-      "gs://dataplex-clouddq-artifacts-us-central1/clouddq-executable.zip.hashsum",
+      "gs://dataplex-clouddq-artifacts-REPLACE-REGION/clouddq-executable.zip",
+      "gs://dataplex-clouddq-artifacts-REPLACE-REGION/clouddq-executable.zip.hashsum",
       "gs://processed-paternostro-9033-2022102613235-r8immkwx8o/dataplex/dataplex_data_quality_rideshare.yaml"
     ]
   },
   "runtimeInfo": {
-    "outputUri": "gs://dataproc-staging-us-central1-781192597639-yjb84s0j/google-cloud-dataproc-metainfo/81e34cf5-9c71-41cc-98dd-751e70a0e1e5/jobs/srvls-batch-af6fd3a5-9ed3-4459-a13b-28d254732704/driveroutput",
+    "outputUri": "gs://dataproc-staging-REPLACE-REGION-781192597639-yjb84s0j/google-cloud-dataproc-metainfo/81e34cf5-9c71-41cc-98dd-751e70a0e1e5/jobs/srvls-batch-af6fd3a5-9ed3-4459-a13b-28d254732704/driveroutput",
     "approximateUsage": {
       "milliDcuSeconds": "3608000",
       "shuffleStorageGbSeconds": "360800"
@@ -519,7 +519,7 @@ Sample dataproc output from REST API call
     "goog-dataplex-task-job": "de934178-cde0-489d-b16f-ac6c1e919431",
     "goog-dataplex-workload": "task",
     "goog-dataplex-project": "paternostro-9033-2022102613235",
-    "goog-dataplex-location": "us-central1",
+    "goog-dataplex-location": "REPLACE-REGION",
     "goog-dataplex-lake": "rideshare-data-lake-r8immkwx8o"
   },
   "runtimeConfig": {
@@ -529,7 +529,7 @@ Sample dataproc output from REST API call
       "spark:spark.driver.cores": "4",
       "spark:spark.executor.cores": "4",
       "spark:spark.dynamicAllocation.executorAllocationRatio": "0.3",
-      "spark:spark.app.name": "projects/paternostro-9033-2022102613235/locations/us-central1/batches/de934178-cde0-489d-b16f-ac6c1e919431-0"
+      "spark:spark.app.name": "projects/paternostro-9033-2022102613235/locations/REPLACE-REGION/batches/de934178-cde0-489d-b16f-ac6c1e919431-0"
     }
   },
   "environmentConfig": {
@@ -541,7 +541,7 @@ Sample dataproc output from REST API call
       "sparkHistoryServerConfig": {}
     }
   },
-  "operation": "projects/paternostro-9033-2022102613235/regions/us-central1/operations/d209b731-7cdd-3db2-ba59-10c95ede9e75",
+  "operation": "projects/paternostro-9033-2022102613235/regions/REPLACE-REGION/operations/d209b731-7cdd-3db2-ba59-10c95ede9e75",
   "stateHistory": [
     {
       "state": "PENDING",

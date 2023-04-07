@@ -4,7 +4,7 @@
 ## Step 2 - Change paramters
 - Parameters that will be replaced in your SQL with parameters used by Terraform:
   - ${project_id} - the GCP project that is created
-  - ${region} - this is the region for VMs and networking (not BigQuery) [us-west2]
+  - ${region} - a region has been added for each resource
   - ${bigquery_taxi_dataset} - the taxi dataset name
   - ${bigquery_thelook_ecommerce_dataset} - the looker ecommerce dataset
   - ${bucket_name} - the GCS bucket with the processed data

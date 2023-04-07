@@ -178,6 +178,7 @@ module "resources" {
 
   gcp_account_name                  = var.gcp_account_name
   project_id                        = local.local_project_id
+
   composer_region                   = var.composer_region
   dataform_region                   = var.dataform_region
   dataplex_region                   = var.dataplex_region
@@ -189,6 +190,10 @@ module "resources" {
   spanner_region                    = var.spanner_region
   datafusion_region                 = var.datafusion_region
   vertex_ai_region                  = var.vertex_ai_region
+  cloud_function_region             = var.cloud_function_region
+  data_catalog_region               = var.data_catalog_region
+  appengine_region                  = var.appengine_region
+
   storage_bucket                    = local.local_storage_bucket
   spanner_config                    = var.spanner_config
   random_extension                  = random_string.project_random.result
@@ -226,6 +231,7 @@ module "sql-scripts" {
   project_number                                = var.project_number == "" ? module.project[0].output-project-number : var.project_number
   bigquery_region                               = var.bigquery_region
   spanner_region                                = var.spanner_region
+  cloud_function_region                         = var.cloud_function_region
   deployment_service_account_name               = var.deployment_service_account_name
   shared_demo_project_id                        = var.shared_demo_project_id
   aws_omni_biglake_dataset_name                 = var.aws_omni_biglake_dataset_name
@@ -340,12 +346,64 @@ output "zone" {
   value = var.default_zone
 }
 
-output "spanner_config" {
-  value = var.spanner_config
+output "composer_region" {
+  value = var.composer_region
+}
+
+output "dataform_region" {
+  value = var.dataform_region
+}
+
+output "dataplex_region" {
+  value = var.dataplex_region
+}
+
+output "nat_router_region" {
+  value = var.nat_router_region
+}
+
+output "dataproc_region" {
+  value = var.dataproc_region
+}
+
+output "dataflow_region" {
+  value = var.dataflow_region
 }
 
 output "bigquery_region" {
   value = var.bigquery_region
+}
+
+output "bigquery_non_multi_region" {
+  value = var.bigquery_non_multi_region
+}
+
+output "spanner_region" {
+  value = var.spanner_region
+}
+
+output "spanner_config" {
+  value = var.spanner_config
+}
+
+output "datafusion_region" {
+  value = var.datafusion_region
+}
+
+output "vertex_ai_region" {
+  value = var.vertex_ai_region
+}
+
+output "cloud_function_region" {
+  value = var.cloud_function_region
+}
+
+output "data_catalog_region" {
+  value = var.data_catalog_region
+}
+
+output "appengine_region" {
+  value = var.appengine_region
 }
 
 output "shared_demo_project_id" {

@@ -41,6 +41,7 @@ variable "random_extension" {}
 variable "project_number" {}
 variable "deployment_service_account_name" {}
 variable "spanner_region" {}
+variable "cloud_function_region" {}
 variable "bigquery_region" {}
 variable "shared_demo_project_id" {}
 variable "aws_omni_biglake_dataset_name" {}
@@ -428,6 +429,7 @@ resource "google_bigquery_routine" "sproc_sp_demo_external_function" {
     bucket_name = "processed-${var.storage_bucket}"
     bigquery_region = var.bigquery_region
     gcp_account_name = var.gcp_account_name
+    cloud_function_region = var.cloud_function_region
   })
 }
 
@@ -1337,6 +1339,7 @@ resource "google_bigquery_routine" "sproc_sp_unstructured_data_analysis" {
     gcs_rideshare_lakehouse_enriched_bucket = var.gcs_rideshare_lakehouse_enriched_bucket
     bigquery_rideshare_lakehouse_curated_dataset = var.bigquery_rideshare_lakehouse_curated_dataset
     gcs_rideshare_lakehouse_curated_bucket = var.gcs_rideshare_lakehouse_curated_bucket 
+    cloud_function_region = var.cloud_function_region
   })
 }
 

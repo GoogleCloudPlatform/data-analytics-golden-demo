@@ -94,7 +94,7 @@ grant_iam_function_invoker= \
 "echo \"serviceAccount: ${serviceAccount}\" ; " + \
 "gcloud functions add-iam-policy-binding bigquery_external_function " + \
     "--project=\"" + project_id + "\" " + \
-    "--region=\"us-central1\" " + \
+    "--region=\"REPLACE-REGION\" " + \
     "--member=\"serviceAccount:${serviceAccount}\" " + \
     "--role='roles/cloudfunctions.invoker'"
 
@@ -116,7 +116,7 @@ deploy_cloud_function= \
 "cd /home/airflow/gcs/data/bigquery-external-function; " + \
 "gcloud functions deploy bigquery_external_function " + \
     "--project=\"" + project_id + "\" " + \
-    "--region=\"us-central1\" " +  \
+    "--region=\"REPLACE-REGION\" " +  \
     "--runtime=\"python310\" " +  \
     "--ingress-settings=\"all\" " +  \
     "--no-allow-unauthenticated " + \
@@ -131,7 +131,7 @@ grant_bucket_iam = "gsutil iam ch \"serviceAccount:" + project_id + "@appspot.gs
 # NOTE: You must be in the project to call (run from Cloud Shell)
 #       The function has an external IP address, but require authenication
 curl_command = \
-"curl -m 70 -X POST https://us-central1-" + project_id + ".cloudfunctions.net/bigquery_external_function " + \
+"curl -m 70 -X POST https://REPLACE-REGION-" + project_id + ".cloudfunctions.net/bigquery_external_function " + \
     "-H \"Authorization: bearer $(gcloud auth print-identity-token)\" " + \
     "-H \"Content-Type: application/json\" " + \
     "-d '{  " + \
@@ -140,7 +140,7 @@ curl_command = \
     "}'"
 
 """
-curl -m 70 -X POST https://us-central1-${project}.cloudfunctions.net/bigquery_external_function \
+curl -m 70 -X POST https://REPLACE-REGION-${project}.cloudfunctions.net/bigquery_external_function \
     -H "Authorization: bearer $(gcloud auth print-identity-token)" \
     -H "Content-Type: application/json" \
     -d '{ 

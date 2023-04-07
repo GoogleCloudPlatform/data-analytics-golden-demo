@@ -179,7 +179,7 @@ provisioner "local-exec" {
       --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
       --header "Accept: application/json" \
       --header "Content-Type: application/json" \
-      -X POST  https://dataform.googleapis.com/v1beta1/projects/${var.project_id}/locations/us-central1/repositories/dataform_golden_demo/workspaces?workspaceId=demo_flow \
+      -X POST  https://dataform.googleapis.com/v1beta1/projects/${var.project_id}/locations/${var.dataform_region}/repositories/dataform_golden_demo/workspaces?workspaceId=demo_flow \
       --data \ '{"name":"demo_flow"}'
     EOF
   }
@@ -202,7 +202,7 @@ provisioner "local-exec" {
       --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
       --header "Accept: application/json" \
       --header "Content-Type: application/json" \
-      -X POST  https://dataform.googleapis.com/v1beta1/projects/${var.project_id}/locations/us-central1/repositories/dataform_golden_demo/workspaces/demo_flow:writeFile \
+      -X POST  https://dataform.googleapis.com/v1beta1/projects/${var.project_id}/locations/${var.dataform_region}/repositories/dataform_golden_demo/workspaces/demo_flow:writeFile \
       --data \ "{ \"path\" : \".gitignore\", \"contents\" : \"${filebase64("../dataform/dataform_golden_demo/demo_flow/.gitignore")}\" }"
     EOF
   }
@@ -224,7 +224,7 @@ provisioner "local-exec" {
       --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
       --header "Accept: application/json" \
       --header "Content-Type: application/json" \
-      -X POST  https://dataform.googleapis.com/v1beta1/projects/${var.project_id}/locations/us-central1/repositories/dataform_golden_demo/workspaces/demo_flow:writeFile \
+      -X POST  https://dataform.googleapis.com/v1beta1/projects/${var.project_id}/locations/${var.dataform_region}/repositories/dataform_golden_demo/workspaces/demo_flow:writeFile \
       --data \ "{ \"path\" : \"dataform.json\", \"contents\" : \"${base64encode(local.dataform_upload_dataform_json_file)}\" }"
     EOF
   }
@@ -245,7 +245,7 @@ provisioner "local-exec" {
       --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
       --header "Accept: application/json" \
       --header "Content-Type: application/json" \
-      -X POST  https://dataform.googleapis.com/v1beta1/projects/${var.project_id}/locations/us-central1/repositories/dataform_golden_demo/workspaces/demo_flow:writeFile \
+      -X POST  https://dataform.googleapis.com/v1beta1/projects/${var.project_id}/locations/${var.dataform_region}/repositories/dataform_golden_demo/workspaces/demo_flow:writeFile \
       --data \ "{ \"path\" : \"package.json\", \"contents\" : \"${filebase64("../dataform/dataform_golden_demo/demo_flow/package.json")}\" }"
     EOF
   }
@@ -271,7 +271,7 @@ provisioner "local-exec" {
       --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
       --header "Accept: application/json" \
       --header "Content-Type: application/json" \
-      -X POST  https://dataform.googleapis.com/v1beta1/projects/${var.project_id}/locations/us-central1/repositories/dataform_golden_demo/workspaces/demo_flow:makeDirectory \
+      -X POST  https://dataform.googleapis.com/v1beta1/projects/${var.project_id}/locations/${var.dataform_region}/repositories/dataform_golden_demo/workspaces/demo_flow:makeDirectory \
       --data \ "{ \"path\" : \"definitions\" }"
     EOF
   }
@@ -298,7 +298,7 @@ provisioner "local-exec" {
       --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
       --header "Accept: application/json" \
       --header "Content-Type: application/json" \
-      -X POST  https://dataform.googleapis.com/v1beta1/projects/${var.project_id}/locations/us-central1/repositories/dataform_golden_demo/workspaces/demo_flow:makeDirectory \
+      -X POST  https://dataform.googleapis.com/v1beta1/projects/${var.project_id}/locations/${var.dataform_region}/repositories/dataform_golden_demo/workspaces/demo_flow:makeDirectory \
       --data \ "{ \"path\" : \"definitions/operations\" }"
     EOF
   }
@@ -323,7 +323,7 @@ provisioner "local-exec" {
       --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
       --header "Accept: application/json" \
       --header "Content-Type: application/json" \
-      -X POST  https://dataform.googleapis.com/v1beta1/projects/${var.project_id}/locations/us-central1/repositories/dataform_golden_demo/workspaces/demo_flow:writeFile \
+      -X POST  https://dataform.googleapis.com/v1beta1/projects/${var.project_id}/locations/${var.dataform_region}/repositories/dataform_golden_demo/workspaces/demo_flow:writeFile \
       --data \ "{ \"path\" : \"definitions/operations/create_biglake_table.sqlx\", \"contents\" : \"${base64encode(local.dataform_create_biglake_table_file)}\" }"
     EOF
   }
@@ -352,7 +352,7 @@ provisioner "local-exec" {
       --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
       --header "Accept: application/json" \
       --header "Content-Type: application/json" \
-      -X POST  https://dataform.googleapis.com/v1beta1/projects/${var.project_id}/locations/us-central1/repositories/dataform_golden_demo/workspaces/demo_flow:makeDirectory \
+      -X POST  https://dataform.googleapis.com/v1beta1/projects/${var.project_id}/locations/${var.dataform_region}/repositories/dataform_golden_demo/workspaces/demo_flow:makeDirectory \
       --data \ "{ \"path\" : \"definitions/reporting\" }"
     EOF
   }
@@ -379,7 +379,7 @@ provisioner "local-exec" {
       --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
       --header "Accept: application/json" \
       --header "Content-Type: application/json" \
-      -X POST  https://dataform.googleapis.com/v1beta1/projects/${var.project_id}/locations/us-central1/repositories/dataform_golden_demo/workspaces/demo_flow:writeFile \
+      -X POST  https://dataform.googleapis.com/v1beta1/projects/${var.project_id}/locations/${var.dataform_region}/repositories/dataform_golden_demo/workspaces/demo_flow:writeFile \
       --data \ "{ \"path\" : \"definitions/reporting/taxi_rides_summary.sqlx\", \"contents\" : \"${filebase64("../dataform/dataform_golden_demo/demo_flow/definitions/reporting/taxi_rides_summary.sqlx")}\" }"
     EOF
   }
@@ -411,7 +411,7 @@ provisioner "local-exec" {
       --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
       --header "Accept: application/json" \
       --header "Content-Type: application/json" \
-      -X POST  https://dataform.googleapis.com/v1beta1/projects/${var.project_id}/locations/us-central1/repositories/dataform_golden_demo/workspaces/demo_flow:makeDirectory \
+      -X POST  https://dataform.googleapis.com/v1beta1/projects/${var.project_id}/locations/${var.dataform_region}/repositories/dataform_golden_demo/workspaces/demo_flow:makeDirectory \
       --data \ "{ \"path\" : \"definitions/sources\" }"
     EOF
   }
@@ -441,7 +441,7 @@ provisioner "local-exec" {
       --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
       --header "Accept: application/json" \
       --header "Content-Type: application/json" \
-      -X POST  https://dataform.googleapis.com/v1beta1/projects/${var.project_id}/locations/us-central1/repositories/dataform_golden_demo/workspaces/demo_flow:writeFile \
+      -X POST  https://dataform.googleapis.com/v1beta1/projects/${var.project_id}/locations/${var.dataform_region}/repositories/dataform_golden_demo/workspaces/demo_flow:writeFile \
       --data \ "{ \"path\" : \"definitions/sources/biglake_payment_type.sqlx\", \"contents\" : \"${filebase64("../dataform/dataform_golden_demo/demo_flow/definitions/sources/biglake_payment_type.sqlx")}\" }"
     EOF
   }
@@ -471,7 +471,7 @@ provisioner "local-exec" {
       --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
       --header "Accept: application/json" \
       --header "Content-Type: application/json" \
-      -X POST  https://dataform.googleapis.com/v1beta1/projects/${var.project_id}/locations/us-central1/repositories/dataform_golden_demo/workspaces/demo_flow:writeFile \
+      -X POST  https://dataform.googleapis.com/v1beta1/projects/${var.project_id}/locations/${var.dataform_region}/repositories/dataform_golden_demo/workspaces/demo_flow:writeFile \
       --data \ "{ \"path\" : \"definitions/sources/taxi_trips_pub_sub.sqlx\", \"contents\" : \"${filebase64("../dataform/dataform_golden_demo/demo_flow/definitions/sources/taxi_trips_pub_sub.sqlx")}\" }"
     EOF
   }
@@ -505,7 +505,7 @@ provisioner "local-exec" {
       --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
       --header "Accept: application/json" \
       --header "Content-Type: application/json" \
-      -X POST  https://dataform.googleapis.com/v1beta1/projects/${var.project_id}/locations/us-central1/repositories/dataform_golden_demo/workspaces/demo_flow:makeDirectory \
+      -X POST  https://dataform.googleapis.com/v1beta1/projects/${var.project_id}/locations/${var.dataform_region}/repositories/dataform_golden_demo/workspaces/demo_flow:makeDirectory \
       --data \ "{ \"path\" : \"definitions/staging\" }"
     EOF
   }
@@ -537,7 +537,7 @@ provisioner "local-exec" {
       --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
       --header "Accept: application/json" \
       --header "Content-Type: application/json" \
-      -X POST  https://dataform.googleapis.com/v1beta1/projects/${var.project_id}/locations/us-central1/repositories/dataform_golden_demo/workspaces/demo_flow:writeFile \
+      -X POST  https://dataform.googleapis.com/v1beta1/projects/${var.project_id}/locations/${var.dataform_region}/repositories/dataform_golden_demo/workspaces/demo_flow:writeFile \
       --data \ "{ \"path\" : \"definitions/staging/rides_group_data.sqlx\", \"contents\" : \"${filebase64("../dataform/dataform_golden_demo/demo_flow/definitions/staging/rides_group_data.sqlx")}\" }"
     EOF
   }
@@ -571,7 +571,7 @@ provisioner "local-exec" {
       --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
       --header "Accept: application/json" \
       --header "Content-Type: application/json" \
-      -X POST  https://dataform.googleapis.com/v1beta1/projects/${var.project_id}/locations/us-central1/repositories/dataform_golden_demo/workspaces/demo_flow:writeFile \
+      -X POST  https://dataform.googleapis.com/v1beta1/projects/${var.project_id}/locations/${var.dataform_region}/repositories/dataform_golden_demo/workspaces/demo_flow:writeFile \
       --data \ "{ \"path\" : \"definitions/staging/taxi_parsed_data.sqlx\", \"contents\" : \"${filebase64("../dataform/dataform_golden_demo/demo_flow/definitions/staging/taxi_parsed_data.sqlx")}\" }"
     EOF
   }
@@ -609,7 +609,7 @@ provisioner "local-exec" {
       --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
       --header "Accept: application/json" \
       --header "Content-Type: application/json" \
-      -X POST  https://dataform.googleapis.com/v1beta1/projects/${var.project_id}/locations/us-central1/repositories/dataform_golden_demo/workspaces/demo_flow:makeDirectory \
+      -X POST  https://dataform.googleapis.com/v1beta1/projects/${var.project_id}/locations/${var.dataform_region}/repositories/dataform_golden_demo/workspaces/demo_flow:makeDirectory \
       --data \ "{ \"path\" : \"includes\" }"
     EOF
   }
@@ -644,7 +644,7 @@ provisioner "local-exec" {
       --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
       --header "Accept: application/json" \
       --header "Content-Type: application/json" \
-      -X POST  https://dataform.googleapis.com/v1beta1/projects/${var.project_id}/locations/us-central1/repositories/dataform_golden_demo/workspaces/demo_flow:writeFile \
+      -X POST  https://dataform.googleapis.com/v1beta1/projects/${var.project_id}/locations/${var.dataform_region}/repositories/dataform_golden_demo/workspaces/demo_flow:writeFile \
       --data \ "{ \"path\" : \"includes/CreateBiglake.js\", \"contents\" : \"${filebase64("../dataform/dataform_golden_demo/demo_flow/includes/CreateBiglake.js")}\" }"
     EOF
   }
@@ -686,7 +686,7 @@ provisioner "local-exec" {
       --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
       --header "Accept: application/json" \
       --header "Content-Type: application/json" \
-      -X POST  https://dataform.googleapis.com/v1beta1/projects/${var.project_id}/locations/us-central1/repositories/dataform_golden_demo/workspaces/demo_flow:installNpmPackages \
+      -X POST  https://dataform.googleapis.com/v1beta1/projects/${var.project_id}/locations/${var.dataform_region}/repositories/dataform_golden_demo/workspaces/demo_flow:installNpmPackages \
       --data \ "{}"
     EOF
   }
@@ -728,7 +728,7 @@ provisioner "local-exec" {
       --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
       --header "Accept: application/json" \
       --header "Content-Type: application/json" \
-      -X POST  https://dataform.googleapis.com/v1beta1/projects/${var.project_id}/locations/us-central1/repositories/dataform_golden_demo/workspaces/demo_flow:commit \
+      -X POST  https://dataform.googleapis.com/v1beta1/projects/${var.project_id}/locations/${var.dataform_region}/repositories/dataform_golden_demo/workspaces/demo_flow:commit \
       --data \ '{ "author": { "name": "Admin", "emailAddress": "admin@paternostro.altostrat.com" }, "commitMessage": "Terraform Commit" }'
     EOF
   }

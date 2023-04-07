@@ -151,7 +151,7 @@ data "template_file" "dataplex_data_quality_template" {
   template = "${file("../dataplex/data-quality/dataplex_data_quality_taxi.yaml")}"
   vars = {
     project_id = var.project_id
-    dataplex_region = "us-central1"
+    dataplex_region = "REPLACE-REGION"
     random_extension = var.random_extension
   }  
 }

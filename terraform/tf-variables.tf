@@ -223,6 +223,37 @@ variable "vertex_ai_region" {
     error_message = "The vertex ai region is required."
   }
 }
+
+# Should match BigQuery region (non-multiregion)
+variable "cloud_function_region" {
+  type        = string
+  description = "The GCP region for the cloud function."
+  default     = "us-central1"
+  validation {
+    condition     = length(var.cloud_function_region) > 0
+    error_message = "The cloud function region is required."
+  }
+}
+
+variable "data_catalog_region" {
+  type        = string
+  description = "The GCP region for data catalog items (tag templates)."
+  default     = "us-central1"
+  validation {
+    condition     = length(var.data_catalog_region) > 0
+    error_message = "The data catalog region is required."
+  }
+}
+
+variable "appengine_region" {
+  type        = string
+  description = "The GCP region for the app engine."
+  default     = "us-central1"
+  validation {
+    condition     = length(var.appengine_region) > 0
+    error_message = "The app engine region is required."
+  }
+}
 ###############
 
 

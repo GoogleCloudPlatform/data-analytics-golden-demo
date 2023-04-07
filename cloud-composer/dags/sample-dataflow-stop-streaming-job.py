@@ -86,7 +86,7 @@ def stop_dataflow_job():
 
         # call rest api with bearer token
         # PUT https://dataflow.googleapis.com/v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}
-        #     https://dataflow.googleapis.com/v1b3/projects/data-analytics-demo-ja3y7o1hnz/locations/us-west2/jobs/2022-05-17_09_05_35-7404530975856425200
+        #     https://dataflow.googleapis.com/v1b3/projects/data-analytics-demo-ja3y7o1hnz/locations/REPLACE-REGION/jobs/2022-05-17_09_05_35-7404530975856425200
         uri="https://dataflow.googleapis.com/v1b3/projects/" + project_id + "/locations/" + region + "/jobs/" + dataflow_job_id
         print("uri: ", uri)
 
@@ -95,7 +95,7 @@ def stop_dataflow_job():
         """
         # https://cloud.google.com/dataflow/docs/reference/rest/v1b3/projects.locations.jobs/update
         curl --request PUT \
-            'https://dataflow.googleapis.com/v1b3/projects/data-analytics-demo-ja3y7o1hnz/locations/us-west2/jobs/2022-05-17_09_05_35-7404530975856425200' \
+            'https://dataflow.googleapis.com/v1b3/projects/data-analytics-demo-ja3y7o1hnz/locations/REPLACE-REGION/jobs/2022-05-17_09_05_35-7404530975856425200' \
             --header 'Authorization: Bearer [YOUR_ACCESS_TOKEN]' \
             --header 'Accept: application/json' \
             --header 'Content-Type: application/json' \

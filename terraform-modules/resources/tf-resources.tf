@@ -47,6 +47,10 @@ variable "bigquery_non_multi_region" {}
 variable "spanner_region" {}
 variable "datafusion_region" {}
 variable "vertex_ai_region" {}
+variable "cloud_function_region" {}
+variable "data_catalog_region" {}
+variable "appengine_region" {}
+
 variable "storage_bucket" {}
 variable "spanner_config" {}
 variable "random_extension" {}
@@ -491,7 +495,10 @@ resource "google_composer_environment" "composer_env" {
         ENV_BIGQUERY_NON_MULTI_REGION = var.bigquery_non_multi_region
         ENV_SPANNER_REGION            = var.spanner_region
         ENV_DATAFUSION_REGION         = var.datafusion_region
-        ENV_VERTEX_AI_REGION          = var.vertex_ai_region   
+        ENV_VERTEX_AI_REGION          = var.vertex_ai_region  
+        ENV_CLOUD_FUNCTION_REGION     = var.cloud_function_region
+        ENV_DATA_CATALOG_REGION       = var.data_catalog_region
+        ENV_APPENGINE_REGION          = var.appengine_region
 
         ENV_DATAPROC_BUCKET          = "dataproc-${var.storage_bucket}",
         ENV_DATAPROC_SUBNET          = "projects/${var.project_id}/regions/${var.dataproc_region}/subnetworks/dataproc-subnet",
@@ -953,7 +960,7 @@ resource "google_storage_bucket_object" "bigquery_external_function_zip_upload" 
 # Deploy the function
 resource "google_cloudfunctions_function" "bigquery_external_function" {
   project     = var.project_id
-  region      = "us-central1"
+  region      = var.cloud_function_region
   name        = "bigquery_external_function"
   description = "bigquery_external_function"
   runtime     = "python310"
@@ -1004,7 +1011,7 @@ resource "google_storage_bucket_object" "rideshare_plus_function_zip_upload" {
 # Deploy the function V2
 resource "google_cloudfunctions2_function" "rideshare_plus_function" {
   project     = var.project_id
-  location    = "us-central1"
+  location    = var.cloud_function_region
   name        = "demo-rest-api-service"
   description = "demo-rest-api-service"
 
@@ -1080,7 +1087,7 @@ resource "google_cloud_run_service_iam_binding" "rideshare_plus_function_cloudru
 /*
 resource "google_cloudfunctions_function" "rideshare_plus_function" {
   project     = var.project_id
-  region      = "us-central1"
+  region      = var.cloud_function_region
   name        = "demo-rest-api-service"
   description = "demo-rest-api-service"
   runtime     = "python310"
@@ -1107,7 +1114,7 @@ resource "google_cloudfunctions_function" "rideshare_plus_function" {
 # IAM entry for all users to invoke the function
 resource "google_cloudfunctions_function_iam_member" "rideshare_plus_function_invoker" {
   project        = var.project_id
-  region         = "us-central1"
+  region         = var.cloud_function_region
   cloud_function = google_cloudfunctions_function.rideshare_plus_function.name
 
   role   = "roles/cloudfunctions.invoker"
@@ -1684,7 +1691,7 @@ resource "google_service_account_iam_binding" "service_account_impersonation" {
 # https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/data_catalog_tag_template
 resource "google_data_catalog_tag_template" "table_dq_tag_template" {
   tag_template_id = "table_dq_tag_template"
-  region = "us-central1"
+  region = var.data_catalog_region
   display_name = "Data-Quality-Table"
 
   fields {
@@ -1758,7 +1765,7 @@ resource "google_data_catalog_tag_template" "table_dq_tag_template" {
 
 resource "google_data_catalog_tag_template" "column_dq_tag_template" {
   tag_template_id = "column_dq_tag_template"
-  region = "us-central1"
+  region = var.data_catalog_region
   display_name = "Data-Quality-Column"
 
 
@@ -1887,7 +1894,7 @@ resource "google_data_catalog_tag_template" "column_dq_tag_template" {
 ####################################################################################
 resource "google_app_engine_application" "rideshare_plus_app_engine" {
   project     = var.project_id
-  location_id = "us-central"
+  location_id = var.appengine_region
 }
 
 

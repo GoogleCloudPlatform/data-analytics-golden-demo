@@ -46,11 +46,11 @@ RANDOM_EXTENSION="{{ params.random_extension }}"
 #BIGQUERY_REGION="US"
 #TAXI_DATAPLEX_LAKE_NAME="taxi-data-lake"
 #VPC_SUBNET_NAME="bigspark-subnet"
-#DATAPLEX_REGION="us-central1"
+#DATAPLEX_REGION="REPLACE-REGION"
 #SERVICE_ACCOUNT_TO_RUN_DATAPLEX="dataproc-service-account@data-analytics-demo-4g4pkx9s5l.iam.gserviceaccount.com"
 
 # Create the YAML Data Quality Template
-# NOTE: The template uses the Dataplex deployed region (e.g. us-central1)
+# NOTE: The template uses the Dataplex deployed region (e.g. REPLACE-REGION)
 echo "YAML Replacing: /home/airflow/gcs/data/dataplex_data_quality_taxi.yaml"
 sed "s/DATAPLEX_REGION/${DATAPLEX_REGION}/g" "/home/airflow/gcs/data/dataplex_data_quality_taxi.yaml" > "/home/airflow/gcs/data/dataplex_data_quality_taxi.tmp1"
 sed "s/PROJECT_ID/${PROJECT_ID}/g" "/home/airflow/gcs/data/dataplex_data_quality_taxi.tmp1" > "/home/airflow/gcs/data/dataplex_data_quality_taxi.tmp2"
@@ -97,7 +97,7 @@ TARGET_BQ_DATASET="dataplex_data_quality"
 TARGET_BQ_TABLE="data_quality_summary"
 
 # https://cloud.google.com/dataplex/docs/check-data-quality#gcloud
-# To run in BigQuery US multi-region we need to tell Dataplex to execute in the US region, even though Dataplex is in us-central1
+# To run in BigQuery US multi-region we need to tell Dataplex to execute in the US region, even though Dataplex is in REPLACE-REGION
 # gcp-project-id	Project ID that is used to execute (and is billed for) the BigQuery queries.
 # gcp-region-id	Region for running the BigQuery jobs for data quality validation. This region should be the same as the region for gcp-bq-dataset-id and target_bigquery_summary_table.
 # gcp-bq-dataset-id	BigQuery dataset that is used to store the rule_binding views and intermediate data quality summary results.

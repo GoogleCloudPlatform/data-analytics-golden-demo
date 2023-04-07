@@ -51,8 +51,7 @@ default_args = {
 }
 
 project_id               = os.environ['GCP_PROJECT'] 
-# hardcoded (using this region since us-west2 is not available)
-region                   = "us-central1" 
+region                   = os.environ['ENV_DATAPROC_REGION'] 
 raw_bucket_name          = os.environ['ENV_RAW_BUCKET'] 
 processed_bucket_name    = "gs://" + os.environ['ENV_PROCESSED_BUCKET'] 
 pyspark_code             = "gs://" + raw_bucket_name + "/pyspark-code/export_taxi_data_from_bq_to_gcs.py"
@@ -67,7 +66,7 @@ taxi_dataset_id          = os.environ['ENV_TAXI_DATASET_ID']
 """
 gcloud beta dataproc batches submit pyspark \
     --project="data-analytics-demo-4s42tmb9uw" \
-    --region="us-central1" \
+    --region="REPLACE-REGION" \
     --batch="batch-003"  \
     gs://raw-data-analytics-demo-4s42tmb9uw/pyspark-code/export_taxi_data_from_bq_to_gcs.py \
     --jars gs://raw-data-analytics-demo-4s42tmb9uw/pyspark-code/spark-bigquery-with-dependencies_2.12-0.26.0.jar \

@@ -21,10 +21,10 @@ echo "--------------------------------------------------------------------------
 echo "Setting names and locations (These could be placed in the config)"
 echo "---------------------------------------------------------------------------------------------------------" 
 # You can set these, but you need to ensure the location exists for each service
-region="us-west2"
-zone="us-west2-a"
+region="REPLACE-REGION"
+zone="REPLACE-REGION-a"
 datafusion_name="sa-datafusion-$environment"
-datafusion_location="us-west2"
+datafusion_location="REPLACE-REGION"
 
 echo "region:$region"
 echo "zone:$zone"

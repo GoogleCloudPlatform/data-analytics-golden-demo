@@ -85,7 +85,7 @@ if __name__ == "__main__":
 # Sample run: Using a full dataproc cluster
 """
 project="data-analytics-demo-s3epuwhxbf"
-dataproceTempBucketName="dataproc-temp-us-west2-460335302435-2cla8wa3"
+dataproceTempBucketName="dataproc-temp-REPLACE-REGION-460335302435-2cla8wa3"
 
 serviceAccount="dataproc-service-account@${project}.iam.gserviceaccount.com"
 rawBucket="raw-${project}"
@@ -93,9 +93,9 @@ processedBucket="processed-${project}"
 
 gcloud dataproc clusters create iceberg-cluster \
     --bucket "${dataproceTempBucketName}" \
-    --region us-west2 \
+    --region REPLACE-REGION \
     --subnet dataproc-subnet \
-    --zone us-west2-c \
+    --zone REPLACE-REGION-c \
     --master-machine-type n1-standard-4 \
     --master-boot-disk-size 500 \
     --num-workers 2 \
@@ -113,13 +113,13 @@ gsutil cp ./dataproc/convert_taxi_to_iceberg_data_updates.py gs://${rawBucket}/p
 
 gcloud dataproc jobs submit pyspark  \
    --cluster "iceberg-cluster" \
-   --region="us-west2" \
+   --region="REPLACE-REGION" \
    --project="${project}" \
    --jars ./dataproc/iceberg-spark-runtime-3.1_2.12-0.14.0.jar \
    gs://${rawBucket}/pyspark-code/convert_taxi_to_iceberg_data_updates.py \
    -- gs://${processedBucket}/iceberg-warehouse
 
-gcloud dataproc clusters delete iceberg-cluster --region us-west2 --project="${project}"
+gcloud dataproc clusters delete iceberg-cluster --region REPLACE-REGION --project="${project}"
 """
 
 
@@ -131,7 +131,7 @@ gsutil cp ./dataproc/convert_taxi_to_iceberg_data_updates.py gs://raw-data-analy
 
 gcloud beta dataproc batches submit pyspark \
     --project="data-analytics-demo-s3epuwhxbf" \
-    --region="us-central1" \
+    --region="REPLACE-REGION" \
     --batch="batch-002"  \
     gs://raw-data-analytics-demo-s3epuwhxbf/pyspark-code/convert_taxi_to_iceberg_data_updates.py \
     --jars gs://raw-data-analytics-demo-s3epuwhxbf/pyspark-code/iceberg-spark-runtime-3.1_2.12-0.14.0.jar \
@@ -141,6 +141,6 @@ gcloud beta dataproc batches submit pyspark \
     -- gs://processed-data-analytics-demo-s3epuwhxbf/iceberg-warehouse
 
 # to cancel
-gcloud dataproc batches cancel batch-000 --project data-analytics-demo-s3epuwhxbf --region us-central1
+gcloud dataproc batches cancel batch-000 --project data-analytics-demo-s3epuwhxbf --region REPLACE-REGION
 
 """

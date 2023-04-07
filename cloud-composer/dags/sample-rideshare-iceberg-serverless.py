@@ -48,8 +48,7 @@ default_args = {
 }
 
 project_id               = os.environ['GCP_PROJECT'] 
-# hardcoded (using this region since us-west2 is not available)
-region                   = "us-central1" 
+region                   = os.environ['ENV_DATAPROC_REGION']
 raw_bucket_name          = os.environ['ENV_RAW_BUCKET'] 
 processed_bucket_name    = "gs://" + os.environ['ENV_PROCESSED_BUCKET'] 
 pyspark_code             = "gs://" + raw_bucket_name + "/pyspark-code/rideshare_iceberg_serverless.py"

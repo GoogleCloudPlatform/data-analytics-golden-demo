@@ -48,13 +48,13 @@ default_args = {
 }
 
 project_id            = os.environ['GCP_PROJECT'] 
-region                = os.environ['ENV_VERTEX_AI_REGION'] 
+vertex_ai_region      = os.environ['ENV_VERTEX_AI_REGION'] 
 gcp_account_name      = os.environ['ENV_GCP_ACCOUNT_NAME']
 dataproc_account_name = os.environ['ENV_DATAPROC_SERVICE_ACCOUNT']
 
 params_list = { 
     "project_id" : project_id,
-    "region": region,
+    "vertex_ai_region": vertex_ai_region,
     "gcp_account_name": gcp_account_name,
     "dataproc_account_name" : dataproc_account_name
     }

@@ -25,7 +25,7 @@
 
 # Hardcoded for now (until more regions are activated)
 #LOCATION="{{ params.region }}"
-LOCATION="us-central1"
+LOCATION="{{ params.dataplex_region }}"
 PROJECT_ID="{{ params.project_id }}"
 RAW_BUCKET="{{ params.raw_bucket }}"
 PROCESSED_BUCKET="{{ params.processed_bucket }}"

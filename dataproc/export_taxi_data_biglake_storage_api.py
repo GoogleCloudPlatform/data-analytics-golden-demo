@@ -124,7 +124,7 @@ echo "batch: ${batch}"
 
 gcloud beta dataproc batches submit pyspark \
     --project="${project}" \
-    --region="us-central1" \
+    --region="REPLACE-REGION" \
     --batch="${batch}"  \
     gs://${rawBucket}/pyspark-code/export_taxi_data_biglake_storage_api.py \
     --jars gs://${rawBucket}/pyspark-code/spark-bigquery-with-dependencies_2.12-0.26.0.jar \
@@ -134,6 +134,6 @@ gcloud beta dataproc batches submit pyspark \
     -- ${project} taxi_dataset bigspark-${project}-${project_string} gs://${processedBucket}
 
 # to cancel
-gcloud dataproc batches cancel ${batch} --project ${project} --region us-central1
+gcloud dataproc batches cancel ${batch} --project ${project} --region REPLACE-REGION
 
 """
