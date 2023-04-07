@@ -248,7 +248,7 @@ variable "data_catalog_region" {
 variable "appengine_region" {
   type        = string
   description = "The GCP region for the app engine."
-  default     = "us-central1"
+  default     = "us-central"
   validation {
     condition     = length(var.appengine_region) > 0
     error_message = "The app engine region is required."
