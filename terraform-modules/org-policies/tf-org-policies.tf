@@ -58,14 +58,14 @@ resource "google_org_policy_policy" "org_policy_require_os_login" {
 
 # (1) Not all instances running in IGM after 38.775874294s. 
 # Expected 1, running 0, transitioning 1. Current errors: [CONDITION_NOT_MET]: 
-# Instance 'gk3-us-west2-bigquery-de-default-pool-1c3a5888-l77b' creation failed: 
+# Instance 'gk3-REPLACE-REGION-bigquery-de-default-pool-1c3a5888-l77b' creation failed: 
 # Constraint constraints/compute.vmExternalIpAccess violated for project 381177525636. 
-# Add instance projects/big-query-demo-08/zones/us-west2-c/instances/gk3-us-west2-bigquery-de-default-pool-1c3a5888-l77b to the constraint to use external IP with it (2) 
+# Add instance projects/big-query-demo-08/zones/REPLACE-REGION-c/instances/gk3-REPLACE-REGION-bigquery-de-default-pool-1c3a5888-l77b to the constraint to use external IP with it (2) 
 # Not all instances running in IGM after 40.768471262s. 
 # Expected 1, running 0, transitioning 1. Current errors: [CONDITION_NOT_MET]: 
-# Instance 'gk3-us-west2-bigquery-de-default-pool-77d8d73d-q12x' creation failed: 
+# Instance 'gk3-REPLACE-REGION-bigquery-de-default-pool-77d8d73d-q12x' creation failed: 
 # Constraint constraints/compute.vmExternalIpAccess violated for project 381177525636. 
-# Add instance projects/big-query-demo-08/zones/us-west2-b/instances/gk3-us-west2-bigquery-de-default-pool-77d8d73d-q12x to the constraint to use external IP with it.
+# Add instance projects/big-query-demo-08/zones/REPLACE-REGION-b/instances/gk3-REPLACE-REGION-bigquery-de-default-pool-77d8d73d-q12x to the constraint to use external IP with it.
 # resource "google_org_policy_policy" "org_policy_vm_external_ip_access" {
 #   name     = "projects/${var.project_id}/policies/compute.vmExternalIpAccess"
 #   parent   = "projects/${var.project_id}"

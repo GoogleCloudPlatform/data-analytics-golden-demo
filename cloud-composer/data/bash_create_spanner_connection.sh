@@ -19,7 +19,7 @@
 # TODO: move to Terraform, but cannot find a working example for spanner (they just show cloudsql)
 # Terraform: https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/bigquery_connection
 # REST API:  https://cloud.google.com/bigquery/docs/reference/bigqueryconnection/rest/v1beta1/projects.locations.connections#Connection
-# bq ls --connection --project_id=big-query-demo-09 --location=us-west2 --format json
+# bq ls --connection --project_id=big-query-demo-09 --location=REPLACE-REGION --format json
 
 STR=$(bq ls --connection --project_id={{ params.project_id }} --location={{ params.region }} --format json)
 SUB='bq_spanner_connection'

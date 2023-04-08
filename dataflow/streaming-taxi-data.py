@@ -17,7 +17,7 @@
 # Author: Wei Hsia
 
 # TEMP_BUCKET=gs://your-gcs-bucket/dataflow-temp/
-# REGION=us-central1
+# REGION=your-region
 # PROJECT=your-gcp-project
 # DATASET=your-dataset
 # TABLE=your-table

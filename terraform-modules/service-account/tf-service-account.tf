@@ -48,7 +48,7 @@ variable "environment" {}
 ####################################################################################
 # Add owner role to the gcp user
 resource "google_project_iam_member" "gcp_account_owner" {
-  count  = var.environment == "GITHUB_ENVIRONMENT" ? 1 : 0
+  count  = var.environment == "GITHUB_ENVIRONMENT" && var.org_id != "0" ? 1 : 0
   project  = var.project_id
   role     = "roles/owner"
   member   = "user:${var.gcp_account_name}"
@@ -104,7 +104,7 @@ resource "google_project_iam_member" "service_account_cloud_function_v2" {
 
 # Allow the service account to override organization policies on this project
 resource "google_organization_iam_member" "organization" {
-  count  = var.environment == "GITHUB_ENVIRONMENT" ? 1 : 0
+  count  = var.environment == "GITHUB_ENVIRONMENT" && var.org_id != "0" ? 1 : 0
   org_id   = var.org_id
   role     = "roles/orgpolicy.policyAdmin"
   member   = "serviceAccount:${google_service_account.service_account.email}"

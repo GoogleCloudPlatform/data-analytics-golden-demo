@@ -35,7 +35,7 @@ terraform {
 # Variables
 ####################################################################################
 variable "project_id" {}
-variable "region" {}
+variable "dataplex_region" {}
 variable "storage_bucket" {}
 variable "random_extension" {}
 variable "deployment_service_account_name" {}
@@ -43,6 +43,7 @@ variable "composer_name" {}
 variable "composer_dag_bucket" {}
 variable "demo_rest_api_service_uri" {}
 
+  
 
 locals {
   # Replace gs://composer-generated-name/dags to composer-generated-name
@@ -305,53 +306,39 @@ resource "google_storage_bucket_object" "deploy_dataflow_script_streaming-taxi-d
 ####################################################################################
 # Upload the Dataplex scripts
 ####################################################################################
-data "template_file" "dataplex_data_quality_template" {
-  template = "${file("../dataplex/data-quality/dataplex_data_quality_taxi.yaml")}"
-  vars = {
-    project_id = var.project_id
-    dataplex_region = "us-central1"
-    random_extension = var.random_extension
-  }  
-}
-
 resource "google_storage_bucket_object" "dataplex_data_quality_yaml" {
   name        = "dataplex/data-quality/dataplex_data_quality_taxi.yaml"
-  content     = "${data.template_file.dataplex_data_quality_template.rendered}"
-  bucket      = "code-${var.storage_bucket}"
-}
-
-data "template_file" "dataplex_data_quality_rideshare_template" {
-  template = "${file("../dataplex/data-quality/dataplex_data_quality_rideshare.yaml")}"
-  vars = {
+  content = templatefile("../dataplex/data-quality/dataplex_data_quality_taxi.yaml", 
+  { 
     project_id = var.project_id
-    dataplex_region = "us-central1"
+    dataplex_region = var.dataplex_region
     random_extension = var.random_extension
-  }  
+  })
+  bucket      = "code-${var.storage_bucket}"
 }
 
 resource "google_storage_bucket_object" "dataplex_data_quality_rideshare_yaml" {
   name        = "dataplex/data-quality/dataplex_data_quality_rideshare.yaml"
-  content     = "${data.template_file.dataplex_data_quality_rideshare_template.rendered}"
+  content = templatefile("../dataplex/data-quality/dataplex_data_quality_rideshare.yaml", 
+  { 
+    project_id = var.project_id
+    dataplex_region = var.dataplex_region
+    random_extension = var.random_extension
+  })
   bucket      = "code-${var.storage_bucket}"
 }
 
 ####################################################################################
 # Deploy Jupyter notebooks
 ####################################################################################
-# Replace the Project and Bucket Name in the Jupyter notebook
-# Upload "Notebook"
-data "template_file" "template_BigQuery-Create-TensorFlow-Model" {
-  template = "${file("../notebooks/BigQuery-Create-TensorFlow-Model.ipynb")}"
-  vars = {
-    project_id = var.project_id
-    bucket_name = "processed-${var.storage_bucket}"
-  }  
-}
-
 resource "google_storage_bucket_object" "deploy_notebook_BigQuery-Create-TensorFlow-Model" {
   name   = "${local.local_notebooks_path}/BigQuery-Create-TensorFlow-Model.ipynb"
   bucket = "processed-${var.storage_bucket}"
-  content = "${data.template_file.template_BigQuery-Create-TensorFlow-Model.rendered}"
+  content = templatefile("../notebooks/BigQuery-Create-TensorFlow-Model.ipynb", 
+  { 
+    project_id = var.project_id
+    bucket_name = "processed-${var.storage_bucket}"
+  })
 
   depends_on = [ 
     ]  
@@ -359,18 +346,15 @@ resource "google_storage_bucket_object" "deploy_notebook_BigQuery-Create-TensorF
 
 
 # Upload "Notebook"
-data "template_file" "template_BigQuery-Demo-Notebook" {
-  template = "${file("../notebooks/BigQuery-Demo-Notebook.ipynb")}"
-  vars = {
-    project_id = var.project_id
-    bucket_name = "processed-${var.storage_bucket}"
-  }  
-}
-
 resource "google_storage_bucket_object" "deploy_notebook_BigQuery-Demo-Notebook" {
   name   = "${local.local_notebooks_path}/BigQuery-Demo-Notebook.ipynb"
   bucket = "processed-${var.storage_bucket}"
-  content = "${data.template_file.template_BigQuery-Demo-Notebook.rendered}"
+  content = templatefile("../notebooks/BigQuery-Demo-Notebook.ipynb", 
+  { 
+    project_id = var.project_id
+    bucket_name = "processed-${var.storage_bucket}"
+  })
+
 
   depends_on = [ 
     ]  
@@ -383,18 +367,15 @@ resource "google_storage_bucket_object" "deploy_notebook_BigQuery-Demo-Notebook"
 ####################################################################################
 # Replace the Project and Bucket name
 # Upload BigSpark script
-data "template_file" "template_sample-bigspark" {
-  template = "${file("../bigspark/sample-bigspark.py")}"
-  vars = {
-    project_id = var.project_id
-    bucket_name = "raw-${var.storage_bucket}"
-  }  
-}
-
 resource "google_storage_bucket_object" "deploy_bigspark_sample-bigspark" {
   name   = "${local.local_bigspark_path}/sample-bigspark.py"
   bucket = "raw-${var.storage_bucket}"
-  content = "${data.template_file.template_sample-bigspark.rendered}"
+  content = templatefile("../bigspark/sample-bigspark.py", 
+  { 
+    project_id = var.project_id
+    bucket_name = "raw-${var.storage_bucket}"
+  })
+
 
   depends_on = [ 
     ]  
@@ -631,71 +612,57 @@ resource "google_storage_bucket_object" "deploy_sample_data_delta_io_delta_log-0
 # sample-data/rideshare_trips//_symlink_format_manifest/Rideshare_Vendor_Id=1/Pickup_Date=2021-12-01:
 # manifest
 # Upload Sample Delta IO file with Template substitution
-data "template_file" "template_sample_data_delta_io_Rideshare_Vendor_Id_1_Pickup_Date_2021-12-01" {
-  template = "${file("../sample-data/rideshare_trips/_symlink_format_manifest/Rideshare_Vendor_Id=1/Pickup_Date=2021-12-01/manifest")}"
-  vars = {
-    project_id = var.project_id
-    bucket_name = "processed-${var.storage_bucket}"
-  }  
-}
-
 resource "google_storage_bucket_object" "deploy_sample_data_delta_io_Rideshare_Vendor_Id_1_Pickup_Date_2021-12-01" {
   name   = "delta_io/rideshare_trips/_symlink_format_manifest/Rideshare_Vendor_Id=1/Pickup_Date=2021-12-01/manifest"
   bucket = "processed-${var.storage_bucket}"
-  content = "${data.template_file.template_sample_data_delta_io_Rideshare_Vendor_Id_1_Pickup_Date_2021-12-01.rendered}" 
+  content = templatefile("../sample-data/rideshare_trips/_symlink_format_manifest/Rideshare_Vendor_Id=1/Pickup_Date=2021-12-01/manifest", 
+  { 
+    project_id = var.project_id
+    bucket_name = "processed-${var.storage_bucket}"
+  })
 }
 
 # sample-data/rideshare_trips//_symlink_format_manifest/Rideshare_Vendor_Id=1/Pickup_Date=2021-12-02:
 # manifest
 # Upload Sample Delta IO file with Template substitution
-data "template_file" "template_sample_data_delta_io_Rideshare_Vendor_Id_1_Pickup_Date_2021-12-02" {
-  template = "${file("../sample-data/rideshare_trips/_symlink_format_manifest/Rideshare_Vendor_Id=1/Pickup_Date=2021-12-02/manifest")}"
-  vars = {
-    project_id = var.project_id
-    bucket_name = "processed-${var.storage_bucket}"
-  }  
-}
-
 resource "google_storage_bucket_object" "deploy_sample_data_delta_io_Rideshare_Vendor_Id_1_Pickup_Date_2021-12-02" {
   name   = "delta_io/rideshare_trips/_symlink_format_manifest/Rideshare_Vendor_Id=1/Pickup_Date=2021-12-02/manifest"
   bucket = "processed-${var.storage_bucket}"
-  content = "${data.template_file.template_sample_data_delta_io_Rideshare_Vendor_Id_1_Pickup_Date_2021-12-02.rendered}" 
+  content = templatefile("../sample-data/rideshare_trips/_symlink_format_manifest/Rideshare_Vendor_Id=1/Pickup_Date=2021-12-02/manifest", 
+  { 
+    project_id = var.project_id
+    bucket_name = "processed-${var.storage_bucket}"
+  })
 }
 
 
 # sample-data/rideshare_trips//_symlink_format_manifest/Rideshare_Vendor_Id=1/Pickup_Date=2021-12-03:
 # manifest
 # Upload Sample Delta IO file with Template substitution
-data "template_file" "template_sample_data_delta_io_Rideshare_Vendor_Id_1_Pickup_Date_2021-12-03" {
-  template = "${file("../sample-data/rideshare_trips/_symlink_format_manifest/Rideshare_Vendor_Id=1/Pickup_Date=2021-12-03/manifest")}"
-  vars = {
-    project_id = var.project_id
-    bucket_name = "processed-${var.storage_bucket}"
-  }  
-}
-
 resource "google_storage_bucket_object" "deploy_sample_data_delta_io_Rideshare_Vendor_Id_1_Pickup_Date_2021-12-03" {
   name   = "delta_io/rideshare_trips/_symlink_format_manifest/Rideshare_Vendor_Id=1/Pickup_Date=2021-12-03/manifest"
   bucket = "processed-${var.storage_bucket}"
-  content = "${data.template_file.template_sample_data_delta_io_Rideshare_Vendor_Id_1_Pickup_Date_2021-12-03.rendered}" 
+  content = templatefile("../sample-data/rideshare_trips/_symlink_format_manifest/Rideshare_Vendor_Id=1/Pickup_Date=2021-12-03/manifest", 
+  { 
+    project_id = var.project_id
+    bucket_name = "processed-${var.storage_bucket}"
+  })
+
 }
 
 
 # sample-data/rideshare_trips//_symlink_format_manifest/Rideshare_Vendor_Id=1/Pickup_Date=2021-12-04:
 # manifest
 # Upload Sample Delta IO file with Template substitution
-data "template_file" "template_sample_data_delta_io_manifest_Rideshare_Vendor_Id_1_Pickup_Date_2021-12-04" {
-  template = "${file("../sample-data/rideshare_trips/_symlink_format_manifest/Rideshare_Vendor_Id=1/Pickup_Date=2021-12-04/manifest")}"
-  vars = {
-    project_id = var.project_id
-    bucket_name = "processed-${var.storage_bucket}"
-  }  
-}
-
 resource "google_storage_bucket_object" "deploy_sample_data_delta_io_manifest_Rideshare_Vendor_Id_1_Pickup_Date_2021-12-04-bigspark" {
   name   = "delta_io/rideshare_trips/_symlink_format_manifest/Rideshare_Vendor_Id=1/Pickup_Date=2021-12-04/manifest"
   bucket = "processed-${var.storage_bucket}"
-  content = "${data.template_file.template_sample_data_delta_io_manifest_Rideshare_Vendor_Id_1_Pickup_Date_2021-12-04.rendered}"
+  content = templatefile("../sample-data/rideshare_trips/_symlink_format_manifest/Rideshare_Vendor_Id=1/Pickup_Date=2021-12-04/manifest", 
+  { 
+    project_id = var.project_id
+    bucket_name = "processed-${var.storage_bucket}"
+  })
+
 }
 
 
@@ -705,71 +672,57 @@ resource "google_storage_bucket_object" "deploy_sample_data_delta_io_manifest_Ri
 # sample-data/rideshare_trips//_symlink_format_manifest/Rideshare_Vendor_Id=2/Pickup_Date=2021-12-01:
 # manifest
 # Upload Sample Delta IO file with Template substitution
-data "template_file" "template_sample_data_delta_io_Rideshare_Vendor_Id_2_Pickup_Date_2021-12-01" {
-  template = "${file("../sample-data/rideshare_trips/_symlink_format_manifest/Rideshare_Vendor_Id=2/Pickup_Date=2021-12-01/manifest")}"
-  vars = {
-    project_id = var.project_id
-    bucket_name = "processed-${var.storage_bucket}"
-  }  
-}
-
 resource "google_storage_bucket_object" "deploy_sample_data_delta_io_Rideshare_Vendor_Id_2_Pickup_Date_2021-12-01" {
   name   = "delta_io/rideshare_trips/_symlink_format_manifest/Rideshare_Vendor_Id=2/Pickup_Date=2021-12-01/manifest"
   bucket = "processed-${var.storage_bucket}"
-  content = "${data.template_file.template_sample_data_delta_io_Rideshare_Vendor_Id_2_Pickup_Date_2021-12-01.rendered}" 
+  content = templatefile("../sample-data/rideshare_trips/_symlink_format_manifest/Rideshare_Vendor_Id=2/Pickup_Date=2021-12-01/manifest", 
+  { 
+    project_id = var.project_id
+    bucket_name = "processed-${var.storage_bucket}"
+  })
 }
 
 
 # sample-data/rideshare_trips//_symlink_format_manifest/Rideshare_Vendor_Id=2/Pickup_Date=2021-12-02:
 # manifest
 # Upload Sample Delta IO file with Template substitution
-data "template_file" "template_sample_data_delta_io_Rideshare_Vendor_Id_2_Pickup_Date_2021-12-02" {
-  template = "${file("../sample-data/rideshare_trips/_symlink_format_manifest/Rideshare_Vendor_Id=2/Pickup_Date=2021-12-02/manifest")}"
-  vars = {
-    project_id = var.project_id
-    bucket_name = "processed-${var.storage_bucket}"
-  }  
-}
-
 resource "google_storage_bucket_object" "deploy_sample_data_delta_io_Rideshare_Vendor_Id_2_Pickup_Date_2021-12-02" {
   name   = "delta_io/rideshare_trips/_symlink_format_manifest/Rideshare_Vendor_Id=2/Pickup_Date=2021-12-02/manifest"
   bucket = "processed-${var.storage_bucket}"
-  content = "${data.template_file.template_sample_data_delta_io_Rideshare_Vendor_Id_2_Pickup_Date_2021-12-02.rendered}" 
+  content = templatefile("../sample-data/rideshare_trips/_symlink_format_manifest/Rideshare_Vendor_Id=2/Pickup_Date=2021-12-02/manifest", 
+  { 
+    project_id = var.project_id
+    bucket_name = "processed-${var.storage_bucket}"  
+  })
 }
 
 
 # sample-data/rideshare_trips//_symlink_format_manifest/Rideshare_Vendor_Id=2/Pickup_Date=2021-12-03:
 # manifest
 # Upload Sample Delta IO file with Template substitution
-data "template_file" "template_sample_data_delta_io_Rideshare_Vendor_Id_2_Pickup_Date_2021-12-03" {
-  template = "${file("../sample-data/rideshare_trips/_symlink_format_manifest/Rideshare_Vendor_Id=2/Pickup_Date=2021-12-03/manifest")}"
-  vars = {
-    project_id = var.project_id
-    bucket_name = "processed-${var.storage_bucket}"
-  }  
-}
-
 resource "google_storage_bucket_object" "deploy_sample_data_delta_io_Rideshare_Vendor_Id_2_Pickup_Date_2021-12-03" {
   name   = "delta_io/rideshare_trips/_symlink_format_manifest/Rideshare_Vendor_Id=2/Pickup_Date=2021-12-03/manifest"
   bucket = "processed-${var.storage_bucket}"
-  content = "${data.template_file.template_sample_data_delta_io_Rideshare_Vendor_Id_2_Pickup_Date_2021-12-03.rendered}" 
+  content = templatefile("../sample-data/rideshare_trips/_symlink_format_manifest/Rideshare_Vendor_Id=2/Pickup_Date=2021-12-03/manifest", 
+  { 
+    project_id = var.project_id
+    bucket_name = "processed-${var.storage_bucket}"
+  })
+
 }
 
 # sample-data/rideshare_trips//_symlink_format_manifest/Rideshare_Vendor_Id=2/Pickup_Date=2021-12-04:
 # manifest
 # Upload Sample Delta IO file with Template substitution
-data "template_file" "template_sample_data_delta_io_manifest_Rideshare_Vendor_Id_2_Pickup_Date_2021-12-04" {
-  template = "${file("../sample-data/rideshare_trips/_symlink_format_manifest/Rideshare_Vendor_Id=2/Pickup_Date=2021-12-04/manifest")}"
-  vars = {
-    project_id = var.project_id
-    bucket_name = "processed-${var.storage_bucket}"
-  }  
-}
-
 resource "google_storage_bucket_object" "deploy_sample_data_delta_io_manifest_Rideshare_Vendor_Id_2_Pickup_Date_2021-12-04-bigspark" {
   name   = "delta_io/rideshare_trips/_symlink_format_manifest/Rideshare_Vendor_Id=2/Pickup_Date=2021-12-04/manifest"
   bucket = "processed-${var.storage_bucket}"
-  content = "${data.template_file.template_sample_data_delta_io_manifest_Rideshare_Vendor_Id_2_Pickup_Date_2021-12-04.rendered}"
+  content = templatefile("../sample-data/rideshare_trips/_symlink_format_manifest/Rideshare_Vendor_Id=2/Pickup_Date=2021-12-04/manifest", 
+  { 
+    project_id = var.project_id
+    bucket_name = "processed-${var.storage_bucket}"
+  })
+
 }
 
 

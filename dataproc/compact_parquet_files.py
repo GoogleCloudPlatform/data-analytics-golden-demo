@@ -66,8 +66,8 @@ if __name__ == "__main__":
 """
 gcloud dataproc clusters create "compactcluster" \
     --project="big-query-demo-09" \
-    --region="us-west2" \
-    --zone="us-west2-a" \
+    --region="REPLACE-REGION" \
+    --zone="REPLACE-REGION-a" \
     --num-masters=1 \
     --bucket=dataproc-big-query-demo-09 \
     --temp-bucket=dataproc-big-query-demo-09 \
@@ -83,7 +83,7 @@ gcloud dataproc clusters create "compactcluster" \
 gcloud dataproc jobs submit pyspark  \
    --project="big-query-demo-09" \
    --cluster="compactcluster" \
-   --region="us-west2" \
+   --region="REPLACE-REGION" \
    gs://big-query-demo-09/pyspark-code/compact_parquet_files.py \
    -- gs://big-query-demo-09/test-taxi/source/*.parquet \
       gs://big-query-demo-09/test-taxi/dest/ \
@@ -93,7 +93,7 @@ gcloud dataproc jobs submit pyspark  \
 gcloud dataproc jobs submit pyspark  \
    --project="big-query-demo-09" \
    --cluster="compactcluster" \
-   --region="us-west2" \
+   --region="REPLACE-REGION" \
    gs://big-query-demo-09/pyspark-code/compact_parquet_files.py \
    -- gs://big-query-demo-09/processed/taxi-data/green/trips_table/parquet/*/*/*.parquet \
       gs://big-query-demo-09/compacted/dest/ \
@@ -103,6 +103,6 @@ gcloud dataproc jobs submit pyspark  \
 # Delete the cluster (clean up)
 gcloud dataproc clusters delete "compactcluster" \
    --project="big-query-demo-09" \
-   --region="us-west2"
+   --region="REPLACE-REGION"
 
 """

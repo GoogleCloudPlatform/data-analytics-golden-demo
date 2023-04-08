@@ -132,9 +132,9 @@ processedBucket="processed-${project}"
 #       You have to also create a firewall rule (like the existing one for this subnet)
 gcloud dataproc clusters create dataproc-cluster \
     --bucket "${dataproceTempBucketName}" \
-    --region us-central1 \
+    --region REPLACE-REGION \
     --subnet dataproc-subnet-central \
-    --zone us-central1-a \
+    --zone REPLACE-REGION-a \
     --master-machine-type n1-standard-8 \
     --master-boot-disk-size 500 \
     --num-workers 3 \
@@ -151,7 +151,7 @@ gsutil cp ./dataproc/export_taxi_data_from_bq_to_gcs.py gs://${rawBucket}/pyspar
 # Write to bucket (regional)
 gcloud dataproc jobs submit pyspark  \
    --cluster "dataproc-cluster" \
-   --region="us-central1" \
+   --region="REPLACE-REGION" \
    --project="${project}" \
    --jars gs://${rawBucket}/pyspark-code/spark-bigquery-with-dependencies_2.12-0.26.0.jar \
    gs://${rawBucket}/pyspark-code/export_taxi_data_from_bq_to_gcs.py \
@@ -162,7 +162,7 @@ gcloud dataproc jobs submit pyspark  \
 # This is FAST! But copying the data after the job is hard since we need this automated.
 gcloud dataproc jobs submit pyspark  \
    --cluster "dataproc-cluster" \
-   --region="us-central1" \
+   --region="REPLACE-REGION" \
    --project="${project}" \
    --jars gs://${rawBucket}/pyspark-code/spark-bigquery-with-dependencies_2.12-0.26.0.jar \
    gs://${rawBucket}/pyspark-code/export_taxi_data_from_bq_to_gcs.py \
@@ -187,7 +187,7 @@ gcloud compute firewall-rules create home-computer \
 # Target: Service Account: dataproc-service-account@data-analytics-demo-${project_string}.iam.gserviceaccount.com
 # Port: TCP port 22 Ingress 
 # Source IP address of your home network
-gcloud compute ssh --zone "us-central1-a" "dataproc-cluster-m"  --project "data-analytics-demo-${project_string}"
+gcloud compute ssh --zone "REPLACE-REGION-a" "dataproc-cluster-m"  --project "data-analytics-demo-${project_string}"
 
 # Run via SSH
 hdfs dfs -ls /tmp/taxi-export/processed
@@ -207,7 +207,7 @@ hadoop distcp /tmp/taxi-export/processed/taxi-trips-query-acceleration gs://data
 hdfs dfs -cp -f /tmp/taxi-export/processed/taxi-trips-query-acceleration gs://processed-data-analytics-demo-${project_string}/copytest/
 
 # Delete the cluster
-gcloud dataproc clusters delete dataproc-cluster --region us-west2 --project="${project}"
+gcloud dataproc clusters delete dataproc-cluster --region REPLACE-REGION --project="${project}"
 
 """
 
@@ -223,16 +223,16 @@ gsutil cp ./dataproc/export_taxi_data_from_bq_to_gcs.py gs://raw-data-analytics-
 
 gcloud beta dataproc batches submit pyspark \
     --project="data-analytics-demo-${project_string}" \
-    --region="us-central1" \
+    --region="REPLACE-REGION" \
     --batch="batch-015"  \
     gs://raw-data-analytics-demo-${project_string}/pyspark-code/export_taxi_data_from_bq_to_gcs.py \
     --jars gs://raw-data-analytics-demo-${project_string}/pyspark-code/spark-bigquery-with-dependencies_2.12-0.26.0.jar \
-    --subnet="bigspark-subnet" \
+    --subnet="datatproc-serverless-subnet" \
     --deps-bucket="gs://dataproc-data-analytics-demo-${project_string}" \
     --service-account="dataproc-service-account@data-analytics-demo-${project_string}.iam.gserviceaccount.com" \
     -- data-analytics-demo-${project_string} taxi_dataset bigspark-data-analytics-demo-${project_string} gs://processed-data-analytics-demo-${project_string}
 
 # to cancel
-gcloud dataproc batches cancel batch-000 --project data-analytics-demo-${project_string} --region us-central1
+gcloud dataproc batches cancel batch-000 --project data-analytics-demo-${project_string} --region REPLACE-REGION
 
 """

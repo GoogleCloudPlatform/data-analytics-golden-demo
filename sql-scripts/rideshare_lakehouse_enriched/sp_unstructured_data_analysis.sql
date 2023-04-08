@@ -55,7 +55,7 @@ SELECT * FROM `${project_id}.${bigquery_rideshare_lakehouse_raw_dataset}.biglake
 CREATE OR REPLACE FUNCTION `${project_id}.${bigquery_rideshare_lakehouse_enriched_dataset}.ext_udf_ai_localize_objects` (uri STRING) RETURNS JSON 
     REMOTE WITH CONNECTION `${project_id}.us.cloud-function` 
     OPTIONS 
-    (endpoint = 'https://us-central1-${project_id}.cloudfunctions.net/bigquery_external_function', 
+    (endpoint = 'https://${cloud_function_region}-${project_id}.cloudfunctions.net/bigquery_external_function', 
     user_defined_context = [("mode","localize_objects_uri")]
     );
 
@@ -63,7 +63,7 @@ CREATE OR REPLACE FUNCTION `${project_id}.${bigquery_rideshare_lakehouse_enriche
 CREATE OR REPLACE FUNCTION `${project_id}.${bigquery_rideshare_lakehouse_enriched_dataset}.ext_udf_ai_detect_labels` (uri STRING) RETURNS JSON 
     REMOTE WITH CONNECTION `${project_id}.us.cloud-function` 
     OPTIONS 
-    (endpoint = 'https://us-central1-${project_id}.cloudfunctions.net/bigquery_external_function', 
+    (endpoint = 'https://${cloud_function_region}-${project_id}.cloudfunctions.net/bigquery_external_function', 
     user_defined_context = [("mode","detect_labels_uri")],
     max_batching_rows = 1
     );
@@ -72,7 +72,7 @@ CREATE OR REPLACE FUNCTION `${project_id}.${bigquery_rideshare_lakehouse_enriche
 CREATE OR REPLACE FUNCTION `${project_id}.${bigquery_rideshare_lakehouse_enriched_dataset}.ext_udf_ai_detect_landmarks` (uri STRING) RETURNS JSON 
     REMOTE WITH CONNECTION `${project_id}.us.cloud-function` 
     OPTIONS 
-    (endpoint = 'https://us-central1-${project_id}.cloudfunctions.net/bigquery_external_function', 
+    (endpoint = 'https://${cloud_function_region}-${project_id}.cloudfunctions.net/bigquery_external_function', 
     user_defined_context = [("mode","detect_landmarks_uri")],
     max_batching_rows = 1
     );
@@ -81,7 +81,7 @@ CREATE OR REPLACE FUNCTION `${project_id}.${bigquery_rideshare_lakehouse_enriche
 CREATE OR REPLACE FUNCTION `${project_id}.${bigquery_rideshare_lakehouse_enriched_dataset}.ext_udf_ai_detect_logos` (uri STRING) RETURNS JSON 
     REMOTE WITH CONNECTION `${project_id}.us.cloud-function` 
     OPTIONS 
-    (endpoint = 'https://us-central1-${project_id}.cloudfunctions.net/bigquery_external_function', 
+    (endpoint = 'https://${cloud_function_region}-${project_id}.cloudfunctions.net/bigquery_external_function', 
     user_defined_context = [("mode","detect_logos_uri")],
     max_batching_rows = 1
     );

@@ -288,11 +288,11 @@ gsutil cp ./dataproc/rideshare_iceberg_serverless.py gs://raw-${project_id}/pysp
 
 gcloud beta dataproc batches submit pyspark \
     --project="${project_id}" \
-    --region="us-central1" \
+    --region="REPLACE-REGION" \
     --batch="batch-015"  \
     gs://raw-${project_id}/pyspark-code/rideshare_iceberg_serverless.py \
     --jars gs://spark-lib/biglake/iceberg-biglake-catalog-0.0.1-with-dependencies.jar \
-    --subnet="bigspark-subnet" \
+    --subnet="dataproc-serverless-subnet" \
     --deps-bucket="gs://dataproc-${project_id}" \
     --service-account="dataproc-service-account@${project_id}.iam.gserviceaccount.com" \
     --properties="spark.sql.catalog.${iceberg_catalog}.blms_catalog=${iceberg_catalog}, \
@@ -307,6 +307,6 @@ gcloud beta dataproc batches submit pyspark \
 
  
 # to cancel
-gcloud dataproc batches cancel batch-000 --project ${project_id} --region us-central1
+gcloud dataproc batches cancel batch-000 --project ${project_id} --region REPLACE-REGION
 
 """

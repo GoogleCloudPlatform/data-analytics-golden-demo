@@ -48,18 +48,16 @@ default_args = {
 }
 
 project_id               = os.environ['GCP_PROJECT'] 
-# hardcoded (using this region since us-west2 is not available)
-region                   = "us-central1" 
+region                   = os.environ['ENV_DATAPROC_SERVERLESS_REGION']
 raw_bucket_name          = os.environ['ENV_RAW_BUCKET'] 
 processed_bucket_name    = "gs://" + os.environ['ENV_PROCESSED_BUCKET'] 
 pyspark_code             = "gs://" + raw_bucket_name + "/pyspark-code/rideshare_iceberg_serverless.py"
 jar_file                 = "gs://spark-lib/biglake/iceberg-biglake-catalog-0.0.1-with-dependencies.jar"
 
 # hardcoded the subnet name
-dataproc_subnet          = "bigspark-subnet"
+dataproc_subnet          = os.environ['ENV_DATAPROC_SERVERLESS_SUBNET_NAME']
 dataproc_service_account = os.environ['ENV_DATAPROC_SERVICE_ACCOUNT'] 
 dataproc_bucket          = os.environ['ENV_DATAPROC_BUCKET'] 
-bigspark_bucket          = os.environ['ENV_RAW_BUCKET'].replace("raw-","bigspark-")
 taxi_dataset_id          = os.environ['ENV_TAXI_DATASET_ID'] 
 
 iceberg_catalog                = "rideshare_iceberg_catalog"

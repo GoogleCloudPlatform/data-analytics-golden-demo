@@ -292,9 +292,9 @@ processedBucket="processed-${project}"
 
 gcloud dataproc clusters create iceberg-cluster \
     --bucket "${dataproceTempBucketName}" \
-    --region us-west2 \
+    --region REPLACE-REGION \
     --subnet dataproc-subnet \
-    --zone us-west2-c \
+    --zone REPLACE-REGION-c \
     --master-machine-type n1-standard-4 \
     --master-boot-disk-size 500 \
     --num-workers 2 \
@@ -312,7 +312,7 @@ gsutil cp ./dataproc/convert_taxi_to_iceberg_create_tables.py gs://${rawBucket}/
 
 gcloud dataproc jobs submit pyspark  \
    --cluster "iceberg-cluster" \
-   --region="us-west2" \
+   --region="REPLACE-REGION" \
    --project="${project}" \
    --jars ./dataproc/iceberg-spark-runtime-3.1_2.12-0.14.0.jar \
    gs://${rawBucket}/pyspark-code/convert_taxi_to_iceberg_create_tables.py \
@@ -320,5 +320,5 @@ gcloud dataproc jobs submit pyspark  \
       gs://${rawBucket}/raw/taxi-data/green/*/*.parquet \
       gs://${processedBucket}/iceberg-warehouse
 
-gcloud dataproc clusters delete iceberg-cluster --region us-west2 --project="${project}"
+gcloud dataproc clusters delete iceberg-cluster --region REPLACE-REGION --project="${project}"
 """
