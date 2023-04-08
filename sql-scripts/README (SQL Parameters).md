@@ -4,7 +4,7 @@
 ## Step 2 - Change paramters
 - Parameters that will be replaced in your SQL with parameters used by Terraform:
   - ${project_id} - the GCP project that is created
-  - ${region} - this is the region for VMs and networking (not BigQuery) [us-west2]
+  - ${region} - a region has been added for each resource
   - ${bigquery_taxi_dataset} - the taxi dataset name
   - ${bigquery_thelook_ecommerce_dataset} - the looker ecommerce dataset
   - ${bucket_name} - the GCS bucket with the processed data
@@ -22,9 +22,14 @@
 ####################################################################################
 # REPLACE_WITH_FILENAME
 ####################################################################################
-data "template_file" "sproc_REPLACE_WITH_FILENAME" {
-  template = "${file("../sql-scripts/DIRECTORY/REPLACE_WITH_FILENAME.sql")}"
-  vars = {
+resource "google_bigquery_routine" "sproc_REPLACE_WITH_FILENAME" {
+  dataset_id      = var.bigquery_taxi_dataset
+  routine_id      = "REPLACE_WITH_FILENAME"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = "${data.template_file.sproc_REPLACE_WITH_FILENAME.rendered}"
+  definition_body = templatefile("../sql-scripts/DIRECTORY/REPLACE_WITH_FILENAME.sql", 
+  { 
     project_id = var.project_id
     region = var.region
     bigquery_taxi_dataset = var.bigquery_taxi_dataset
@@ -32,13 +37,6 @@ data "template_file" "sproc_REPLACE_WITH_FILENAME" {
     bucket_name = var.storage_bucket
     bigquery_region = var.bigquery_region
     gcp_account_name = var.gcp_account_name
-  }  
-}
-resource "google_bigquery_routine" "sproc_REPLACE_WITH_FILENAME" {
-  dataset_id      = var.bigquery_taxi_dataset
-  routine_id      = "REPLACE_WITH_FILENAME"
-  routine_type    = "PROCEDURE"
-  language        = "SQL"
-  definition_body = "${data.template_file.sproc_REPLACE_WITH_FILENAME.rendered}"
+  })
 }
 ```

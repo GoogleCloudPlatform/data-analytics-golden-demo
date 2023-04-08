@@ -19,8 +19,7 @@
 BASE_ADDRESS="notebooks.googleapis.com"
 
 # Hardcoded for now (until more regions are activated)
-#LOCATION="{{ params.region }}"
-LOCATION="us-central1"
+LOCATION="{{ params.vertex_ai_region }}"
 PROJECT_ID="{{ params.project_id }}"
 AUTH_TOKEN=$(gcloud auth application-default print-access-token)
 RUNTIME_ID="demo-runtime"

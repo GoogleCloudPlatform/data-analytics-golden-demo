@@ -137,7 +137,7 @@ SELECT *
 CREATE OR REPLACE FUNCTION `bigquery_preview_features.ext_udf_ai_localize_objects` (uri STRING) RETURNS STRING 
     REMOTE WITH CONNECTION `us.cloud-function` 
     OPTIONS 
-    (endpoint = 'https://us-central1-cloudfunctions.net/bigquery_external_function', 
+    (endpoint = 'https://${cloud_function_region}-cloudfunctions.net/bigquery_external_function', 
     user_defined_context = [("mode","localize_objects_uri")]
     );
 
@@ -145,7 +145,7 @@ CREATE OR REPLACE FUNCTION `bigquery_preview_features.ext_udf_ai_localize_object
 CREATE OR REPLACE FUNCTION `bigquery_preview_features.ext_udf_ai_detect_labels` (uri STRING) RETURNS STRING 
     REMOTE WITH CONNECTION `us.cloud-function` 
     OPTIONS 
-    (endpoint = 'https://us-central1-cloudfunctions.net/bigquery_external_function', 
+    (endpoint = 'https://${cloud_function_region}-cloudfunctions.net/bigquery_external_function', 
     user_defined_context = [("mode","detect_labels_uri")]
     );
 
@@ -153,7 +153,7 @@ CREATE OR REPLACE FUNCTION `bigquery_preview_features.ext_udf_ai_detect_labels` 
 CREATE OR REPLACE FUNCTION `bigquery_preview_features.ext_udf_ai_detect_landmarks` (uri STRING) RETURNS STRING 
     REMOTE WITH CONNECTION `us.cloud-function` 
     OPTIONS 
-    (endpoint = 'https://us-central1-cloudfunctions.net/bigquery_external_function', 
+    (endpoint = 'https://${cloud_function_region}-cloudfunctions.net/bigquery_external_function', 
     user_defined_context = [("mode","detect_landmarks_uri")]
     );
 
@@ -161,7 +161,7 @@ CREATE OR REPLACE FUNCTION `bigquery_preview_features.ext_udf_ai_detect_landmark
 CREATE OR REPLACE FUNCTION `bigquery_preview_features.ext_udf_ai_detect_logos` (uri STRING) RETURNS STRING 
     REMOTE WITH CONNECTION `us.cloud-function` 
     OPTIONS 
-    (endpoint = 'https://us-central1-cloudfunctions.net/bigquery_external_function', 
+    (endpoint = 'https://${cloud_function_region}-cloudfunctions.net/bigquery_external_function', 
     user_defined_context = [("mode","detect_logos_uri")]
     );
 

@@ -38,7 +38,7 @@ Clean up / Reset script:
 EXECUTE IMMEDIATE """
 SELECT *
   FROM EXTERNAL_QUERY(
-      'projects/${project_id}/locations/${region}/connections/bq_spanner_connection',
+      'projects/${project_id}/locations/${spanner_region}/connections/bq_spanner_connection',
       "SELECT *  FROM weather WHERE station_id='USW00094728'");
 """;
 
@@ -47,7 +47,7 @@ SELECT *
 -- Create a dataset and sample data in the same region in which Spanner is deployed
 CREATE SCHEMA ${bigquery_taxi_dataset}_spanner
 OPTIONS(
-  location="${region}"
+  location="${spanner_region}"
   );
 
 
@@ -127,7 +127,7 @@ WITH WeatherData AS
         min_celsius_temp,
         max_celsius_temp
   FROM EXTERNAL_QUERY(
-      'projects/${project_id}/locations/${region}/connections/bq_spanner_connection',
+      'projects/${project_id}/locations/${spanner_region}/connections/bq_spanner_connection',
       "SELECT *  FROM weather WHERE station_id='USW00094728' AND station_date BETWEEN '2020-01-01' AND '2020-01-31'")
 )
 , TaxiData AS

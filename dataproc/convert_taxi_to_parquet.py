@@ -469,7 +469,7 @@ if __name__ == "__main__":
 # Sample run 
 # gcloud dataproc jobs submit pyspark  \
 #    --cluster "testcluster" \
-#    --region="us-west2" \
+#    --region="REPLACE-REGION" \
 #    gs://big-query-demo-09/pyspark-code/convert_taxi_to_parquet.py \
 #    -- gs://big-query-demo-09/test-taxi/yellow/*/*.parquet \
 #       gs://big-query-demo-09/test-taxi/green/*/*.parquet \

@@ -49,7 +49,7 @@ default_args = {
 }
 
 project_id            = os.environ['GCP_PROJECT'] 
-region                = os.environ['ENV_REGION'] 
+region                = os.environ['ENV_DATAFLOW_REGION'] 
 raw_bucket_name       = os.environ['ENV_RAW_BUCKET'] 
 taxi_dataset_id       = os.environ['ENV_TAXI_DATASET_ID'] 
 dataproc_bucket       = os.environ['ENV_DATAPROC_BUCKET'] 

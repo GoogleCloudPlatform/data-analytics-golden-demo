@@ -46,7 +46,7 @@ default_args = {
 }
 
 project_id            = os.environ['GCP_PROJECT'] 
-region                = os.environ['ENV_REGION'] 
+region                = os.environ['ENV_DATAFUSION_REGION'] 
 datafusion_name       = "data-fusion-prod-01"
 
 

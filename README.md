@@ -8,16 +8,13 @@ Deploys a end to end working demo of a Data Analytics / Data Processing using Go
 
 ![alt tag](./images/Sample-Architecture.png)
 
+![alt tag](./images/Rideshare-Analytics-Lakehouse-Architecture.png)
 
-## Deploying using Cloud Shell
-You can deploy this to a new project or an existing project.
-- New Project:
-  - This requires you to be an Org Admin.  This is a great for personal projects or if IT is running the script.
-- Existing Project:
-  - This requires a project to be created in advance.  IT typically will create and provide a service account which is used to deploy.  Or IT can allow you to impersonate the service account (more secure then exporting a JSON credential file)
+![alt tag](./images/Rideshare-Analytics-Lakehouse-Summary.png)
 
 
-### To deploy to New Project (Preferred method)
+
+### To deploy to New Project (Preferred method - You must be an Org Admin )
 1. Open a Google Cloud Shell: http://shell.cloud.google.com/ 
 2. Type: git clone https://github.com/GoogleCloudPlatform/data-analytics-golden-demo
 3. Switch the prompt to the directory: cd data-analytics-golden-demo
@@ -26,7 +23,25 @@ You can deploy this to a new project or an existing project.
 6. Follow the prompts: Answer “Yes” for each.
 
 
-### To deploy to an Existing Project
+### To deploy to an Existing Project (as a non-Org Admin)
+1. Review the code in the deploy-use-existing-project-non-org-admin.sh
+2. You will need a project created
+3. You will need to be an Owner of the project
+3. You will need an Org Admin to disable the following Org Policies
+   - requireOsLogin = false
+   - requireShieldedVm = false
+   - allowedIngressSettings = allow all
+   - allowedPolicyMemberDomains = allow all
+4. Update the hard coded values in deploy-use-existing-project-non-org-admin.sh
+5. Run ```source deploy-use-existing-project-non-org-admin.sh```
+6. Your Org Admin can then renable the following Org Policies
+   - (DO NOT RENABLE) requireOsLogin = false
+   - (RENABLE) requireShieldedVm = false
+   - (RENABLE) allowedIngressSettings = allow all
+   - (RENABLE) allowedPolicyMemberDomains = allow all
+
+
+### To deploy to an Existing Project (using a service account as an Org Admin)
 1. Review the code in the deploy-use-existing-project.sh
 2. You should have a project and a service account with the Owner role
 3. You will just hard code the project and service account information into the script.  The script has code in it to "emualte" someone else creating a project.  

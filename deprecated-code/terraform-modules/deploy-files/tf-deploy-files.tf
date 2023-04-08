@@ -35,7 +35,6 @@ terraform {
 # Variables
 ####################################################################################
 variable "project_id" {}
-variable "region" {}
 variable "storage_bucket" {}
 variable "random_extension" {}
 variable "deployment_service_account_name" {}
@@ -152,7 +151,7 @@ data "template_file" "dataplex_data_quality_template" {
   template = "${file("../dataplex/data-quality/dataplex_data_quality_taxi.yaml")}"
   vars = {
     project_id = var.project_id
-    dataplex_region = "us-central1"
+    dataplex_region = "REPLACE-REGION"
     random_extension = var.random_extension
   }  
 }
@@ -281,7 +280,7 @@ else
     gcloud auth activate-service-account "${var.deployment_service_account_name}" --key-file="$${GOOGLE_APPLICATION_CREDENTIALS}" --project="${var.project_id}"
     gcloud config set account "${var.deployment_service_account_name}"
 fi  
-gcloud composer environments run ${var.composer_name} --project ${var.project_id} --location ${var.region} dags trigger -- run-all-dags
+gcloud composer environments run ${var.composer_name} --project ${var.project_id} --location ${var.composer_region} dags trigger -- run-all-dags
 EOF
   }
   depends_on = [

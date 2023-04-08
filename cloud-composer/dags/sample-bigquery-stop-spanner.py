@@ -44,7 +44,7 @@ default_args = {
 }
 
 project_id            = os.environ['GCP_PROJECT'] 
-region                = os.environ['ENV_REGION'] 
+region                = os.environ['ENV_SPANNER_REGION'] 
 spanner_instance_id   = os.environ['ENV_SPANNER_INSTANCE_ID']
 
 spanner_uri = "projects/" + project_id + "/instances/" + spanner_instance_id
