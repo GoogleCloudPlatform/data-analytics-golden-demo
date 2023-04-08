@@ -130,7 +130,7 @@ resource "time_sleep" "service_account_api_activation_time_delay" {
 
 # Uses the new Org Policies method (when a project is created by TF)
 module "org-policies" {
-  count  = var.environment == "GITHUB_ENVIRONMENT" ? 1 : 0
+  count  = var.environment == "GITHUB_ENVIRONMENT" && var.org_id != "0" ? 1 : 0
   source = "../terraform-modules/org-policies"
 
   # Use Service Account Impersonation for this step. 
