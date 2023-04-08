@@ -254,6 +254,16 @@ variable "appengine_region" {
     error_message = "The app engine region is required."
   }
 }
+
+variable "dataproc_serverless_region" {
+  type        = string
+  description = "The GCP region for dataproc serverless."
+  default     = "us-central1"
+  validation {
+    condition     = length(var.dataproc_serverless_region) > 0
+    error_message = "The dataproc serverless region is required."
+  }
+}
 ###############
 
 

@@ -36,6 +36,7 @@ terraform {
 ####################################################################################
 variable "gcp_account_name" {}
 variable "project_id" {}
+
 variable "composer_region" {}
 variable "dataform_region" {}
 variable "dataplex_region" {}
@@ -50,6 +51,7 @@ variable "vertex_ai_region" {}
 variable "cloud_function_region" {}
 variable "data_catalog_region" {}
 variable "appengine_region" {}
+variable "dataproc_serverless_region" {}
 
 variable "storage_bucket" {}
 variable "spanner_config" {}
@@ -189,7 +191,7 @@ resource "google_compute_firewall" "subnet_firewall_rule" {
   depends_on = [
     google_compute_subnetwork.composer_subnet,
     google_compute_subnetwork.dataproc_subnet,
-    google_compute_subnetwork.bigspark_subnet,
+    google_compute_subnetwork.dataproc_serverless_subnet,
     google_compute_subnetwork.dataflow_subnet
   ]
 }
@@ -485,20 +487,23 @@ resource "google_composer_environment" "composer_env" {
         ENV_PROCESSED_BUCKET          = "processed-${var.storage_bucket}",
         ENV_CODE_BUCKET               = "code-${var.storage_bucket}",
 
-        ENV_COMPOSER_REGION           = var.composer_region
-        ENV_DATAFORM_REGION           = var.dataform_region
-        ENV_DATAPLEX_REGION           = var.dataplex_region
-        ENV_NAT_ROUTER_REGION         = var.nat_router_region
-        ENV_DATAPROC_REGION           = var.dataproc_region
-        ENV_DATAFLOW_REGION           = var.dataflow_region
-        ENV_BIGQUERY_REGION           = var.bigquery_region
-        ENV_BIGQUERY_NON_MULTI_REGION = var.bigquery_non_multi_region
-        ENV_SPANNER_REGION            = var.spanner_region
-        ENV_DATAFUSION_REGION         = var.datafusion_region
-        ENV_VERTEX_AI_REGION          = var.vertex_ai_region  
-        ENV_CLOUD_FUNCTION_REGION     = var.cloud_function_region
-        ENV_DATA_CATALOG_REGION       = var.data_catalog_region
-        ENV_APPENGINE_REGION          = var.appengine_region
+        ENV_COMPOSER_REGION            = var.composer_region
+        ENV_DATAFORM_REGION            = var.dataform_region
+        ENV_DATAPLEX_REGION            = var.dataplex_region
+        ENV_NAT_ROUTER_REGION          = var.nat_router_region
+        ENV_DATAPROC_REGION            = var.dataproc_region
+        ENV_DATAFLOW_REGION            = var.dataflow_region
+        ENV_BIGQUERY_REGION            = var.bigquery_region
+        ENV_BIGQUERY_NON_MULTI_REGION  = var.bigquery_non_multi_region
+        ENV_SPANNER_REGION             = var.spanner_region
+        ENV_DATAFUSION_REGION          = var.datafusion_region
+        ENV_VERTEX_AI_REGION           = var.vertex_ai_region  
+        ENV_CLOUD_FUNCTION_REGION      = var.cloud_function_region
+        ENV_DATA_CATALOG_REGION        = var.data_catalog_region
+        ENV_APPENGINE_REGION           = var.appengine_region
+        ENV_DATAPROC_SERVERLESS_REGION = var.dataproc_serverless_region
+        ENV_DATAPROC_SERVERLESS_SUBNET = "projects/${var.project_id}/regions/${var.dataproc_serverless_region}/subnetworks/dataproc-serverless-subnet",
+        ENV_DATAPROC_SERVERLESS_SUBNET_NAME = google_compute_subnetwork.dataproc_serverless_subnet.name,
 
         ENV_DATAPROC_BUCKET          = "dataproc-${var.storage_bucket}",
         ENV_DATAPROC_SUBNET          = "projects/${var.project_id}/regions/${var.dataproc_region}/subnetworks/dataproc-subnet",
@@ -635,19 +640,11 @@ resource "google_bigquery_dataset" "azure_omni_biglake_dataset" {
   location      = var.azure_omni_biglake_dataset_region
 }
 
-# Temp work bucket for BigSpark
-resource "google_storage_bucket" "bigspark_bucket" {
-  project                     = var.project_id
-  name                        = "bigspark-${var.storage_bucket}"
-  location                    = var.bigquery_region
-  force_destroy               = true
-  uniform_bucket_level_access = true
-}
 
 # Subnet for bigspark / central region
-resource "google_compute_subnetwork" "bigspark_subnet" {
+resource "google_compute_subnetwork" "dataproc_serverless_subnet" {
   project                  = var.project_id
-  name                     = "bigspark-subnet"
+  name                     = "dataproc-serverless-subnet"
   ip_cidr_range            = "10.5.0.0/16"
   region                   = var.bigquery_non_multi_region
   network                  = google_compute_network.default_network.id
@@ -659,9 +656,9 @@ resource "google_compute_subnetwork" "bigspark_subnet" {
 }
 
 # Needed for BigSpark to Dataproc
-resource "google_compute_firewall" "bigspark_subnet_firewall_rule" {
+resource "google_compute_firewall" "dataproc_serverless_subnet_firewall_rule" {
   project  = var.project_id
-  name     = "bigspark-firewall"
+  name     = "dataproc-serverless-firewall"
   network  = google_compute_network.default_network.id
 
   allow {
@@ -671,7 +668,7 @@ resource "google_compute_firewall" "bigspark_subnet_firewall_rule" {
   source_ranges = ["10.5.0.0/16"]
 
   depends_on = [
-    google_compute_subnetwork.bigspark_subnet
+    google_compute_subnetwork.dataproc_serverless_subnet
   ]
 }
 
@@ -1962,16 +1959,12 @@ output "composer_env_dag_bucket" {
   value = google_composer_environment.composer_env.config.0.dag_gcs_prefix
 }
 
-output "gcs_bigspark_bucket" {
-  value = google_storage_bucket.bigspark_bucket.name
+output "dataproc_serverless_subnet_name" {
+  value = google_compute_subnetwork.dataproc_serverless_subnet.name
 }
 
-output "bigspark_subnet_name" {
-  value = google_compute_subnetwork.bigspark_subnet.name
-}
-
-output "bigspark_subnet_ip_cidr_range" {
-  value = google_compute_subnetwork.bigspark_subnet.ip_cidr_range
+output "dataproc_serverless_ip_cidr_range" {
+  value = google_compute_subnetwork.dataproc_serverless_subnet.ip_cidr_range
 }
 
 output "business_critical_taxonomy_aws_id" {

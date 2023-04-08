@@ -68,7 +68,7 @@ yaml_path                             = "gs://" + code_bucket_name + "/dataplex/
 bigquery_region                       = os.environ['ENV_BIGQUERY_REGION']
 taxi_dataset_id                       = os.environ['ENV_TAXI_DATASET_ID']
 thelook_dataset_id                    = "thelook_ecommerce"
-vpc_subnet_name                       = "bigspark-subnet"
+vpc_subnet_name                       = os.environ['ENV_DATAPROC_SERVERLESS_SUBNET_NAME']
 dataplex_region                       = os.environ['ENV_DATAPLEX_REGION'] 
 service_account_to_run_dataplex       = "dataproc-service-account@" + project_id + ".iam.gserviceaccount.com"
 random_extension                      = os.environ['ENV_RANDOM_EXTENSION']
@@ -536,7 +536,7 @@ Sample dataproc output from REST API call
   "environmentConfig": {
     "executionConfig": {
       "serviceAccount": "dataproc-service-account@paternostro-9033-2022102613235.iam.gserviceaccount.com",
-      "subnetworkUri": "bigspark-subnet"
+      "subnetworkUri": "dataproc-serverless-subnet"
     },
     "peripheralsConfig": {
       "sparkHistoryServerConfig": {}

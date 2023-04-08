@@ -227,7 +227,7 @@ gcloud beta dataproc batches submit pyspark \
     --batch="batch-015"  \
     gs://raw-data-analytics-demo-${project_string}/pyspark-code/export_taxi_data_from_bq_to_gcs.py \
     --jars gs://raw-data-analytics-demo-${project_string}/pyspark-code/spark-bigquery-with-dependencies_2.12-0.26.0.jar \
-    --subnet="bigspark-subnet" \
+    --subnet="datatproc-serverless-subnet" \
     --deps-bucket="gs://dataproc-data-analytics-demo-${project_string}" \
     --service-account="dataproc-service-account@data-analytics-demo-${project_string}.iam.gserviceaccount.com" \
     -- data-analytics-demo-${project_string} taxi_dataset bigspark-data-analytics-demo-${project_string} gs://processed-data-analytics-demo-${project_string}

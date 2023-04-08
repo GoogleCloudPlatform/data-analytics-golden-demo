@@ -51,16 +51,15 @@ default_args = {
 }
 
 project_id               = os.environ['GCP_PROJECT'] 
-region                   = os.environ['ENV_DATAPROC_REGION'] 
+region                   = os.environ['ENV_DATAPROC_SERVERLESS_REGION'] 
 raw_bucket_name          = os.environ['ENV_RAW_BUCKET'] 
 processed_bucket_name    = "gs://" + os.environ['ENV_PROCESSED_BUCKET'] 
 pyspark_code             = "gs://" + raw_bucket_name + "/pyspark-code/export_taxi_data_from_bq_to_gcs.py"
 jar_file                 = "gs://" + raw_bucket_name + "/pyspark-code/spark-bigquery-with-dependencies_2.12-0.26.0.jar"
-# hardcoded the subnet name
-dataproc_subnet          = "bigspark-subnet"
+dataproc_subnet          = os.environ['ENV_DATAPROC_SERVERLESS_SUBNET_NAME']
 dataproc_service_account = os.environ['ENV_DATAPROC_SERVICE_ACCOUNT'] 
 dataproc_bucket          = os.environ['ENV_DATAPROC_BUCKET'] 
-bigspark_bucket          = os.environ['ENV_RAW_BUCKET'].replace("raw-","bigspark-")
+raw_bucket               = os.environ['ENV_RAW_BUCKET']
 taxi_dataset_id          = os.environ['ENV_TAXI_DATASET_ID'] 
 
 """
@@ -70,7 +69,7 @@ gcloud beta dataproc batches submit pyspark \
     --batch="batch-003"  \
     gs://raw-data-analytics-demo-4s42tmb9uw/pyspark-code/export_taxi_data_from_bq_to_gcs.py \
     --jars gs://raw-data-analytics-demo-4s42tmb9uw/pyspark-code/spark-bigquery-with-dependencies_2.12-0.26.0.jar \
-    --subnet="bigspark-subnet" \
+    --subnet="dataproc-serverless-subnet" \
     --deps-bucket="gs://dataproc-data-analytics-demo-4s42tmb9uw" \
     --service-account="dataproc-service-account@data-analytics-demo-4s42tmb9uw.iam.gserviceaccount.com" \
     -- data-analytics-demo-4s42tmb9uw taxi_dataset bigspark-data-analytics-demo-4s42tmb9uw gs://processed-data-analytics-demo-4s42tmb9uw
@@ -84,7 +83,7 @@ BATCH_CONFIG = {
         {
             'main_python_file_uri': pyspark_code,
             'jar_file_uris': [ jar_file ],
-            'args': [project_id, taxi_dataset_id, bigspark_bucket, processed_bucket_name ]
+            'args': [project_id, taxi_dataset_id, raw_bucket, processed_bucket_name ]
         },
     'environment_config':
         {'execution_config':

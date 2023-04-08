@@ -193,6 +193,7 @@ module "resources" {
   cloud_function_region             = var.cloud_function_region
   data_catalog_region               = var.data_catalog_region
   appengine_region                  = var.appengine_region
+  dataproc_serverless_region        = var.dataproc_serverless_region
 
   storage_bucket                    = local.local_storage_bucket
   spanner_config                    = var.spanner_config
@@ -522,16 +523,12 @@ output "composer_env_dag_bucket" {
   value = module.resources.composer_env_dag_bucket
 }
 
-output "gcs_bigspark_bucket" {
-  value = module.resources.gcs_bigspark_bucket
+output "dataproc_serverless_subnet_name" {
+  value = module.resources.dataproc_serverless_subnet_name
 }
 
-output "bigspark_subnet_name" {
-  value = module.resources.bigspark_subnet_name
-}
-
-output "bigspark_subnet_ip_cidr_range" {
-  value = module.resources.bigspark_subnet_ip_cidr_range
+output "dataproc_serverless_ip_cidr_range" {
+  value = module.resources.dataproc_serverless_ip_cidr_range
 }
 
 output "business_critical_taxonomy_aws_id" {

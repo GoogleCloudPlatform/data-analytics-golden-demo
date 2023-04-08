@@ -135,7 +135,7 @@ gcloud beta dataproc batches submit pyspark \
     --batch="batch-002"  \
     gs://raw-data-analytics-demo-s3epuwhxbf/pyspark-code/convert_taxi_to_iceberg_data_updates.py \
     --jars gs://raw-data-analytics-demo-s3epuwhxbf/pyspark-code/iceberg-spark-runtime-3.1_2.12-0.14.0.jar \
-    --subnet="bigspark-subnet" \
+    --subnet="dataproc-serverless-subnet" \
     --deps-bucket="gs://dataproc-data-analytics-demo-s3epuwhxbf" \
     --service-account="dataproc-service-account@data-analytics-demo-s3epuwhxbf.iam.gserviceaccount.com" \
     -- gs://processed-data-analytics-demo-s3epuwhxbf/iceberg-warehouse

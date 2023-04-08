@@ -45,7 +45,7 @@ RANDOM_EXTENSION="{{ params.random_extension }}"
 ## Region is case-sensitive
 #BIGQUERY_REGION="US"
 #TAXI_DATAPLEX_LAKE_NAME="taxi-data-lake"
-#VPC_SUBNET_NAME="bigspark-subnet"
+#VPC_SUBNET_NAME="dataproc-serverless-subnet"
 #DATAPLEX_REGION="REPLACE-REGION"
 #SERVICE_ACCOUNT_TO_RUN_DATAPLEX="dataproc-service-account@data-analytics-demo-4g4pkx9s5l.iam.gserviceaccount.com"
 

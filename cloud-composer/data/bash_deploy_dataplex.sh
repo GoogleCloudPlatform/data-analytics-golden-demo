@@ -23,8 +23,6 @@
 # https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/dataplex_lake
 # glob patterns: https://cloud.google.com/dataplex/docs/discover-data#discovery-configuration
 
-# Hardcoded for now (until more regions are activated)
-#LOCATION="{{ params.region }}"
 LOCATION="{{ params.dataplex_region }}"
 PROJECT_ID="{{ params.project_id }}"
 RAW_BUCKET="{{ params.raw_bucket }}"
