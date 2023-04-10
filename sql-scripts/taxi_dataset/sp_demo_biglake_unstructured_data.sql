@@ -475,6 +475,3 @@ SELECT Signed_Table.signed_url,
 --!!!!!!!!!!! DROP YOUR RESERVATION !!!!!!!!!!!
 DROP ASSIGNMENT  `${project_id}.region-${bigquery_region}.demo-reservation-autoscale-100.demo-assignment-autoscale-100`;
 DROP RESERVATION `${project_id}.region-${bigquery_region}.demo-reservation-autoscale-100`;
---!!!!!!!!!!! DROP YOUR RESERVATION !!!!!!!!!!!
---!!!!!!!!!!! DROP YOUR RESERVATION !!!!!!!!!!!
---!!!!!!!!!!! DROP YOUR RESERVATION !!!!!!!!!!!
