@@ -44,11 +44,33 @@ Clean up / Reset script:
     DROP EXTERNAL TABLE IF EXISTS `${project_id}.${bigquery_taxi_dataset}.biglake_unstructured_data`;
     DROP MODEL IF EXISTS `${project_id}.${bigquery_taxi_dataset}.resnet_50_classification_1`;
     DROP MODEL IF EXISTS `${project_id}.${bigquery_taxi_dataset}.imagenet_mobilenet_v3_small_075_224_feature_vector_5`;
+    DROP ASSIGNMENT  `${project_id}.region-${bigquery_region}.demo-reservation-autoscale-100.demo-assignment-autoscale-100`;
     DROP RESERVATION `${project_id}.region-${bigquery_region}.demo-reservation-autoscale-100`;
 */
 
-
 DECLARE loopCounter INT64 DEFAULT 0;
+
+-- To run ML Predictions on Object tables you need a reservation
+-- If you create this MAKE SURE YOU DROP IT (especially if you use baseline slots)!
+CREATE RESERVATION `${project_id}.region-${bigquery_region}.demo-reservation-autoscale-100`
+OPTIONS (
+  edition = "enterprise",
+  slot_capacity = 0, -- change to 200 for a baseline of 200 (faster query start time)
+  autoscale_max_slots = 200);
+
+
+CREATE ASSIGNMENT `${project_id}.region-${bigquery_region}.demo-reservation-autoscale-100.demo-assignment-autoscale-100`
+OPTIONS(
+   assignee = "projects/${project_id}",
+   job_type = "QUERY"
+   );
+
+
+-- YOU MIGHT NEED TO WAIT A FEW MINUTES FOR THE RESERVATION TO TAKE AFFECT
+-- You might see this error: BigQuery ML for Object tables requires reservation, but no reservation was assigned for job type `QUERY`, to project `data-analytics-demo-ikiu2litcw` or its parent, in location `US`.
+-- If you see the error, wait a 15 seconds and try again
+
+
 
 -- Create a BigLake table for the biglake-unstructured-data directory for all JPG image files
 -- Review the OPTIONS block
@@ -72,21 +94,6 @@ CALL BQ.REFRESH_EXTERNAL_METADATA_CACHE('${project_id}.${bigquery_taxi_dataset}.
 SELECT * FROM `${project_id}.${bigquery_taxi_dataset}.biglake_unstructured_data`;
 
 
--- To run ML Predictions on Object tables you need a reservation
--- If you create this MAKE SURE YOU DROP IT!
-CREATE RESERVATION `${project_id}.region-${bigquery_region}.demo-reservation-autoscale-100`
-OPTIONS (
-  edition = "enterprise",
-  slot_capacity = 100,
-  autoscale_max_slots = 100);
-
-CREATE ASSIGNMENT `${project_id}.region-${bigquery_region}.demo-reservation-autoscale-100.demo-assignment-autoscale-100`
-OPTIONS(
-   assignee = "projects/${project_id}",
-   job_type = "QUERY"
-   );
-
-
 -- Import the model (https://tfhub.dev/tensorflow/resnet_50/classification/1)
 CREATE OR REPLACE MODEL `${project_id}.${bigquery_taxi_dataset}.resnet_50_classification_1` 
 OPTIONS(
@@ -96,7 +103,6 @@ OPTIONS(
   );
   
 
--- YOU MIGHT NEED TO WAIT A FEW MINUTES FOR THE RESERVATION TO TAKE AFFECT
 -- Score the image data
 EXECUTE IMMEDIATE """
 SELECT * 
@@ -171,15 +177,6 @@ SELECT *
                     LIMIT 10)
                   );
 """;
-
-
---!!!!!!!!!!! DROP YOUR RESERVATION !!!!!!!!!!!
---!!!!!!!!!!! DROP YOUR RESERVATION !!!!!!!!!!!
---!!!!!!!!!!! DROP YOUR RESERVATION !!!!!!!!!!!
-DROP RESERVATION `${project_id}.region-${bigquery_region}.demo-reservation-autoscale-100`;
---!!!!!!!!!!! DROP YOUR RESERVATION !!!!!!!!!!!
---!!!!!!!!!!! DROP YOUR RESERVATION !!!!!!!!!!!
---!!!!!!!!!!! DROP YOUR RESERVATION !!!!!!!!!!!
 
 
 ------------------------------------------------------------------------------------------
@@ -476,3 +473,12 @@ SELECT Signed_Table.signed_url,
        INNER JOIN `${project_id}.${bigquery_taxi_dataset}.biglake_vision_ai` AS AI_Results
                ON Signed_Table.uri = AI_Results.uri
               AND SEARCH(AI_Results, 'Dog');
+
+--!!!!!!!!!!! DROP YOUR RESERVATION !!!!!!!!!!!
+--!!!!!!!!!!! DROP YOUR RESERVATION !!!!!!!!!!!
+--!!!!!!!!!!! DROP YOUR RESERVATION !!!!!!!!!!!
+DROP ASSIGNMENT  `${project_id}.region-${bigquery_region}.demo-reservation-autoscale-100.demo-assignment-autoscale-100`;
+DROP RESERVATION `${project_id}.region-${bigquery_region}.demo-reservation-autoscale-100`;
+--!!!!!!!!!!! DROP YOUR RESERVATION !!!!!!!!!!!
+--!!!!!!!!!!! DROP YOUR RESERVATION !!!!!!!!!!!
+--!!!!!!!!!!! DROP YOUR RESERVATION !!!!!!!!!!!
