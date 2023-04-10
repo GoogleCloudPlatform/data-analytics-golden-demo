@@ -48,8 +48,6 @@ Clean up / Reset script:
     DROP RESERVATION `${project_id}.region-${bigquery_region}.demo-reservation-autoscale-100`;
 */
 
-DECLARE loopCounter INT64 DEFAULT 0;
-
 -- To run ML Predictions on Object tables you need a reservation
 -- If you create this MAKE SURE YOU DROP IT (especially if you use baseline slots)!
 CREATE RESERVATION `${project_id}.region-${bigquery_region}.demo-reservation-autoscale-100`
@@ -427,14 +425,12 @@ LOOP
     FROM Data
    WHERE RowNumber BETWEEN 1 AND 50; -- do 50 at a time
 
-  SET loopCounter = (SELECT COUNT(*) AS Cnt
+  IF 0 = (SELECT COUNT(*) AS Cnt
                       FROM `${project_id}.${bigquery_taxi_dataset}.biglake_unstructured_data` AS biglake_unstructured_data
                      WHERE biglake_unstructured_data.content_type = 'image/jpeg'
                        AND NOT EXISTS (SELECT 1
                                          FROM `${project_id}.${bigquery_taxi_dataset}.biglake_vision_ai` AS biglake_vision_ai
-                                        WHERE biglake_unstructured_data.uri = biglake_vision_ai.uri));
-
-  IF loopCounter = 0 THEN
+                                        WHERE biglake_unstructured_data.uri = biglake_vision_ai.uri)) THEN
      LEAVE;
   END IF;
 END LOOP;
