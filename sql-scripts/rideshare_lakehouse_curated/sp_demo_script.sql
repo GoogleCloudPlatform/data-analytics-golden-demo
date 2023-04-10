@@ -68,7 +68,7 @@ DROP ALL ROW ACCESS POLICIES ON `${project_id}.${bigquery_rideshare_lakehouse_ra
 -- Only the connection need access to the lake, not individual users which becomes unmanageable with billions/trillions of files
 /*
 CREATE OR REPLACE EXTERNAL TABLE `${project_id}.${bigquery_rideshare_lakehouse_raw_dataset}.biglake_rideshare_images`
-WITH CONNECTION `${project_id}.us.biglake-connection`
+WITH CONNECTION `${project_id}.${bigquery_region}.biglake-connection`
 OPTIONS (
     object_metadata="DIRECTORY",
     uris = ['gs://${gcs_rideshare_lakehouse_raw_bucket}/rideshare_images/*.jpg',

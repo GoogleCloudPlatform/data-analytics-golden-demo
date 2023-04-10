@@ -91,12 +91,12 @@ spark.sql("DROP TABLE IF EXISTS {}.{}.biglake_rideshare_payment_type_iceberg".fo
 spark.sql("CREATE TABLE IF NOT EXISTS {}.{}.biglake_rideshare_payment_type_iceberg ".format(iceberg_catalog, iceberg_warehouse) + \
                "(payment_type_id int, payment_type_description string) " + \
           "USING iceberg " + \
-          "TBLPROPERTIES(bq_table='{}.biglake_rideshare_payment_type_iceberg', bq_connection='us.biglake-connection');".format(bq_rideshare_enriched_dataset))
+          "TBLPROPERTIES(bq_table='{}.biglake_rideshare_payment_type_iceberg', bq_connection='${bigquery_region}.biglake-connection');".format(bq_rideshare_enriched_dataset))
 
 spark.sql("CREATE TABLE IF NOT EXISTS {}.{}.biglake_rideshare_zone_iceberg ".format(iceberg_catalog, iceberg_warehouse) + \
                "(location_id int, borough string, zone string, service_zone string) " + \
           "USING iceberg " + \
-          "TBLPROPERTIES(bq_table='{}.biglake_rideshare_zone_iceberg', bq_connection='us.biglake-connection');".format(bq_rideshare_enriched_dataset))
+          "TBLPROPERTIES(bq_table='{}.biglake_rideshare_zone_iceberg', bq_connection='${bigquery_region}.biglake-connection');".format(bq_rideshare_enriched_dataset))
 
 spark.sql("CREATE TABLE IF NOT EXISTS {}.{}.biglake_rideshare_trip_iceberg ".format(iceberg_catalog, iceberg_warehouse) + \
                "(rideshare_trip_id string, pickup_location_id int, pickup_datetime timestamp, " + \
@@ -107,7 +107,7 @@ spark.sql("CREATE TABLE IF NOT EXISTS {}.{}.biglake_rideshare_trip_iceberg ".for
                "partition_date date)" + \
           "USING iceberg " + \
           "PARTITIONED BY (partition_date) " + \
-          "TBLPROPERTIES(bq_table='{}.biglake_rideshare_trip_iceberg', bq_connection='us.biglake-connection');".format(bq_rideshare_enriched_dataset))
+          "TBLPROPERTIES(bq_table='{}.biglake_rideshare_trip_iceberg', bq_connection='${bigquery_region}.biglake-connection');".format(bq_rideshare_enriched_dataset))
      
 #####################################################################################
 # Load the Payment Type Table in the Enriched Zone

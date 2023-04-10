@@ -1133,7 +1133,7 @@ resource "google_cloudfunctions_function_iam_member" "rideshare_plus_function_in
 # https://cloud.google.com/bigquery/docs/biglake-quickstart#terraform
 resource "google_bigquery_connection" "cloud_function_connection" {
    connection_id = "cloud-function"
-   location      = "US"
+   location      = var.bigquery_region
    friendly_name = "cloud-function"
    description   = "cloud-function"
    cloud_resource {}
@@ -1273,7 +1273,7 @@ resource "google_bigquery_dataset_access" "cloud_function_access_bq_taxi_dataset
 # BigLake connection
 resource "google_bigquery_connection" "biglake_connection" {
    connection_id = "biglake-connection"
-   location      = "US"
+   location      = var.bigquery_region
    friendly_name = "biglake-connection"
    description   = "biglake-connection"
    cloud_resource {}

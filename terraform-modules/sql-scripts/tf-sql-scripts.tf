@@ -165,6 +165,48 @@ resource "google_bigquery_routine" "sproc_sp_create_taxi_internal_tables" {
 
 
 ####################################################################################
+# sp_demo_biglake_iceberg
+####################################################################################
+resource "google_bigquery_routine" "sproc_sp_demo_biglake_iceberg" {
+  dataset_id      = var.bigquery_taxi_dataset
+  routine_id      = "sp_demo_biglake_iceberg"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = templatefile("../sql-scripts/taxi_dataset/sp_demo_biglake_iceberg.sql", 
+  { 
+    project_id = var.project_id
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+    bigquery_thelook_ecommerce_dataset = var.bigquery_thelook_ecommerce_dataset
+    processed_bucket_name = "processed-${var.storage_bucket}"
+    bigquery_region = var.bigquery_region
+    gcp_account_name = var.gcp_account_name
+  })
+}
+
+
+####################################################################################
+# sp_demo_biglake_unstructured_data
+####################################################################################
+resource "google_bigquery_routine" "sproc_sp_demo_biglake_unstructured_data" {
+  dataset_id      = var.bigquery_taxi_dataset
+  routine_id      = "sp_demo_biglake_unstructured_data"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = templatefile("../sql-scripts/taxi_dataset/sp_demo_biglake_unstructured_data.sql", 
+  { 
+    project_id = var.project_id
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+    bigquery_thelook_ecommerce_dataset = var.bigquery_thelook_ecommerce_dataset
+    raw_bucket_name  = "raw-${var.storage_bucket}"
+    code_bucket_name = "code-${var.storage_bucket}"
+    bigquery_region = var.bigquery_region
+    gcp_account_name = var.gcp_account_name
+    cloud_function_region = var.cloud_function_region
+  })
+}
+
+
+####################################################################################
 # sp_demo_biglake_query_acceleration
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_biglake_query_acceleration" {

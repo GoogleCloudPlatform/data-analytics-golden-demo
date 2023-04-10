@@ -114,8 +114,15 @@ with airflow.DAG('run-all-dags',
         wait_for_completion=True
     )     
 
+     # Download object table seed data and ML models
+    sample_seed_unstructured_data = TriggerDagRunOperator(
+        task_id="sample_seed_unstructured_data",
+        trigger_dag_id="sample-seed-unstructured-data",
+        wait_for_completion=True
+    )    
+    
     # DAG Graph
-    step_01_taxi_data_download >> [step_02_taxi_data_processing, sample_rideshare_hydrate_object_table, sample_rideshare_download_images]
+    step_01_taxi_data_download >> [step_02_taxi_data_processing, sample_seed_unstructured_data, sample_rideshare_hydrate_object_table, sample_rideshare_download_images]
     step_02_taxi_data_processing >> [step_03_hydrate_tables, sample_rideshare_website]
     step_03_hydrate_tables >> [sample_dataflow_start_streaming_job, sample_rideshare_object_table_delay]
     sample_rideshare_object_table_delay >> sample_rideshare_hydrate_data
