@@ -1,21 +1,21 @@
 /*
 NOTE: 1. You need to be allowlisted to run BigSpark (this should be soon) OR you can run the Ariflow DAG: sample-rideshare-iceberg-serverless
       2. You also need to be allowlisted for Iceberg (this should be ended)
-      3. Remove this NOTE down to the line WITH CONNECTION `${project_id}.us.bigspark-connection`
+      3. Remove this NOTE down to the line WITH CONNECTION `${project_id}.${bigquery_region}.bigspark-connection`
       4. Remove "-- REMOVE EVERYTHING BELOW THIS LINE TO USE BigSpark" at the bottom
       5. You need to create a a connection named "us-bigspark"
       6. For the service principal for the connection:
          a. Grant the service principal an Editor role at the project level (this is being worked on to have less permissions)
          b. Grant the service principal the custom role "CustomConnectionDelegate" 
 
-WITH CONNECTION `${project_id}.us.bigspark-connection`
+WITH CONNECTION `${project_id}.${bigquery_region}.bigspark-connection`
 OPTIONS (engine='SPARK',
      runtime_version="1.0",
      properties=[("spark.sql.catalog.rideshare_iceberg_catalog.blms_catalog","rideshare_iceberg_catalog"),
      ("spark.sql.catalog.rideshare_iceberg_catalog.gcp_project","${project_id}"),
      ("spark.jars.packages","org.apache.iceberg:iceberg-spark-runtime-3.2_2.12:0.14.1,org.apache.spark:spark-avro_2.12:3.3.1"),
      ("spark.sql.catalog.rideshare_iceberg_catalog.catalog-impl","org.apache.iceberg.gcp.biglake.BigLakeCatalog"),
-     ("spark.sql.catalog.rideshare_iceberg_catalog.gcp_location","us"),
+     ("spark.sql.catalog.rideshare_iceberg_catalog.gcp_location","${bigquery_region}"),
      ("spark.sql.catalog.rideshare_iceberg_catalog","org.apache.iceberg.spark.SparkCatalog"),
      ("spark.sql.catalog.rideshare_iceberg_catalog.warehouse","gs://rideshare-lakehouse-enriched-rexm45tpvr/biglake-iceberg-warehouse")],
      jar_uris=["gs://spark-lib/biglake/iceberg-biglake-catalog-0.0.1-with-dependencies.jar"])
