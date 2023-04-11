@@ -257,14 +257,36 @@ variable "appengine_region" {
 
 variable "dataproc_serverless_region" {
   type        = string
-  description = "The GCP region for dataproc serverless."
+  description = "The GCP region for dataproc serverless (should match dataplex)."
   default     = "us-central1"
   validation {
     condition     = length(var.dataproc_serverless_region) > 0
     error_message = "The dataproc serverless region is required."
   }
 }
-###############
+
+variable "cloud_sql_region" {
+  type        = string
+  description = "The GCP region for Cloud SQL."
+  default     = "us-central1"
+  validation {
+    condition     = length(var.cloud_sql_region) > 0
+    error_message = "The Cloud SQL region is required."
+  }
+}
+
+# NOTE: If you change this you need to change the script: bash_create_datastream_cdc_public_ip.sh 
+# This is in the Airflow data directory
+# The IP (allowlist) are hardcoded
+variable "datastream_region" {
+  type        = string
+  description = "The GCP region for Datastream (should match cloud sql region)."
+  default     = "us-central1"
+  validation {
+    condition     = length(var.datastream_region) > 0
+    error_message = "The Datastream region is required."
+  }
+}###############
 
 
 

@@ -17,20 +17,31 @@
 ####################################################################################
 # https://cloud.google.com/sql/docs/postgres/db-versions
 
+# MANUAL! MANUAL! MANUAL! MANUAL! MANUAL! MANUAL! MANUAL! MANUAL! MANUAL! MANUAL! 
+# You need to run this as an Org Admin (Manually)
+# org_id=$(gcloud organizations list --format="value(name)")
+# project_id=$(gcloud config get project)
+# gcloud organizations add-iam-policy-binding "${org_id}" --member="serviceAccount:composer-service-account@${project_id}.iam.gserviceaccount.com" --role="roles/orgpolicy.policyAdmin"
+# MANUAL! MANUAL! MANUAL! MANUAL! MANUAL! MANUAL! MANUAL! MANUAL! MANUAL! MANUAL! 
+
+
+# Parameters
 PROJECT_ID="{{ params.project_id }}"
+ROOT_PASSWORD="{{ params.root_password }}"
 INSTANCE="postgres-cloud-sql"
-DATASET_NAME="postgres_cloud_sql"
 DATABASE_VERSION="POSTGRES_14"
 CPU="2"
 MEMORY="8GB"
-REGION="us-central1"
-ROOT_PASSWORD="password123"
+CLOUD_SQL_REGION="{{ params.cloud_sql_region }}"
 YOUR_IP_ADDRESS=$(curl ifconfig.me)
 DATABASE_NAME="guestbook"
 
 
 # Disable this constraint (Your composer service account needs to be an Org Admin)
 gcloud resource-manager org-policies disable-enforce sql.restrictAuthorizedNetworks --project="${PROJECT_ID}"
+
+# wait
+sleep 180
 
 
 # https://cloud.google.com/sdk/gcloud/reference/sql/instances/create
@@ -41,7 +52,7 @@ gcloud sql instances create "${INSTANCE}" \
     --cpu=${CPU} \
     --memory=${MEMORY} \
     --project="${PROJECT_ID}" \
-    --region=${REGION} \
+    --region=${CLOUD_SQL_REGION} \
     --root-password="${ROOT_PASSWORD}" \
     --storage-size="10GB" \
     --storage-type="SSD" \
@@ -53,11 +64,16 @@ gcloud sql instances create "${INSTANCE}" \
 
 
 # Re-enable this constraint (Your composer service account needs to be an Org Admin)
-gcloud resource-manager org-policies enable-enforce sql.restrictAuthorizedNetworks --project="${PROJECT_ID}"
-
+# This will keep it as Custom: gcloud resource-manager org-policies enable-enforce sql.restrictAuthorizedNetworks --project="${PROJECT_ID}"
+# Deleting it will set it back to "Inherit from parent"
+gcloud resource-manager org-policies delete sql.restrictAuthorizedNetworks --project="${PROJECT_ID}"
 
 # Get ip address (of this node)
 cloudsql_ip_address=$(gcloud sql instances list --filter="NAME=${INSTANCE}" --project="${PROJECT_ID}" --format="value(PRIMARY_ADDRESS)")
+
+
+# Write out so we can read in via Python
+echo ${cloudsql_ip_address} > /home/airflow/gcs/data/postgres_ip_address.txt
 
 
 # Create the database
@@ -87,98 +103,3 @@ gcloud sql databases create ${DATABASE_NAME} --instance="${INSTANCE}" --project=
 # CREATE USER datastream_user WITH REPLICATION IN ROLE cloudsqlsuperuser LOGIN PASSWORD 'password123';
 # GRANT SELECT ON ALL TABLES IN SCHEMA public TO datastream_user;
 # GRANT USAGE ON SCHEMA public TO datastream_user ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO datastream_user;
-
-
-# Create the Datastream source
-# https://cloud.google.com/sdk/gcloud/reference/datastream/connection-profiles/create
-gcloud datastream connection-profiles create postgres-cloud-sql-connection \
-    --location=${REGION} \
-    --type=postgresql \
-    --postgresql-password=${ROOT_PASSWORD} \
-    --postgresql-username=postgres \
-    --display-name=postgres-cloud-sql-connection \
-    --postgresql-hostname=${cloudsql_ip_address} \
-    --postgresql-port=5432 \
-    --postgresql-database=${DATABASE_NAME} \
-    --static-ip-connectivity \
-    --project="${PROJECT_ID}"
-
-
-# Create the Datastream destination
-gcloud datastream connection-profiles create bigquery-connection \
-    --location=us-central1 \
-    --type=bigquery \
-    --display-name=bigquery-connection \
-    --project="${PROJECT_ID}"
-
-
-# Do we need a wait statement here while the connections get created
-# Should call apis to test for sure
-sleep 60
-
-
-# Postgres source JSON/YAML
-# https://cloud.google.com/datastream/docs/reference/rest/v1/projects.locations.streams#PostgresqlTable
-source_config_json=$(cat <<EOF
-  {
-    "excludeObjects": {},
-    "includeObjects": {
-      "postgresqlSchemas": [
-        {
-          "schema": "public",
-          "postgresqlTables": [
-            {
-              "table": "entries",
-            }
-          ]
-        }
-      ]
-    },
-    "replicationSlot": "datastream_replication_slot",
-    "publication": "datastream_publication"
-  }
-EOF
-)
-
-# Write to file
-echo ${source_config_json} > source_config.json
-
-
-# BigQuery destination JSON/YAML
-destination_config_json=$(cat <<EOF
-{
-  "sourceHierarchyDatasets": {
-    "datasetTemplate": {
-      "location": "us",
-      "datasetIdPrefix": "datastream_cdc_",
-    }
-  },
-  "dataFreshness": "0s"
-}
-EOF
-)
-
-# Write to file
-echo ${destination_config_json} > destination_config.json
-
-
-# Create DataStream "Stream"
-# https://cloud.google.com/sdk/gcloud/reference/datastream/streams/create
-gcloud datastream streams create datastream-demo-stream \
-    --location=us-central1 \
-    --display-name=datastream-demo-stream \
-    --source=postgres-cloud-sql-connection \
-    --postgresql-source-config=source_config.json \
-    --destination=bigquery-connection \
-    --bigquery-destination-config=destination_config.json \
-    --backfill-all \
-    --project="${PROJECT_ID}" \
-    --validate-only
-
-
-# Show the stream attributes
-gcloud datastream streams describe datastream-demo-stream --location=us-central1 --project="${PROJECT_ID}"
-
-
-# Start the stream
-gcloud datastream streams update datastream-demo-stream --location=us-central1 --state=RUNNING --update-mask=state --project="${PROJECT_ID}"

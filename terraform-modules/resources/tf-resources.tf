@@ -52,6 +52,8 @@ variable "cloud_function_region" {}
 variable "data_catalog_region" {}
 variable "appengine_region" {}
 variable "dataproc_serverless_region" {}
+variable "cloud_sql_region" {}
+variable "datastream_region" {}
 
 variable "storage_bucket" {}
 variable "spanner_config" {}
@@ -478,49 +480,52 @@ resource "google_composer_environment" "composer_env" {
 
     software_config {
       image_version = "composer-2.0.31-airflow-2.3.3"
-      #"composer-2.0.24-airflow-2.2.5" (errors on webserver)
-      #"composer-2.0.0-airflow-2.1.4"
-      #"composer-2.0.7-airflow-2.2.3"
+
+      pypi_packages = {
+        psycopg2 = "==2.9.6"
+      }      
 
       env_variables = {
-        ENV_RAW_BUCKET                = "raw-${var.storage_bucket}",
-        ENV_PROCESSED_BUCKET          = "processed-${var.storage_bucket}",
-        ENV_CODE_BUCKET               = "code-${var.storage_bucket}",
+        ENV_RAW_BUCKET                           = "raw-${var.storage_bucket}",
+        ENV_PROCESSED_BUCKET                     = "processed-${var.storage_bucket}",
+        ENV_CODE_BUCKET                          = "code-${var.storage_bucket}",
 
-        ENV_COMPOSER_REGION            = var.composer_region
-        ENV_DATAFORM_REGION            = var.dataform_region
-        ENV_DATAPLEX_REGION            = var.dataplex_region
-        ENV_NAT_ROUTER_REGION          = var.nat_router_region
-        ENV_DATAPROC_REGION            = var.dataproc_region
-        ENV_DATAFLOW_REGION            = var.dataflow_region
-        ENV_BIGQUERY_REGION            = var.bigquery_region
-        ENV_BIGQUERY_NON_MULTI_REGION  = var.bigquery_non_multi_region
-        ENV_SPANNER_REGION             = var.spanner_region
-        ENV_DATAFUSION_REGION          = var.datafusion_region
-        ENV_VERTEX_AI_REGION           = var.vertex_ai_region  
-        ENV_CLOUD_FUNCTION_REGION      = var.cloud_function_region
-        ENV_DATA_CATALOG_REGION        = var.data_catalog_region
-        ENV_APPENGINE_REGION           = var.appengine_region
-        ENV_DATAPROC_SERVERLESS_REGION = var.dataproc_serverless_region
-        ENV_DATAPROC_SERVERLESS_SUBNET = "projects/${var.project_id}/regions/${var.dataproc_serverless_region}/subnetworks/dataproc-serverless-subnet",
-        ENV_DATAPROC_SERVERLESS_SUBNET_NAME = google_compute_subnetwork.dataproc_serverless_subnet.name,
+        ENV_COMPOSER_REGION                      = var.composer_region
+        ENV_DATAFORM_REGION                      = var.dataform_region
+        ENV_DATAPLEX_REGION                      = var.dataplex_region
+        ENV_NAT_ROUTER_REGION                    = var.nat_router_region
+        ENV_DATAPROC_REGION                      = var.dataproc_region
+        ENV_DATAFLOW_REGION                      = var.dataflow_region
+        ENV_BIGQUERY_REGION                      = var.bigquery_region
+        ENV_BIGQUERY_NON_MULTI_REGION            = var.bigquery_non_multi_region
+        ENV_SPANNER_REGION                       = var.spanner_region
+        ENV_DATAFUSION_REGION                    = var.datafusion_region
+        ENV_VERTEX_AI_REGION                     = var.vertex_ai_region  
+        ENV_CLOUD_FUNCTION_REGION                = var.cloud_function_region
+        ENV_DATA_CATALOG_REGION                  = var.data_catalog_region
+        ENV_APPENGINE_REGION                     = var.appengine_region
+        ENV_DATAPROC_SERVERLESS_REGION           = var.dataproc_serverless_region
+        ENV_DATAPROC_SERVERLESS_SUBNET           = "projects/${var.project_id}/regions/${var.dataproc_serverless_region}/subnetworks/dataproc-serverless-subnet",
+        ENV_DATAPROC_SERVERLESS_SUBNET_NAME      = google_compute_subnetwork.dataproc_serverless_subnet.name,
+        ENV_CLOUD_SQL_REGION                     = var.cloud_sql_region,
+        ENV_DATASTREAM_REGION                    = var.datastream_region,
 
-        ENV_DATAPROC_BUCKET          = "dataproc-${var.storage_bucket}",
-        ENV_DATAPROC_SUBNET          = "projects/${var.project_id}/regions/${var.dataproc_region}/subnetworks/dataproc-subnet",
-        ENV_DATAPROC_SERVICE_ACCOUNT = "dataproc-service-account@${var.project_id}.iam.gserviceaccount.com",
-        ENV_GCP_ACCOUNT_NAME         = "${var.gcp_account_name}",
-        ENV_TAXI_DATASET_ID          = google_bigquery_dataset.taxi_dataset.dataset_id,
-        ENV_SPANNER_INSTANCE_ID      = "spanner-${var.random_extension}" //google_spanner_instance.spanner_instance.name,
-        ENV_DATAFLOW_SUBNET          = "regions/${var.dataflow_region}/subnetworks/dataflow-subnet",
-        ENV_DATAFLOW_SERVICE_ACCOUNT = "dataflow-service-account@${var.project_id}.iam.gserviceaccount.com",
-        ENV_RANDOM_EXTENSION         = var.random_extension
-        ENV_SPANNER_CONFIG           = var.spanner_config
-        ENV_RIDESHARE_LAKEHOUSE_RAW_BUCKET = google_storage_bucket.rideshare_lakehouse_raw.name
-        ENV_RIDESHARE_LAKEHOUSE_ENRICHED_BUCKET = google_storage_bucket.rideshare_lakehouse_enriched.name
-        ENV_RIDESHARE_LAKEHOUSE_CURATED_BUCKET = google_storage_bucket.rideshare_lakehouse_curated.name
-        ENV_RIDESHARE_LAKEHOUSE_RAW_DATASET = var.bigquery_rideshare_lakehouse_raw_dataset
+        ENV_DATAPROC_BUCKET                      = "dataproc-${var.storage_bucket}",
+        ENV_DATAPROC_SUBNET                      = "projects/${var.project_id}/regions/${var.dataproc_region}/subnetworks/dataproc-subnet",
+        ENV_DATAPROC_SERVICE_ACCOUNT             = "dataproc-service-account@${var.project_id}.iam.gserviceaccount.com",
+        ENV_GCP_ACCOUNT_NAME                     = "${var.gcp_account_name}",
+        ENV_TAXI_DATASET_ID                      = google_bigquery_dataset.taxi_dataset.dataset_id,
+        ENV_SPANNER_INSTANCE_ID                  = "spanner-${var.random_extension}" //google_spanner_instance.spanner_instance.name,
+        ENV_DATAFLOW_SUBNET                      = "regions/${var.dataflow_region}/subnetworks/dataflow-subnet",
+        ENV_DATAFLOW_SERVICE_ACCOUNT             = "dataflow-service-account@${var.project_id}.iam.gserviceaccount.com",
+        ENV_RANDOM_EXTENSION                     = var.random_extension
+        ENV_SPANNER_CONFIG                       = var.spanner_config
+        ENV_RIDESHARE_LAKEHOUSE_RAW_BUCKET       = google_storage_bucket.rideshare_lakehouse_raw.name
+        ENV_RIDESHARE_LAKEHOUSE_ENRICHED_BUCKET  = google_storage_bucket.rideshare_lakehouse_enriched.name
+        ENV_RIDESHARE_LAKEHOUSE_CURATED_BUCKET   = google_storage_bucket.rideshare_lakehouse_curated.name
+        ENV_RIDESHARE_LAKEHOUSE_RAW_DATASET      = var.bigquery_rideshare_lakehouse_raw_dataset
         ENV_RIDESHARE_LAKEHOUSE_ENRICHED_DATASET = var.bigquery_rideshare_lakehouse_enriched_dataset
-        ENV_RIDESHARE_LAKEHOUSE_CURATED_DATASET = var.bigquery_rideshare_lakehouse_curated_dataset
+        ENV_RIDESHARE_LAKEHOUSE_CURATED_DATASET  = var.bigquery_rideshare_lakehouse_curated_dataset
       }
     }
 
@@ -556,7 +561,7 @@ resource "google_composer_environment" "composer_env" {
 
     private_environment_config {
       enable_private_endpoint = true
-    }
+    }    
   }
 
   depends_on = [

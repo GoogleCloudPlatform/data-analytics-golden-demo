@@ -194,6 +194,8 @@ module "resources" {
   data_catalog_region               = var.data_catalog_region
   appengine_region                  = var.appengine_region
   dataproc_serverless_region        = var.dataproc_serverless_region
+  cloud_sql_region                  = var.cloud_sql_region
+  datastream_region                 = var.datastream_region
 
   storage_bucket                    = local.local_storage_bucket
   spanner_config                    = var.spanner_config

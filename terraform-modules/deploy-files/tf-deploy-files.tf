@@ -109,6 +109,28 @@ resource "google_storage_bucket_object" "deploy_airflow_dag_sample-dataflow-star
 
 
 # Upload the Airflow "data/template" files
+resource "google_storage_bucket_object" "deploy_airflow_data_bash_create_datastream_postgres_database" {
+  name   = "${local.local_composer_data_path}/bash_create_datastream_postgres_database.sh"
+  bucket = local.local_composer_bucket_name
+  source = "../cloud-composer/data/bash_create_datastream_postgres_database.sh"
+
+  depends_on = [ 
+    ]  
+}
+
+
+# Upload the Airflow "data/template" files
+resource "google_storage_bucket_object" "deploy_airflow_data_bash_create_datastream" {
+  name   = "${local.local_composer_data_path}/bash_create_datastream.sh"
+  bucket = local.local_composer_bucket_name
+  source = "../cloud-composer/data/bash_create_datastream.sh"
+
+  depends_on = [ 
+    ]  
+}
+
+
+# Upload the Airflow "data/template" files
 resource "google_storage_bucket_object" "deploy_airflow_data_bash_create_managed_notebook" {
   name   = "${local.local_composer_data_path}/bash_create_managed_notebook.sh"
   bucket = local.local_composer_bucket_name
@@ -865,6 +887,18 @@ resource "google_storage_bucket_object" "deploy_airflow_dag_sample-dataplex-depl
   name   = "${local.local_composer_dag_path}/sample-dataplex-deploy.py"
   bucket = local.local_composer_bucket_name
   source = "../cloud-composer/dags/sample-dataplex-deploy.py"
+
+  depends_on = [ 
+    time_sleep.wait_for_airflow_dag_sync
+    ]  
+}
+
+
+# Upload DAG
+resource "google_storage_bucket_object" "deploy_airflow_dag_sample-deploy-datastream" {
+  name   = "${local.local_composer_dag_path}/sample-deploy-datastream.py"
+  bucket = local.local_composer_bucket_name
+  source = "../cloud-composer/dags/sample-deploy-datastream.py"
 
   depends_on = [ 
     time_sleep.wait_for_airflow_dag_sync
