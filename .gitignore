@@ -42,3 +42,7 @@ cloud-functions/rideshare-plus-rest-api.zip
 deploy-env-shortcut.sh
 temp.html
 temp.tf
+cloud-composer/data/bash_create_datastream_cdc_private_ip.sh
+destination_config.json
+iam_restrictAuthorizedNetworks.yaml
+source_config.json
