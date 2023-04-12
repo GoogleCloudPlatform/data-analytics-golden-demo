@@ -255,8 +255,8 @@ def CreateIcebergWarehouse(project_id,iceberg_catalog,iceberg_warehouse,bq_rides
 # Main entry point
 # rideshare_iceberg_serverless gs://${processedBucket}/iceberg-warehouse
 if __name__ == "__main__":
-    if len(sys.argv) != 8:
-        print("Usage: rideshare_iceberg_serverless project_id,iceberg_catalog,iceberg_warehouse,bq_rideshare_enriched_dataset,bq_rideshare_raw_dataset,rideshare_raw_bucket,rideshare_enriched_bucket")
+    if len(sys.argv) != 9:
+        print("Usage: rideshare_iceberg_serverless project_id,iceberg_catalog,iceberg_warehouse,bq_rideshare_enriched_dataset,bq_rideshare_raw_dataset,rideshare_raw_bucket,rideshare_enriched_bucket,bigquery_region")
         sys.exit(-1)
 
     project_id=sys.argv[1]

@@ -35,7 +35,23 @@ MEMORY="8GB"
 CLOUD_SQL_REGION="{{ params.cloud_sql_region }}"
 YOUR_IP_ADDRESS=$(curl ifconfig.me)
 DATABASE_NAME="guestbook"
+DATASTREAM_REGION="{{ params.datastream_region }}"
 
+DATASTREAM_IPS="ERROR-NOT-SET"
+
+# us-central1
+if [[ "$DATASTREAM_REGION" = "us-central1" ]]; 
+then
+    DATASTREAM_IPS="34.71.242.81,34.72.28.29,34.67.6.157,34.67.234.134,34.72.239.218"
+fi
+
+# "europe-west1
+if [[ "$DATASTREAM_REGION" = "europe-west1" ]]; 
+then
+    DATASTREAM_IPS="35.187.27.174,104.199.6.64,35.205.33.30,34.78.213.130,35.205.125.111"
+fi
+
+echo "DATASTREAM_IPS: ${DATASTREAM_IPS}"
 
 # Disable this constraint (Your composer service account needs to be an Org Admin)
 gcloud resource-manager org-policies disable-enforce sql.restrictAuthorizedNetworks --project="${PROJECT_ID}"
@@ -60,7 +76,7 @@ gcloud sql instances create "${INSTANCE}" \
     --maintenance-window-day=SAT \
     --maintenance-window-hour=1 \
     --database-flags=cloudsql.logical_decoding=on \
-    --authorized-networks="${YOUR_IP_ADDRESS},34.71.242.81,34.72.28.29,34.67.6.157,34.67.234.134,34.72.239.218"
+    --authorized-networks="${YOUR_IP_ADDRESS},${DATASTREAM_IPS}"
 
 
 # Re-enable this constraint (Your composer service account needs to be an Org Admin)

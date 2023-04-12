@@ -34,7 +34,8 @@ from airflow.operators.python_operator import PythonOperator
 import json
 from pathlib import Path
 import psycopg2
-
+import time
+import random
 
 default_args = {
     'owner': 'airflow',
@@ -76,33 +77,14 @@ def run_postgres_sql(database_password):
     user=postgres_user,
     password=database_password)
 
-    # Datastream failed to read from the PostgreSQL replication slot datastream_replication_slot. Make sure that the slot exists and that Datastream has the necessary permissions to access it.
-    # Datastream failed to find the publication datastream_publication. Make sure that the publication exists and that Datastream has the necessary permissions to access it.
-    commands = (
-        "CREATE TABLE entries (guestName VARCHAR(255), content VARCHAR(255), entryID SERIAL PRIMARY KEY);",
-        "INSERT INTO entries (guestName, content) values ('first guest', 'I got here!');",
-        "INSERT INTO entries (guestName, content) values ('second guest', 'Me too!');",
-        "CREATE PUBLICATION datastream_publication FOR ALL TABLES;",
-        "ALTER USER " + postgres_user + " with replication;",
-        "SELECT PG_CREATE_LOGICAL_REPLICATION_SLOT('datastream_replication_slot', 'pgoutput');",
-        "CREATE USER datastream_user WITH REPLICATION IN ROLE cloudsqlsuperuser LOGIN PASSWORD '" + database_password + "';",
-        "GRANT SELECT ON ALL TABLES IN SCHEMA public TO datastream_user;",
-        "GRANT USAGE ON SCHEMA public TO datastream_user;",
-        "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO datastream_user;"
-        )
-
-# CREATE PUBLICATION [MY_PUBLICATION] FOR ALL TABLES;
-# alter user <curr_user> with replication;
-# SELECT PG_CREATE_LOGICAL_REPLICATION_SLOT ('[REPLICATION_SLOT_NAME]', 'pgoutput');
-# CREATE USER [MY_USER] WITH REPLICATION IN ROLE cloudsqlsuperuser LOGIN PASSWORD '[MY_PASSWORD]';
-# GRANT SELECT ON ALL TABLES IN SCHEMA [MY_SCHEMA] TO [MY_USER];
-# GRANT USAGE ON SCHEMA [MY_SCHEMA] TO [MY_USER];
-# ALTER DEFAULT PRIVILEGES IN SCHEMA [MY_SCHEMA] GRANT SELECT ON TABLES TO [MY_USER];    
-
     try:
         cur = conn.cursor()
-        for command in commands:
+        for loop in range(100000):
+            command = "INSERT INTO entries (guestName, content) values ('Guest {}', 'Arrived at {}');".format(loop,round(1 + random.random() * (100000 - 1)))
             cur.execute(command)
+            if loop % 5 == 0:
+                time.sleep(1)
+                print("Loop: ", loop)
         cur.close()
         conn.commit()
     except (Exception, psycopg2.DatabaseError) as error:
@@ -112,7 +94,7 @@ def run_postgres_sql(database_password):
             conn.close()
 
 
-with airflow.DAG('sample-deploy-datastream',
+with airflow.DAG('sample-datastream-public-ip-generate-data',
                  default_args=default_args,
                  start_date=datetime(2021, 1, 1),
                  # Add the Composer "Data" directory which will hold the SQL/Bash scripts for deployment
@@ -120,36 +102,14 @@ with airflow.DAG('sample-deploy-datastream',
                  # Not scheduled, trigger only
                  schedule_interval=None) as dag:
 
-    # NOTE: The service account of the Composer worker node must have access to run these commands
-    # This requires the Composer service account to be an Org Admin
-    # Or you need to manaully disable the contraint sql.restrictAuthorizedNetworks (sample code is in bash_create_datastream_postgres_database.sh)
-
-    # Create the Postgres Instance and Database
-    #create_datastream_postgres_database_task = bash_operator.BashOperator(
-    #      task_id='create_datastream_postgres_database_task',
-    #      bash_command='bash_create_datastream_postgres_database.sh',
-    #      params=params_list,
-    #      dag=dag
-    #      )
-
-    #run_postgres_sql_task = PythonOperator(
-    #    task_id='run_postgres_sql_task',
-    #    python_callable=run_postgres_sql,
-    #    op_kwargs = { "database_password" : root_password },
-    #    dag=dag
-    #    )    
-
-
-    # Configure datastream
-    bash_create_datastream_task = bash_operator.BashOperator(
-          task_id='bash_create_datastream_task',
-          bash_command='bash_create_datastream.sh',
-          params=params_list,
-          dag=dag
-      )
-
+    run_postgres_sql_task = PythonOperator(
+        task_id='run_postgres_sql_task',
+        python_callable=run_postgres_sql,
+        op_kwargs = { "database_password" : root_password },
+        dag=dag
+        )
+    
     # DAG Graph
-    # create_datastream_postgres_database_task >> run_postgres_sql_task >> bash_create_datastream_task
-    bash_create_datastream_task
+    run_postgres_sql_task
 
 # [END dag]
