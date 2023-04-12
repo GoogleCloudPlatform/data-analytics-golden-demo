@@ -76,7 +76,7 @@ BATCH_CONFIG = {
         {
             'main_python_file_uri': pyspark_code,
             'jar_file_uris': [ jar_file ],
-            'args': [project_id,iceberg_catalog,iceberg_warehouse,bq_rideshare_enriched_dataset,bq_rideshare_raw_dataset,rideshare_raw_bucket,rideshare_enriched_bucket]
+            'args': [project_id,iceberg_catalog,iceberg_warehouse,bq_rideshare_enriched_dataset,bq_rideshare_raw_dataset,rideshare_raw_bucket,rideshare_enriched_bucket,bigquery_region]
         },
     'environment_config':
         {'execution_config':

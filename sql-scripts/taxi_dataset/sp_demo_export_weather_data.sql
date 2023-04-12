@@ -16,7 +16,7 @@
 
 
 /*
-NOTE: This does NOT work as a Stored Procedure.  You can copy the queries to a window and run by setting your Query to run in regin US.
+NOTE: This does NOT work as a Stored Procedure.  You can copy the queries to a window and run by setting your Query to run in region US.
 
 Use Cases:
     - Shows how to export data from BigQuery to Google Cloud Storage

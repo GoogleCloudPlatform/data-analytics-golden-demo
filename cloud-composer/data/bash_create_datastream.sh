@@ -26,6 +26,13 @@ INSTANCE="postgres-cloud-sql"
 echo "PROJECT_ID: ${PROJECT_ID}"
 echo "DATASTREAM_REGION: ${DATASTREAM_REGION}"
 
+
+# Since the current version of gCloud does not have DataPlex, install it.
+# This is NOT a best practice
+wget https://packages.cloud.google.com/apt/doc/apt-key.gpg && sudo apt-key add apt-key.gpg
+sudo apt-get update && sudo apt-get --only-upgrade install google-cloud-sdk 
+
+
 # Get ip address (of this node)
 cloudsql_ip_address=$(gcloud sql instances list --filter="NAME=${INSTANCE}" --project="${PROJECT_ID}" --format="value(PRIMARY_ADDRESS)")
 
@@ -51,7 +58,6 @@ gcloud datastream connection-profiles create bigquery-connection \
     --type=bigquery \
     --display-name=bigquery-connection \
     --project="${PROJECT_ID}"
-
 
 # Do we need a wait statement here while the connections get created
 # Should call apis to test for sure
@@ -84,6 +90,7 @@ EOF
 
 # Write to file
 echo ${source_config_json} > /home/airflow/gcs/data/source_config.json
+echo "source_config_json: ${source_config_json}"
 
 
 # BigQuery destination JSON/YAML
@@ -102,11 +109,8 @@ EOF
 
 # Write to file
 echo ${destination_config_json} > /home/airflow/gcs/data/destination_config.json
+echo "destination_config_json: ${destination_config_json}"
 
-# Since the current version of gCloud does not have DataPlex, install it.
-# This is NOT a best practice
-sudo apt-get update && sudo apt-get --only-upgrade install google-cloud-sdk 
-# sudo apt-get update && sudo apt-get --only-upgrade install google-cloud-sdk-cbt google-cloud-sdk-bigtable-emulator google-cloud-sdk-kpt google-cloud-sdk-gke-gcloud-auth-plugin google-cloud-sdk-app-engine-python google-cloud-sdk-datalab google-cloud-sdk-datastore-emulator google-cloud-sdk-anthos-auth google-cloud-sdk-terraform-validator google-cloud-sdk google-cloud-sdk-spanner-emulator google-cloud-sdk-pubsub-emulator google-cloud-sdk-app-engine-python-extras google-cloud-sdk-app-engine-java google-cloud-sdk-kubectl-oidc google-cloud-sdk-app-engine-grpc google-cloud-sdk-firestore-emulator google-cloud-sdk-skaffold google-cloud-sdk-local-extract google-cloud-sdk-minikube google-cloud-sdk-cloud-build-local google-cloud-sdk-config-connector kubectl google-cloud-sdk-app-engine-go
 
 # Create DataStream "Stream"
 # https://cloud.google.com/sdk/gcloud/reference/datastream/streams/create
@@ -122,12 +126,12 @@ gcloud datastream streams create datastream-demo-stream \
 
 
 # Show the stream attributes
-#gcloud datastream streams describe datastream-demo-stream --location="${DATASTREAM_REGION}" --project="${PROJECT_ID}"
+gcloud datastream streams describe datastream-demo-stream --location="${DATASTREAM_REGION}" --project="${PROJECT_ID}"
 
-#echo "Sleep 30"
-#sleep 30
+echo "Sleep 30"
+sleep 30
 
 # Start the stream
-#gcloud datastream streams update datastream-demo-stream --location="${DATASTREAM_REGION}" --state=RUNNING --update-mask=state --project="${PROJECT_ID}"
+gcloud datastream streams update datastream-demo-stream --location="${DATASTREAM_REGION}" --state=RUNNING --update-mask=state --project="${PROJECT_ID}"
 
 

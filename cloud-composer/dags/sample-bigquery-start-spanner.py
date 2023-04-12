@@ -254,9 +254,10 @@ with airflow.DAG('sample-bigquery-start-spanner',
 
 
     # Run a BigQuery stored procedure that exports data to a storage bucket
+    # HARDCODED TO location="us" REGION since this data is only in US
     export_public_weather_data = BigQueryInsertJobOperator(
     task_id="export_public_weather_data",
-    location=bigquery_region,
+    location="us",
     configuration={
         "query": {
             "query": sql,

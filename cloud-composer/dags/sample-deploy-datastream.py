@@ -76,6 +76,8 @@ def run_postgres_sql(database_password):
     user=postgres_user,
     password=database_password)
 
+    # Datastream failed to read from the PostgreSQL replication slot datastream_replication_slot. Make sure that the slot exists and that Datastream has the necessary permissions to access it.
+    # Datastream failed to find the publication datastream_publication. Make sure that the publication exists and that Datastream has the necessary permissions to access it.
     commands = (
         "CREATE TABLE entries (guestName VARCHAR(255), content VARCHAR(255), entryID SERIAL PRIMARY KEY);",
         "INSERT INTO entries (guestName, content) values ('first guest', 'I got here!');",
@@ -85,8 +87,17 @@ def run_postgres_sql(database_password):
         "SELECT PG_CREATE_LOGICAL_REPLICATION_SLOT('datastream_replication_slot', 'pgoutput');",
         "CREATE USER datastream_user WITH REPLICATION IN ROLE cloudsqlsuperuser LOGIN PASSWORD '" + database_password + "';",
         "GRANT SELECT ON ALL TABLES IN SCHEMA public TO datastream_user;",
-        "GRANT USAGE ON SCHEMA public TO datastream_user ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO datastream_user;"
+        "GRANT USAGE ON SCHEMA public TO datastream_user;",
+        "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO datastream_user;"
         )
+
+# CREATE PUBLICATION [MY_PUBLICATION] FOR ALL TABLES;
+# alter user <curr_user> with replication;
+# SELECT PG_CREATE_LOGICAL_REPLICATION_SLOT ('[REPLICATION_SLOT_NAME]', 'pgoutput');
+# CREATE USER [MY_USER] WITH REPLICATION IN ROLE cloudsqlsuperuser LOGIN PASSWORD '[MY_PASSWORD]';
+# GRANT SELECT ON ALL TABLES IN SCHEMA [MY_SCHEMA] TO [MY_USER];
+# GRANT USAGE ON SCHEMA [MY_SCHEMA] TO [MY_USER];
+# ALTER DEFAULT PRIVILEGES IN SCHEMA [MY_SCHEMA] GRANT SELECT ON TABLES TO [MY_USER];    
 
     try:
         cur = conn.cursor()
@@ -138,6 +149,7 @@ with airflow.DAG('sample-deploy-datastream',
       )
 
     # DAG Graph
+    # create_datastream_postgres_database_task >> run_postgres_sql_task >> bash_create_datastream_task
     bash_create_datastream_task
 
 # [END dag]
