@@ -85,6 +85,7 @@ def run_postgres_sql(database_password):
             if loop % 5 == 0:
                 time.sleep(1)
                 print("Loop: ", loop)
+                conn.commit()
         cur.close()
         conn.commit()
     except (Exception, psycopg2.DatabaseError) as error:

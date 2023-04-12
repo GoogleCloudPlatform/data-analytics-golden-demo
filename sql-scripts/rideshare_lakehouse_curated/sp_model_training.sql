@@ -47,9 +47,32 @@
   Clean up / Reset script:
     DROP TABLE IF EXISTS `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.bigquery_model_training_data`
     DROP MODEL IF EXISTS `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.model_predict_high_value`
+    DROP VIEW IF EXISTS `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.analytics_hub_weather_data`
 
 
   */
+
+IF LOWER("${bigquery_region}") = "us" THEN
+   -- NOTE: In 2024 you need to change this to ghcnd_2023
+   CREATE OR REPLACE VIEW `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.analytics_hub_weather_data` AS 
+   SELECT * FROM `${project_id}.ghcn_daily.ghcnd_2022`;
+END IF;
+
+IF LOWER("${bigquery_region}") = "eu" THEN
+   -- NOTE: Analytics hub does not have this data in the EU (this is fake data for the below SQL)
+   CREATE OR REPLACE VIEW `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.analytics_hub_weather_data` AS 
+   SELECT CAST (NULL AS STRING) AS id,
+          CAST (NULL AS DATE) AS date,
+          CAST (NULL AS STRING) AS element,
+          CAST (NULL AS FLOAT64) AS value,
+          CAST (NULL AS STRING) AS mflag,
+          CAST (NULL AS STRING) AS qflag,
+          CAST (NULL AS STRING) AS sflag,
+          CAST (NULL AS STRING) AS time,
+          CAST (NULL AS STRING) AS source_url,
+          CAST (NULL AS TIMESTAMP) AS etl_timestamp;
+END IF;
+
 
 -- Train for the same period "last year"
 CREATE OR REPLACE TABLE `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.bigquery_model_training_data`
@@ -90,7 +113,7 @@ SELECT rideshare_trip_id,
          date, 
          element, 
          MAX(value) AS value
-    FROM `${project_id}.ghcn_daily.ghcnd_2022` -- NOTE: In 2024 you need to change this to ghcnd_2023
+    FROM `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.analytics_hub_weather_data` 
    WHERE date BETWEEN CAST(DATETIME_SUB(CURRENT_DATETIME('America/New_York'),INTERVAL 12 MONTH) AS DATE)
                   AND CAST(DATETIME_SUB(CURRENT_DATETIME('America/New_York'),INTERVAL 11 MONTH) AS DATE)  
      AND element = 'PRCP'
@@ -109,7 +132,7 @@ SELECT rideshare_trip_id,
          date, 
          element, 
          MAX(value) AS value
-    FROM `${project_id}.ghcn_daily.ghcnd_2022` -- NOTE: In 2024 you need to change this to ghcnd_2023
+    FROM `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.analytics_hub_weather_data`
    WHERE date BETWEEN CAST(DATETIME_SUB(CURRENT_DATETIME('America/New_York'),INTERVAL 12 MONTH) AS DATE)
                   AND CAST(DATETIME_SUB(CURRENT_DATETIME('America/New_York'),INTERVAL 11 MONTH) AS DATE)  
      AND element = 'SNOW'

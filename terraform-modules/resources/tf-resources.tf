@@ -482,7 +482,7 @@ resource "google_composer_environment" "composer_env" {
       image_version = "composer-2.0.31-airflow-2.3.3"
 
       pypi_packages = {
-        psycopg2 = "==2.9.6"
+        psycopg2-binary = "==2.9.6"
       }      
 
       env_variables = {
