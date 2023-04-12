@@ -56,10 +56,8 @@ IF LOWER("${bigquery_region}") = "us" THEN
    -- NOTE: In 2024 you need to change this to ghcnd_2023
    CREATE OR REPLACE VIEW `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.analytics_hub_weather_data` AS 
    SELECT * FROM `${project_id}.ghcn_daily.ghcnd_2022`;
-END IF;
-
-IF LOWER("${bigquery_region}") = "eu" THEN
-   -- NOTE: Analytics hub does not have this data in the EU (this is fake data for the below SQL)
+ELSE
+   -- NOTE: Analytics hub does not have this data in other regions (this keeps things from breaking)
    CREATE OR REPLACE VIEW `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.analytics_hub_weather_data` AS 
    SELECT CAST (NULL AS STRING) AS id,
           CAST (NULL AS DATE) AS date,
