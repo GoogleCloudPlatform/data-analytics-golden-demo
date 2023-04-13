@@ -78,6 +78,7 @@ def run_postgres_sql(database_password):
     password=database_password)
 
     try:
+        # This runs for about 5 hours
         cur = conn.cursor()
         for loop in range(100000):
             command = "INSERT INTO entries (guestName, content) values ('Guest {}', 'Arrived at {}');".format(loop,round(1 + random.random() * (100000 - 1)))
