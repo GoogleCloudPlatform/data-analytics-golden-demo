@@ -51,12 +51,15 @@ project_id         = os.environ['GCP_PROJECT']
 root_password      = os.environ['ENV_RANDOM_EXTENSION'] 
 cloud_sql_region   = os.environ['ENV_CLOUD_SQL_REGION']
 datastream_region  = os.environ['ENV_DATASTREAM_REGION']
+bigquery_region    = os.environ['ENV_BIGQUERY_REGION'] 
 
 params_list = { 
     'project_id'        : project_id,
     'root_password'     : root_password, 
     'cloud_sql_region'  : cloud_sql_region, 
     'datastream_region' : datastream_region, 
+    'datastream_region' : datastream_region, 
+    'bigquery_region'   : bigquery_region
     }    
 
 
