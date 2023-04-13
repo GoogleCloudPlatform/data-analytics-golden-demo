@@ -53,7 +53,7 @@ SELECT * FROM `${project_id}.${bigquery_rideshare_lakehouse_raw_dataset}.biglake
 
 -- Create the Function Link between BQ and the Cloud Function
 CREATE OR REPLACE FUNCTION `${project_id}.${bigquery_rideshare_lakehouse_enriched_dataset}.ext_udf_ai_localize_objects` (uri STRING) RETURNS JSON 
-    REMOTE WITH CONNECTION `${project_id}.us.cloud-function` 
+    REMOTE WITH CONNECTION `${project_id}.${bigquery_region}.cloud-function` 
     OPTIONS 
     (endpoint = 'https://${cloud_function_region}-${project_id}.cloudfunctions.net/bigquery_external_function', 
     user_defined_context = [("mode","localize_objects_uri")]
@@ -61,7 +61,7 @@ CREATE OR REPLACE FUNCTION `${project_id}.${bigquery_rideshare_lakehouse_enriche
 
 
 CREATE OR REPLACE FUNCTION `${project_id}.${bigquery_rideshare_lakehouse_enriched_dataset}.ext_udf_ai_detect_labels` (uri STRING) RETURNS JSON 
-    REMOTE WITH CONNECTION `${project_id}.us.cloud-function` 
+    REMOTE WITH CONNECTION `${project_id}.${bigquery_region}.cloud-function` 
     OPTIONS 
     (endpoint = 'https://${cloud_function_region}-${project_id}.cloudfunctions.net/bigquery_external_function', 
     user_defined_context = [("mode","detect_labels_uri")],
@@ -70,7 +70,7 @@ CREATE OR REPLACE FUNCTION `${project_id}.${bigquery_rideshare_lakehouse_enriche
 
 
 CREATE OR REPLACE FUNCTION `${project_id}.${bigquery_rideshare_lakehouse_enriched_dataset}.ext_udf_ai_detect_landmarks` (uri STRING) RETURNS JSON 
-    REMOTE WITH CONNECTION `${project_id}.us.cloud-function` 
+    REMOTE WITH CONNECTION `${project_id}.${bigquery_region}.cloud-function` 
     OPTIONS 
     (endpoint = 'https://${cloud_function_region}-${project_id}.cloudfunctions.net/bigquery_external_function', 
     user_defined_context = [("mode","detect_landmarks_uri")],
@@ -79,7 +79,7 @@ CREATE OR REPLACE FUNCTION `${project_id}.${bigquery_rideshare_lakehouse_enriche
 
 
 CREATE OR REPLACE FUNCTION `${project_id}.${bigquery_rideshare_lakehouse_enriched_dataset}.ext_udf_ai_detect_logos` (uri STRING) RETURNS JSON 
-    REMOTE WITH CONNECTION `${project_id}.us.cloud-function` 
+    REMOTE WITH CONNECTION `${project_id}.${bigquery_region}.cloud-function` 
     OPTIONS 
     (endpoint = 'https://${cloud_function_region}-${project_id}.cloudfunctions.net/bigquery_external_function', 
     user_defined_context = [("mode","detect_logos_uri")],

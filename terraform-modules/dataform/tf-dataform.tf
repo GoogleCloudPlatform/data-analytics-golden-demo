@@ -45,11 +45,14 @@ variable "project_number" {}
 variable "dataform_region" {}
 variable "storage_bucket" {}
 variable "curl_impersonation" {}
+variable "bigquery_region" {}
+
 
 locals {
   dataform_upload_dataform_json_file = templatefile("../dataform/dataform_golden_demo/demo_flow/dataform.json", 
   { 
     project_id = var.project_id
+    bigquery_region = var.bigquery_region
   })
   dataform_create_biglake_table_file = templatefile("../dataform/dataform_golden_demo/demo_flow/definitions/operations/create_biglake_table.sqlx", 
   { 

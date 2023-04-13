@@ -76,7 +76,7 @@ CREATE OR REPLACE EXTERNAL TABLE `${project_id}.${bigquery_taxi_dataset}.biglake
       hour INTEGER,
       minute INTEGER
   )
-  WITH CONNECTION `${shared_demo_project_id}.us.biglake-connection`
+  WITH CONNECTION `${shared_demo_project_id}.${bigquery_region}.biglake-connection`
   OPTIONS(
     hive_partition_uri_prefix = "gs://${five_million_small_files_bucket}/taxi-trips-query-acceleration/",
     uris=['gs://${five_million_small_files_bucket}/taxi-trips-query-acceleration/*.parquet'], 

@@ -3,5 +3,5 @@
   "assertionSchema": "dataform_assertions",
   "warehouse": "bigquery",
   "defaultDatabase": "${project_id}",
-  "defaultLocation": "US"
+  "defaultLocation": "${bigquery_region}"
 }

@@ -39,7 +39,7 @@
   
 -- Create a BigLake table over the PARQUET data  
   CREATE OR REPLACE EXTERNAL TABLE `${project_id}.${bigquery_rideshare_lakehouse_raw_dataset}.biglake_rideshare_trip_parquet`
-  WITH CONNECTION `${project_id}.us.biglake-connection`
+  WITH CONNECTION `${project_id}.${bigquery_region}.biglake-connection`
   OPTIONS (
       format = "PARQUET",
       uris = ['gs://${gcs_rideshare_lakehouse_raw_bucket}/rideshare_trip/parquet/*.parquet']
@@ -48,7 +48,7 @@
   
  -- Create a BigLake table over the AVRO data  
   CREATE OR REPLACE EXTERNAL TABLE `${project_id}.${bigquery_rideshare_lakehouse_raw_dataset}.biglake_rideshare_trip_avro`
-  WITH CONNECTION `${project_id}.us.biglake-connection`
+  WITH CONNECTION `${project_id}.${bigquery_region}.biglake-connection`
   OPTIONS (
       format = "AVRO",
       uris = ['gs://${gcs_rideshare_lakehouse_raw_bucket}/rideshare_trip/avro/*.avro']
@@ -72,7 +72,7 @@
       total_amount 	BIGNUMERIC,
       partition_date DATE 
   )
-  WITH CONNECTION `${project_id}.us.biglake-connection`
+  WITH CONNECTION `${project_id}.${bigquery_region}.biglake-connection`
   OPTIONS (
       format = "JSON",
       uris = ['gs://${gcs_rideshare_lakehouse_raw_bucket}/rideshare_trip/json/*.json']
@@ -85,7 +85,7 @@
       payment_type_id INTEGER,
       payment_type_description STRING
   )
-  WITH CONNECTION `${project_id}.us.biglake-connection`
+  WITH CONNECTION `${project_id}.${bigquery_region}.biglake-connection`
   OPTIONS (
       format = "JSON",
       uris = ['gs://${gcs_rideshare_lakehouse_raw_bucket}/rideshare_payment_type/*.json']
@@ -100,7 +100,7 @@
       zone STRING,
       service_zone STRING
   )
-  WITH CONNECTION `${project_id}.us.biglake-connection`
+  WITH CONNECTION `${project_id}.${bigquery_region}.biglake-connection`
   OPTIONS (
     format = "CSV",
     field_delimiter = '|',

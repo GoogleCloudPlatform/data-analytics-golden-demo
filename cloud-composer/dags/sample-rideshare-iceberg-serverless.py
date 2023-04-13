@@ -76,7 +76,7 @@ BATCH_CONFIG = {
         {
             'main_python_file_uri': pyspark_code,
             'jar_file_uris': [ jar_file ],
-            'args': [project_id,iceberg_catalog,iceberg_warehouse,bq_rideshare_enriched_dataset,bq_rideshare_raw_dataset,rideshare_raw_bucket,rideshare_enriched_bucket]
+            'args': [project_id,iceberg_catalog,iceberg_warehouse,bq_rideshare_enriched_dataset,bq_rideshare_raw_dataset,rideshare_raw_bucket,rideshare_enriched_bucket,bigquery_region]
         },
     'environment_config':
         {'execution_config':
@@ -94,7 +94,7 @@ BATCH_CONFIG = {
                     "spark.sql.catalog.{}.gcp_project".format(iceberg_catalog)  : project_id,
                     "spark.jars.packages" : "org.apache.iceberg:iceberg-spark-runtime-3.2_2.12:0.14.1,org.apache.spark:spark-avro_2.12:3.3.1",
                     "spark.sql.catalog.{}.catalog-impl".format(iceberg_catalog) : "org.apache.iceberg.gcp.biglake.BigLakeCatalog",
-                    "spark.sql.catalog.{}.gcp_location".format(iceberg_catalog) : "us", \
+                    "spark.sql.catalog.{}.gcp_location".format(iceberg_catalog) : bigquery_region, \
                     "spark.sql.catalog.{}".format(iceberg_catalog)              : "org.apache.iceberg.spark.SparkCatalog",
                     "spark.sql.catalog.{}.warehouse".format(iceberg_catalog)    : "gs://{}/{}".format(rideshare_enriched_bucket,iceberg_catalog)
                 }

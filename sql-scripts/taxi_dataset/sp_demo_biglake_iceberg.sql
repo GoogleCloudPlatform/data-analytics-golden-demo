@@ -1,5 +1,3 @@
-CREATE OR REPLACE PROCEDURE `bigquery_preview_features.sp_demo_iceberg`()
-BEGIN
 /*##################################################################################
 # Copyright 2022 Google LLC
 #
@@ -29,8 +27,9 @@ Iceberg:
     - convert_taxi_to_iceberg_data_updates (updates, deletes and alter schema)
 
 Description: 
-    - First View and Explore the Cloud Storage Account in this Project
-      - The bucket is named "sample-shared-data"
+    - First run the Airflow DAG: sample-iceberg-create-tables-update-data
+    - Second View and Explore the Cloud Storage Account in this Project
+      - The bucket is named "${processed_bucket_name}"
       - There is a folder named "iceberg-warehouse"
       - In the folder you will see a "default" folder (think of this as your "database name/instance")
       - You will then see a green_taxi_trips and yellow_taxi_trips folders (these are your tables)
@@ -40,38 +39,38 @@ Description:
       - query different versions of you "data" files.  BigQuery uses the "metadata" data to query the specific data files at a specific point in time.
 
 Show:
-    - BQ support for Icebery
+    - BQ support for Iceberg
     - BQ querying different versions of the Iceberg metadata
 
 References:
     - https://cloud.google.com/bigquery/docs/hive-partitioned-queries-gcs
 
 Clean up / Reset script:
-    DROP EXTERNAL TABLE IF EXISTS `bigquery_preview_features.iceberg_green_taxi_trips_v2`;
-    DROP EXTERNAL TABLE IF EXISTS `bigquery_preview_features.iceberg_green_taxi_trips_v3`;
-    DROP EXTERNAL TABLE IF EXISTS `bigquery_preview_features.iceberg_green_taxi_trips_v4`;
-    DROP EXTERNAL TABLE IF EXISTS `bigquery_preview_features.iceberg_green_taxi_trips_v5`;
-    DROP EXTERNAL TABLE IF EXISTS `bigquery_preview_features.iceberg_yellow_taxi_trips_v2`;
-    DROP EXTERNAL TABLE IF EXISTS `bigquery_preview_features.iceberg_yellow_taxi_trips_v3`;
+    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${bigquery_taxi_dataset}.iceberg_green_taxi_trips_v2`;
+    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${bigquery_taxi_dataset}.iceberg_green_taxi_trips_v3`;
+    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${bigquery_taxi_dataset}.iceberg_green_taxi_trips_v4`;
+    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${bigquery_taxi_dataset}.iceberg_green_taxi_trips_v5`;
+    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${bigquery_taxi_dataset}.iceberg_yellow_taxi_trips_v2`;
+    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${bigquery_taxi_dataset}.iceberg_yellow_taxi_trips_v3`;
 */
 
 
 ---------------------------------------------------------------
 -- View Iceberg Metadata: Green V5 Metadata
 --
--- Open seperate tab and goto storage location: gs://sample-shared-data/iceberg-warehouse/default/green_taxi_trips/metadata
+-- Open seperate tab and goto storage location: gs://${processed_bucket_name}/iceberg-warehouse/default/green_taxi_trips/metadata
 -- View the file: v5.metadata.json
 ---------------------------------------------------------------
--- NOTE: You do not have access to run this command (the table is already created)
---       If you want to run this use the dataset "ce_playground_google"
-CREATE OR REPLACE EXTERNAL TABLE `bigquery_preview_features.iceberg_green_taxi_trips_v5_manifest`
+-- NOTE: You need to "REPLACE-ME" in the line below so you can see the metadata within Iceberg 
+--       You can choose any AVRO file.  The snap-* are different then the non-snap files
+CREATE OR REPLACE EXTERNAL TABLE `${project_id}.${bigquery_taxi_dataset}.iceberg_green_taxi_trips_v5_manifest`
     OPTIONS (
     format = "AVRO",
-    uris = ['gs://sample-shared-data/iceberg-warehouse/default/green_taxi_trips/metadata/snap-6521268049828859177-1-39016deb-9153-4e2e-b8b4-96afb0ab7b86.avro']
+    uris = ['gs://${processed_bucket_name}/iceberg-warehouse/default/green_taxi_trips/metadata/REPLACE-ME.avro']
 );
 
 SELECT *
-  FROM  `bigquery_preview_features.iceberg_green_taxi_trips_v5_manifest`;
+  FROM  `${project_id}.${bigquery_taxi_dataset}.iceberg_green_taxi_trips_v5_manifest`;
 
 
 ---------------------------------------------------------------
@@ -80,17 +79,17 @@ SELECT *
 -- Create the table in its orginal state before and updates or deletes
 -- NOTE: You do not have access to run this command (the table is already created)
 --       If you want to run this use the dataset "ce_playground_google"
-CREATE OR REPLACE EXTERNAL TABLE bigquery_preview_features.iceberg_green_taxi_trips_v2
+CREATE OR REPLACE EXTERNAL TABLE `${project_id}.${bigquery_taxi_dataset}.iceberg_green_taxi_trips_v2`
 OPTIONS (
   format = "ICEBERG",
-  uris = ["gs://sample-shared-data/iceberg-warehouse/default/green_taxi_trips/metadata/v2.metadata.json"]
+  uris = ["gs://${processed_bucket_name}/iceberg-warehouse/default/green_taxi_trips/metadata/v2.metadata.json"]
 );
 
 -- Query the data. It acts as any normal external table.
 -- Duration 3 sec 
 -- Bytes processed 10.42 MB 
 SELECT * 
-  FROM bigquery_preview_features.iceberg_green_taxi_trips_v2
+  FROM `${project_id}.${bigquery_taxi_dataset}.iceberg_green_taxi_trips_v2`
  WHERE year=2021
    AND month=1;
 
@@ -98,7 +97,7 @@ SELECT *
 -- Duration 2 sec 
 -- Bytes processed  0 B 
 -- 9,390,186
-SELECT COUNT(*) AS RecordCount FROM bigquery_preview_features.iceberg_green_taxi_trips_v2;
+SELECT COUNT(*) AS RecordCount FROM `${project_id}.${bigquery_taxi_dataset}.iceberg_green_taxi_trips_v2`;
 
 
 ---------------------------------------------------------------
@@ -109,22 +108,22 @@ SELECT COUNT(*) AS RecordCount FROM bigquery_preview_features.iceberg_green_taxi
 ---------------------------------------------------------------
 
 -- BEFORE: Total Original Green records 9,390,186
-SELECT COUNT(*) AS RecordCount FROM bigquery_preview_features.iceberg_green_taxi_trips_v2;
+SELECT COUNT(*) AS RecordCount FROM `${project_id}.${bigquery_taxi_dataset}.iceberg_green_taxi_trips_v2`;
 
 -- BEFORE: These records [8,138,815] will be deleted by Iceberg 
-SELECT COUNT(*) AS RecordCount FROM bigquery_preview_features.iceberg_green_taxi_trips_v2 WHERE Vendor_Id != 1;
+SELECT COUNT(*) AS RecordCount FROM `${project_id}.${bigquery_taxi_dataset}.iceberg_green_taxi_trips_v2` WHERE Vendor_Id != 1;
 
 -- To see the changes we need to create a V3 external table
 -- NOTE: You do not have access to run this command (the table is already created)
 --       If you want to run this use the dataset "ce_playground_google"
-CREATE OR REPLACE EXTERNAL TABLE bigquery_preview_features.iceberg_green_taxi_trips_v3
+CREATE OR REPLACE EXTERNAL TABLE `${project_id}.${bigquery_taxi_dataset}.iceberg_green_taxi_trips_v3`
 OPTIONS (
   format = "ICEBERG",
-  uris = ["gs://sample-shared-data/iceberg-warehouse/default/green_taxi_trips/metadata/v3.metadata.json"]
+  uris = ["gs://${processed_bucket_name}/iceberg-warehouse/default/green_taxi_trips/metadata/v3.metadata.json"]
 );
 
 -- AFTER:  Remaining records after delete 1,251,371 [V3 TABLE]
-SELECT COUNT(*) AS RecordCount FROM  bigquery_preview_features.iceberg_green_taxi_trips_v3;
+SELECT COUNT(*) AS RecordCount FROM `${project_id}.${bigquery_taxi_dataset}.iceberg_green_taxi_trips_v3`;
 
 -- Check math
 SELECT 9390186 - 8138815 As Result, 1251371 As Expected_Results;
@@ -140,14 +139,14 @@ SELECT 9390186 - 8138815 As Result, 1251371 As Expected_Results;
 -- To see the changes we need to create a V4 external table
 -- NOTE: You do not have access to run this command (the table is already created)
 --       If you want to run this use the dataset "ce_playground_google"
-CREATE OR REPLACE EXTERNAL TABLE bigquery_preview_features.iceberg_green_taxi_trips_v4
+CREATE OR REPLACE EXTERNAL TABLE `${project_id}.${bigquery_taxi_dataset}.iceberg_green_taxi_trips_v4`
 OPTIONS (
   format = "ICEBERG",
-  uris = ["gs://sample-shared-data/iceberg-warehouse/default/green_taxi_trips/metadata/v4.metadata.json"]
+  uris = ["gs://${processed_bucket_name}/iceberg-warehouse/default/green_taxi_trips/metadata/v4.metadata.json"]
 );
 
 -- There is a new column named "iceberg_data" and all the data is NULL (scroll to far right in the results)
-SELECT * FROM bigquery_preview_features.iceberg_green_taxi_trips_v4 LIMIT 100;
+SELECT * FROM `${project_id}.${bigquery_taxi_dataset}.iceberg_green_taxi_trips_v4` LIMIT 100;
 
 
 ---------------------------------------------------------------
@@ -159,14 +158,14 @@ SELECT * FROM bigquery_preview_features.iceberg_green_taxi_trips_v4 LIMIT 100;
 -- To see the data update we need to create a V5 external table
 -- NOTE: You do not have access to run this command (the table is already created)
 --       If you want to run this use the dataset "ce_playground_google"
-CREATE OR REPLACE EXTERNAL TABLE bigquery_preview_features.iceberg_green_taxi_trips_v5
+CREATE OR REPLACE EXTERNAL TABLE `${project_id}.${bigquery_taxi_dataset}.iceberg_green_taxi_trips_v5`
 OPTIONS (
   format = "ICEBERG",
-  uris = ["gs://sample-shared-data/iceberg-warehouse/default/green_taxi_trips/metadata/v5.metadata.json"]
+  uris = ["gs://${processed_bucket_name}/iceberg-warehouse/default/green_taxi_trips/metadata/v5.metadata.json"]
 );
 
 -- The new column "iceberg_data" is updated with data (scroll to far right in the results)
-SELECT * FROM bigquery_preview_features.iceberg_green_taxi_trips_v5 LIMIT 100;
+SELECT * FROM `${project_id}.${bigquery_taxi_dataset}.iceberg_green_taxi_trips_v5` LIMIT 100;
 
 
 ---------------------------------------------------------------
@@ -175,24 +174,24 @@ SELECT * FROM bigquery_preview_features.iceberg_green_taxi_trips_v5 LIMIT 100;
 -- Create the table in its orginal state before and updates or deletes
 -- NOTE: You do not have access to run this command (the table is already created)
 --       If you want to run this use the dataset "ce_playground_google"
-CREATE OR REPLACE EXTERNAL TABLE bigquery_preview_features.iceberg_yellow_taxi_trips_v2
+CREATE OR REPLACE EXTERNAL TABLE `${project_id}.${bigquery_taxi_dataset}.iceberg_yellow_taxi_trips_v2`
 OPTIONS (
   format = "ICEBERG",
-  uris = ["gs://sample-shared-data/iceberg-warehouse/default/yellow_taxi_trips/metadata/v2.metadata.json"]
+  uris = ["gs://${processed_bucket_name}/iceberg-warehouse/default/yellow_taxi_trips/metadata/v2.metadata.json"]
 );
 
 -- Query the data
 -- Duration 9 sec 
 -- Bytes processed 199.95 MB 
 SELECT * 
-  FROM bigquery_preview_features.iceberg_yellow_taxi_trips_v2
+  FROM `${project_id}.${bigquery_taxi_dataset}.iceberg_yellow_taxi_trips_v2`
  WHERE year=2021
    AND month=1;
 
 -- Duration 2 sec 
 -- Bytes processed  0 B 
 -- 140,150,371
-SELECT COUNT(*) AS RecordCount FROM bigquery_preview_features.iceberg_yellow_taxi_trips_v2;
+SELECT COUNT(*) AS RecordCount FROM `${project_id}.${bigquery_taxi_dataset}.iceberg_yellow_taxi_trips_v2`;
 
 
 ---------------------------------------------------------------
@@ -204,34 +203,14 @@ SELECT COUNT(*) AS RecordCount FROM bigquery_preview_features.iceberg_yellow_tax
 -- To see the data update we need to create a V3 external table
 -- NOTE: You do not have access to run this command (the table is already created)
 --       If you want to run this use the dataset "ce_playground_google"
-CREATE OR REPLACE EXTERNAL TABLE bigquery_preview_features.iceberg_yellow_taxi_trips_v3
+CREATE OR REPLACE EXTERNAL TABLE `${project_id}.${bigquery_taxi_dataset}.iceberg_yellow_taxi_trips_v3`
 OPTIONS (
   format = "ICEBERG",
-  uris = ["gs://sample-shared-data/iceberg-warehouse/default/yellow_taxi_trips/metadata/v3.metadata.json"]
+  uris = ["gs://${processed_bucket_name}/iceberg-warehouse/default/yellow_taxi_trips/metadata/v3.metadata.json"]
 );
 
 -- Before data update
-SELECT Passenger_Count, Surcharge FROM bigquery_preview_features.iceberg_yellow_taxi_trips_v2 WHERE Passenger_Count > 6;
+SELECT Passenger_Count, Surcharge FROM `${project_id}.${bigquery_taxi_dataset}.iceberg_yellow_taxi_trips_v2` WHERE Passenger_Count > 6;
 
 -- After data update (the surcharge is set to 100)
-SELECT Passenger_Count, Surcharge FROM bigquery_preview_features.iceberg_yellow_taxi_trips_v3 WHERE Passenger_Count > 6;
-
-
-
----------------------------------------------------------------
--- BigLake Metastore (new)
----------------------------------------------------------------
--- Now let's Auto Detect the schema (creating a new table for every DML statement in unpractical)
----------------------------------------------------------------
-
--- It is impractical to create a new table everything the data in the Iceberg table changes
--- TODO: https://docs.google.com/document/d/1dEdKFS2gxysI481FrsMjwuLw9rW1laLQKrqiZD3Dfmo/edit#
-/*
-CREATE OR REPLACE EXTERNAL TABLE bigquery_preview_features.iceberg_green_taxi_trips_autodetect
-OPTIONS (
-         format = 'ICEBERG',
-         uris = ["blms://projects/REPLACE-ME/locations/us/catalogs/blms/databases/mydb/tables/blms_table"]
-       );
-*/
-
-END;
+SELECT Passenger_Count, Surcharge FROM `${project_id}.${bigquery_taxi_dataset}.iceberg_yellow_taxi_trips_v3` WHERE Passenger_Count > 6;
