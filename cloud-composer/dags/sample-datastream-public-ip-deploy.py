@@ -78,10 +78,14 @@ def run_postgres_sql(database_password):
 
     # Datastream failed to read from the PostgreSQL replication slot datastream_replication_slot. Make sure that the slot exists and that Datastream has the necessary permissions to access it.
     # Datastream failed to find the publication datastream_publication. Make sure that the publication exists and that Datastream has the necessary permissions to access it.
-    commands = (
-        "CREATE TABLE entries (guestName VARCHAR(255), content VARCHAR(255), entryID SERIAL PRIMARY KEY);",
+    table_commands = (
+        "CREATE TABLE IF NOT EXISTS entries (guestName VARCHAR(255), content VARCHAR(255), entryID SERIAL PRIMARY KEY);",
         "INSERT INTO entries (guestName, content) values ('first guest', 'I got here!');",
         "INSERT INTO entries (guestName, content) values ('second guest', 'Me too!');",
+
+        )
+
+    replication_commands = (
         "CREATE PUBLICATION datastream_publication FOR ALL TABLES;",
         "ALTER USER " + postgres_user + " with replication;",
         "SELECT PG_CREATE_LOGICAL_REPLICATION_SLOT('datastream_replication_slot', 'pgoutput');",
@@ -90,7 +94,6 @@ def run_postgres_sql(database_password):
         "GRANT USAGE ON SCHEMA public TO datastream_user;",
         "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO datastream_user;"
         )
-
     # You can get these through the DataStream UI.  Click through and press the button for the SQL to run.
     # CREATE PUBLICATION [MY_PUBLICATION] FOR ALL TABLES;
     # alter user <curr_user> with replication;
@@ -101,13 +104,21 @@ def run_postgres_sql(database_password):
     # ALTER DEFAULT PRIVILEGES IN SCHEMA [MY_SCHEMA] GRANT SELECT ON TABLES TO [MY_USER];    
 
     try:
-        cur = conn.cursor()
-        for command in commands:
-            cur.execute(command)
-        cur.close()
+        # Create table first in order to avoid "cannot create logical replication slot in transaction that has performed writes"
+        table_cursor = conn.cursor()
+        for command in table_commands:
+            table_cursor.execute(command)
+        table_cursor.close()
         conn.commit()
+
+        # Run Datastream necessary commands (these change by database type)
+        replication_cur = conn.cursor()
+        for command in replication_commands:
+            replication_cur.execute(command)
+            conn.commit()
+        replication_cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
-        print(error)
+        print("ERROR: ", error)
     finally:
         if conn is not None:
             conn.close()
@@ -139,7 +150,6 @@ with airflow.DAG('sample-datastream-public-ip-deploy',
         op_kwargs = { "database_password" : root_password },
         dag=dag
         )    
-
 
     # Configure datastream
     bash_create_datastream_task = bash_operator.BashOperator(

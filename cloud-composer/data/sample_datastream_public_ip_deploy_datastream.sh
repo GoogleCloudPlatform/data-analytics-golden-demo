@@ -27,7 +27,7 @@ echo "PROJECT_ID: ${PROJECT_ID}"
 echo "DATASTREAM_REGION: ${DATASTREAM_REGION}"
 
 
-# Since the current version of gCloud does not have DataPlex, install it.
+# Since the current version of gCloud 
 # This is NOT a best practice
 wget https://packages.cloud.google.com/apt/doc/apt-key.gpg && sudo apt-key add apt-key.gpg
 sudo apt-get update && sudo apt-get --only-upgrade install google-cloud-sdk 
@@ -125,11 +125,15 @@ gcloud datastream streams create datastream-demo-stream \
     --project="${PROJECT_ID}"
 
 
+echo "Sleep 60"
+sleep 60
+
 # Show the stream attributes
 gcloud datastream streams describe datastream-demo-stream --location="${DATASTREAM_REGION}" --project="${PROJECT_ID}"
 
-echo "Sleep 30"
-sleep 30
+
+echo "Sleep 60"
+sleep 60
 
 # Start the stream
 gcloud datastream streams update datastream-demo-stream --location="${DATASTREAM_REGION}" --state=RUNNING --update-mask=state --project="${PROJECT_ID}"
