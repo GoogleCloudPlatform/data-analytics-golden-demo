@@ -22,6 +22,7 @@ ROOT_PASSWORD="{{ params.root_password }}"
 DATASTREAM_REGION="{{ params.datastream_region }}"
 DATABASE_NAME="guestbook"
 INSTANCE="postgres-cloud-sql"
+BIGQUERY_REGION="{{ params.bigquery_region }}"
 
 echo "PROJECT_ID: ${PROJECT_ID}"
 echo "DATASTREAM_REGION: ${DATASTREAM_REGION}"
@@ -98,7 +99,7 @@ destination_config_json=$(cat <<EOF
 {
   "sourceHierarchyDatasets": {
     "datasetTemplate": {
-      "location": "us",
+      "location": "${BIGQUERY_REGION}",
       "datasetIdPrefix": "datastream_cdc_",
     }
   },
