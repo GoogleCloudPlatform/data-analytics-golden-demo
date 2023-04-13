@@ -194,6 +194,8 @@ module "resources" {
   data_catalog_region               = var.data_catalog_region
   appengine_region                  = var.appengine_region
   dataproc_serverless_region        = var.dataproc_serverless_region
+  cloud_sql_region                  = var.cloud_sql_region
+  datastream_region                 = var.datastream_region
 
   storage_bucket                    = local.local_storage_bucket
   spanner_config                    = var.spanner_config
@@ -272,6 +274,7 @@ module "dataform-module" {
   dataform_region    = var.dataform_region
   storage_bucket     = local.local_storage_bucket
   curl_impersonation = local.local_curl_impersonation
+  bigquery_region    = var.bigquery_region
   
   depends_on = [
     module.project,

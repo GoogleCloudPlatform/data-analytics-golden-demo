@@ -1,21 +1,21 @@
 /*
 NOTE: 1. You need to be allowlisted to run BigSpark (this should be soon) OR you can run the Ariflow DAG: sample-rideshare-iceberg-serverless
       2. You also need to be allowlisted for Iceberg (this should be ended)
-      3. Remove this NOTE down to the line WITH CONNECTION `${project_id}.us.bigspark-connection`
+      3. Remove this NOTE down to the line WITH CONNECTION `${project_id}.${bigquery_region}.bigspark-connection`
       4. Remove "-- REMOVE EVERYTHING BELOW THIS LINE TO USE BigSpark" at the bottom
       5. You need to create a a connection named "us-bigspark"
       6. For the service principal for the connection:
          a. Grant the service principal an Editor role at the project level (this is being worked on to have less permissions)
          b. Grant the service principal the custom role "CustomConnectionDelegate" 
 
-WITH CONNECTION `${project_id}.us.bigspark-connection`
+WITH CONNECTION `${project_id}.${bigquery_region}.bigspark-connection`
 OPTIONS (engine='SPARK',
      runtime_version="1.0",
      properties=[("spark.sql.catalog.rideshare_iceberg_catalog.blms_catalog","rideshare_iceberg_catalog"),
      ("spark.sql.catalog.rideshare_iceberg_catalog.gcp_project","${project_id}"),
      ("spark.jars.packages","org.apache.iceberg:iceberg-spark-runtime-3.2_2.12:0.14.1,org.apache.spark:spark-avro_2.12:3.3.1"),
      ("spark.sql.catalog.rideshare_iceberg_catalog.catalog-impl","org.apache.iceberg.gcp.biglake.BigLakeCatalog"),
-     ("spark.sql.catalog.rideshare_iceberg_catalog.gcp_location","us"),
+     ("spark.sql.catalog.rideshare_iceberg_catalog.gcp_location","${bigquery_region}"),
      ("spark.sql.catalog.rideshare_iceberg_catalog","org.apache.iceberg.spark.SparkCatalog"),
      ("spark.sql.catalog.rideshare_iceberg_catalog.warehouse","gs://rideshare-lakehouse-enriched-rexm45tpvr/biglake-iceberg-warehouse")],
      jar_uris=["gs://spark-lib/biglake/iceberg-biglake-catalog-0.0.1-with-dependencies.jar"])
@@ -91,12 +91,12 @@ spark.sql("DROP TABLE IF EXISTS {}.{}.biglake_rideshare_payment_type_iceberg".fo
 spark.sql("CREATE TABLE IF NOT EXISTS {}.{}.biglake_rideshare_payment_type_iceberg ".format(iceberg_catalog, iceberg_warehouse) + \
                "(payment_type_id int, payment_type_description string) " + \
           "USING iceberg " + \
-          "TBLPROPERTIES(bq_table='{}.biglake_rideshare_payment_type_iceberg', bq_connection='us.biglake-connection');".format(bq_rideshare_enriched_dataset))
+          "TBLPROPERTIES(bq_table='{}.biglake_rideshare_payment_type_iceberg', bq_connection='${bigquery_region}.biglake-connection');".format(bq_rideshare_enriched_dataset))
 
 spark.sql("CREATE TABLE IF NOT EXISTS {}.{}.biglake_rideshare_zone_iceberg ".format(iceberg_catalog, iceberg_warehouse) + \
                "(location_id int, borough string, zone string, service_zone string) " + \
           "USING iceberg " + \
-          "TBLPROPERTIES(bq_table='{}.biglake_rideshare_zone_iceberg', bq_connection='us.biglake-connection');".format(bq_rideshare_enriched_dataset))
+          "TBLPROPERTIES(bq_table='{}.biglake_rideshare_zone_iceberg', bq_connection='${bigquery_region}.biglake-connection');".format(bq_rideshare_enriched_dataset))
 
 spark.sql("CREATE TABLE IF NOT EXISTS {}.{}.biglake_rideshare_trip_iceberg ".format(iceberg_catalog, iceberg_warehouse) + \
                "(rideshare_trip_id string, pickup_location_id int, pickup_datetime timestamp, " + \
@@ -107,7 +107,7 @@ spark.sql("CREATE TABLE IF NOT EXISTS {}.{}.biglake_rideshare_trip_iceberg ".for
                "partition_date date)" + \
           "USING iceberg " + \
           "PARTITIONED BY (partition_date) " + \
-          "TBLPROPERTIES(bq_table='{}.biglake_rideshare_trip_iceberg', bq_connection='us.biglake-connection');".format(bq_rideshare_enriched_dataset))
+          "TBLPROPERTIES(bq_table='{}.biglake_rideshare_trip_iceberg', bq_connection='${bigquery_region}.biglake-connection');".format(bq_rideshare_enriched_dataset))
      
 #####################################################################################
 # Load the Payment Type Table in the Enriched Zone

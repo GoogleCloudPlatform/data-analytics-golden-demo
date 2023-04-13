@@ -29,7 +29,7 @@ import os
 import json
 
 
-def CreateIcebergWarehouse(project_id,iceberg_catalog,iceberg_warehouse,bq_rideshare_enriched_dataset,bq_rideshare_raw_dataset,rideshare_raw_bucket,rideshare_enriched_bucket):
+def CreateIcebergWarehouse(project_id,iceberg_catalog,iceberg_warehouse,bq_rideshare_enriched_dataset,bq_rideshare_raw_dataset,rideshare_raw_bucket,rideshare_enriched_bucket,bigquery_region):
     print("BEGIN: CreateIcebergWarehouse")
 
     # We need the ".config" options set for the default Iceberg catalog
@@ -62,12 +62,12 @@ def CreateIcebergWarehouse(project_id,iceberg_catalog,iceberg_warehouse,bq_rides
     spark.sql("CREATE TABLE IF NOT EXISTS {}.{}.biglake_rideshare_payment_type_iceberg ".format(iceberg_catalog, iceberg_warehouse) + \
                     "(payment_type_id int, payment_type_description string) " + \
             "USING iceberg " + \
-            "TBLPROPERTIES(bq_table='{}.biglake_rideshare_payment_type_iceberg', bq_connection='us.biglake-connection');".format(bq_rideshare_enriched_dataset))
+            "TBLPROPERTIES(bq_table='{}.biglake_rideshare_payment_type_iceberg', bq_connection='{}.biglake-connection');".format(bq_rideshare_enriched_dataset,bigquery_region))
 
     spark.sql("CREATE TABLE IF NOT EXISTS {}.{}.biglake_rideshare_zone_iceberg ".format(iceberg_catalog, iceberg_warehouse) + \
                     "(location_id int, borough string, zone string, service_zone string) " + \
             "USING iceberg " + \
-            "TBLPROPERTIES(bq_table='{}.biglake_rideshare_zone_iceberg', bq_connection='us.biglake-connection');".format(bq_rideshare_enriched_dataset))
+            "TBLPROPERTIES(bq_table='{}.biglake_rideshare_zone_iceberg', bq_connection='{}.biglake-connection');".format(bq_rideshare_enriched_dataset,bigquery_region))
 
     spark.sql("CREATE TABLE IF NOT EXISTS {}.{}.biglake_rideshare_trip_iceberg ".format(iceberg_catalog, iceberg_warehouse) + \
                     "(rideshare_trip_id string, pickup_location_id int, pickup_datetime timestamp, " + \
@@ -78,7 +78,7 @@ def CreateIcebergWarehouse(project_id,iceberg_catalog,iceberg_warehouse,bq_rides
                     "partition_date date)" + \
             "USING iceberg " + \
             "PARTITIONED BY (partition_date) " + \
-            "TBLPROPERTIES(bq_table='{}.biglake_rideshare_trip_iceberg', bq_connection='us.biglake-connection');".format(bq_rideshare_enriched_dataset))
+            "TBLPROPERTIES(bq_table='{}.biglake_rideshare_trip_iceberg', bq_connection='{}.biglake-connection');".format(bq_rideshare_enriched_dataset,bigquery_region))
         
     #####################################################################################
     # Load the Payment Type Table in the Enriched Zone
@@ -255,8 +255,8 @@ def CreateIcebergWarehouse(project_id,iceberg_catalog,iceberg_warehouse,bq_rides
 # Main entry point
 # rideshare_iceberg_serverless gs://${processedBucket}/iceberg-warehouse
 if __name__ == "__main__":
-    if len(sys.argv) != 8:
-        print("Usage: rideshare_iceberg_serverless project_id,iceberg_catalog,iceberg_warehouse,bq_rideshare_enriched_dataset,bq_rideshare_raw_dataset,rideshare_raw_bucket,rideshare_enriched_bucket")
+    if len(sys.argv) != 9:
+        print("Usage: rideshare_iceberg_serverless project_id,iceberg_catalog,iceberg_warehouse,bq_rideshare_enriched_dataset,bq_rideshare_raw_dataset,rideshare_raw_bucket,rideshare_enriched_bucket,bigquery_region")
         sys.exit(-1)
 
     project_id=sys.argv[1]
@@ -266,9 +266,10 @@ if __name__ == "__main__":
     bq_rideshare_raw_dataset=sys.argv[5]
     rideshare_raw_bucket=sys.argv[6]
     rideshare_enriched_bucket=sys.argv[7]
+    bigquery_region=sys.argv[8]
 
     print ("BEGIN: Main")
-    CreateIcebergWarehouse(project_id,iceberg_catalog,iceberg_warehouse,bq_rideshare_enriched_dataset,bq_rideshare_raw_dataset,rideshare_raw_bucket,rideshare_enriched_bucket)
+    CreateIcebergWarehouse(project_id,iceberg_catalog,iceberg_warehouse,bq_rideshare_enriched_dataset,bq_rideshare_raw_dataset,rideshare_raw_bucket,rideshare_enriched_bucket,bigquery_region)
     print ("END: Main")
 
 

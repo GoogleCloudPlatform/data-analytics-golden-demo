@@ -49,7 +49,7 @@ IF NOT EXISTS (SELECT  1
               AND table_type = 'EXTERNAL')
     THEN
     CREATE OR REPLACE EXTERNAL TABLE `${project_id}.${bigquery_rideshare_lakehouse_raw_dataset}.biglake_rideshare_images`
-    WITH CONNECTION `${project_id}.us.biglake-connection`
+    WITH CONNECTION `${project_id}.${bigquery_region}.biglake-connection`
     OPTIONS (
         object_metadata="DIRECTORY",
         uris = ['gs://${gcs_rideshare_lakehouse_raw_bucket}/rideshare_images/*.jpg',

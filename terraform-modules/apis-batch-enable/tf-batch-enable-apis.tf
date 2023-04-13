@@ -310,3 +310,8 @@ resource "google_project_service" "service-datalineage" {
   project = var.project_id
   service = "datalineage.googleapis.com"
 }
+
+resource "google_project_service" "service-datastream" {
+  project = var.project_id
+  service = "datastream.googleapis.com"
+}
