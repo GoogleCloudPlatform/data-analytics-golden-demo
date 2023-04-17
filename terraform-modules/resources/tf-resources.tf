@@ -1631,24 +1631,35 @@ resource "google_project_iam_member" "dataflow_service_account_editor_role" {
 #       to be created, a call must be made to the service.  The below will do a "list" call which
 #       will return nothing, but will trigger the cloud to create the service account.  Then
 #       IAM permissions can be set for this account.
-resource "null_resource" "trigger_data_trasfer_service_account_create" {
-  provisioner "local-exec" {
-    interpreter = ["/bin/bash","-c"]
-    command     = <<EOF
-if [ -z "$${GOOGLE_APPLICATION_CREDENTIALS}" ]
-then
-    echo "We are not running in a local docker container.  No need to login."
-else
-    echo "We are running in local docker container. Logging in."
-    gcloud auth activate-service-account "${var.deployment_service_account_name}" --key-file="$${GOOGLE_APPLICATION_CREDENTIALS}" --project="${var.project_id}"
-    gcloud config set account "${var.deployment_service_account_name}"
-fi 
-curl "https://bigquerydatatransfer.googleapis.com/v1/projects/${var.project_id}/locations/${var.bigquery_non_multi_region}/transferConfigs" \
-  --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})"  \
-  --header "Accept: application/json" \
-  --compressed
-EOF
-  }
+# resource "null_resource" "trigger_data_trasfer_service_account_create" {
+#   provisioner "local-exec" {
+#     interpreter = ["/bin/bash","-c"]
+#     command     = <<EOF
+# if [ -z "$${GOOGLE_APPLICATION_CREDENTIALS}" ]
+# then
+#     echo "We are not running in a local docker container.  No need to login."
+# else
+#     echo "We are running in local docker container. Logging in."
+#     gcloud auth activate-service-account "${var.deployment_service_account_name}" --key-file="$${GOOGLE_APPLICATION_CREDENTIALS}" --project="${var.project_id}"
+#     gcloud config set account "${var.deployment_service_account_name}"
+# fi 
+# curl "https://bigquerydatatransfer.googleapis.com/v1/projects/${var.project_id}/locations/${var.bigquery_non_multi_region}/transferConfigs" \
+#   --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})"  \
+#   --header "Accept: application/json" \
+#   --compressed
+# EOF
+#   }
+#   depends_on = [
+#     google_project_iam_member.cloudcomposer_account_service_agent_v2_ext,
+#     google_project_iam_member.cloudcomposer_account_service_agent,
+#     google_service_account.composer_service_account
+#   ]
+# }
+
+# Add the Service Account Short Term Token Minter role to a Google-managed service account used by the BigQuery Data Transfer Service
+resource "google_project_service_identity" "service_identity_bigquery_data_transfer" {
+  project  = var.project_id
+  service  = "bigquerydatatransfer.googleapis.com"
   depends_on = [
     google_project_iam_member.cloudcomposer_account_service_agent_v2_ext,
     google_project_iam_member.cloudcomposer_account_service_agent,
@@ -1657,8 +1668,10 @@ EOF
 }
 
 
+
+
 resource "time_sleep" "create_bigquerydatatransfer_account_time_delay" {
-  depends_on      = [null_resource.trigger_data_trasfer_service_account_create]
+  depends_on      = [google_project_service_identity.service_identity_bigquery_data_transfer]
   create_duration = "30s"
 }
 
@@ -1666,7 +1679,8 @@ resource "time_sleep" "create_bigquerydatatransfer_account_time_delay" {
 resource "google_service_account_iam_member" "service_account_impersonation" {
   service_account_id = google_service_account.composer_service_account.name
   role               = "roles/iam.serviceAccountTokenCreator"
-  member             = "serviceAccount:service-${var.project_number}@gcp-sa-bigquerydatatransfer.iam.gserviceaccount.com"
+  member             = "serviceAccount:${google_project_service_identity.service_identity_bigquery_data_transfer.email}"
+  #                    "serviceAccount:service-${var.project_number}@gcp-sa-bigquerydatatransfer.iam.gserviceaccount.com"
   depends_on         = [ time_sleep.create_bigquerydatatransfer_account_time_delay ]
 }
 /*
@@ -1897,6 +1911,33 @@ resource "google_data_catalog_tag_template" "column_dq_tag_template" {
 resource "google_app_engine_application" "rideshare_plus_app_engine" {
   project     = var.project_id
   location_id = var.appengine_region
+}
+
+
+####################################################################################
+# Pub/Sub
+####################################################################################
+resource "google_project_service_identity" "service_identity_pub_sub" {
+  project  = var.project_id
+  service  = "pubsub.googleapis.com"
+  depends_on = [
+  ]
+}
+
+resource "time_sleep" "create_pubsub_account_time_delay" {
+  depends_on      = [google_project_service_identity.service_identity_pub_sub]
+  create_duration = "30s"
+}
+
+# Grant require worker role
+resource "google_bigquery_dataset_access" "pubsub_access_bq_taxi_dataset" {
+  dataset_id    = google_bigquery_dataset.taxi_dataset.dataset_id
+  role          = "roles/bigquery.dataOwner"
+  user_by_email = google_project_service_identity.service_identity_pub_sub.email
+
+  depends_on = [ 
+    time_sleep.create_pubsub_account_time_delay
+  ]  
 }
 
 

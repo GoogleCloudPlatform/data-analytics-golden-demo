@@ -709,6 +709,39 @@ resource "google_bigquery_routine" "sproc_sp_demo_taxi_streaming_data" {
 
 
 ####################################################################################
+# sp_demo_technical_overview
+####################################################################################
+resource "google_bigquery_routine" "sproc_sp_demo_technical_overview" {
+  dataset_id      = var.bigquery_taxi_dataset
+  routine_id      = "sp_demo_technical_overview"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = templatefile("../sql-scripts/taxi_dataset/sp_demo_technical_overview.sql", 
+  { 
+    project_id = var.project_id
+    
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+    bigquery_thelook_ecommerce_dataset = var.bigquery_thelook_ecommerce_dataset
+    processed_bucket_name = "processed-${var.storage_bucket}"
+    bigquery_region = var.bigquery_region
+    gcp_account_name = var.gcp_account_name
+    bigquery_rideshare_lakehouse_enriched_dataset = var.bigquery_rideshare_lakehouse_enriched_dataset
+    bigquery_rideshare_lakehouse_curated_dataset = var.bigquery_rideshare_lakehouse_curated_dataset
+    bigquery_rideshare_lakehouse_raw_dataset = var.bigquery_rideshare_lakehouse_raw_dataset
+    aws_omni_biglake_s3_bucket = var.aws_omni_biglake_s3_bucket
+    random_extension = var.random_extension
+    shared_demo_project_id = var.shared_demo_project_id
+    gcs_rideshare_lakehouse_raw_bucket = var.gcs_rideshare_lakehouse_raw_bucket
+    aws_omni_biglake_dataset_region = var.aws_omni_biglake_dataset_region
+    aws_omni_biglake_connection = var.aws_omni_biglake_connection
+    spanner_region = var.spanner_region
+    gcs_rideshare_lakehouse_enriched_bucket = var.gcs_rideshare_lakehouse_enriched_bucket
+  })
+}
+
+
+
+####################################################################################
 # sp_demo_time_travel_snapshots
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_time_travel_snapshots" {

@@ -315,3 +315,8 @@ resource "google_project_service" "service-datastream" {
   project = var.project_id
   service = "datastream.googleapis.com"
 }
+
+resource "google_project_service" "service-pubsub" {
+  project = var.project_id
+  service = "pubsub.googleapis.com"
+}
