@@ -37,6 +37,65 @@ sudo apt-get update && sudo apt-get --only-upgrade install google-cloud-sdk
 # Get ip address (of this node)
 cloudsql_ip_address=$(gcloud sql instances list --filter="NAME=${INSTANCE}" --project="${PROJECT_ID}" --format="value(PRIMARY_ADDRESS)")
 
+### HARD CODED FOR TESTING
+PROJECT_ID="data-analytics-demo-qh17rzblgk"
+PROJECT_NUMBER="178315376415"
+ROOT_PASSWORD="qh17rzblgk"
+INSTANCE="postgres-private-ip"
+DATABASE_VERSION="POSTGRES_14"
+CPU="2"
+MEMORY="8GB"
+CLOUD_SQL_REGION="us-central1"
+YOUR_IP_ADDRESS=$(curl ifconfig.me)
+DATABASE_NAME="guestbook"
+DATASTREAM_REGION="us-central1"
+
+
+# ????? Chris, why do I need to do this ??????
+
+# https://cloud.google.com/datastream/docs/create-a-private-connectivity-configuration    
+# https://cloud.google.com/vpc/docs/using-vpc-peering#creating_a_peering_configuration
+gcloud compute networks peerings create vpc-main-peer \
+    --network=vpc-main \
+    --peer-project="${PROJECT_ID}" \
+    --peer-network=servicenetworking-googleapis-com \
+    --import-custom-routes \
+    --export-custom-routes
+
+
+# You need to be an Org Admin to disable this policy
+# Constraint  violated for the specified VPC network. Peering with Datastream's network is not allowed.
+cat > restrictVpcPeering.yaml << ENDOFFILE
+name: projects/$PROJECT_ID/policies/compute.restrictVpcPeering
+spec:
+  rules:
+  - allowAll: true
+ENDOFFILE
+gcloud org-policies set-policy restrictVpcPeering.yaml --project=${PROJECT_ID}
+
+
+# This takes a few minutes
+gcloud datastream private-connections create cloud-sql-private-connect \
+  --location=${DATASTREAM_REGION} \
+  --display-name=cloud-sql-private-connect \
+  --subnet="10.7.0.0/29" \
+  --vpc="vpc-main" \
+  --project="${PROJECT_ID}"
+
+# Loop while it creates
+stateDataStream="CREATING"
+while [ "$stateDataStream" = "CREATING" ]
+    do
+    sleep 5
+    stateDataStream=$(gcloud datastream private-connections list --location=${DATASTREAM_REGION} --project="${PROJECT_ID}" --filter="DISPLAY_NAME=cloud-sql-private-connect" --format="value(STATE)")
+    echo "stateDataStream: $stateDataStream"
+    done
+
+
+# Re-enable this constraint (Your composer service account needs to be an Org Admin)
+# Deleting it will set it back to "Inherit from parent"
+gcloud resource-manager org-policies delete constraints/compute.restrictVpcPeering --project="${PROJECT_ID}"
+
 
 # Create the Datastream source
 # https://cloud.google.com/sdk/gcloud/reference/datastream/connection-profiles/create
@@ -49,7 +108,7 @@ gcloud datastream connection-profiles create postgres-cloud-sql-connection \
     --postgresql-hostname=${cloudsql_ip_address} \
     --postgresql-port=5432 \
     --postgresql-database=${DATABASE_NAME} \
-    --static-ip-connectivity \
+    --private-connection=cloud-sql-private-connect  \
     --project="${PROJECT_ID}"
 
 

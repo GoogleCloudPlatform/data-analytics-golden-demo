@@ -33,6 +33,7 @@ DATASTREAM_REGION="{{ params.datastream_region }}"
 
 
 # Create networking connections
+# https://cloud.google.com/sql/docs/mysql/configure-private-services-access
 gcloud compute addresses create google-managed-services-vpc-main \
     --global \
     --purpose=VPC_PEERING \
@@ -42,22 +43,12 @@ gcloud compute addresses create google-managed-services-vpc-main \
     --project="${PROJECT_ID}"  
 
 
+# https://cloud.google.com/sql/docs/mysql/configure-private-services-access#create_a_private_connection
 gcloud services vpc-peerings connect \
     --service=servicenetworking.googleapis.com \
     --ranges=google-managed-services-vpc-main \
     --network="vpc-main" \
     --project="${PROJECT_ID}" 
-
-
-gcloud compute networks peerings create vpc-main-peer \
-    --network=vpc-main \
-    --peer-project=PEER_PROJECT_ID \
-    --peer-network=PEER_NETWORK_NAME \
-
-
-gcloud services vpc-peerings operations describe \
-    --name=OPERATION_ID    
-
 
 gcloud projects add-iam-policy-binding "${PROJECT_ID}"  \
     --member=serviceAccount:service-${PROJECT_NUMBER}@service-networking.iam.gserviceaccount.com \
@@ -84,7 +75,7 @@ gcloud sql instances create "${INSTANCE}" \
 
 
 # Get ip address (of this node)
-cloudsql_ip_address=$(gcloud sql instances list --filter="NAME=${INSTANCE}" --project="${PROJECT_ID}" --format="value(PRIMARY_ADDRESS)")
+cloudsql_ip_address=$(gcloud sql instances list --filter="NAME=${INSTANCE}" --project="${PROJECT_ID}" --format="value(PRIVATE_ADDRESS)")
 
 
 # Write out so we can read in via Python
@@ -93,3 +84,17 @@ echo ${cloudsql_ip_address} > /home/airflow/gcs/data/postgres_private_ip_address
 
 # Create the database
 gcloud sql databases create ${DATABASE_NAME} --instance="${INSTANCE}" --project="${PROJECT_ID}"
+
+
+# To connect to the instance
+# Create a VM  https://console.cloud.google.com/compute/instances?onCreate=true in Region us-central1
+# Connect via SSH "Open in Browser Window"
+# Add a Firewall rule (you will get a message like "You need a rule for: 35.235.240.0/20")
+
+# sudo apt-get install wget ca-certificates
+# wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+# sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -cs`-pgdg main" >> /etc/apt/sources.list.d/pgdg.list'
+# sudo apt-get update
+# sudo apt-get install postgresql postgresql-contrib
+# psql --host=10.6.0.3 --user=postgres --password
+# <<ENTER PASSWORD>>
