@@ -1668,8 +1668,6 @@ resource "google_project_service_identity" "service_identity_bigquery_data_trans
 }
 
 
-
-
 resource "time_sleep" "create_bigquerydatatransfer_account_time_delay" {
   depends_on      = [google_project_service_identity.service_identity_bigquery_data_transfer]
   create_duration = "30s"
@@ -1683,21 +1681,14 @@ resource "google_service_account_iam_member" "service_account_impersonation" {
   #                    "serviceAccount:service-${var.project_number}@gcp-sa-bigquerydatatransfer.iam.gserviceaccount.com"
   depends_on         = [ time_sleep.create_bigquerydatatransfer_account_time_delay ]
 }
-/*
-resource "google_service_account_iam_binding" "service_account_impersonation" {
-  provider           = google
-  service_account_id = google_service_account.composer_service_account.name
-  role               = "roles/iam.serviceAccountTokenCreator"
 
-  members = [
-    "serviceAccount:service-${var.project_number}@gcp-sa-bigquerydatatransfer.iam.gserviceaccount.com"
-  ]
 
-  depends_on = [
-    time_sleep.create_bigquerydatatransfer_account_time_delay,
-  ]
+resource "google_project_iam_member" "iam_member_bigquerydatatransfer_serviceAgent" {
+  project            = var.project_id
+  role               = "roles/bigquerydatatransfer.serviceAgent"
+  member             = "serviceAccount:${google_project_service_identity.service_identity_bigquery_data_transfer.email}"
+  depends_on         = [ google_service_account_iam_member.service_account_impersonation ]
 }
-*/
 
 
 ####################################################################################
