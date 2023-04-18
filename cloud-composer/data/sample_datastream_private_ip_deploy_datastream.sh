@@ -99,24 +99,27 @@ gcloud resource-manager org-policies delete constraints/compute.restrictVpcPeeri
 
 # Create the Datastream source
 # https://cloud.google.com/sdk/gcloud/reference/datastream/connection-profiles/create
-gcloud datastream connection-profiles create postgres-cloud-sql-connection \
+gcloud datastream connection-profiles create postgres-private-ip-connection \
     --location=${DATASTREAM_REGION} \
     --type=postgresql \
     --postgresql-password=${ROOT_PASSWORD} \
     --postgresql-username=postgres \
-    --display-name=postgres-cloud-sql-connection \
+    --display-name=postgres-private-ip-connection \
     --postgresql-hostname=${cloudsql_ip_address} \
     --postgresql-port=5432 \
     --postgresql-database=${DATABASE_NAME} \
     --private-connection=cloud-sql-private-connect  \
     --project="${PROJECT_ID}"
 
+gcloud datastream connection-profiles list --location=${DATASTREAM_REGION} --project="${PROJECT_ID}" 
+# --filter="DISPLAY_NAME=postgres-private-ip-connection" --format="value(STATE)"
+
 
 # Create the Datastream destination
-gcloud datastream connection-profiles create bigquery-connection \
+gcloud datastream connection-profiles create bigquery-private-ip-connection \
     --location=${DATASTREAM_REGION} \
     --type=bigquery \
-    --display-name=bigquery-connection \
+    --display-name=bigquery-private-ip-connection \
     --project="${PROJECT_ID}"
 
 # Do we need a wait statement here while the connections get created
@@ -133,12 +136,7 @@ source_config_json=$(cat <<EOF
     "includeObjects": {
       "postgresqlSchemas": [
         {
-          "schema": "public",
-          "postgresqlTables": [
-            {
-              "table": "entries"
-            }
-          ]
+          "schema": "public"
         }
       ]
     },
@@ -149,7 +147,7 @@ EOF
 )
 
 # Write to file
-echo ${source_config_json} > /home/airflow/gcs/data/source_config.json
+echo ${source_config_json} > /home/airflow/gcs/data/source_private_ip_config.json
 echo "source_config_json: ${source_config_json}"
 
 
@@ -159,7 +157,7 @@ destination_config_json=$(cat <<EOF
   "sourceHierarchyDatasets": {
     "datasetTemplate": {
       "location": "${BIGQUERY_REGION}",
-      "datasetIdPrefix": "datastream_cdc_",
+      "datasetIdPrefix": "datastream_private_id_",
     }
   },
   "dataFreshness": "0s"
@@ -168,19 +166,19 @@ EOF
 )
 
 # Write to file
-echo ${destination_config_json} > /home/airflow/gcs/data/destination_config.json
+echo ${destination_config_json} > /home/airflow/gcs/data/destination_private_ip_config.json
 echo "destination_config_json: ${destination_config_json}"
 
 
 # Create DataStream "Stream"
 # https://cloud.google.com/sdk/gcloud/reference/datastream/streams/create
-gcloud datastream streams create datastream-demo-stream \
+gcloud datastream streams create datastream-demo-private-ip-stream \
     --location="${DATASTREAM_REGION}" \
-    --display-name=datastream-demo-stream \
-    --source=postgres-cloud-sql-connection \
-    --postgresql-source-config=/home/airflow/gcs/data/source_config.json \
-    --destination=bigquery-connection \
-    --bigquery-destination-config=/home/airflow/gcs/data/destination_config.json \
+    --display-name=datastream-demo-private-ip-stream \
+    --source=postgres-private-ip-connection \
+    --postgresql-source-config=/home/airflow/gcs/data/source_private_ip_config.json \
+    --destination=bigquery-private-ip-connection \
+    --bigquery-destination-config=/home/airflow/gcs/data/destination_private_ip_config.json \
     --backfill-all \
     --project="${PROJECT_ID}"
 
@@ -189,13 +187,13 @@ echo "Sleep 60"
 sleep 60
 
 # Show the stream attributes
-gcloud datastream streams describe datastream-demo-stream --location="${DATASTREAM_REGION}" --project="${PROJECT_ID}"
+gcloud datastream streams describe datastream-demo-private-ip-stream --location="${DATASTREAM_REGION}" --project="${PROJECT_ID}"
 
 
 echo "Sleep 60"
 sleep 60
 
 # Start the stream
-gcloud datastream streams update datastream-demo-stream --location="${DATASTREAM_REGION}" --state=RUNNING --update-mask=state --project="${PROJECT_ID}"
+gcloud datastream streams update datastream-demo-private-ip-stream --location="${DATASTREAM_REGION}" --state=RUNNING --update-mask=state --project="${PROJECT_ID}"
 
 

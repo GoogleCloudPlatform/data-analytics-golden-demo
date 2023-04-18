@@ -74,12 +74,7 @@ source_config_json=$(cat <<EOF
     "includeObjects": {
       "postgresqlSchemas": [
         {
-          "schema": "public",
-          "postgresqlTables": [
-            {
-              "table": "entries"
-            }
-          ]
+          "schema": "public"
         }
       ]
     },
