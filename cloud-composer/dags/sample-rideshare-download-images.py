@@ -37,7 +37,7 @@ default_args = {
     'dagrun_timeout' : timedelta(minutes=60),
 }
 
-project_id = os.environ['GCP_PROJECT'] 
+project_id = os.environ['ENV_PROJECT_ID'] 
 rideshare_raw_bucket = os.environ['ENV_RIDESHARE_LAKEHOUSE_RAW_BUCKET']
 
 params_list = { 

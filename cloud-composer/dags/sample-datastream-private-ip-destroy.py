@@ -15,9 +15,10 @@
 ####################################################################################
 
 # Author:  Adam Paternostro
-# Summary: Cretes a Managed notebook within your project
-#          Currently, there are no gcloud commands for this; therefore, the REST API is used.
-
+# Summary: Creates a Postgres Cloud SQL instance
+#          Creates a database
+#          Creates a table with some data
+#          Creates a datastream job from Cloud SQL to BigQuery
 
 # [START dag]
 from google.cloud import storage
@@ -30,11 +31,10 @@ import airflow
 from airflow.operators import bash_operator
 from airflow.utils import trigger_rule
 from airflow.operators.python_operator import PythonOperator
-import google.auth
-import google.auth.transport.requests
-from airflow.contrib.operators import bigquery_operator
-from airflow.providers.google.cloud.transfers.local_to_gcs import LocalFilesystemToGCSOperator
 import json
+from pathlib import Path
+import psycopg2
+
 
 default_args = {
     'owner': 'airflow',
@@ -45,22 +45,22 @@ default_args = {
     'retries': 0,
     'retry_delay': timedelta(minutes=5),
     'dagrun_timeout' : timedelta(minutes=60),
-}
-
-project_id            = os.environ['ENV_PROJECT_ID'] 
-vertex_ai_region      = os.environ['ENV_VERTEX_AI_REGION'] 
-gcp_account_name      = os.environ['ENV_GCP_ACCOUNT_NAME']
-dataproc_account_name = os.environ['ENV_DATAPROC_SERVICE_ACCOUNT']
-
-params_list = { 
-    "project_id" : project_id,
-    "vertex_ai_region": vertex_ai_region,
-    "gcp_account_name": gcp_account_name,
-    "dataproc_account_name" : dataproc_account_name
     }
 
+project_id         = os.environ['ENV_PROJECT_ID'] 
+root_password      = os.environ['ENV_RANDOM_EXTENSION'] 
+cloud_sql_region   = os.environ['ENV_CLOUD_SQL_REGION']
+datastream_region  = os.environ['ENV_DATASTREAM_REGION']
 
-with airflow.DAG('sample-create-managed-notebook',
+params_list = { 
+    'project_id'        : project_id,
+    'root_password'     : root_password, 
+    'cloud_sql_region'  : cloud_sql_region, 
+    'datastream_region' : datastream_region, 
+    }    
+
+
+with airflow.DAG('sample-datastream-private-ip-destroy',
                  default_args=default_args,
                  start_date=datetime(2021, 1, 1),
                  # Add the Composer "Data" directory which will hold the SQL/Bash scripts for deployment
@@ -68,18 +68,15 @@ with airflow.DAG('sample-create-managed-notebook',
                  # Not scheduled, trigger only
                  schedule_interval=None) as dag:
 
-    # NOTE: The service account of the Composer worker node must have access to run these commands
-
-    # Setup a BigQuery federated query connection so we can query BQ and Spanner using a single SQL command
-    create_managed_notebook = bash_operator.BashOperator(
-          task_id='create_managed_notebook',
-          bash_command='bash_create_managed_notebook.sh',
+    # Create the Postgres Instance and Database
+    datastream_private_ip_destroy = bash_operator.BashOperator(
+          task_id='datastream_private_ip_destroy',
+          bash_command='sample_datastream_private_ip_destroy.sh',
           params=params_list,
           dag=dag
-      )
-
+          )
 
     # DAG Graph
-    create_managed_notebook
+    datastream_private_ip_destroy
 
 # [END dag]

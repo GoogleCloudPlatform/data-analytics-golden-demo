@@ -43,7 +43,7 @@ default_args = {
     'dagrun_timeout' : timedelta(minutes=60),
 }
 
-project_id            = os.environ['GCP_PROJECT'] 
+project_id            = os.environ['ENV_PROJECT_ID'] 
 region                = os.environ['ENV_DATAFLOW_REGION'] 
 
 # Opens the json written out when the job was started

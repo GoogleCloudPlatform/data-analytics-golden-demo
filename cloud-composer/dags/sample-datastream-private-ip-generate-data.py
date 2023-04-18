@@ -34,7 +34,8 @@ from airflow.operators.python_operator import PythonOperator
 import json
 from pathlib import Path
 import psycopg2
-
+import time
+import random
 
 default_args = {
     'owner': 'airflow',
@@ -60,7 +61,42 @@ params_list = {
     }    
 
 
-with airflow.DAG('sample-datastream-public-ip-destroy',
+# Create the table
+# Set the datastream replication items
+def run_postgres_sql(database_password):
+    print("start run_postgres_sql")
+    ipAddress = Path('/home/airflow/gcs/data/postgres_private_ip_address.txt').read_text()
+    print("ipAddress:", ipAddress)
+
+    database_name = "guestbook"
+    postgres_user = "postgres"
+
+    conn = psycopg2.connect(
+    host=ipAddress,
+    database=database_name,
+    user=postgres_user,
+    password=database_password)
+
+    try:
+        # This runs for about 5 hours
+        cur = conn.cursor()
+        for loop in range(100000):
+            command = "INSERT INTO entries (guestName, content) values ('Guest {}', 'Arrived at {}');".format(loop,round(1 + random.random() * (100000 - 1)))
+            cur.execute(command)
+            if loop % 5 == 0:
+                time.sleep(1)
+                print("Loop: ", loop)
+                conn.commit()
+        cur.close()
+        conn.commit()
+    except (Exception, psycopg2.DatabaseError) as error:
+        print(error)
+    finally:
+        if conn is not None:
+            conn.close()
+
+
+with airflow.DAG('sample-datastream-private-ip-generate-data',
                  default_args=default_args,
                  start_date=datetime(2021, 1, 1),
                  # Add the Composer "Data" directory which will hold the SQL/Bash scripts for deployment
@@ -68,15 +104,14 @@ with airflow.DAG('sample-datastream-public-ip-destroy',
                  # Not scheduled, trigger only
                  schedule_interval=None) as dag:
 
-    # Create the Postgres Instance and Database
-    datastream_public_ip_destroy = bash_operator.BashOperator(
-          task_id='datastream_public_ip_destroy',
-          bash_command='sample_datastream_public_ip_destroy.sh',
-          params=params_list,
-          dag=dag
-          )
-
+    run_postgres_sql_task = PythonOperator(
+        task_id='run_postgres_sql_task',
+        python_callable=run_postgres_sql,
+        op_kwargs = { "database_password" : root_password },
+        dag=dag
+        )
+    
     # DAG Graph
-    datastream_public_ip_destroy
+    run_postgres_sql_task
 
 # [END dag]

@@ -45,7 +45,7 @@ default_args = {
     'dagrun_timeout' : timedelta(minutes=60),
 }
 
-project_id            = os.environ['GCP_PROJECT'] 
+project_id            = os.environ['ENV_PROJECT_ID'] 
 region                = os.environ['ENV_DATAFUSION_REGION'] 
 datafusion_name       = "data-fusion-prod-01"
 

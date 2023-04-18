@@ -486,6 +486,9 @@ resource "google_composer_environment" "composer_env" {
       }      
 
       env_variables = {
+        ENV_PROJECT_ID                           = var.project_id,
+        ENV_PROJECT_NUMBER                       = var.project_number,
+
         ENV_RAW_BUCKET                           = "raw-${var.storage_bucket}",
         ENV_PROCESSED_BUCKET                     = "processed-${var.storage_bucket}",
         ENV_CODE_BUCKET                          = "code-${var.storage_bucket}",

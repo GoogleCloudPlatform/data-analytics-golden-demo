@@ -48,6 +48,7 @@ default_args = {
     }
 
 project_id         = os.environ['ENV_PROJECT_ID'] 
+project_number     = os.environ['ENV_PROJECT_NUMBER'] 
 root_password      = os.environ['ENV_RANDOM_EXTENSION'] 
 cloud_sql_region   = os.environ['ENV_CLOUD_SQL_REGION']
 datastream_region  = os.environ['ENV_DATASTREAM_REGION']
@@ -59,7 +60,8 @@ params_list = {
     'cloud_sql_region'  : cloud_sql_region, 
     'datastream_region' : datastream_region, 
     'datastream_region' : datastream_region, 
-    'bigquery_region'   : bigquery_region
+    'bigquery_region'   : bigquery_region,
+    'project_number'    : project_number
     }    
 
 
@@ -67,7 +69,7 @@ params_list = {
 # Set the datastream replication items
 def run_postgres_sql(database_password):
     print("start run_postgres_sql")
-    ipAddress = Path('/home/airflow/gcs/data/postgres_ip_address.txt').read_text()
+    ipAddress = Path('/home/airflow/gcs/data/postgres_private_ip_address.txt').read_text()
     print("ipAddress:", ipAddress)
 
     database_name = "guestbook"
@@ -127,7 +129,7 @@ def run_postgres_sql(database_password):
             conn.close()
 
 
-with airflow.DAG('sample-datastream-public-ip-deploy',
+with airflow.DAG('sample-datastream-private-ip-deploy',
                  default_args=default_args,
                  start_date=datetime(2021, 1, 1),
                  # Add the Composer "Data" directory which will hold the SQL/Bash scripts for deployment
@@ -136,13 +138,11 @@ with airflow.DAG('sample-datastream-public-ip-deploy',
                  schedule_interval=None) as dag:
 
     # NOTE: The service account of the Composer worker node must have access to run these commands
-    # This requires the Composer service account to be an Org Admin
-    # Or you need to manaully disable the contraint sql.restrictAuthorizedNetworks (sample code is in sample_datastream_public_ip_deploy_postgres.sh)
 
     # Create the Postgres Instance and Database
     create_datastream_postgres_database_task = bash_operator.BashOperator(
           task_id='create_datastream_postgres_database_task',
-          bash_command='sample_datastream_public_ip_deploy_postgres.sh',
+          bash_command='sample_datastream_private_ip_deploy_postgres.sh',
           params=params_list,
           dag=dag
           )
@@ -157,7 +157,7 @@ with airflow.DAG('sample-datastream-public-ip-deploy',
     # Configure datastream
     bash_create_datastream_task = bash_operator.BashOperator(
           task_id='bash_create_datastream_task',
-          bash_command='sample_datastream_public_ip_deploy_datastream.sh',
+          bash_command='sample_datastream_private_ip_deploy_datastream.sh',
           params=params_list,
           dag=dag
       )

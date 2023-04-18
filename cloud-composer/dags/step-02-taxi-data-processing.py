@@ -46,7 +46,7 @@ default_args = {
     'dagrun_timeout' : timedelta(minutes=60),
 }
 
-project_id               = os.environ['GCP_PROJECT'] 
+project_id               = os.environ['ENV_PROJECT_ID'] 
 raw_bucket_name          = os.environ['ENV_RAW_BUCKET'] 
 processed_bucket_name    = os.environ['ENV_PROCESSED_BUCKET'] 
 pyspark_code             = "gs://" + raw_bucket_name + "/pyspark-code/convert_taxi_to_parquet.py"

@@ -320,3 +320,8 @@ resource "google_project_service" "service-pubsub" {
   project = var.project_id
   service = "pubsub.googleapis.com"
 }
+
+resource "google_project_service" "service-servicenetworking" {
+  project = var.project_id
+  service = "servicenetworking.googleapis.com"
+}
