@@ -27,8 +27,13 @@ Running this demo:
     - Run the managed notebook DAG: sample-create-managed-notebook (takes about 5 minutes to deploy)
     -   You should run the notebook: BigQuery-Create-TensorFlow-Model.ipynb 
     - Run the Iceberg table DAG: sample-iceberg-create-tables-update-data (takes about 15 minutes to deploy)
+    - Start the Data Quality DAG: sample-rideshare-run-data-quality (takes about 10 minutes to complete)
     - Log into https://atomfashion.io/analytics/salesoverview and switch to Premium Account
-    - Run the "CREATE VIEW `${project_id}.technical_demo.taxi_lineage`" statement below in advance so lineage has time to generate
+    - Run the below "DO THIS IN ADVANCE"
+    - Run a manual Data Profile of table: ${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.bigquery_rideshare_trip
+      - https://console.cloud.google.com/dataplex/govern/profile?project=${project_id}
+  
+  
 
 
 Clean up / Reset script:
@@ -54,6 +59,77 @@ Clean up / Reset script:
 */
 
 
+-- ***************************************************************************************************
+-- BEGIN: DO THIS IN ADVANCE (some items need some time to fully initilize)
+-- ***************************************************************************************************
+--- Create temporary dataset 
+CREATE SCHEMA `${project_id}.technical_demo`
+    OPTIONS (
+    location = "${bigquery_region}"
+    );
+
+-- Copy the data from the shared project
+CREATE TABLE `${project_id}.technical_demo.bigsearch_log_5b_5t_json_hourly_NOT_INDEXED`
+COPY `${shared_demo_project_id}.data_analytics_shared_data.bigsearch_log_5b_5t_json_hourly`;
+
+CREATE TABLE `${project_id}.technical_demo.bigsearch_log_5b_5t_json_hourly_INDEXED`
+COPY `${shared_demo_project_id}.data_analytics_shared_data.bigsearch_log_5b_5t_json_hourly`;
+
+-- This can take some time to create the index
+CREATE SEARCH INDEX idx_all_bigsearch_log_5b_5t_json_hourly 
+    ON `${project_id}.technical_demo.bigsearch_log_5b_5t_json_hourly_INDEXED` (ALL COLUMNS)
+    OPTIONS (analyzer = 'LOG_ANALYZER'); 
+
+-- It can take data lineage a few minutes to be created
+CREATE OR REPLACE VIEW `${project_id}.technical_demo.taxi_lineage` AS
+SELECT CAST(rideshare_trip_id AS STRING) AS rideshare_trip_id,
+       CAST(pickup_location_id AS INTEGER) AS pickup_location_id,
+       zone_pickup.borough AS pickup_borough,
+       CAST(pickup_datetime AS TIMESTAMP) AS pickup_datetime,
+       CAST(dropoff_location_id AS INTEGER) AS dropoff_location_id,
+       zone_dropoff.borough AS dropoff_borough,
+       CAST(dropoff_datetime AS TIMESTAMP) AS dropoff_datetime,
+       CAST(ride_distance AS FLOAT64) AS ride_distance,
+       CAST(is_airport AS BOOLEAN) AS is_airport,
+       payment.payment_type_description,
+       CAST(fare_amount AS FLOAT64) AS fare_amount,
+       CAST(tip_amount AS FLOAT64) AS tip_amount,
+       CAST(taxes_amount AS FLOAT64) AS taxes_amount,
+       CAST(total_amount AS FLOAT64) AS total_amount
+  FROM `${project_id}.${bigquery_rideshare_lakehouse_raw_dataset}.biglake_rideshare_trip_json` AS trip
+       INNER JOIN `${project_id}.${bigquery_rideshare_lakehouse_raw_dataset}.biglake_rideshare_payment_type_json` AS payment
+               ON CAST(trip.payment_type_id AS INT64) = payment.payment_type_id
+       INNER JOIN `${project_id}.${bigquery_rideshare_lakehouse_raw_dataset}.biglake_rideshare_zone_csv` zone_pickup
+               ON CAST(trip.pickup_location_id AS INT64) = zone_pickup.location_id 
+       INNER JOIN `${project_id}.${bigquery_rideshare_lakehouse_raw_dataset}.biglake_rideshare_zone_csv` zone_dropoff
+               ON CAST(trip.dropoff_location_id AS INT64) = zone_dropoff.location_id 
+UNION ALL
+SELECT CAST(rideshare_trip_id AS STRING) AS rideshare_trip_id,
+       CAST(pickup_location_id AS INTEGER) AS pickup_location_id,
+       zone_pickup.borough AS pickup_borough,
+       CAST(pickup_datetime AS TIMESTAMP) AS pickup_datetime,
+       CAST(dropoff_location_id AS INTEGER) AS dropoff_location_id,
+       zone_dropoff.borough AS dropoff_borough,
+       CAST(dropoff_datetime AS TIMESTAMP) AS dropoff_datetime,
+       CAST(ride_distance AS FLOAT64) AS ride_distance,
+       CAST(is_airport AS BOOLEAN) AS is_airport,
+       payment.payment_type_description,
+       CAST(fare_amount AS FLOAT64) AS fare_amount,
+       CAST(tip_amount AS FLOAT64) AS tip_amount,
+       CAST(taxes_amount AS FLOAT64) AS taxes_amount,
+       CAST(total_amount AS FLOAT64) AS total_amount
+  FROM `${project_id}.${bigquery_rideshare_lakehouse_raw_dataset}.biglake_rideshare_trip_parquet` AS trip
+       INNER JOIN `${project_id}.${bigquery_rideshare_lakehouse_raw_dataset}.biglake_rideshare_payment_type_json` AS payment
+               ON CAST(trip.payment_type_id AS INT64) = payment.payment_type_id
+       INNER JOIN `${project_id}.${bigquery_rideshare_lakehouse_raw_dataset}.biglake_rideshare_zone_csv` zone_pickup
+               ON CAST(trip.pickup_location_id AS INT64) = zone_pickup.location_id 
+       INNER JOIN `${project_id}.${bigquery_rideshare_lakehouse_raw_dataset}.biglake_rideshare_zone_csv` zone_dropoff
+               ON CAST(trip.dropoff_location_id AS INT64) = zone_dropoff.location_id ;
+-- ***************************************************************************************************
+-- END: DO THIS IN ADVANCE
+-- ***************************************************************************************************
+
+
 --------------------------------------------------------------------------------------------------------
 -- PART 1: See all the data - Any cloud, any speed
 --------------------------------------------------------------------------------------------------------
@@ -69,28 +145,6 @@ Clean up / Reset script:
 - DataStream
 - Spanner
 */
-
-
---- Create dataform_demo dataset 
-CREATE SCHEMA `${project_id}.technical_demo`
-    OPTIONS (
-    location = "${bigquery_region}"
-    );
-
-
--- DO THIS IN ADVANCE
--- Copy the data from the shared project
--- This can take some time to create the index
-CREATE TABLE `${project_id}.technical_demo.bigsearch_log_5b_5t_json_hourly_NOT_INDEXED`
-COPY `${shared_demo_project_id}.data_analytics_shared_data.bigsearch_log_5b_5t_json_hourly`;
-
-CREATE TABLE `${project_id}.technical_demo.bigsearch_log_5b_5t_json_hourly_INDEXED`
-COPY `${shared_demo_project_id}.data_analytics_shared_data.bigsearch_log_5b_5t_json_hourly`;
-
-CREATE SEARCH INDEX idx_all_bigsearch_log_5b_5t_json_hourly 
-    ON `${project_id}.technical_demo.bigsearch_log_5b_5t_json_hourly_INDEXED` (ALL COLUMNS)
-    OPTIONS (analyzer = 'LOG_ANALYZER'); 
-
 
 -- * Load data w/varity of file formats *
 -- Load data into BigQuery (AVRO, ORC, CSV, JSON, Parquet, Iceberg) 
@@ -149,11 +203,11 @@ SELECT * FROM `${project_id}.technical_demo.biglake_rideshare_trip_iceberg`;
 -- https://cloud.google.com/bigquery/docs/load-data-using-cross-cloud-transfer
 
 -- Create the AWS tables
-CALL `${project_id}.${aws_omni_biglake_dataset_region}.sp_demo_aws_omni_create_tables`();
+CALL `${project_id}.${aws_omni_biglake_dataset_name}.sp_demo_aws_omni_create_tables`();
 
 -- Load Data from AWS (or Azure) - Query data in a remote cloud and create a local BigQuery table
 CREATE OR REPLACE TABLE `${project_id}.technical_demo.omni_aws_taxi_rate_code` AS
-SELECT * FROM `${project_id}.${aws_omni_biglake_dataset_region}.taxi_s3_rate_code`;
+SELECT * FROM `${project_id}.${aws_omni_biglake_dataset_name}.taxi_s3_rate_code`;
 
 SELECT * FROM `${project_id}.technical_demo.omni_aws_taxi_rate_code`;
 
@@ -223,6 +277,8 @@ SELECT *
 
 
 -- Lineage from storage through tables and views
+-- This was done in advance
+/*
 CREATE VIEW `${project_id}.technical_demo.taxi_lineage` AS
 SELECT CAST(rideshare_trip_id AS STRING) AS rideshare_trip_id,
        CAST(pickup_location_id AS INTEGER) AS pickup_location_id,
@@ -267,6 +323,7 @@ SELECT CAST(rideshare_trip_id AS STRING) AS rideshare_trip_id,
                ON CAST(trip.pickup_location_id AS INT64) = zone_pickup.location_id 
        INNER JOIN `${project_id}.${bigquery_rideshare_lakehouse_raw_dataset}.biglake_rideshare_zone_csv` zone_dropoff
                ON CAST(trip.dropoff_location_id AS INT64) = zone_dropoff.location_id ;
+*/
 
 SELECT * FROM `${project_id}.technical_demo.taxi_lineage` LIMIT 100;
 
@@ -299,7 +356,7 @@ SELECT * FROM `${project_id}.rideshare_raw_zone_${random_extension}.rideshare_tr
 
 
 -- See results in data catalog 
--- https://console.cloud.google.com/dataplex/search?project=${project_id}&q=${project_id}.${bigquery_taxi_dataset}.taxi_trips
+-- https://console.cloud.google.com/dataplex/search?project=${project_id}&q=${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.bigquery_rideshare_trip
 
 
 

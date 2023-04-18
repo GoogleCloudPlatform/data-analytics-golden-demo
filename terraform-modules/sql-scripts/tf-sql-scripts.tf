@@ -732,7 +732,7 @@ resource "google_bigquery_routine" "sproc_sp_demo_technical_overview" {
     random_extension = var.random_extension
     shared_demo_project_id = var.shared_demo_project_id
     gcs_rideshare_lakehouse_raw_bucket = var.gcs_rideshare_lakehouse_raw_bucket
-    aws_omni_biglake_dataset_region = var.aws_omni_biglake_dataset_region
+    aws_omni_biglake_dataset_name = var.aws_omni_biglake_dataset_name
     aws_omni_biglake_connection = var.aws_omni_biglake_connection
     spanner_region = var.spanner_region
     gcs_rideshare_lakehouse_enriched_bucket = var.gcs_rideshare_lakehouse_enriched_bucket
