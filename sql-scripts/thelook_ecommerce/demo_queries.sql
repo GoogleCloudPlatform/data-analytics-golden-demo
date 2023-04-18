@@ -194,7 +194,7 @@ EXPORT DATA WITH CONNECTION `${shared_demo_project_id}.${aws_omni_biglake_datase
   format="PARQUET"
   )
 AS
-SELECT * FROM `${project_id}.aws_omni_biglake.distribution_centers`;
+SELECT * FROM `${project_id}.${aws_omni_biglake_dataset_name}.distribution_centers`;
 
 -- Load into BigQuery
 -- We can now join the data to the rest of data in BigQuery as well as do machine learning
@@ -206,3 +206,10 @@ LOAD DATA INTO `${project_id}.${bigquery_thelook_ecommerce_dataset}.aws_distribu
 -- View the data just loaded
 SELECT * FROM `${project_id}.${bigquery_thelook_ecommerce_dataset}.aws_distribution_centers`;
 
+
+-- Use CTAS to query and directy load into BigQuery
+-- Load query results directly into a local BigQuery table
+CREATE OR REPLACE TABLE `${project_id}.${bigquery_thelook_ecommerce_dataset}.omni_aws_query_results` AS
+SELECT * FROM `${project_id}.${aws_omni_biglake_dataset_name}.distribution_centers`;
+
+SELECT * FROM `${project_id}.${bigquery_thelook_ecommerce_dataset}.omni_aws_query_results`;
