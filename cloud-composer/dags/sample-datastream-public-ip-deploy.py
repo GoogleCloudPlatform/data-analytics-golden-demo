@@ -88,6 +88,9 @@ def run_postgres_sql(database_password):
     with open('/home/airflow/gcs/data/postgres_create_datastream_replication.sql', 'r') as file:
         replication_commands = file.readlines()
 
+    with open('/home/airflow/gcs/data/postgres_create_generated_data.sql', 'r') as file:
+        generate_data = file.readlines()
+
     """    table_commands = (
             "CREATE TABLE IF NOT EXISTS entries (guestName VARCHAR(255), content VARCHAR(255), entryID SERIAL PRIMARY KEY);",
             "INSERT INTO entries (guestName, content) values ('first guest', 'I got here!');",
@@ -122,6 +125,15 @@ def run_postgres_sql(database_password):
                 print("SQL: ", sql)
                 table_cursor.execute(sql)
         table_cursor.close()
+        conn.commit()
+
+        # Initial Sample Data
+        sample_data = conn.cursor()
+        for sql in generate_data:
+            if sql.startswith("--") == False:
+                print("SQL: ", sql)
+                sample_data.execute(sql)
+        sample_data.close()
         conn.commit()
 
         # Run Datastream necessary commands (these change by database type)
@@ -177,13 +189,7 @@ with airflow.DAG('sample-datastream-public-ip-deploy',
           dag=dag
       )
 
-    generate_data = TriggerDagRunOperator(
-        task_id="generate_data",
-        trigger_dag_id="sample-datastream-public-ip-generate-data",
-        wait_for_completion=True
-    )  
-
     # DAG Graph
-    create_datastream_postgres_database_task >> run_postgres_sql_task >> bash_create_datastream_task >> generate_data
+    create_datastream_postgres_database_task >> run_postgres_sql_task >> bash_create_datastream_task
 
 # [END dag]

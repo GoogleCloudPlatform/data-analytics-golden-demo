@@ -147,6 +147,28 @@ terraform apply \
   -var="deployment_service_account_name=${service_account_email}" \
   -var="org_id=${org_id}"
 
+# For EU deployment: see deploy-europe-region.sh
+#      -var="composer_region=europe-west1" \
+#      -var="dataform_region=europe-west1" \
+#      -var="dataplex_region=europe-west1" \
+#      -var="nat_router_region=europe-west1" \
+#      -var="dataproc_region=europe-west1" \
+#      -var="dataflow_region=europe-west1" \
+#      -var="bigquery_region=eu" \
+#      -var="bigquery_non_multi_region=europe-west1" \
+#      -var="spanner_region=europe-west1" \
+#      -var="spanner_config=eur3"\
+#      -var="datafusion_region=europe-west1" \
+#      -var="vertex_ai_region=europe-west1" \
+#      -var="cloud_function_region=europe-west1" \
+#      -var="data_catalog_region=europe-west1" \
+#      -var="appengine_region=europe-west" \
+#      -var="dataproc_serverless_region=europe-west1" \
+#      -var="cloud_sql_region=europe-west1" \
+#      -var="datastream_region=europe-west1" \
+#      -var="default_region=europe-west1" \
+#      -var="default_zone=europe-west1-b"
+
 terraform_exit_code=$?
 echo "Terraform exit code: ${terraform_exit_code}"
 
@@ -194,6 +216,28 @@ then
       -var="project_number=${project_number}" \
       -var="deployment_service_account_name=${service_account_email}" \
       -var="org_id=${org_id}"
+
+    # For EU deployment: see deploy-europe-region.sh
+    #      -var="composer_region=europe-west1" \
+    #      -var="dataform_region=europe-west1" \
+    #      -var="dataplex_region=europe-west1" \
+    #      -var="nat_router_region=europe-west1" \
+    #      -var="dataproc_region=europe-west1" \
+    #      -var="dataflow_region=europe-west1" \
+    #      -var="bigquery_region=eu" \
+    #      -var="bigquery_non_multi_region=europe-west1" \
+    #      -var="spanner_region=europe-west1" \
+    #      -var="spanner_config=eur3"\
+    #      -var="datafusion_region=europe-west1" \
+    #      -var="vertex_ai_region=europe-west1" \
+    #      -var="cloud_function_region=europe-west1" \
+    #      -var="data_catalog_region=europe-west1" \
+    #      -var="appengine_region=europe-west" \
+    #      -var="dataproc_serverless_region=europe-west1" \
+    #      -var="cloud_sql_region=europe-west1" \
+    #      -var="datastream_region=europe-west1" \
+    #      -var="default_region=europe-west1" \
+    #      -var="default_zone=europe-west1-b"
 
     # NOTE: To deploy for BQ OMNI you need to also include there arguments to the terraform apply
     #  -var="shared_demo_project_id=mySharedProject" \

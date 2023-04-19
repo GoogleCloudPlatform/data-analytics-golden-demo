@@ -61,9 +61,9 @@ gcloud compute networks peerings create vpc-main-peer \
     --peer-project="${PROJECT_ID}" \
     --peer-network=servicenetworking-googleapis-com \
     --import-custom-routes \
-    --export-custom-routes
-
-
+    --export-custom-routes \
+    --project="${PROJECT_ID}"
+    
 
 # This takes a few minutes
 gcloud datastream private-connections create cloud-sql-private-connect \

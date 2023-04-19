@@ -110,9 +110,9 @@ echo "destination_config_json: ${destination_config_json}"
 
 # Create DataStream "Stream"
 # https://cloud.google.com/sdk/gcloud/reference/datastream/streams/create
-gcloud datastream streams create datastream-demo-stream \
+gcloud datastream streams create datastream-demo-public-ip-stream \
     --location="${DATASTREAM_REGION}" \
-    --display-name=datastream-demo-stream \
+    --display-name=datastream-demo-public-ip-stream \
     --source=postgres-public-ip-connection \
     --postgresql-source-config=/home/airflow/gcs/data/source_config.json \
     --destination=bigquery-public-ip-connection \
@@ -125,13 +125,13 @@ echo "Sleep 60"
 sleep 60
 
 # Show the stream attributes
-gcloud datastream streams describe datastream-demo-stream --location="${DATASTREAM_REGION}" --project="${PROJECT_ID}"
+gcloud datastream streams describe datastream-demo-public-ip-stream --location="${DATASTREAM_REGION}" --project="${PROJECT_ID}"
 
 
 echo "Sleep 60"
 sleep 60
 
 # Start the stream
-gcloud datastream streams update datastream-demo-stream --location="${DATASTREAM_REGION}" --state=RUNNING --update-mask=state --project="${PROJECT_ID}"
+gcloud datastream streams update datastream-demo-public-ip-stream --location="${DATASTREAM_REGION}" --state=RUNNING --update-mask=state --project="${PROJECT_ID}"
 
 

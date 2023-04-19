@@ -27,7 +27,7 @@ echo "PROJECT_ID: ${PROJECT_ID}"
 echo "DATASTREAM_REGION: ${DATASTREAM_REGION}"
 
 # Delete the stream
-gcloud datastream streams delete datastream-demo-stream \
+gcloud datastream streams delete datastream-demo-public-ip-stream \
     --location="${DATASTREAM_REGION}" \
     --project="${PROJECT_ID}" \
     --quiet
