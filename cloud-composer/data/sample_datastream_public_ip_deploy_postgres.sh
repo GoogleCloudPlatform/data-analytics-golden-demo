@@ -28,13 +28,13 @@
 # Parameters
 PROJECT_ID="{{ params.project_id }}"
 ROOT_PASSWORD="{{ params.root_password }}"
-INSTANCE="postgres-cloud-sql"
+INSTANCE="postgres-public-ip"
 DATABASE_VERSION="POSTGRES_14"
 CPU="2"
 MEMORY="8GB"
 CLOUD_SQL_REGION="{{ params.cloud_sql_region }}"
 YOUR_IP_ADDRESS=$(curl ifconfig.me)
-DATABASE_NAME="guestbook"
+DATABASE_NAME="demodb"
 DATASTREAM_REGION="{{ params.datastream_region }}"
 
 DATASTREAM_IPS="ERROR-NOT-SET"
@@ -89,7 +89,7 @@ cloudsql_ip_address=$(gcloud sql instances list --filter="NAME=${INSTANCE}" --pr
 
 
 # Write out so we can read in via Python
-echo ${cloudsql_ip_address} > /home/airflow/gcs/data/postgres_ip_address.txt
+echo ${cloudsql_ip_address} > /home/airflow/gcs/data/postgres_public_ip_address.txt
 
 
 # Create the database

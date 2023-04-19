@@ -20,8 +20,8 @@
 PROJECT_ID="{{ params.project_id }}"
 ROOT_PASSWORD="{{ params.root_password }}"
 DATASTREAM_REGION="{{ params.datastream_region }}"
-DATABASE_NAME="guestbook"
-INSTANCE="postgres-cloud-sql"
+DATABASE_NAME="demodb"
+INSTANCE="postgres-public-ip"
 BIGQUERY_REGION="{{ params.bigquery_region }}"
 
 echo "PROJECT_ID: ${PROJECT_ID}"
@@ -40,12 +40,12 @@ cloudsql_ip_address=$(gcloud sql instances list --filter="NAME=${INSTANCE}" --pr
 
 # Create the Datastream source
 # https://cloud.google.com/sdk/gcloud/reference/datastream/connection-profiles/create
-gcloud datastream connection-profiles create postgres-cloud-sql-connection \
+gcloud datastream connection-profiles create postgres-public-ip-connection \
     --location=${DATASTREAM_REGION} \
     --type=postgresql \
     --postgresql-password=${ROOT_PASSWORD} \
     --postgresql-username=postgres \
-    --display-name=postgres-cloud-sql-connection \
+    --display-name=postgres-public-ip-connection \
     --postgresql-hostname=${cloudsql_ip_address} \
     --postgresql-port=5432 \
     --postgresql-database=${DATABASE_NAME} \
@@ -54,10 +54,10 @@ gcloud datastream connection-profiles create postgres-cloud-sql-connection \
 
 
 # Create the Datastream destination
-gcloud datastream connection-profiles create bigquery-connection \
+gcloud datastream connection-profiles create bigquery-public-ip-connection \
     --location=${DATASTREAM_REGION} \
     --type=bigquery \
-    --display-name=bigquery-connection \
+    --display-name=bigquery-public-ip-connection \
     --project="${PROJECT_ID}"
 
 # Do we need a wait statement here while the connections get created
@@ -95,7 +95,7 @@ destination_config_json=$(cat <<EOF
   "sourceHierarchyDatasets": {
     "datasetTemplate": {
       "location": "${BIGQUERY_REGION}",
-      "datasetIdPrefix": "datastream_cdc_",
+      "datasetIdPrefix": "datastream_public_ip_",
     }
   },
   "dataFreshness": "0s"
@@ -113,9 +113,9 @@ echo "destination_config_json: ${destination_config_json}"
 gcloud datastream streams create datastream-demo-stream \
     --location="${DATASTREAM_REGION}" \
     --display-name=datastream-demo-stream \
-    --source=postgres-cloud-sql-connection \
+    --source=postgres-public-ip-connection \
     --postgresql-source-config=/home/airflow/gcs/data/source_config.json \
-    --destination=bigquery-connection \
+    --destination=bigquery-public-ip-connection \
     --bigquery-destination-config=/home/airflow/gcs/data/destination_config.json \
     --backfill-all \
     --project="${PROJECT_ID}"

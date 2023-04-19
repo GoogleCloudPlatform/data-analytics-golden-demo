@@ -68,7 +68,7 @@ def run_postgres_sql(database_password):
     ipAddress = Path('/home/airflow/gcs/data/postgres_private_ip_address.txt').read_text()
     print("ipAddress:", ipAddress)
 
-    database_name = "guestbook"
+    database_name = "demodb"
     postgres_user = "postgres"
 
     conn = psycopg2.connect(
@@ -77,12 +77,18 @@ def run_postgres_sql(database_password):
     user=postgres_user,
     password=database_password)
 
+    with open('/home/airflow/gcs/data/postgres_create_generated_data.sql', 'r') as file:
+        generate_data = file.readlines()
+
     try:
-        # This runs for about 5 hours
+        # This runs for about 5+ hours
         cur = conn.cursor()
         for loop in range(100000):
-            command = "INSERT INTO entries (guestName, content) values ('Guest {}', 'Arrived at {}');".format(loop,round(1 + random.random() * (100000 - 1)))
-            cur.execute(command)
+            for sql in generate_data:
+                if sql.startswith("--") == False:
+                    # print("SQL: ", sql)
+                    cur.execute(sql)
+
             if loop % 5 == 0:
                 time.sleep(1)
                 print("Loop: ", loop)

@@ -20,8 +20,8 @@
 PROJECT_ID="{{ params.project_id }}"
 ROOT_PASSWORD="{{ params.root_password }}"
 DATASTREAM_REGION="{{ params.datastream_region }}"
-DATABASE_NAME="guestbook"
-INSTANCE="postgres-cloud-sql"
+DATABASE_NAME="demodb"
+INSTANCE="postgres-public-ip"
 
 echo "PROJECT_ID: ${PROJECT_ID}"
 echo "DATASTREAM_REGION: ${DATASTREAM_REGION}"
@@ -36,14 +36,14 @@ echo "Sleep 180 - incase datastream needs a minute to stop the stream"
 sleep 180
 
 # Delete the connection
-gcloud datastream connection-profiles delete postgres-cloud-sql-connection \
+gcloud datastream connection-profiles delete postgres-public-ip-connection \
     --location=${DATASTREAM_REGION} \
     --project="${PROJECT_ID}" \
     --quiet
 
 
 # Delete the connection
-gcloud datastream connection-profiles delete bigquery-connection \
+gcloud datastream connection-profiles delete bigquery-public-ip-connection \
     --location=${DATASTREAM_REGION} \
     --project="${PROJECT_ID}" \
     --quiet
@@ -56,4 +56,4 @@ gcloud sql instances delete "${INSTANCE}" \
 
 
 # Delete the BigQuery Dataset
-bq rm -r -f --dataset ${PROJECT_ID}:datastream_cdc_public
+bq rm -r -f --dataset ${PROJECT_ID}:datastream_public_ip_public

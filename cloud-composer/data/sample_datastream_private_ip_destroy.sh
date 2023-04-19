@@ -20,7 +20,7 @@
 PROJECT_ID="{{ params.project_id }}"
 ROOT_PASSWORD="{{ params.root_password }}"
 DATASTREAM_REGION="{{ params.datastream_region }}"
-DATABASE_NAME="guestbook"
+DATABASE_NAME="demodb"
 INSTANCE="postgres-private-ip"
 
 echo "PROJECT_ID: ${PROJECT_ID}"
@@ -56,4 +56,4 @@ gcloud sql instances delete "${INSTANCE}" \
 
 
 # Delete the BigQuery Dataset
-bq rm -r -f --dataset ${PROJECT_ID}:datastream_private_id_public
+bq rm -r -f --dataset ${PROJECT_ID}:datastream_private_ip_public

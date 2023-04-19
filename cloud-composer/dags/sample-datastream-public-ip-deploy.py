@@ -31,6 +31,7 @@ import airflow
 from airflow.operators import bash_operator
 from airflow.utils import trigger_rule
 from airflow.operators.python_operator import PythonOperator
+from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 import json
 from pathlib import Path
 import psycopg2
@@ -67,10 +68,10 @@ params_list = {
 # Set the datastream replication items
 def run_postgres_sql(database_password):
     print("start run_postgres_sql")
-    ipAddress = Path('/home/airflow/gcs/data/postgres_ip_address.txt').read_text()
+    ipAddress = Path('/home/airflow/gcs/data/postgres_public_ip_address.txt').read_text()
     print("ipAddress:", ipAddress)
 
-    database_name = "guestbook"
+    database_name = "demodb"
     postgres_user = "postgres"
 
     conn = psycopg2.connect(
@@ -81,22 +82,29 @@ def run_postgres_sql(database_password):
 
     # Datastream failed to read from the PostgreSQL replication slot datastream_replication_slot. Make sure that the slot exists and that Datastream has the necessary permissions to access it.
     # Datastream failed to find the publication datastream_publication. Make sure that the publication exists and that Datastream has the necessary permissions to access it.
-    table_commands = (
-        "CREATE TABLE IF NOT EXISTS entries (guestName VARCHAR(255), content VARCHAR(255), entryID SERIAL PRIMARY KEY);",
-        "INSERT INTO entries (guestName, content) values ('first guest', 'I got here!');",
-        "INSERT INTO entries (guestName, content) values ('second guest', 'Me too!');",
+    with open('/home/airflow/gcs/data/postgres_create_schema.sql', 'r') as file:
+        table_commands = file.readlines()
 
-        )
+    with open('/home/airflow/gcs/data/postgres_create_datastream_replication.sql', 'r') as file:
+        replication_commands = file.readlines()
 
-    replication_commands = (
-        "CREATE PUBLICATION datastream_publication FOR ALL TABLES;",
-        "ALTER USER " + postgres_user + " with replication;",
-        "SELECT PG_CREATE_LOGICAL_REPLICATION_SLOT('datastream_replication_slot', 'pgoutput');",
-        "CREATE USER datastream_user WITH REPLICATION IN ROLE cloudsqlsuperuser LOGIN PASSWORD '" + database_password + "';",
-        "GRANT SELECT ON ALL TABLES IN SCHEMA public TO datastream_user;",
-        "GRANT USAGE ON SCHEMA public TO datastream_user;",
-        "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO datastream_user;"
-        )
+    """    table_commands = (
+            "CREATE TABLE IF NOT EXISTS entries (guestName VARCHAR(255), content VARCHAR(255), entryID SERIAL PRIMARY KEY);",
+            "INSERT INTO entries (guestName, content) values ('first guest', 'I got here!');",
+            "INSERT INTO entries (guestName, content) values ('second guest', 'Me too!');",
+            )
+
+        replication_commands = (
+            "CREATE PUBLICATION datastream_publication FOR ALL TABLES;",
+            "ALTER USER " + postgres_user + " with replication;",
+            "SELECT PG_CREATE_LOGICAL_REPLICATION_SLOT('datastream_replication_slot', 'pgoutput');",
+            "CREATE USER datastream_user WITH REPLICATION IN ROLE cloudsqlsuperuser LOGIN PASSWORD '" + database_password + "';",
+            "GRANT SELECT ON ALL TABLES IN SCHEMA public TO datastream_user;",
+            "GRANT USAGE ON SCHEMA public TO datastream_user;",
+            "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO datastream_user;"
+            )
+    """
+    
     # You can get these through the DataStream UI.  Click through and press the button for the SQL to run.
     # CREATE PUBLICATION [MY_PUBLICATION] FOR ALL TABLES;
     # alter user <curr_user> with replication;
@@ -109,16 +117,23 @@ def run_postgres_sql(database_password):
     try:
         # Create table first in order to avoid "cannot create logical replication slot in transaction that has performed writes"
         table_cursor = conn.cursor()
-        for command in table_commands:
-            table_cursor.execute(command)
+        for sql in table_commands:
+            if sql.startswith("--") == False:
+                print("SQL: ", sql)
+                table_cursor.execute(sql)
         table_cursor.close()
         conn.commit()
 
         # Run Datastream necessary commands (these change by database type)
         replication_cur = conn.cursor()
         for command in replication_commands:
-            replication_cur.execute(command)
-            conn.commit()
+            sql = command
+            if sql.startswith("--") == False:
+                sql = sql.replace("<<POSTGRES_USER>>",postgres_user);
+                sql = sql.replace("<<DATABASE_PASSWORD>>",database_password);
+                print("SQL: ", sql)
+                replication_cur.execute(sql)
+                conn.commit()
         replication_cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
         print("ERROR: ", error)
@@ -162,7 +177,13 @@ with airflow.DAG('sample-datastream-public-ip-deploy',
           dag=dag
       )
 
+    generate_data = TriggerDagRunOperator(
+        task_id="generate_data",
+        trigger_dag_id="sample-datastream-public-ip-generate-data",
+        wait_for_completion=True
+    )  
+
     # DAG Graph
-    create_datastream_postgres_database_task >> run_postgres_sql_task >> bash_create_datastream_task
+    create_datastream_postgres_database_task >> run_postgres_sql_task >> bash_create_datastream_task >> generate_data
 
 # [END dag]

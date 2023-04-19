@@ -237,6 +237,35 @@ resource "google_storage_bucket_object" "deploy_airflow_data_bash_seed_unstructu
     ]  
 }
 
+# Upload the Airflow "data/template" files
+resource "google_storage_bucket_object" "deploy_airflow_data_postgres_create_datastream_replication" {
+  name   = "${local.local_composer_data_path}/postgres_create_datastream_replication.sql"
+  bucket = local.local_composer_bucket_name
+  source = "../cloud-composer/data/postgres_create_datastream_replication.sql"
+
+  depends_on = [ 
+    ]  
+}
+
+# Upload the Airflow "data/template" files
+resource "google_storage_bucket_object" "deploy_airflow_data_postgres_create_generated_data" {
+  name   = "${local.local_composer_data_path}/postgres_create_generated_data.sql"
+  bucket = local.local_composer_bucket_name
+  source = "../cloud-composer/data/postgres_create_generated_data.sql"
+
+  depends_on = [ 
+    ]  
+}
+
+# Upload the Airflow "data/template" files
+resource "google_storage_bucket_object" "deploy_airflow_data_postgres_create_schema" {
+  name   = "${local.local_composer_data_path}/postgres_create_schema.sql"
+  bucket = local.local_composer_bucket_name
+  source = "../cloud-composer/data/postgres_create_schema.sql"
+
+  depends_on = [ 
+    ]  
+}
 
 ####################################################################################
 # Upload the PySpark scripts

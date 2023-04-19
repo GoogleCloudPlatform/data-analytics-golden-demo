@@ -20,7 +20,7 @@
 PROJECT_ID="{{ params.project_id }}"
 ROOT_PASSWORD="{{ params.root_password }}"
 DATASTREAM_REGION="{{ params.datastream_region }}"
-DATABASE_NAME="guestbook"
+DATABASE_NAME="demodb"
 INSTANCE="postgres-private-ip"
 BIGQUERY_REGION="{{ params.bigquery_region }}"
 
@@ -34,34 +34,12 @@ wget https://packages.cloud.google.com/apt/doc/apt-key.gpg && sudo apt-key add a
 sudo apt-get update && sudo apt-get --only-upgrade install google-cloud-sdk 
 
 
-# Get ip address (of this node)
-cloudsql_ip_address=$(gcloud sql instances list --filter="NAME=${INSTANCE}" --project="${PROJECT_ID}" --format="value(PRIMARY_ADDRESS)")
-
-### HARD CODED FOR TESTING
-PROJECT_ID="data-analytics-demo-qh17rzblgk"
-PROJECT_NUMBER="178315376415"
-ROOT_PASSWORD="qh17rzblgk"
-INSTANCE="postgres-private-ip"
-DATABASE_VERSION="POSTGRES_14"
-CPU="2"
-MEMORY="8GB"
-CLOUD_SQL_REGION="us-central1"
-YOUR_IP_ADDRESS=$(curl ifconfig.me)
-DATABASE_NAME="guestbook"
-DATASTREAM_REGION="us-central1"
-
-
-# ????? Chris, why do I need to do this ??????
-
-# https://cloud.google.com/datastream/docs/create-a-private-connectivity-configuration    
-# https://cloud.google.com/vpc/docs/using-vpc-peering#creating_a_peering_configuration
-gcloud compute networks peerings create vpc-main-peer \
-    --network=vpc-main \
-    --peer-project="${PROJECT_ID}" \
-    --peer-network=servicenetworking-googleapis-com \
-    --import-custom-routes \
-    --export-custom-routes
-
+# MANUAL! MANUAL! MANUAL! MANUAL! MANUAL! MANUAL! MANUAL! MANUAL! MANUAL! MANUAL! 
+# You need to run this as an Org Admin (Manually)
+# org_id=$(gcloud organizations list --format="value(name)")
+# project_id=$(gcloud config get project)
+# gcloud organizations add-iam-policy-binding "${org_id}" --member="serviceAccount:composer-service-account@${project_id}.iam.gserviceaccount.com" --role="roles/orgpolicy.policyAdmin"
+# MANUAL! MANUAL! MANUAL! MANUAL! MANUAL! MANUAL! MANUAL! MANUAL! MANUAL! MANUAL! 
 
 # You need to be an Org Admin to disable this policy
 # Constraint  violated for the specified VPC network. Peering with Datastream's network is not allowed.
@@ -74,6 +52,19 @@ ENDOFFILE
 gcloud org-policies set-policy restrictVpcPeering.yaml --project=${PROJECT_ID}
 
 
+# Question for Chris?
+
+# https://cloud.google.com/datastream/docs/create-a-private-connectivity-configuration    
+# https://cloud.google.com/vpc/docs/using-vpc-peering#creating_a_peering_configuration
+gcloud compute networks peerings create vpc-main-peer \
+    --network=vpc-main \
+    --peer-project="${PROJECT_ID}" \
+    --peer-network=servicenetworking-googleapis-com \
+    --import-custom-routes \
+    --export-custom-routes
+
+
+
 # This takes a few minutes
 gcloud datastream private-connections create cloud-sql-private-connect \
   --location=${DATASTREAM_REGION} \
@@ -81,6 +72,7 @@ gcloud datastream private-connections create cloud-sql-private-connect \
   --subnet="10.7.0.0/29" \
   --vpc="vpc-main" \
   --project="${PROJECT_ID}"
+
 
 # Loop while it creates
 stateDataStream="CREATING"
@@ -97,6 +89,11 @@ while [ "$stateDataStream" = "CREATING" ]
 gcloud resource-manager org-policies delete constraints/compute.restrictVpcPeering --project="${PROJECT_ID}"
 
 
+# Get ip address (of this node)
+cloudsql_ip_address=$(gcloud sql instances list --filter="NAME=${INSTANCE}" --project="${PROJECT_ID}" --format="value(PRIMARY_ADDRESS)")
+echo "cloudsql_ip_address: ${cloudsql_ip_address}"
+
+
 # Create the Datastream source
 # https://cloud.google.com/sdk/gcloud/reference/datastream/connection-profiles/create
 gcloud datastream connection-profiles create postgres-private-ip-connection \
@@ -111,9 +108,6 @@ gcloud datastream connection-profiles create postgres-private-ip-connection \
     --private-connection=cloud-sql-private-connect  \
     --project="${PROJECT_ID}"
 
-gcloud datastream connection-profiles list --location=${DATASTREAM_REGION} --project="${PROJECT_ID}" 
-# --filter="DISPLAY_NAME=postgres-private-ip-connection" --format="value(STATE)"
-
 
 # Create the Datastream destination
 gcloud datastream connection-profiles create bigquery-private-ip-connection \
@@ -121,6 +115,7 @@ gcloud datastream connection-profiles create bigquery-private-ip-connection \
     --type=bigquery \
     --display-name=bigquery-private-ip-connection \
     --project="${PROJECT_ID}"
+
 
 # Do we need a wait statement here while the connections get created
 # Should call apis to test for sure

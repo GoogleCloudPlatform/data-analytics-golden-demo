@@ -240,7 +240,7 @@ SELECT COUNT(*) AS Cnt FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips_p
 
 -- * Datastream *
 -- https://console.cloud.google.com/datastream/streams?project=${project_id}
-SELECT COUNT(*) FROM `${project_id}.datastream_cdc_public.entries` ;
+SELECT COUNT(*) FROM `${project_id}.datastream_public_ip_public.entries` ;
 
 
 -- * Spanner Federated Query *

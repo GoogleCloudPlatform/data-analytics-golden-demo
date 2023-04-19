@@ -28,10 +28,10 @@ CPU="2"
 MEMORY="8GB"
 CLOUD_SQL_REGION="{{ params.cloud_sql_region }}"
 YOUR_IP_ADDRESS=$(curl ifconfig.me)
-DATABASE_NAME="guestbook"
+DATABASE_NAME="demodb"
 DATASTREAM_REGION="{{ params.datastream_region }}"
 
-
+# This will be moved to Terraform
 # Create networking connections
 # https://cloud.google.com/sql/docs/mysql/configure-private-services-access
 gcloud compute addresses create google-managed-services-vpc-main \
@@ -49,6 +49,7 @@ gcloud services vpc-peerings connect \
     --ranges=google-managed-services-vpc-main \
     --network="vpc-main" \
     --project="${PROJECT_ID}" 
+
 
 gcloud projects add-iam-policy-binding "${PROJECT_ID}"  \
     --member=serviceAccount:service-${PROJECT_NUMBER}@service-networking.iam.gserviceaccount.com \
