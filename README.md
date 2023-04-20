@@ -54,7 +54,8 @@ Deploys a end to end working demo of a Data Analytics / Data Processing using Go
 | | Delta.io | Read delta.io files using manifest files.  Native support is on its way!. | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/sql-scripts/taxi_dataset/sp_demo_delta_lake.sql) | Video |
 | | Analytics Hub - Setup Data Sharing Demo | Setup your own publisher and test a subscriber across organizations with RLS security. | Link | Video |
 | | Analytics Hub - Consuming Publisher Data | Show Analytics Hub and a query use case for sharing data between an eCommerce site and a supplier. | Link | Video |
-| Pricing / Costs | Pricing | Show the aspects of pricing and how to control costs and view costs | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/sql-scripts/taxi_dataset/sp_demo_pricing.sql) | Video |
+| Pricing / Costs | Pricing | Show the aspects of pricing/slots and how to control costs and view costs | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/sql-scripts/taxi_dataset/sp_demo_pricing.sql) | Video |
+| Pricing / Costs | Pricing | Gathers all queries and shows the on-demand cost accross an organization | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/sql-scripts/taxi_dataset/sp_demo_pricing_ondemand_usage.sql) | Video |
 | Dataform | Dataform Demo | Perform an ETL with Dataform using data streamed into a table from Pub/Sub and join lookup data with a BigLake table.  Also, shows Git integration. | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/sql-scripts/taxi_dataset/sp_create_demo_dataform.sql) | Video |
 
 
@@ -106,7 +107,7 @@ Deploys a end to end working demo of a Data Analytics / Data Processing using Go
 
 
 ### To deploy the project to a different region
-1. The project by default deploys to US multi-region, us-central1 and us-west2
+1. The project by default deploys to US multi-region and us-central1 and
 2. To deploy to another region review the code in [deploy-europe-region.sh](deploy-europe-region.sh)
 
 

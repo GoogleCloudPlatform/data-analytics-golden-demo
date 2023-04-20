@@ -171,6 +171,19 @@ resource "google_compute_network" "default_network" {
   mtu                     = 1460
 }
 
+resource "google_compute_subnetwork" "compute_subnet" {
+  project       = var.project_id
+  name          = "compute-subnet"
+  ip_cidr_range = "10.1.0.0/16"
+  region        = var.cloud_sql_region
+  network       = google_compute_network.default_network.id
+  private_ip_google_access = true
+
+  depends_on = [
+    google_compute_network.default_network
+  ]
+}
+
 # Firewall for NAT Router
 resource "google_compute_firewall" "subnet_firewall_rule" {
   project  = var.project_id
@@ -188,7 +201,7 @@ resource "google_compute_firewall" "subnet_firewall_rule" {
   allow {
     protocol = "udp"
   }
-  source_ranges = ["10.2.0.0/16","10.3.0.0/16","10.4.0.0/16","10.5.0.0/16"]
+  source_ranges = ["10.1.0.0/16","10.2.0.0/16","10.3.0.0/16","10.4.0.0/16","10.5.0.0/16"]
 
   depends_on = [
     google_compute_subnetwork.composer_subnet,

@@ -211,6 +211,7 @@ END FOR;
 
 -- Export the data (some people transfer this to have an analysis performed)
 -- You should delete the data from this path before exporting
+-- You can also share the data via Analytics Hub
 EXPORT DATA
 OPTIONS (
    uri = 'gs://${raw_bucket_name}/query_usage/*.parquet',

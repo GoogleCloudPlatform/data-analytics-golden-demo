@@ -238,6 +238,16 @@ resource "google_storage_bucket_object" "deploy_airflow_data_bash_seed_unstructu
 }
 
 # Upload the Airflow "data/template" files
+resource "google_storage_bucket_object" "deploy_airflow_data_cloud_sql_reverse_proxy_template" {
+  name   = "${local.local_composer_data_path}/cloud_sql_reverse_proxy_template.sh"
+  bucket = local.local_composer_bucket_name
+  source = "../cloud-composer/data/cloud_sql_reverse_proxy_template.sh"
+
+  depends_on = [ 
+    ]  
+}
+
+# Upload the Airflow "data/template" files
 resource "google_storage_bucket_object" "deploy_airflow_data_postgres_create_datastream_replication" {
   name   = "${local.local_composer_data_path}/postgres_create_datastream_replication.sql"
   bucket = local.local_composer_bucket_name

@@ -57,3 +57,15 @@ gcloud sql instances delete "${INSTANCE}" \
 
 # Delete the BigQuery Dataset
 bq rm -r -f --dataset ${PROJECT_ID}:datastream_private_ip_public
+
+
+# Delete the firewall rule for the SQL Proxy
+gcloud compute firewall-rules delete cloud-sql-ssh-firewall-rule \
+    --project="${PROJECT_ID}" \
+    --quiet
+
+
+# Delete the SQL Reverse Proxy VM
+gcloud compute instances delete sql-reverse-proxy \
+    --project="${PROJECT_ID}" \
+    --quiet

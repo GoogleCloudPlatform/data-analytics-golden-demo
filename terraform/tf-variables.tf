@@ -81,7 +81,7 @@ variable "billing_account" {
 variable "default_region" {
   type        = string
   description = "The GCP region to deploy."
-  default     = "us-west2"
+  default     = "us-central1"
   validation {
     condition     = length(var.default_region) > 0
     error_message = "The region is required."
@@ -91,7 +91,7 @@ variable "default_region" {
 variable "default_zone" {
   type        = string
   description = "The GCP zone in the region. Must be in the region."
-  default     = "us-west2-a"
+  default     = "us-central1-a"
   validation {
     condition     = length(var.default_zone) > 0
     error_message = "The zone is required."
@@ -103,7 +103,7 @@ variable "default_zone" {
 variable "composer_region" {
   type        = string
   description = "The GCP region for composer."
-  default     = "us-west2"
+  default     = "us-central1"
   validation {
     condition     = length(var.composer_region) > 0
     error_message = "The composer region is required."
@@ -133,7 +133,7 @@ variable "dataplex_region" {
 variable "nat_router_region" {
   type        = string
   description = "The GCP region for teh NAT Router."
-  default     = "us-west2"
+  default     = "us-central1"
   validation {
     condition     = length(var.nat_router_region) > 0
     error_message = "The nat router region is required."
@@ -143,7 +143,7 @@ variable "nat_router_region" {
 variable "dataproc_region" {
   type        = string
   description = "The GCP region for dataproc."
-  default     = "us-west2"
+  default     = "us-central1"
   validation {
     condition     = length(var.dataproc_region) > 0
     error_message = "The dataproc region is required."
@@ -153,7 +153,7 @@ variable "dataproc_region" {
 variable "dataflow_region" {
   type        = string
   description = "The GCP region for dataflow."
-  default     = "us-west2"
+  default     = "us-central1"
   validation {
     condition     = length(var.dataflow_region) > 0
     error_message = "The dataflow region is required."
@@ -184,7 +184,7 @@ variable "bigquery_non_multi_region" {
 variable "spanner_region" {
   type        = string
   description = "The GCP region for the main Spanner node."
-  default     = "us-west2"
+  default     = "us-central1"
   validation {
     condition     = length(var.spanner_region) > 0
     error_message = "The spanner region is required."
@@ -195,7 +195,7 @@ variable "spanner_region" {
 variable "spanner_config" {
   type        = string
   description = "This should be a spanner config in the region.  See: https://cloud.google.com/spanner/docs/instance-configurations#available-configurations-multi-region"
-  default     = "nam8"
+  default     = "nam6"
   validation {
     condition     = length(var.spanner_config) > 0
     error_message = "The spanner_config is required."
@@ -206,7 +206,7 @@ variable "spanner_config" {
 variable "datafusion_region" {
   type        = string
   description = "The GCP region for the datafusion."
-  default     = "us-west2"
+  default     = "us-central1"
   validation {
     condition     = length(var.datafusion_region) > 0
     error_message = "The datafusion region is required."

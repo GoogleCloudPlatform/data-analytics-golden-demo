@@ -56,13 +56,13 @@ gcloud org-policies set-policy restrictVpcPeering.yaml --project=${PROJECT_ID}
 
 # https://cloud.google.com/datastream/docs/create-a-private-connectivity-configuration    
 # https://cloud.google.com/vpc/docs/using-vpc-peering#creating_a_peering_configuration
-gcloud compute networks peerings create vpc-main-peer \
-    --network=vpc-main \
-    --peer-project="${PROJECT_ID}" \
-    --peer-network=servicenetworking-googleapis-com \
-    --import-custom-routes \
-    --export-custom-routes \
-    --project="${PROJECT_ID}"
+#gcloud compute networks peerings create vpc-main-peer \
+#    --network=vpc-main \
+#    --peer-project="${PROJECT_ID}" \
+#    --peer-network=servicenetworking-googleapis-com \
+#    --import-custom-routes \
+#    --export-custom-routes \
+#    --project="${PROJECT_ID}"
     
 # RAN BY HAND
 # Created some firewall rules (ingress and egress for the 10.6 and 10.7 network )
