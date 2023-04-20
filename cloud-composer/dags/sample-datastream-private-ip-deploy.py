@@ -184,15 +184,14 @@ with airflow.DAG('sample-datastream-private-ip-deploy',
         )    
 
     # Configure datastream
-    #bash_create_datastream_task = bash_operator.BashOperator(
-    #      task_id='bash_create_datastream_task',
-    #      bash_command='sample_datastream_private_ip_deploy_datastream.sh',
-    #      params=params_list,
-    #      dag=dag
-    #    )
+    bash_create_datastream_task = bash_operator.BashOperator(
+          task_id='bash_create_datastream_task',
+          bash_command='sample_datastream_private_ip_deploy_datastream.sh',
+          params=params_list,
+          dag=dag
+        )
 
     # DAG Graph
-    create_datastream_postgres_database_task >> run_postgres_sql_task 
-    # >> bash_create_datastream_task 
+    create_datastream_postgres_database_task >> run_postgres_sql_task >> bash_create_datastream_task 
 
 # [END dag]

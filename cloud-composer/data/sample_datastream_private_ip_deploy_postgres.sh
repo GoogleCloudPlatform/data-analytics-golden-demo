@@ -138,6 +138,25 @@ gcloud compute firewall-rules create cloud-sql-ssh-firewall-rule \
     --target-tags=ssh-firewall-tag \
     --project=${PROJECT_ID}
 
+# Datastream Ingress/Egress Rule
+gcloud compute firewall-rules create datastream-ingress-rule \
+    --direction=INGRESS \
+    --priority=1000 \
+    --network=vpc-main \
+    --action=ALLOW \
+    --rules=tcp:5432 \
+    --source-ranges=10.6.0.0/16,10.7.0.0/29 \
+    --project=${PROJECT_ID}
+
+gcloud compute firewall-rules create datastream-egress-rule \
+    --direction=EGRESS \
+    --priority=1000 \
+    --network=vpc-main \
+    --action=ALLOW \
+    --rules=tcp:5432 \
+    --source-ranges=10.6.0.0/16,10.7.0.0/29 \
+    --project=${PROJECT_ID}
+
 # Install postgresql client (you must do this, this is not done since it can take a while and the automation might break)
 echo '############## How to connect to the Cloud SQL "##############'
 echo 'In the Cloud Console go to Compute Engine -> VM Instances'

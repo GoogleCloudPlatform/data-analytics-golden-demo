@@ -12,4 +12,4 @@ sudo iptables -t nat -A PREROUTING -p tcp -m tcp --dport $DB_PORT -j DNAT --to-d
 sudo iptables -t nat -A POSTROUTING -j SNAT --to-source $LOCAL_IP_ADDR
 
 # list tables
-# sudo iptables -L -v -n | more
+# sudo iptables -L -n -t nat

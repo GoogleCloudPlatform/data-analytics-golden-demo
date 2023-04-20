@@ -69,3 +69,15 @@ gcloud compute firewall-rules delete cloud-sql-ssh-firewall-rule \
 gcloud compute instances delete sql-reverse-proxy \
     --project="${PROJECT_ID}" \
     --quiet
+
+
+# Delete the firewall rules
+gcloud compute firewall-rules delete datastream-ingress-rule \
+    --project="${PROJECT_ID}" \
+    --quiet
+
+
+# Delete the firewall rules
+gcloud compute firewall-rules delete datastream-egress-rule \
+    --project="${PROJECT_ID}" \
+    --quiet
