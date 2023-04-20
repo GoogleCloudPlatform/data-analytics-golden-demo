@@ -138,13 +138,20 @@ gcloud compute firewall-rules create cloud-sql-ssh-firewall-rule \
     --target-tags=ssh-firewall-tag \
     --project=${PROJECT_ID}
 
-# This is done for you in the script: cloud_sql_reverse_proxy_template.sh when the VM is provised
-# sudo apt-get install wget ca-certificates
-# wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
-# sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -cs`-pgdg main" >> /etc/apt/sources.list.d/pgdg.list'
-# sudo apt-get update
-# sudo apt-get install postgresql postgresql-contrib
+# Install postgresql client (you must do this, this is not done since it can take a while and the automation might break)
+echo '############## How to connect to the Cloud SQL "##############'
+echo 'In the Cloud Console go to Compute Engine -> VM Instances'
+echo 'For this sql-reverse-proxy VM click SSH -> Open in Browser Window'
+echo 'Run the bolow command (only needed to do once)'
+echo "sudo apt-get install wget ca-certificates"
+echo "wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -"
+echo "sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -cs`-pgdg main" >> /etc/apt/sources.list.d/pgdg.list'"
+echo "sudo apt-get update -y"
+echo "sudo apt-get install postgresql postgresql-contrib -y"
 
-# To connect and run SQL commands use this:
-# psql --host=10.6.0.3 --user=postgres --password
-# <<ENTER PASSWORD>>
+echo "To connect and run SQL commands use this:"
+echo "psql --host=${cloudsql_ip_address} --user=postgres --password"
+echo "<<ENTER PASSWORD>>"
+echo "\connect demodb;"
+echo "<<ENTER PASSWORD>>"
+echo "SELECT * FROM entries;"
