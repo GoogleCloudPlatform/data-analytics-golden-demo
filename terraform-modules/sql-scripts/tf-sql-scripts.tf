@@ -257,27 +257,6 @@ resource "google_bigquery_routine" "sproc_sp_demo_biglake" {
 
 }
 
-####################################################################################
-# sp_demo_bigquery_pricing
-####################################################################################
-resource "google_bigquery_routine" "sproc_sp_demo_bigquery_pricing" {
-  dataset_id      = var.bigquery_taxi_dataset
-  routine_id      = "sp_demo_bigquery_pricing"
-  routine_type    = "PROCEDURE"
-  language        = "SQL"
-  definition_body = templatefile("../sql-scripts/taxi_dataset/sp_demo_bigquery_pricing.sql", 
-  { 
-    project_id = var.project_id
-    
-    bigquery_taxi_dataset = var.bigquery_taxi_dataset
-    bigquery_thelook_ecommerce_dataset = var.bigquery_thelook_ecommerce_dataset
-    bucket_name = "processed-${var.storage_bucket}"
-    bigquery_region = var.bigquery_region
-    gcp_account_name = var.gcp_account_name
-  })
-
-}
-
 
 ####################################################################################
 # sp_demo_bigquery_queries
@@ -644,6 +623,49 @@ resource "google_bigquery_routine" "sproc_sp_demo_materialized_views_joins" {
   })
 }
 
+
+####################################################################################
+# sp_demo_pricing
+####################################################################################
+resource "google_bigquery_routine" "sproc_sp_demo_pricing" {
+  dataset_id      = var.bigquery_taxi_dataset
+  routine_id      = "sp_demo_pricing"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = templatefile("../sql-scripts/taxi_dataset/sp_demo_pricing.sql", 
+  { 
+    project_id = var.project_id
+    
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+    bigquery_thelook_ecommerce_dataset = var.bigquery_thelook_ecommerce_dataset
+    bucket_name = "processed-${var.storage_bucket}"
+    bigquery_region = var.bigquery_region
+    gcp_account_name = var.gcp_account_name
+  })
+
+}
+
+
+####################################################################################
+# sp_demo_pricing_ondemand_usage
+####################################################################################
+resource "google_bigquery_routine" "sproc_sp_demo_pricing_ondemand_usage" {
+  dataset_id      = var.bigquery_taxi_dataset
+  routine_id      = "sp_demo_pricing_ondemand_usage"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = templatefile("../sql-scripts/taxi_dataset/sp_demo_pricing_ondemand_usage.sql", 
+  { 
+    project_id = var.project_id
+    
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+    bigquery_thelook_ecommerce_dataset = var.bigquery_thelook_ecommerce_dataset
+    raw_bucket_name = "raw-${var.storage_bucket}"
+    bigquery_region = var.bigquery_region
+    gcp_account_name = var.gcp_account_name
+  })
+
+}
 
 ####################################################################################
 # sp_demo_security_col_encryption_shredding

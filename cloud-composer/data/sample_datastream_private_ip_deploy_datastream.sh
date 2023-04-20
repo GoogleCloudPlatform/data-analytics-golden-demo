@@ -64,6 +64,23 @@ gcloud compute networks peerings create vpc-main-peer \
     --export-custom-routes \
     --project="${PROJECT_ID}"
     
+# RAN BY HAND
+# Created some firewall rules (ingress and egress for the 10.6 and 10.7 network )
+# Does servicenetworking-googleapis-com need custom routes exported?
+# gcloud compute networks peerings create vpc-main-peer \
+#     --network=vpc-main \
+#     --peer-project="data-analytics-demo-dird5jzska" \
+#     --peer-network=peering-5705ed9c-c859-49c0-a787-e20e0e020e71 \
+#     --import-custom-routes \
+#     --export-custom-routes \
+#     --project="data-analytics-demo-dird5jzska"
+# gcloud compute networks peerings create vpc-main-peer-1 \
+#     --network=vpc-main \
+#     --peer-project="data-analytics-demo-dird5jzska" \
+#     --peer-network=servicenetworking-googleapis-com \
+#     --import-custom-routes \
+#     --export-custom-routes \
+#     --project="data-analytics-demo-dird5jzska"
 
 # This takes a few minutes
 gcloud datastream private-connections create cloud-sql-private-connect \
