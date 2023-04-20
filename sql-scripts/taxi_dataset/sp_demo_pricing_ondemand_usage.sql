@@ -19,6 +19,11 @@
 -- NOTE: This is designed for a single BigQuery region
 --       This gets the past 3 months of data (from first day of prior 3 months)
 
+-- WARNING!!!
+-- This will return every SQL statement run in BigQuery which could be A LOT!
+-- Also, if you have PII data in your SQL (Passport, Date of Birth), it can be shown in some of the SQL statements
+-- WARNING!!!
+
 -- SEARCH and REPLACE the below values (if downloading this single file from GitHub)
 -- Replace Region          -> Search for: region-${bigquery_region}
 -- Replace Dataset         -> Search for: ${bigquery_taxi_dataset}
@@ -205,6 +210,7 @@ END FOR;
 
 
 -- Export the data (some people transfer this to have an analysis performed)
+-- You should delete the data from this path before exporting
 EXPORT DATA
 OPTIONS (
    uri = 'gs://${raw_bucket_name}/query_usage/*.parquet',
@@ -231,7 +237,7 @@ SELECT * FROM ${bigquery_taxi_dataset}.usage_export_project ORDER BY result DESC
 
 -- See some results
 SELECT project_id, query, SUM(est_on_demand_cost) AS est_sum_on_demand_cost, COUNT(1) AS Cnt
-  FROM `${bigquery_taxi_dataset}.usage_import_data`
+  FROM `${bigquery_taxi_dataset}.usage_export_data`
  GROUP BY 1, 2
- ORDER BY est_sum_on_demand_cost DESC
+ ORDER BY 3 DESC
  LIMIT 100;
