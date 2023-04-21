@@ -22,6 +22,9 @@ ROOT_PASSWORD="{{ params.root_password }}"
 DATASTREAM_REGION="{{ params.datastream_region }}"
 DATABASE_NAME="demodb"
 INSTANCE="postgres-private-ip"
+CLOUD_SQL_REGION="{{ params.cloud_sql_region }}"
+ZONE="${CLOUD_SQL_REGION}-a"
+
 
 echo "PROJECT_ID: ${PROJECT_ID}"
 echo "DATASTREAM_REGION: ${DATASTREAM_REGION}"
@@ -68,6 +71,7 @@ gcloud compute firewall-rules delete cloud-sql-ssh-firewall-rule \
 # Delete the SQL Reverse Proxy VM
 gcloud compute instances delete sql-reverse-proxy \
     --project="${PROJECT_ID}" \
+    --zone="${ZONE}" \
     --quiet
 
 

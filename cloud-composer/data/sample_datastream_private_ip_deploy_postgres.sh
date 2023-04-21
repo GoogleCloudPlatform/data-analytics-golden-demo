@@ -31,6 +31,7 @@ YOUR_IP_ADDRESS=$(curl ifconfig.me)
 DATABASE_NAME="demodb"
 DATASTREAM_REGION="{{ params.datastream_region }}"
 CODE_BUCKET_NAME="{{ params.code_bucket_name }}"
+ZONE="${CLOUD_SQL_REGION}-a"
 
 # Since the current version of gCloud 
 # This is NOT a best practice
@@ -100,14 +101,14 @@ gsutil cp /home/airflow/gcs/data/cloud_sql_reverse_proxy.sh gs://${CODE_BUCKET_N
 # Create the reverse proxy machine
 gcloud compute instances create sql-reverse-proxy \
     --project="${PROJECT_ID}" \
-    --zone=${CLOUD_SQL_REGION}-a \
+    --zone=${ZONE} \
     --machine-type=e2-small \
     --network-interface=subnet=compute-subnet,no-address \
     --maintenance-policy=MIGRATE \
     --provisioning-model=STANDARD \
     --service-account=${PROJECT_NUMBER}-compute@developer.gserviceaccount.com \
     --scopes=https://www.googleapis.com/auth/devstorage.read_only,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring.write,https://www.googleapis.com/auth/servicecontrol,https://www.googleapis.com/auth/service.management.readonly,https://www.googleapis.com/auth/trace.append \
-    --create-disk=auto-delete=yes,boot=yes,device-name=sql-reverse-proxy,image=projects/debian-cloud/global/images/debian-11-bullseye-v20230411,mode=rw,size=10,type=projects/data-analytics-demo-dird5jzska/zones/us-central1-a/diskTypes/pd-balanced \
+    --create-disk=auto-delete=yes,boot=yes,device-name=sql-reverse-proxy,image=projects/debian-cloud/global/images/debian-11-bullseye-v20230411,mode=rw,size=10,type=projects/${PROJECT_ID}/zones/${ZONE}/diskTypes/pd-balanced \
     --shielded-secure-boot \
     --shielded-vtpm \
     --shielded-integrity-monitoring \
@@ -154,7 +155,7 @@ gcloud compute firewall-rules create datastream-egress-rule \
     --network=vpc-main \
     --action=ALLOW \
     --rules=tcp:5432 \
-    --source-ranges=10.6.0.0/16,10.7.0.0/29 \
+    --destination-ranges=10.6.0.0/16,10.7.0.0/29 \
     --project=${PROJECT_ID}
 
 # Install postgresql client (you must do this, this is not done since it can take a while and the automation might break)

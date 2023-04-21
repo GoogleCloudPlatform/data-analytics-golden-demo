@@ -107,8 +107,8 @@ gcloud resource-manager org-policies delete constraints/compute.restrictVpcPeeri
 
 
 # Get ip address (of this node)
-cloudsql_ip_address=$(gcloud sql instances list --filter="NAME=${INSTANCE}" --project="${PROJECT_ID}" --format="value(PRIMARY_ADDRESS)")
-echo "cloudsql_ip_address: ${cloudsql_ip_address}"
+reverse_proxy_vm_ip_address=$(gcloud compute instances list --filter="NAME=sql-reverse-proxy" --project="${PROJECT_ID}" --format="value(INTERNAL_IP)")
+echo "reverse_proxy_vm_ip_address: ${reverse_proxy_vm_ip_address}"
 
 
 # Create the Datastream source
@@ -119,7 +119,7 @@ gcloud datastream connection-profiles create postgres-private-ip-connection \
     --postgresql-password=${ROOT_PASSWORD} \
     --postgresql-username=postgres \
     --display-name=postgres-private-ip-connection \
-    --postgresql-hostname=${cloudsql_ip_address} \
+    --postgresql-hostname=${reverse_proxy_vm_ip_address} \
     --postgresql-port=5432 \
     --postgresql-database=${DATABASE_NAME} \
     --private-connection=cloud-sql-private-connect  \
