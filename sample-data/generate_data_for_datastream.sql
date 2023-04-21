@@ -90,8 +90,9 @@ WITH TaxiData AS
                 CAST(CAST(ROUND(   1 + RAND() * (28   - 1))    AS INT) AS STRING)) AS DATE) AS credit_card_expiration_date
   FROM TaxiData
 )
-SELECT FORMAT("INSERT INTO payment (driver_id,credit_card_name,credit_card_number,credit_card_expiration_date,credit_card_security_code,pickup_location_id,dropoff_location_id,total_amount) VALUES (%s,'%s','%s','%s','%s', %s, %s, %s);",
+SELECT FORMAT("INSERT INTO payment (driver_id,ride_date,credit_card_name,credit_card_number,credit_card_expiration_date,credit_card_security_code,pickup_location_id,dropoff_location_id,total_amount) VALUES (%s,'%s','%s','%s','%s','%s', %s, %s, %s);",
        CAST(CAST(ROUND(   1 + RAND() * (1000   - 1))    AS INT) AS STRING),
+       CONCAT(CAST(EXTRACT(YEAR FROM Pickup_DateTime) AS STRING),'-',CAST(EXTRACT(MONTH FROM Pickup_DateTime) AS STRING),'-',CAST(EXTRACT(DAY FROM Pickup_DateTime) AS STRING)),  --yyyy-mm-dd
        name_order.name,
        credit_card_number,
        CONCAT(CAST(EXTRACT(YEAR  FROM credit_card_expiration_date) AS STRING),'-',
