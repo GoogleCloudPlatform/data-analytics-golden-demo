@@ -47,4 +47,3 @@ destination_config.json
 iam_restrictAuthorizedNetworks.yaml
 source_config.json
 .venv/*
-temp_ generate_data_for_datastream.sql

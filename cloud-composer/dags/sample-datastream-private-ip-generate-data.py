@@ -84,7 +84,9 @@ def run_postgres_sql(database_password):
         # This runs for about 5+ hours
         cur = conn.cursor()
         for loop in range(10):
+            loop_count = 0
             for sql in generate_data:
+                loop_count = loop_count + 1
                 if sql.startswith("--"):
                     continue
                 if sql.strip() == "":
@@ -92,10 +94,13 @@ def run_postgres_sql(database_password):
 
                 # print("SQL: ", sql)
                 cur.execute(sql)
-                if loop % 10 == 0:
-                    time.sleep(1)
-                    print("Loop: ", loop)
+                if loop_count % 25 == 0:
                     conn.commit()
+                    print("loop_count: ", loop_count)
+                # For the test data there is 1000 drivers, so we want them sync quickly (They are sorted at the top of the SQL list)
+                if loop_count > 1500 and loop_count % 50 == 0:
+                    time.sleep(1)
+                    print("time.sleep(1)")
         cur.close()
         conn.commit()
     except (Exception, psycopg2.DatabaseError) as error:
