@@ -135,7 +135,7 @@ destination_config_json=$(cat <<EOF
   "sourceHierarchyDatasets": {
     "datasetTemplate": {
       "location": "${BIGQUERY_REGION}",
-      "datasetIdPrefix": "datastream_private_id_",
+      "datasetIdPrefix": "datastream_private_ip_",
     }
   },
   "dataFreshness": "0s"

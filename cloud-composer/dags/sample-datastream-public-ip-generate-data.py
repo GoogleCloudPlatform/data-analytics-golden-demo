@@ -83,16 +83,15 @@ def run_postgres_sql(database_password):
     try:
         # This runs for about 5+ hours
         cur = conn.cursor()
-        for loop in range(100000):
+        for loop in range(10):
             for sql in generate_data:
                 if sql.startswith("--") == False:
                     # print("SQL: ", sql)
                     cur.execute(sql)
-
-            if loop % 5 == 0:
-                time.sleep(1)
-                print("Loop: ", loop)
-                conn.commit()
+                if loop % 10 == 0:
+                    time.sleep(1)
+                    print("Loop: ", loop)
+                    conn.commit()
         cur.close()
         conn.commit()
     except (Exception, psycopg2.DatabaseError) as error:
