@@ -34,76 +34,42 @@ wget https://packages.cloud.google.com/apt/doc/apt-key.gpg && sudo apt-key add a
 sudo apt-get update && sudo apt-get --only-upgrade install google-cloud-sdk 
 
 
-# MANUAL! MANUAL! MANUAL! MANUAL! MANUAL! MANUAL! MANUAL! MANUAL! MANUAL! MANUAL! 
-# You need to run this as an Org Admin (Manually)
-# org_id=$(gcloud organizations list --format="value(name)")
-# project_id=$(gcloud config get project)
-# gcloud organizations add-iam-policy-binding "${org_id}" --member="serviceAccount:composer-service-account@${project_id}.iam.gserviceaccount.com" --role="roles/orgpolicy.policyAdmin"
-# MANUAL! MANUAL! MANUAL! MANUAL! MANUAL! MANUAL! MANUAL! MANUAL! MANUAL! MANUAL! 
-
+# *** NOTE: THIS HAS BEEN MOVED TO TERRAFORM ***
 # You need to be an Org Admin to disable this policy
 # Constraint  violated for the specified VPC network. Peering with Datastream's network is not allowed.
-cat > restrictVpcPeering.yaml << ENDOFFILE
-name: projects/$PROJECT_ID/policies/compute.restrictVpcPeering
-spec:
-  rules:
-  - allowAll: true
-ENDOFFILE
-gcloud org-policies set-policy restrictVpcPeering.yaml --project=${PROJECT_ID}
+# cat > restrictVpcPeering.yaml << ENDOFFILE
+# name: projects/$PROJECT_ID/policies/compute.restrictVpcPeering
+# spec:
+#   rules:
+#   - allowAll: true
+# ENDOFFILE
+# gcloud org-policies set-policy restrictVpcPeering.yaml --project=${PROJECT_ID}
 
 
-# Question for Chris?
-
-# https://cloud.google.com/datastream/docs/create-a-private-connectivity-configuration    
-# https://cloud.google.com/vpc/docs/using-vpc-peering#creating_a_peering_configuration
-#gcloud compute networks peerings create vpc-main-peer \
-#    --network=vpc-main \
-#    --peer-project="${PROJECT_ID}" \
-#    --peer-network=servicenetworking-googleapis-com \
-#    --import-custom-routes \
-#    --export-custom-routes \
-#    --project="${PROJECT_ID}"
-    
-# RAN BY HAND
-# Created some firewall rules (ingress and egress for the 10.6 and 10.7 network )
-# Does servicenetworking-googleapis-com need custom routes exported?
-# gcloud compute networks peerings create vpc-main-peer \
-#     --network=vpc-main \
-#     --peer-project="data-analytics-demo-dird5jzska" \
-#     --peer-network=peering-5705ed9c-c859-49c0-a787-e20e0e020e71 \
-#     --import-custom-routes \
-#     --export-custom-routes \
-#     --project="data-analytics-demo-dird5jzska"
-# gcloud compute networks peerings create vpc-main-peer-1 \
-#     --network=vpc-main \
-#     --peer-project="data-analytics-demo-dird5jzska" \
-#     --peer-network=servicenetworking-googleapis-com \
-#     --import-custom-routes \
-#     --export-custom-routes \
-#     --project="data-analytics-demo-dird5jzska"
-
+# *** NOTE: THIS HAS BEEN MOVED TO TERRAFORM ***
 # This takes a few minutes
-gcloud datastream private-connections create cloud-sql-private-connect \
-  --location=${DATASTREAM_REGION} \
-  --display-name=cloud-sql-private-connect \
-  --subnet="10.7.0.0/29" \
-  --vpc="vpc-main" \
-  --project="${PROJECT_ID}"
+# gcloud datastream private-connections create cloud-sql-private-connect \
+#   --location=${DATASTREAM_REGION} \
+#   --display-name=cloud-sql-private-connect \
+#   --subnet="10.7.0.0/29" \
+#   --vpc="vpc-main" \
+#   --project="${PROJECT_ID}"
 
 
 # Loop while it creates
-stateDataStream="CREATING"
-while [ "$stateDataStream" = "CREATING" ]
-    do
-    sleep 5
-    stateDataStream=$(gcloud datastream private-connections list --location=${DATASTREAM_REGION} --project="${PROJECT_ID}" --filter="DISPLAY_NAME=cloud-sql-private-connect" --format="value(STATE)")
-    echo "stateDataStream: $stateDataStream"
-    done
+# stateDataStream="CREATING"
+# while [ "$stateDataStream" = "CREATING" ]
+#     do
+#     sleep 5
+#     stateDataStream=$(gcloud datastream private-connections list --location=${DATASTREAM_REGION} --project="${PROJECT_ID}" --filter="DISPLAY_NAME=cloud-sql-private-connect" --format="value(STATE)")
+#     echo "stateDataStream: $stateDataStream"
+#     done
 
 
+# *** NOTE: THIS HAS BEEN MOVED TO TERRAFORM ***
 # Re-enable this constraint (Your composer service account needs to be an Org Admin)
 # Deleting it will set it back to "Inherit from parent"
-gcloud resource-manager org-policies delete constraints/compute.restrictVpcPeering --project="${PROJECT_ID}"
+# gcloud resource-manager org-policies delete constraints/compute.restrictVpcPeering --project="${PROJECT_ID}"
 
 
 # Get ip address (of this node)

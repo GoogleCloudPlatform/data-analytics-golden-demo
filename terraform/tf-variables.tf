@@ -275,6 +275,16 @@ variable "cloud_sql_region" {
   }
 }
 
+variable "cloud_sql_zone" {
+  type        = string
+  description = "The GCP zone for Cloud SQL and Datastream reverse proxy."
+  default     = "us-central1-a"
+  validation {
+    condition     = length(var.cloud_sql_zone) > 0
+    error_message = "The Cloud SQL zone is required."
+  }
+}
+
 # NOTE: If you change this you need to change the script: bash_create_datastream_cdc_public_ip.sh 
 # This is in the Airflow data directory
 # The IP (allowlist) are hardcoded

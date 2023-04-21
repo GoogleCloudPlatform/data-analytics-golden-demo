@@ -51,12 +51,14 @@ project_id         = os.environ['ENV_PROJECT_ID']
 root_password      = os.environ['ENV_RANDOM_EXTENSION'] 
 cloud_sql_region   = os.environ['ENV_CLOUD_SQL_REGION']
 datastream_region  = os.environ['ENV_DATASTREAM_REGION']
+cloud_sql_zone     = os.environ['ENV_CLOUD_SQL_ZONE'] 
 
 params_list = { 
     'project_id'        : project_id,
     'root_password'     : root_password, 
     'cloud_sql_region'  : cloud_sql_region, 
     'datastream_region' : datastream_region, 
+    'cloud_sql_zone'    : cloud_sql_zone
     }    
 
 

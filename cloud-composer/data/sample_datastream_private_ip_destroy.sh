@@ -23,7 +23,7 @@ DATASTREAM_REGION="{{ params.datastream_region }}"
 DATABASE_NAME="demodb"
 INSTANCE="postgres-private-ip"
 CLOUD_SQL_REGION="{{ params.cloud_sql_region }}"
-ZONE="${CLOUD_SQL_REGION}-a"
+CLOUD_SQL_ZONE="{{ params.cloud_sql_zone }}"
 
 
 echo "PROJECT_ID: ${PROJECT_ID}"
@@ -37,6 +37,7 @@ gcloud datastream streams delete datastream-demo-private-ip-stream \
 
 echo "Sleep 180 - incase datastream needs a minute to stop the stream"
 sleep 180
+
 
 # Delete the connection
 gcloud datastream connection-profiles delete postgres-private-ip-connection \
@@ -62,26 +63,29 @@ gcloud sql instances delete "${INSTANCE}" \
 bq rm -r -f --dataset ${PROJECT_ID}:datastream_private_ip_public
 
 
+# *** NOTE: THIS HAS BEEN MOVED TO TERRAFORM *** -> The rules are left in place and are not deleted
 # Delete the firewall rule for the SQL Proxy
-gcloud compute firewall-rules delete cloud-sql-ssh-firewall-rule \
-    --project="${PROJECT_ID}" \
-    --quiet
+# gcloud compute firewall-rules delete cloud-sql-ssh-firewall-rule \
+#     --project="${PROJECT_ID}" \
+#     --quiet
 
 
 # Delete the SQL Reverse Proxy VM
 gcloud compute instances delete sql-reverse-proxy \
     --project="${PROJECT_ID}" \
-    --zone="${ZONE}" \
+    --zone="${CLOUD_SQL_ZONE}" \
     --quiet
 
 
+# *** NOTE: THIS HAS BEEN MOVED TO TERRAFORM *** -> The rules are left in place and are not deleted
 # Delete the firewall rules
-gcloud compute firewall-rules delete datastream-ingress-rule \
-    --project="${PROJECT_ID}" \
-    --quiet
+# gcloud compute firewall-rules delete datastream-ingress-rule \
+#     --project="${PROJECT_ID}" \
+#     --quiet
 
 
+# *** NOTE: THIS HAS BEEN MOVED TO TERRAFORM *** -> The rules are left in place and are not deleted
 # Delete the firewall rules
-gcloud compute firewall-rules delete datastream-egress-rule \
-    --project="${PROJECT_ID}" \
-    --quiet
+# gcloud compute firewall-rules delete datastream-egress-rule \
+#    --project="${PROJECT_ID}" \
+#    --quiet

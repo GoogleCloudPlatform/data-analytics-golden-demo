@@ -35,6 +35,7 @@ gcloud datastream streams delete datastream-demo-public-ip-stream \
 echo "Sleep 180 - incase datastream needs a minute to stop the stream"
 sleep 180
 
+
 # Delete the connection
 gcloud datastream connection-profiles delete postgres-public-ip-connection \
     --location=${DATASTREAM_REGION} \

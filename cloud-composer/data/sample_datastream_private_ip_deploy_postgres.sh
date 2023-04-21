@@ -31,36 +31,38 @@ YOUR_IP_ADDRESS=$(curl ifconfig.me)
 DATABASE_NAME="demodb"
 DATASTREAM_REGION="{{ params.datastream_region }}"
 CODE_BUCKET_NAME="{{ params.code_bucket_name }}"
-ZONE="${CLOUD_SQL_REGION}-a"
+CLOUD_SQL_ZONE="{{ params.cloud_sql_zone }}"
 
 # Since the current version of gCloud 
 # This is NOT a best practice
 wget https://packages.cloud.google.com/apt/doc/apt-key.gpg && sudo apt-key add apt-key.gpg
 sudo apt-get update && sudo apt-get --only-upgrade install google-cloud-sdk 
 
-# This will be moved to Terraform
+# *** NOTE: THIS HAS BEEN MOVED TO TERRAFORM ***
 # Create networking connections
 # https://cloud.google.com/sql/docs/mysql/configure-private-services-access
-gcloud compute addresses create google-managed-services-vpc-main \
-    --global \
-    --purpose=VPC_PEERING \
-    --addresses=10.6.0.0 \
-    --prefix-length=16 \
-    --network="vpc-main" \
-    --project="${PROJECT_ID}"  
+# gcloud compute addresses create google-managed-services-vpc-main \
+#     --global \
+#     --purpose=VPC_PEERING \
+#     --addresses=10.6.0.0 \
+#     --prefix-length=16 \
+#     --network="vpc-main" \
+#     --project="${PROJECT_ID}"  
 
 
+# *** NOTE: THIS HAS BEEN MOVED TO TERRAFORM ***
 # https://cloud.google.com/sql/docs/mysql/configure-private-services-access#create_a_private_connection
-gcloud services vpc-peerings connect \
-    --service=servicenetworking.googleapis.com \
-    --ranges=google-managed-services-vpc-main \
-    --network="vpc-main" \
-    --project="${PROJECT_ID}" 
+# gcloud services vpc-peerings connect \
+#     --service=servicenetworking.googleapis.com \
+#     --ranges=google-managed-services-vpc-main \
+#     --network="vpc-main" \
+#     --project="${PROJECT_ID}" 
 
 
-gcloud projects add-iam-policy-binding "${PROJECT_ID}"  \
-    --member=serviceAccount:service-${PROJECT_NUMBER}@service-networking.iam.gserviceaccount.com \
-    --role=roles/servicenetworking.serviceAgent
+# *** NOTE: THIS HAS BEEN MOVED TO TERRAFORM ***
+# gcloud projects add-iam-policy-binding "${PROJECT_ID}"  \
+#     --member=serviceAccount:service-${PROJECT_NUMBER}@service-networking.iam.gserviceaccount.com \
+#     --role=roles/servicenetworking.serviceAgent
 
 
 # https://cloud.google.com/sdk/gcloud/reference/sql/instances/create
@@ -101,14 +103,14 @@ gsutil cp /home/airflow/gcs/data/cloud_sql_reverse_proxy.sh gs://${CODE_BUCKET_N
 # Create the reverse proxy machine
 gcloud compute instances create sql-reverse-proxy \
     --project="${PROJECT_ID}" \
-    --zone=${ZONE} \
+    --zone=${CLOUD_SQL_ZONE} \
     --machine-type=e2-small \
     --network-interface=subnet=compute-subnet,no-address \
     --maintenance-policy=MIGRATE \
     --provisioning-model=STANDARD \
     --service-account=${PROJECT_NUMBER}-compute@developer.gserviceaccount.com \
     --scopes=https://www.googleapis.com/auth/devstorage.read_only,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring.write,https://www.googleapis.com/auth/servicecontrol,https://www.googleapis.com/auth/service.management.readonly,https://www.googleapis.com/auth/trace.append \
-    --create-disk=auto-delete=yes,boot=yes,device-name=sql-reverse-proxy,image=projects/debian-cloud/global/images/debian-11-bullseye-v20230411,mode=rw,size=10,type=projects/${PROJECT_ID}/zones/${ZONE}/diskTypes/pd-balanced \
+    --create-disk=auto-delete=yes,boot=yes,device-name=sql-reverse-proxy,image=projects/debian-cloud/global/images/debian-11-bullseye-v20230411,mode=rw,size=10,type=projects/${PROJECT_ID}/zones/${CLOUD_SQL_ZONE}/diskTypes/pd-balanced \
     --shielded-secure-boot \
     --shielded-vtpm \
     --shielded-integrity-monitoring \
@@ -124,39 +126,42 @@ echo "reverse_proxy_vm_ip_address: ${reverse_proxy_vm_ip_address}"
 echo ${reverse_proxy_vm_ip_address} > /home/airflow/gcs/data/reverse_proxy_vm_ip_address.txt
 
 
+# *** NOTE: THIS HAS BEEN MOVED TO TERRAFORM ***
 # To connect to the Cloud SQL instance, we can use the reverse proxy VM
 # Connect via SSH "Open in Browser Window"
 # Add a Firewall rule (you will get a message like "VM is missing firewall rule allowing TCP ingress traffic from 35.235.240.0/20 on port 22.")
 # The below IP is for cloud shell (which changes by region!!!)   You might need to change the below IP address of 35.235.240.0/20
 # You can update the firewall rule in the Console
-gcloud compute firewall-rules create cloud-sql-ssh-firewall-rule \
-    --direction=INGRESS \
-    --priority=1000 \
-    --network=vpc-main \
-    --action=ALLOW \
-    --rules=tcp:22 \
-    --source-ranges=35.235.240.0/20 \
-    --target-tags=ssh-firewall-tag \
-    --project=${PROJECT_ID}
+# gcloud compute firewall-rules create cloud-sql-ssh-firewall-rule \
+#     --direction=INGRESS \
+#     --priority=1000 \
+#     --network=vpc-main \
+#     --action=ALLOW \
+#     --rules=tcp:22 \
+#     --source-ranges=35.235.240.0/20 \
+#     --target-tags=ssh-firewall-tag \
+#     --project=${PROJECT_ID}
 
+# *** NOTE: THIS HAS BEEN MOVED TO TERRAFORM ***
 # Datastream Ingress/Egress Rule
-gcloud compute firewall-rules create datastream-ingress-rule \
-    --direction=INGRESS \
-    --priority=1000 \
-    --network=vpc-main \
-    --action=ALLOW \
-    --rules=tcp:5432 \
-    --source-ranges=10.6.0.0/16,10.7.0.0/29 \
-    --project=${PROJECT_ID}
+# gcloud compute firewall-rules create datastream-ingress-rule \
+#     --direction=INGRESS \
+#     --priority=1000 \
+#     --network=vpc-main \
+#     --action=ALLOW \
+#     --rules=tcp:5432 \
+#     --source-ranges=10.6.0.0/16,10.7.0.0/29 \
+#     --project=${PROJECT_ID}
 
-gcloud compute firewall-rules create datastream-egress-rule \
-    --direction=EGRESS \
-    --priority=1000 \
-    --network=vpc-main \
-    --action=ALLOW \
-    --rules=tcp:5432 \
-    --destination-ranges=10.6.0.0/16,10.7.0.0/29 \
-    --project=${PROJECT_ID}
+# *** NOTE: THIS HAS BEEN MOVED TO TERRAFORM ***
+# gcloud compute firewall-rules create datastream-egress-rule \
+#     --direction=EGRESS \
+#     --priority=1000 \
+#     --network=vpc-main \
+#     --action=ALLOW \
+#     --rules=tcp:5432 \
+#     --destination-ranges=10.6.0.0/16,10.7.0.0/29 \
+#     --project=${PROJECT_ID}
 
 # Install postgresql client (you must do this, this is not done since it can take a while and the automation might break)
 echo '############## How to connect to the Cloud SQL "##############'

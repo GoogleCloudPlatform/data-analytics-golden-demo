@@ -53,6 +53,7 @@ variable "data_catalog_region" {}
 variable "appengine_region" {}
 variable "dataproc_serverless_region" {}
 variable "cloud_sql_region" {}
+variable "cloud_sql_zone" {}
 variable "datastream_region" {}
 
 variable "storage_bucket" {}
@@ -234,6 +235,154 @@ resource "google_compute_router_nat" "nat-config" {
 
   depends_on = [
     google_compute_router.nat-router
+  ]
+}
+
+
+####################################################################################
+# Datastream
+####################################################################################
+# Firewall rule for Cloud Shell to SSH in Compute VMs
+# A compute VM will be deployed as a SQL Reverse Proxy for Datastream private connectivity
+resource "google_compute_firewall" "cloud_shell_ssh_firewall_rule" {
+  project  = var.project_id
+  name     = "cloud-shell-ssh-firewall-rule"
+  network  = google_compute_network.default_network.id
+
+  allow {
+    protocol = "tcp"
+    ports    = ["22"]
+  }
+
+  direction = "INGRESS"
+  target_tags = ["ssh-firewall-tag"]
+
+  source_ranges = ["35.235.240.0/20"]
+
+  depends_on = [
+    google_compute_network.default_network
+  ]
+}
+
+
+# Datastream ingress rules for SQL Reverse Proxy communication
+resource "google_compute_firewall" "datastream_ingress_rule_firewall_rule" {
+  project  = var.project_id
+  name     = "datastream-ingress-rule"
+  network  = google_compute_network.default_network.id
+
+  allow {
+    protocol = "tcp"
+    ports    = ["5432"]
+  }
+
+  direction = "INGRESS"
+
+  source_ranges = ["10.6.0.0/16","10.7.0.0/29"]
+
+  depends_on = [
+    google_compute_network.default_network
+  ]
+}
+
+
+# Datastream egress rules for SQL Reverse Proxy communication
+resource "google_compute_firewall" "datastream_egress_rule_firewall_rule" {
+  project  = var.project_id
+  name     = "datastream-egress-rule"
+  network  = google_compute_network.default_network.id
+
+  allow {
+    protocol = "tcp"
+    ports    = ["5432"]
+  }
+
+  direction = "EGRESS"
+
+  destination_ranges = ["10.6.0.0/16","10.7.0.0/29"]
+
+  depends_on = [
+    google_compute_network.default_network
+  ]
+}
+
+
+# Create the Datastream Private Connection (takes a while so it is done here and not created on the fly in Airflow)
+resource "google_datastream_private_connection" "datastream_cloud-sql-private-connect" {
+    project               = var.project_id
+    display_name          = "cloud-sql-private-connect"
+    location              = var.datastream_region
+    private_connection_id = "cloud-sql-private-connect"
+
+    vpc_peering_config {
+        vpc = google_compute_network.default_network.id
+        subnet = "10.7.0.0/29"
+    }
+
+  depends_on = [
+    google_compute_network.default_network
+  ]    
+}
+
+
+# For Cloud SQL / Datastream demo 
+# Allocate an IP address range
+# https://cloud.google.com/sql/docs/mysql/configure-private-services-access#allocate-ip-address-range   
+resource "google_compute_global_address" "google_compute_global_address_vpc_main" {
+  project       = var.project_id
+  name          = "google-managed-services-vpc-main"
+  purpose       = "VPC_PEERING"
+  address_type  = "INTERNAL"
+  prefix_length = 16
+  network       = google_compute_network.default_network.id
+
+  depends_on = [
+    google_compute_network.default_network
+  ] 
+}
+
+
+# Create a private connection
+# https://cloud.google.com/sql/docs/mysql/configure-private-services-access#create_a_private_connection
+resource "google_service_networking_connection" "google_service_networking_connection_default" {
+  # project                 = var.project_id
+  network                 = google_compute_network.default_network.id
+  service                 = "servicenetworking.googleapis.com"
+  reserved_peering_ranges = [google_compute_global_address.google_compute_global_address_vpc_main.name]
+
+  depends_on = [
+    google_compute_network.default_network,
+    google_compute_global_address.google_compute_global_address_vpc_main
+  ] 
+}
+
+# Force the service account to get created so we can grant permisssions
+resource "google_project_service_identity" "service_identity_servicenetworking" {
+  project  = var.project_id
+  service  = "servicenetworking.googleapis.com"
+  depends_on = [
+    google_compute_network.default_network,
+    google_service_networking_connection.google_service_networking_connection_default
+  ]
+}
+
+resource "time_sleep" "service_identity_servicenetworking_time_delay" {
+  depends_on      = [google_project_service_identity.service_identity_servicenetworking]
+  create_duration = "30s"
+}
+
+
+# Add permissions for the database to get created
+resource "google_project_iam_member" "iam_service_networking" {
+  project  = var.project_id
+  role     = "roles/servicenetworking.serviceAgent"
+  member   = "serviceAccount:${google_project_service_identity.service_identity_servicenetworking.email}"
+  #member   = "serviceAccount:service-${var.project_number}@service-networking.iam.gserviceaccount.com "
+
+  depends_on = [
+    google_compute_network.default_network,
+    google_service_networking_connection.google_service_networking_connection_default,
+    time_sleep.service_identity_servicenetworking_time_delay
   ]
 }
 
@@ -524,6 +673,7 @@ resource "google_composer_environment" "composer_env" {
         ENV_DATAPROC_SERVERLESS_SUBNET           = "projects/${var.project_id}/regions/${var.dataproc_serverless_region}/subnetworks/dataproc-serverless-subnet",
         ENV_DATAPROC_SERVERLESS_SUBNET_NAME      = google_compute_subnetwork.dataproc_serverless_subnet.name,
         ENV_CLOUD_SQL_REGION                     = var.cloud_sql_region,
+        ENV_CLOUD_SQL_ZONE                       = var.cloud_sql_zone,
         ENV_DATASTREAM_REGION                    = var.datastream_region,
 
         ENV_DATAPROC_BUCKET                      = "dataproc-${var.storage_bucket}",

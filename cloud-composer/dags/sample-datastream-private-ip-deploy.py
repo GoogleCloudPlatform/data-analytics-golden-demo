@@ -54,7 +54,8 @@ root_password      = os.environ['ENV_RANDOM_EXTENSION']
 cloud_sql_region   = os.environ['ENV_CLOUD_SQL_REGION']
 datastream_region  = os.environ['ENV_DATASTREAM_REGION']
 bigquery_region    = os.environ['ENV_BIGQUERY_REGION'] 
-code_bucket_name   = os.environ['ENV_CODE_BUCKET'] 
+code_bucket_name   = os.environ['ENV_CODE_BUCKET']
+cloud_sql_zone     = os.environ['ENV_CLOUD_SQL_ZONE'] 
 
 params_list = { 
     'project_id'        : project_id,
@@ -64,7 +65,8 @@ params_list = {
     'datastream_region' : datastream_region, 
     'bigquery_region'   : bigquery_region,
     'project_number'    : project_number,
-    'code_bucket_name'  : code_bucket_name
+    'code_bucket_name'  : code_bucket_name,
+    'cloud_sql_zone'    : cloud_sql_zone
     }
 
 
