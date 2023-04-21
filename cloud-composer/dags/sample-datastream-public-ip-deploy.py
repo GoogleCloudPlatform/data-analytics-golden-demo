@@ -88,9 +88,6 @@ def run_postgres_sql(database_password):
     with open('/home/airflow/gcs/data/postgres_create_datastream_replication.sql', 'r') as file:
         replication_commands = file.readlines()
 
-    with open('/home/airflow/gcs/data/postgres_create_generated_data.sql', 'r') as file:
-        generate_data = file.readlines()
-
     """    table_commands = (
             "CREATE TABLE IF NOT EXISTS entries (guestName VARCHAR(255), content VARCHAR(255), entryID SERIAL PRIMARY KEY);",
             "INSERT INTO entries (guestName, content) values ('first guest', 'I got here!');",
@@ -121,31 +118,28 @@ def run_postgres_sql(database_password):
         # Create table first in order to avoid "cannot create logical replication slot in transaction that has performed writes"
         table_cursor = conn.cursor()
         for sql in table_commands:
-            if sql.startswith("--") == False:
-                print("SQL: ", sql)
-                table_cursor.execute(sql)
+            print("SQL: ", sql)
+            if sql.startswith("--"):
+                continue
+            if sql.strip() == "":
+                continue
+            table_cursor.execute(sql)
         table_cursor.close()
-        conn.commit()
-
-        # Initial Sample Data
-        sample_data = conn.cursor()
-        for sql in generate_data:
-            if sql.startswith("--") == False:
-                print("SQL: ", sql)
-                sample_data.execute(sql)
-        sample_data.close()
         conn.commit()
 
         # Run Datastream necessary commands (these change by database type)
         replication_cur = conn.cursor()
         for command in replication_commands:
             sql = command
-            if sql.startswith("--") == False:
-                sql = sql.replace("<<POSTGRES_USER>>",postgres_user);
-                sql = sql.replace("<<DATABASE_PASSWORD>>",database_password);
-                print("SQL: ", sql)
-                replication_cur.execute(sql)
-                conn.commit()
+            print("SQL: ", sql)
+            if sql.startswith("--"):
+                continue
+            if sql.strip() == "":
+                continue
+            sql = sql.replace("<<POSTGRES_USER>>",postgres_user);
+            sql = sql.replace("<<DATABASE_PASSWORD>>",database_password);
+            replication_cur.execute(sql)
+            conn.commit()
         replication_cur.close()
     except (Exception, psycopg2.DatabaseError) as error:
         print("ERROR: ", error)

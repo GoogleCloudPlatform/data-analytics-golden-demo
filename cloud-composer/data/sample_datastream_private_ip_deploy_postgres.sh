@@ -175,8 +175,6 @@ echo "sudo apt-get update -y"
 echo "sudo apt-get install postgresql postgresql-contrib -y"
 
 echo "To connect and run SQL commands use this:"
-echo "psql --host=${cloudsql_ip_address} --user=postgres --password"
-echo "<<ENTER PASSWORD>>"
-echo "\connect demodb;"
+echo "psql --host=${cloudsql_ip_address} --user=postgres --password" -d demodb
 echo "<<ENTER PASSWORD>>"
 echo "SELECT * FROM entries;"

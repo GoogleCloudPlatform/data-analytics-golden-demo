@@ -173,5 +173,3 @@ sleep 60
 
 # Start the stream
 gcloud datastream streams update datastream-demo-private-ip-stream --location="${DATASTREAM_REGION}" --state=RUNNING --update-mask=state --project="${PROJECT_ID}"
-
-

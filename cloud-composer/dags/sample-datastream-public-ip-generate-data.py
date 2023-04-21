@@ -85,9 +85,12 @@ def run_postgres_sql(database_password):
         cur = conn.cursor()
         for loop in range(10):
             for sql in generate_data:
-                if sql.startswith("--") == False:
-                    # print("SQL: ", sql)
-                    cur.execute(sql)
+                # print("SQL: ", sql)
+                if sql.startswith("--"):
+                    continue
+                if sql.strip() == "":
+                    continue
+                cur.execute(sql)
                 if loop % 10 == 0:
                     time.sleep(1)
                     print("Loop: ", loop)

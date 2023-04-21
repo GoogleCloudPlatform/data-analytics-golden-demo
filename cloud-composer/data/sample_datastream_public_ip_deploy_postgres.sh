@@ -53,11 +53,12 @@ fi
 
 echo "DATASTREAM_IPS: ${DATASTREAM_IPS}"
 
+# YOU MUST DO THIS BY HAND
 # Disable this constraint (Your composer service account needs to be an Org Admin)
-gcloud resource-manager org-policies disable-enforce sql.restrictAuthorizedNetworks --project="${PROJECT_ID}"
+# gcloud resource-manager org-policies disable-enforce sql.restrictAuthorizedNetworks --project="${PROJECT_ID}"
 
 # wait
-sleep 180
+# sleep 180
 
 
 # https://cloud.google.com/sdk/gcloud/reference/sql/instances/create
@@ -82,7 +83,8 @@ gcloud sql instances create "${INSTANCE}" \
 # Re-enable this constraint (Your composer service account needs to be an Org Admin)
 # This will keep it as Custom: gcloud resource-manager org-policies enable-enforce sql.restrictAuthorizedNetworks --project="${PROJECT_ID}"
 # Deleting it will set it back to "Inherit from parent"
-gcloud resource-manager org-policies delete sql.restrictAuthorizedNetworks --project="${PROJECT_ID}"
+# YOU MUST DO THIS BY HAND
+# gcloud resource-manager org-policies delete sql.restrictAuthorizedNetworks --project="${PROJECT_ID}"
 
 # Get ip address (of this node)
 cloudsql_ip_address=$(gcloud sql instances list --filter="NAME=${INSTANCE}" --project="${PROJECT_ID}" --format="value(PRIMARY_ADDRESS)")
@@ -108,9 +110,7 @@ gcloud sql databases create ${DATABASE_NAME} --instance="${INSTANCE}" --project=
 
 # Run this in pgAdmin
 # https://cloud.google.com/sql/docs/postgres/connect-instance-cloud-shell
-# CREATE TABLE entries (guestName VARCHAR(255), content VARCHAR(255), entryID SERIAL PRIMARY KEY);
-# INSERT INTO entries (guestName, content) values ('first guest', 'I got here!');
-# INSERT INTO entries (guestName, content) values ('second guest', 'Me too!');
+# CREATE TABLE xxx
 
 # Datastream required configuration (replicating All tables by default)
 # CREATE PUBLICATION datastream_publication FOR ALL TABLES;
