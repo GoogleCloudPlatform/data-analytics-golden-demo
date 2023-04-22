@@ -1,5 +1,5 @@
 # Data-Analytics-Golden-Demo
-Deploys a end to end working demo of a Data Analytics / Data Processing using Google Cloud.  All the services are connected, configured and ready to run.  All the artifacts are deployed and you can immedately start using.  This is a great tool for exporting Google's Data Cloud and can be used as a foundation for other demos.  The system has 70 to 700 million rows of data so that you can show performance, scale and integration of various services.  
+Deploys a end to end working demo of a Data Analytics / Data Processing using Google Cloud.  All the services are connected, configured and ready to run.  All the artifacts are deployed and you can immedately start using.  This is a great tool for exporting Google's Data Cloud and can be used as a foundation for other demos.  The system has 70 to 700+ million rows of data so that you can show performance, scale and integration of various services. Private IP addresses are used throughout the system, public IP addresses are avoided or called out as an exception.
 
 ![alt tag](./images/Architecture-Diagram.png)
 

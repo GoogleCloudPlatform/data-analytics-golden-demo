@@ -136,12 +136,11 @@ ORDER BY driver_data.driver_name ;
 -- See the payment data to see customers who are paying with credit cards
 WITH credit_card_data AS
 (
-    SELECT DISTINCT driver_id, ride_date, credit_card_name,credit_card_number,  pickup_location_id, dropoff_location_id, total_amount
+    SELECT driver_id, ride_date, passenger_id,credit_card_number,  pickup_location_id, dropoff_location_id, total_amount
       FROM `${project_id}.datastream_public_ip_public.payment`
-    WHERE driver_id <= 1000 -- The data generator can generate dups so we clean here
 )
 SELECT driver.driver_name,
-       payment.credit_card_name,
+       payment.passenger_id,
        payment.credit_card_number,
        trips.*
   FROM `${project_id}.datastream_public_ip_public.driver` AS driver
