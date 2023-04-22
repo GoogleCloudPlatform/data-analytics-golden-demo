@@ -28,7 +28,10 @@ import logging
 import airflow
 from airflow.utils import trigger_rule
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
+from airflow.providers.google.cloud.operators.bigquery import BigQueryInsertJobOperator
 
+project_id            = os.environ['ENV_PROJECT_ID'] 
+bigquery_region       = os.environ['ENV_BIGQUERY_REGION'] 
 
 default_args = {
     'owner': 'airflow',
@@ -40,6 +43,8 @@ default_args = {
     'retry_delay': timedelta(minutes=5),
     'dagrun_timeout' : timedelta(minutes=60),
 }
+
+sp_datastream_cdc_data="CALL `{}.taxi_dataset.datastream_cdc_data`();".format(project_id)
 
 
 with airflow.DAG('run-all-dags',
@@ -119,12 +124,22 @@ with airflow.DAG('run-all-dags',
         task_id="sample_seed_unstructured_data",
         trigger_dag_id="sample-seed-unstructured-data",
         wait_for_completion=True
-    )    
+    )   
+
+    sp_datastream_cdc_data = BigQueryInsertJobOperator(
+        task_id="sp_datastream_cdc_data",
+        location=bigquery_region,
+        configuration={
+            "query": {
+                "query": sp_datastream_cdc_data,
+                "useLegacySql": False,
+            }
+        })       
     
     # DAG Graph
     step_01_taxi_data_download >> [step_02_taxi_data_processing, sample_seed_unstructured_data, sample_rideshare_hydrate_object_table, sample_rideshare_download_images]
     step_02_taxi_data_processing >> [step_03_hydrate_tables, sample_rideshare_website]
-    step_03_hydrate_tables >> [sample_dataflow_start_streaming_job, sample_rideshare_object_table_delay]
+    step_03_hydrate_tables >> [sample_dataflow_start_streaming_job, sp_datastream_cdc_data, sample_rideshare_object_table_delay]
     sample_rideshare_object_table_delay >> sample_rideshare_hydrate_data
 
 # [END dag]

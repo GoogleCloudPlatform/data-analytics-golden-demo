@@ -18,29 +18,29 @@
 /*
 Prerequisites (10 minutes):
     - Disable Org Policy: sql.restrictAuthorizedNetworks
-      OPEN: https://console.cloud.google.com/iam-admin/orgpolicies/sql-restrictAuthorizedNetworks/edit?project=data-analytics-demo-itfo3j9qq5
+      OPEN: https://console.cloud.google.com/iam-admin/orgpolicies/sql-restrictAuthorizedNetworks/edit?project=${project_id}
           - Click "Customize"
           - Click "Add Rule"
           - Click "Off"
           - Save
     - Execute Airflow DAG: sample-datastream-PUBLIC-ip-deploy (this will deploy a Cloud SQL database, a reverse proxy vm and datastream)
     - Re-Enabled (after DAG is complete) Org Policy: sql.restrictAuthorizedNetworks
-      OPEN: https://console.cloud.google.com/iam-admin/orgpolicies/sql-restrictAuthorizedNetworks/edit?project=data-analytics-demo-itfo3j9qq5
+      OPEN: https://console.cloud.google.com/iam-admin/orgpolicies/sql-restrictAuthorizedNetworks/edit?project=${project_id}
           - Click "Inherit parent's policy"
           - Save
 
     - Verify the tables are starting to CDC to BigQuery (there will only be 1 row in each until you start the next DAG):
       NOTE: The dataset name datastream_public_ip_public as the suffix of "public".  This means we are syncing the public schema from Postgres.
-      SELECT * FROM `data-analytics-demo-itfo3j9qq5.datastream_public_ip_public.driver`;
-      SELECT * FROM `data-analytics-demo-itfo3j9qq5.datastream_public_ip_public.review`;
-      SELECT * FROM `data-analytics-demo-itfo3j9qq5.datastream_public_ip_public.payment`;
+      SELECT * FROM `${project_id}.datastream_public_ip_public.driver`;
+      SELECT * FROM `${project_id}.datastream_public_ip_public.review`;
+      SELECT * FROM `${project_id}.datastream_public_ip_public.payment`;
 
     - Execute Airflow DAG: sample-datastream-PUBLIC-ip-generate-data (this will generate test data that can be joined to the taxi data)
       - NOTE: There will be duplicate data since the SQL fiels is executed 10 times.
 
 (OPTIONAL)
 Install pgAdmin to connect to your database
-    Open this to find the IP Address of your Cloud SQL: https://console.cloud.google.com/sql/instances?project=data-analytics-demo-itfo3j9qq5
+    Open this to find the IP Address of your Cloud SQL: https://console.cloud.google.com/sql/instances?project=${project_id}
     You will need to Edit your database and add your Public IP (Google "whats my ip")
       - Click Edit
       - Expand Connections
@@ -56,7 +56,7 @@ Install pgAdmin to connect to your database
 Customizing the OLTP data:
     - You can create your own schema and test data by modifying the below files in your Composer "Data" directory
       - postgres_create_schema.sql           -> Customize this to create your own tables
-      - postgres_create_generated_data.sql   -> Customize this to create your own test data
+      - ${project_id}.datastream_cdc_data    -> Customize this to create your own test data
 
 Use Cases:
     - Offload your analytics from your OLTP databases to BigQuery
@@ -160,3 +160,9 @@ ORDER BY driver.driver_name;
 SELECT COUNT(*) AS Cnt FROM `${project_id}.datastream_public_ip_public.driver`;
 SELECT COUNT(*) AS Cnt FROM `${project_id}.datastream_public_ip_public.review`;
 SELECT COUNT(*) AS Cnt FROM `${project_id}.datastream_public_ip_public.payment`; 
+
+-- To show Deletes (CDC)
+-- Stop the Airflow job: sample-datastream-PRIVATE-ip-generate-data
+-- Login into the Postgres SQL and run "DELETE FROM review;"
+-- Wait a few minutes and you should see the data deleted in BigQuery
+SELECT COUNT(*) AS Cnt FROM `${project_id}.datastream_private_ip_public.review`;

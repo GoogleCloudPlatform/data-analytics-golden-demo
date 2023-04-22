@@ -100,6 +100,28 @@ resource "google_bigquery_routine" "sproc_sp_create_demo_dataform" {
 
 
 ####################################################################################
+# sp_create_datastream_cdc_data
+####################################################################################
+resource "google_bigquery_routine" "sproc_sp_create_datastream_cdc_data" {
+  dataset_id      = var.bigquery_taxi_dataset
+  routine_id      = "sp_create_datastream_cdc_data"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = templatefile("../sql-scripts/taxi_dataset/sp_create_datastream_cdc_data.sql", 
+  { 
+    project_id = var.project_id
+    project_number = var.project_number
+    
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+    bigquery_thelook_ecommerce_dataset = var.bigquery_thelook_ecommerce_dataset
+    raw_bucket_name = "raw-${var.storage_bucket}"
+    bigquery_region = var.bigquery_region
+    gcp_account_name = var.gcp_account_name
+  })
+}
+
+
+####################################################################################
 # sp_create_taxi_biglake_tables
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_create_taxi_biglake_tables" {

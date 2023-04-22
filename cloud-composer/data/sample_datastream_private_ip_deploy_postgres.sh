@@ -168,7 +168,7 @@ echo '############## How to connect to the Cloud SQL "##############'
 echo 'In the Cloud Console go to Compute Engine -> VM Instances'
 echo 'For this sql-reverse-proxy VM click SSH -> Open in Browser Window'
 echo 'Run the bolow command (only needed to do once)'
-echo "sudo apt-get install wget ca-certificates"
+echo "sudo apt-get install wget ca-certificates -y"
 echo "wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -"
 echo "sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -cs`-pgdg main" >> /etc/apt/sources.list.d/pgdg.list'"
 echo "sudo apt-get update -y"

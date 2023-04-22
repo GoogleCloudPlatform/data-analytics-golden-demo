@@ -36,6 +36,7 @@ from pathlib import Path
 import psycopg2
 import time
 import random
+from google.cloud import bigquery
 
 default_args = {
     'owner': 'airflow',
@@ -77,32 +78,76 @@ def run_postgres_sql(database_password):
     user=postgres_user,
     password=database_password)
 
-    with open('/home/airflow/gcs/data/postgres_create_generated_data.sql', 'r') as file:
-        generate_data = file.readlines()
+   # create default config
+    config_data = {
+        "interation_count" : 0,
+        "min_index" : 1,
+        "max_index" : 10010000,
+        "current_index": 0
+    }
+
+    if os.path.exists('/home/airflow/gcs/data/datastream-public-ip-generate-data.json'):
+        # read the data
+        datastream_cdc_config_json = Path('/home/airflow/gcs/data/datastream-public-ip-generate-data.json').read_text()
+        config_data = json.loads(datastream_cdc_config_json)
+    else:
+        # write the default config
+        with open('/home/airflow/gcs/data/datastream-public-ip-generate-data.json', 'w') as f:
+            json.dump(config_data, f)
 
     try:
-        # This runs for several hours
+        # This runs for 4 hours
         cur = conn.cursor()
-        for loop in range(10):
-            loop_count = 0
-            for sql in generate_data:
+        client = bigquery.Client()
+        
+        # Loop for 4 hours (14400 seconds)
+        start_time = datetime.now()
+        loop_count = 0
+        while (datetime.now() - start_time).total_seconds() < 14400 :
+            for index in range(config_data["min_index"], config_data["max_index"], 50):
+                if (datetime.now() - start_time).total_seconds() > 14400:
+                    break
                 loop_count = loop_count + 1
-                if sql.startswith("--"):
-                    continue
-                if sql.strip() == "":
-                    continue
+                bigquery_sql = "SELECT sql_statement, table_name " + \
+                                        " FROM taxi_dataset.datastream_cdc_data " + \
+                                        "WHERE execution_order BETWEEN {} AND {};".format(index, index+49)
+                # print("bigquery_sql: ", bigquery_sql)
+                query_job = client.query(bigquery_sql)
+                results = query_job.result()  # Waits for job to complete.
 
-                # print("SQL: ", sql)
-                cur.execute(sql)
-                if loop_count % 10 == 0:
-                    conn.commit()
+                for row in results:
+                    # print("row.table_name:", row.table_name)
+                    # print("row.sql_statement:", row.sql_statement)
+
+                    if config_data["interation_count"] == 0:
+                        # okay to execute
+                        cur.execute(row.sql_statement)
+                    else:
+                        if row.table_name != "driver":
+                            # okay to execute (we do not want to create duplicate drivers)
+                            cur.execute(row.sql_statement)
+
+                conn.commit()
+                config_data["current_index"] = index+49
+                # Write the file ever so often
+                if loop_count % 100 == 0:
+                    print("bigquery_sql: ", bigquery_sql)
                     print("loop_count: ", loop_count)
-                # For the test data there is 1000 drivers, so we want them sync quickly (They are sorted at the top of the SQL list)
-                if loop_count > 1500 and loop_count % 2 == 0:
-                    time.sleep(1)
-                    print("time.sleep(1)")
+                    print("config_data[current_index]: ", config_data["current_index"])
+                    with open('/home/airflow/gcs/data/datastream-public-ip-generate-data.json', 'w') as f:
+                        json.dump(config_data, f)                    
+
+            config_data["interation_count"] = config_data["interation_count"] + 1
+            with open('/home/airflow/gcs/data/datastream-public-ip-generate-data.json', 'w') as f:
+                json.dump(config_data, f)
+        
         cur.close()
         conn.commit()
+
+        # Save our state
+        with open('/home/airflow/gcs/data/datastream-public-ip-generate-data.json', 'w') as f:
+            json.dump(config_data, f)
+
     except (Exception, psycopg2.DatabaseError) as error:
         print(error)
     finally:

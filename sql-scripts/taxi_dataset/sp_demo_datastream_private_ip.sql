@@ -42,7 +42,7 @@ SSH to the SQL Reverse Proxy (so you can run psql SQL statements against the Clo
     - Click retry in your SSH windows
 
 Install postgresql client (you only needed to do once on the VM)
-    sudo apt-get install wget ca-certificates
+    sudo apt-get install wget ca-certificates -y
     wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
     sudo sh -c 'deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -cs`-pgdg main" >> /etc/apt/sources.list.d/pgdg.list'
     sudo apt-get update -y
@@ -50,7 +50,7 @@ Install postgresql client (you only needed to do once on the VM)
 
 Run psql so you can run Ad-hov SQL statements:
     Open this to find the IP Address of your Cloud SQL: https://console.cloud.google.com/sql/instances?project=${project_id}
-    psql --host=<<YOUR CLOUD SQL IP ADDRESS>> --user=postgres --password" -d demodb
+    psql --host=<<YOUR CLOUD SQL IP ADDRESS>> --user=postgres --password -d demodb
     Enter the password of (this is the random extension used throughout this demo): ${random_extension}
     SELECT * FROM driver;
     SELECT * FROM review;
@@ -60,7 +60,7 @@ Run psql so you can run Ad-hov SQL statements:
 Customizing the OLTP data:
     - You can create your own schema and test data by modifying the below files in your Composer "Data" directory
     - postgres_create_schema.sql           -> Customize this to create your own tables
-    - postgres_create_generated_data.sql   -> Customize this to create your own test data
+    - ${project_id}.datastream_cdc_data    -> Customize this to create your own test data
 
 Use Cases:
     - Offload your analytics from your OLTP databases to BigQuery
@@ -159,9 +159,16 @@ SELECT driver.driver_name,
               AND payment.total_amount = trips.Total_Amount
               AND trips.Payment_Type_Id = 1 -- credit card
 ORDER BY driver.driver_name;
-              
+                      
 
 -- Counts should be increasing
 SELECT COUNT(*) AS Cnt FROM `${project_id}.datastream_private_ip_public.driver`;
 SELECT COUNT(*) AS Cnt FROM `${project_id}.datastream_private_ip_public.review`;
 SELECT COUNT(*) AS Cnt FROM `${project_id}.datastream_private_ip_public.payment`; 
+
+
+-- To show Deletes (CDC)
+-- Stop the Airflow job: sample-datastream-PRIVATE-ip-generate-data
+-- SSH into the Postgres SQL and run "DELETE FROM review;"
+-- Wait a few minutes and you should see the data deleted in BigQuery
+SELECT COUNT(*) AS Cnt FROM `${project_id}.datastream_private_ip_public.review`;

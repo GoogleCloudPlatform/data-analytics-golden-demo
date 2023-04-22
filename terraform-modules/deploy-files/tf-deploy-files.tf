@@ -257,15 +257,6 @@ resource "google_storage_bucket_object" "deploy_airflow_data_postgres_create_dat
     ]  
 }
 
-# Upload the Airflow "data/template" files
-resource "google_storage_bucket_object" "deploy_airflow_data_postgres_create_generated_data" {
-  name   = "${local.local_composer_data_path}/postgres_create_generated_data.sql"
-  bucket = local.local_composer_bucket_name
-  source = "../cloud-composer/data/postgres_create_generated_data.sql"
-
-  depends_on = [ 
-    ]  
-}
 
 # Upload the Airflow "data/template" files
 resource "google_storage_bucket_object" "deploy_airflow_data_postgres_create_schema" {
@@ -502,6 +493,17 @@ resource "google_storage_bucket_object" "deploy_bigspark_sample-bigspark-discoun
   name   = "${local.local_bigspark_path}/sample-bigspark-discount-data.csv"
   bucket = "raw-${var.storage_bucket}"
   source = "../sample-data/bigspark/sample-bigspark-discount-data.csv"
+
+  depends_on = [ 
+    ]  
+}
+
+
+# Random name file
+resource "google_storage_bucket_object" "deploy_sample_data-random_names" {
+  name   = "random_names/random_names.csv"
+  bucket = "raw-${var.storage_bucket}"
+  source = "../sample-data/random_names/random_names.csv"
 
   depends_on = [ 
     ]  
