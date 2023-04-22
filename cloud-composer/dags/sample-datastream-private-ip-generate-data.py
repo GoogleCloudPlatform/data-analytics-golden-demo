@@ -84,7 +84,7 @@ def run_postgres_sql(database_password):
         "interation_count" : 0,
         "min_index" : 1,
         "max_index" : 10010000,
-        "current_index": 0
+        "current_index": 1
     }
 
     if os.path.exists('/home/airflow/gcs/data/datastream-private-ip-generate-data.json'):
@@ -105,9 +105,12 @@ def run_postgres_sql(database_password):
         start_time = datetime.now()
         loop_count = 0
         while (datetime.now() - start_time).total_seconds() < 14400 :
-            for index in range(config_data["min_index"], config_data["max_index"], 50):
-                if (datetime.now() - start_time).total_seconds() > 14400:
-                    break
+            print("interation_count:",config_data["interation_count"])
+            print("min_index:",config_data["min_index"])
+            print("max_index:",config_data["max_index"])
+            print("current_index:",config_data["current_index"])
+
+            for index in range(config_data["current_index"], config_data["max_index"], 50):
                 loop_count = loop_count + 1
                 bigquery_sql = "SELECT sql_statement, table_name " + \
                                         " FROM taxi_dataset.datastream_cdc_data " + \
@@ -128,6 +131,10 @@ def run_postgres_sql(database_password):
                             # okay to execute (we do not want to create duplicate drivers)
                             cur.execute(row.sql_statement)
 
+                if index+49 >= config_data["max_index"]:
+                    config_data["interation_count"] = config_data["interation_count"] + 1
+                    config_data["current_index"] = 1
+
                 conn.commit()
                 config_data["current_index"] = index+49
                 # Write the file ever so often
@@ -137,10 +144,13 @@ def run_postgres_sql(database_password):
                     print("config_data[current_index]: ", config_data["current_index"])
                     with open('/home/airflow/gcs/data/datastream-private-ip-generate-data.json', 'w') as f:
                         json.dump(config_data, f)                    
+                
+                if (datetime.now() - start_time).total_seconds() > 14400:
+                    break
 
-            config_data["interation_count"] = config_data["interation_count"] + 1
-            with open('/home/airflow/gcs/data/datastream-private-ip-generate-data.json', 'w') as f:
-                json.dump(config_data, f)
+        # Save    
+        with open('/home/airflow/gcs/data/datastream-private-ip-generate-data.json', 'w') as f:
+            json.dump(config_data, f)
         
         cur.close()
         conn.commit()
