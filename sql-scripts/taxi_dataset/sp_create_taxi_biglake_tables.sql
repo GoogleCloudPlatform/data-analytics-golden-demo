@@ -171,6 +171,12 @@ WITH CONNECTION `${project_id}.${bigquery_region}.biglake-connection`
     uris = ['gs://${bucket_name}/processed/taxi-data/trip_type_table/*.parquet']
 );
 
+CREATE OR REPLACE EXTERNAL TABLE `${project_id}.${bigquery_taxi_dataset}.biglake_location`
+WITH CONNECTION `${project_id}.${bigquery_region}.biglake-connection`
+    OPTIONS (
+    format = "PARQUET",
+    uris = ['gs://${bucket_name}/processed/taxi-data/location/*.parquet']
+);
 
 
 -- Query External Tables

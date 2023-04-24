@@ -160,3 +160,17 @@ CREATE OR REPLACE TABLE `${project_id}.${bigquery_taxi_dataset}.trip_type`
 SELECT Trip_Type_Id, Trip_Type_Description
   FROM `${project_id}.${bigquery_taxi_dataset}.ext_trip_type`;
 
+
+CREATE OR REPLACE TABLE `${project_id}.${bigquery_taxi_dataset}.location`
+(
+    location_id	 INTEGER,
+    borough	     STRING,
+    zone	     STRING,
+    service_zone STRING,
+    latitude	 FLOAT64,
+    longitude	 FLOAT64
+)
+CLUSTER BY location_id
+AS
+SELECT location_id, borough, zone, service_zone, latitude, longitude
+  FROM `${project_id}.${bigquery_taxi_dataset}.ext_location`;

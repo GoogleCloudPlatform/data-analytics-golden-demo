@@ -44,7 +44,7 @@ default_args = {
     'dagrun_timeout' : timedelta(minutes=60),
 }
 
-sp_datastream_cdc_data="CALL `{}.taxi_dataset.datastream_cdc_data`();".format(project_id)
+sp_datastream_cdc_data="CALL `{}.taxi_dataset.sp_create_datastream_cdc_data`();".format(project_id)
 
 
 with airflow.DAG('run-all-dags',

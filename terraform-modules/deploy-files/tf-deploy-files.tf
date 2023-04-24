@@ -509,6 +509,16 @@ resource "google_storage_bucket_object" "deploy_sample_data-random_names" {
     ]  
 }
 
+# Pickup and Dropoff location data
+resource "google_storage_bucket_object" "deploy_sample_data-location" {
+  name   = "processed/taxi-data/location/location.parquet"
+  bucket = "processed-${var.storage_bucket}"
+  source = "../sample-data/location/location.parquet"
+
+  depends_on = [ 
+    ]  
+}
+
 
 # Upload Resenet Imagenet Labels sample data
 resource "google_storage_bucket_object" "deploy_resnet_imagenet_labels-data" {
