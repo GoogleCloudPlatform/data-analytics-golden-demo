@@ -292,7 +292,7 @@ gcloud beta dataproc batches submit pyspark \
     --region="REPLACE-REGION" \
     --batch="batch-015"  \
     gs://raw-${project_id}/pyspark-code/rideshare_iceberg_serverless.py \
-    --jars gs://spark-lib/biglake/iceberg-biglake-catalog-0.0.1-with-dependencies.jar \
+    --jars gs://spark-lib/biglake/biglake-catalog-iceberg1.2.0-0.1.0-with-dependencies.jar \
     --subnet="dataproc-serverless-subnet" \
     --deps-bucket="gs://dataproc-${project_id}" \
     --service-account="dataproc-service-account@${project_id}.iam.gserviceaccount.com" \
