@@ -1,9 +1,11 @@
 # Data-Analytics-Golden-Demo
-Deploys a end to end working demo of a Data Analytics / Data Processing using Google Cloud.  All the services are connected, configured and ready to run.  All the artifacts are deployed and you can immedately start using.  This is a great tool for exporting Google's Data Cloud and can be used as a foundation for other demos.  The system has 70 to 700+ million rows of data so that you can show performance, scale and integration of various services. Private IP addresses / Private Service Connect are used throughout the system.
+Deploys an end-to-end Data Analytics technical walkthrough on Google Cloud.  All the services are connected, configured and ready to run.  The deployed artifacts can be run in any order letting you set your own path through the system.  The system has 70 to 700+ million rows of data so that you can show "true life" performance, scale and integration of various services.  The system orchestates itself using Airflow, communicates over private IP addresses and has working code to demonstrate how to build an end to end system.
+
 
 ![alt tag](./images/Architecture-Diagram.png)
 
-## Table of Contents (All Links and Vidoes are coming soon)
+
+## Table of Contents (All Links and Videos are coming soon)
 |Category|Title|Description|Link|Video||
 |---|---|---|---|---|---|
 | Ready-To-Go Demos | Rideshare Plus (Analytics Lakehouse)|This is an end to end demo of an Analytics Lakehouse.  The demo goes through the creation of a fictitious company that wants to predict high value rides for rideshare drivers.  The demo takes you through the process from the raw zone to the curated zone and highlights our analytics stack.| Link | Video |
@@ -55,8 +57,10 @@ Deploys a end to end working demo of a Data Analytics / Data Processing using Go
 | | Analytics Hub - Setup Data Sharing Demo | Setup your own publisher and test a subscriber across organizations with RLS security. | Link | Video |
 | | Analytics Hub - Consuming Publisher Data | Show Analytics Hub and a query use case for sharing data between an eCommerce site and a supplier. | Link | Video |
 | Pricing / Costs | Pricing | Show the aspects of pricing/slots and how to control costs and view costs | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/sql-scripts/taxi_dataset/sp_demo_pricing.sql) | Video |
-| Pricing / Costs | Pricing | Gathers all queries and shows the on-demand cost accross an organization | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/sql-scripts/taxi_dataset/sp_demo_pricing_ondemand_usage.sql) | Video |
+|   | Query Cost Analysis |  Analyze your queries run within your entire Organization to see which on-demand queries are costing the most.  The analysis will highlight your costs for the queries and suggest which projects you should consider switching to slots. | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/sql-scripts/taxi_dataset/sp_demo_pricing_ondemand_usage.sql) | Video |
 | Dataform | Dataform Demo | Perform an ETL with Dataform using data streamed into a table from Pub/Sub and join lookup data with a BigLake table.  Also, shows Git integration. | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/sql-scripts/taxi_dataset/sp_create_demo_dataform.sql) | Video |
+| Datastream | Private IP Demo | Show changed data capture (10 million rows) from a Cloud SQL (Postgres) database to BigQuery over Private Service Connectivity (no public IP addresses) | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/sql-scripts/taxi_dataset/sp_demo_datastream_private_ip.sql) | Video |
+| Datastream | Public IP Demo | Show changed data capture (10 million rows) from a Cloud SQL (Postgres) database to BigQuery over a Public IP address | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/sql-scripts/taxi_dataset/sp_demo_datastream_public_ip.sql) | Video |
 
 
 ## Deploy
@@ -66,24 +70,31 @@ Deploys a end to end working demo of a Data Analytics / Data Processing using Go
 - Composer is the largest daily cost ~$17 per day.  You can technically delete Composer, but then you lack the automation it provides.  You would want to run any DAGs you are interested in deploying before removing Composer.
 
 
+
+
 ## Diagrams
 ![alt tag](./images/Technical-Architecture.png)
 
+
 ![alt tag](./images/Sample-Architecture.png)
+
 
 ![alt tag](./images/Rideshare-Analytics-Lakehouse-Architecture.png)
 
+
 ![alt tag](./images/Rideshare-Analytics-Lakehouse-Summary.png)
+
+
 
 
 ## Deploy
 ### To deploy to New Project (Requires Elevated Privileges)
 - **The following IAM roles are required to deploy the solution**
-  - Prerequisite:  Billing Account User (to create the project with billing)
-  - Prerequisite:  Organization Administrator (to create all assets)
-  - Prerequisite:  Organization Policy Administrator (to change org policies)
-  - Optional:      Folder Editor (if you alter the script to place the project in a folder)
-1. Open a Google Cloud Shell: http://shell.cloud.google.com/ 
+ - Prerequisite:  Billing Account User (to create the project with billing)
+ - Prerequisite:  Organization Administrator (to create all assets)
+ - Prerequisite:  Organization Policy Administrator (to change org policies)
+ - Optional:      Folder Editor (if you alter the script to place the project in a folder)
+1. Open a Google Cloud Shell: http://shell.cloud.google.com/
 2. Type: ```git clone https://github.com/GoogleCloudPlatform/data-analytics-golden-demo```
 3. Switch the prompt to the directory: ```cd data-analytics-golden-demo```
 4. Run the deployment script: ```source deploy.sh```
@@ -91,27 +102,31 @@ Deploys a end to end working demo of a Data Analytics / Data Processing using Go
 6. Follow the prompts: Answer “Yes” for the Terraform approval.
 
 
-### To deploy to an Existing Project (Requires Assisteance from IT and Owner Project Privileges)
+
+
+### To deploy to an Existing Project (Requires Assistance from IT and Owner Project Privileges)
 - **The following items are required to deploy the solution**
-  - Prerequisite: You will need a project created for you (IT can do this for you)
-  - Prerequisite: You will need to be an Owner (IAM role) of the project to run the below script
-  - Prerequisite: You will need an Organization Policy Administrator to disable the following Org Policies (IT can do this for you)
-    - requireOsLogin = false
-    - requireShieldedVm = false
-    - allowedIngressSettings = allow all
-    - allowedPolicyMemberDomains = allow all
-    - restrictVpcPeering = allow all
-1. Open a Google Cloud Shell: http://shell.cloud.google.com/ 
+ - Prerequisite: You will need a project created for you (IT can do this for you)
+ - Prerequisite: You will need to be an Owner (IAM role) of the project to run the below script
+ - Prerequisite: You will need an Organization Policy Administrator to disable the following Org Policies (IT can do this for you)
+   - requireOsLogin = false
+   - requireShieldedVm = false
+   - allowedIngressSettings = allow all
+   - allowedPolicyMemberDomains = allow all
+   - restrictVpcPeering = allow all
+1. Open a Google Cloud Shell: http://shell.cloud.google.com/
 2. Type: ```git clone https://github.com/GoogleCloudPlatform/data-analytics-golden-demo```
 3. Switch the prompt to the directory: ```cd data-analytics-golden-demo```
 4. Update the hard coded values in ```deploy-use-existing-project-non-org-admin.sh```
 5. Run ```source deploy-use-existing-project-non-org-admin.sh```
-6. Your Organization Policy Administrator can then renable the following Organization Policies
-   - (DO NOT RENABLE) requireOsLogin = false
-   - (RENABLE) requireShieldedVm = false
-   - (RENABLE) allowedIngressSettings = allow all
-   - (RENABLE) allowedPolicyMemberDomains = allow all
-   - (RENABLE) restrictVpcPeering = allow all
+6. Your Organization Policy Administrator can then reenable the following Organization Policies
+  - (DO NOT RE-ENABLE) requireOsLogin = false
+  - (RENABLE) requireShieldedVm = false
+  - (RENABLE) allowedIngressSettings = allow all
+  - (RENABLE) allowedPolicyMemberDomains = allow all
+  - (RENABLE) restrictVpcPeering = allow all
+
+
 
 
 ### To deploy the project to a different region
@@ -120,40 +135,46 @@ Deploys a end to end working demo of a Data Analytics / Data Processing using Go
 3. You can run either of the above deployment methods.  Copy the Terraform  "region" parameters to either of the above scripts.
 
 
+
+
 ### After the deployment
 - Open Cloud Composer
 - Open the Airflow UI
 - You will see the Run-All-Dags DAG running
-    - This will run the DAGs needed to seed the project with data
-    - Once the DAG is complete, you can run the solution
+   - This will run the DAGs needed to seed the project with data
+   - Once the DAG is complete, you can run the solution
+
+
 
 
 ### Possible  Deployment Errors:
 1. If the script fails to enable a service or timeouts, you can rerun and if that does not work, run ```source clean-up.sh``` and start over
-2. If the script has security type message (unauthorized), then double check the configure roles/IAM security.
-3. When using Cloud Shell: If you get a "networking error" with some dial tcp message [2607:f8b0:4001:c1a::5f], then your cloud shell had a networking glitch, not the Terraform network.  Restart the deployment "source deploy.sh". (e.g. Error creating Network: Post ```https://compute.googleapis.com/compute/beta/projects/bigquery-demo-xvz1143xu9/global/networks?alt=json```: dial tcp [2607:f8b0:4001:c1a::5f]:443: connect: cannot assign requested address).  This typically happens on WiFi.
+2. If the script has a security type message (unauthorized), then double check the configure roles/IAM security.
+3. When using Cloud Shell: If you get a "networking error" with some dial tcp message [2607:f8b0:4001:c1a::5f], then your cloud shell has a networking glitch, not the Terraform network.  Restart the deployment "source deploy.sh". (e.g. Error creating Network: Post ```https://compute.googleapis.com/compute/beta/projects/bigquery-demo-xvz1143xu9/global/networks?alt=json```: dial tcp [2607:f8b0:4001:c1a::5f]:443: connect: cannot assign requested address).  This typically happens on WiFi.
+
+
 
 
 ## Folders
 - cloud-composer
-  - dags - all the DAGs for Airflow which run the system and seed the data
-  - data - all the bash and SQL scripts to deploy
+ - dags - all the DAGs for Airflow which run the system and seed the data
+ - data - all the bash and SQL scripts to deploy
 - dataflow
-  - Dataflow job that connects to the public Pub/Sub sample streaming taxi data.  You start this using composer.
+ - Dataflow job that connects to the public Pub/Sub sample streaming taxi data.  You start this using composer.
 - dataproc
-  - Spark code to that is used to process the initial downloaded data
+ - Spark code to that is used to process the initial downloaded data
 - notebooks
-  - Sample notebooks that can be run in Vertex AI.  To create the managed notebook, use the DAG in composer.
+ - Sample notebooks that can be run in Vertex AI.  To create the managed notebook, use the DAG in composer.
 - sql-scripts
-  - The BigQuery SQL sample scripts. These are currently deployed as stored procedures.  You can edit each stored procedure and run the sample code query by query.
+ - The BigQuery SQL sample scripts. These are currently deployed as stored procedures.  You can edit each stored procedure and run the sample code query by query.
 - terraform
-  - the entry point for when deploying via cloud shell or your local machine.  This uses service account impersonation
+ - the entry point for when deploying via cloud shell or your local machine.  This uses service account impersonation
 - terraform-modules
-  - api - enables the GCP apis
-  - org-policies - sets organization policies at the project level that have to be "disabled" to deploy the resources.
-  - org-policies-deprecated - an older apporach for org policies and is needed when your cloud build account is in a different domain
-  - project - creates the cloud project if a project number is not provided
-  - resouces - the main set of resources to deploy
-  - service-account - creates a service account if a project numnber is not provided.  The service account will be impersonated during the deployment.
-  - service-usage - enables the service usage API as the main user (non-impersonated)
-  - sql-scripts - deploys the sql scripts
+ - api - enables the GCP apis
+ - org-policies - sets organization policies at the project level that have to be "disabled" to deploy the resources.
+ - org-policies-deprecated - an older approach for org policies and is needed when your cloud build account is in a different domain
+ - project - creates the cloud project if a project number is not provided
+ - resources - the main set of resources to deploy
+ - service-account - creates a service account if a project numnber is not provided.  The service account will be impersonated during the deployment.
+ - service-usage - enables the service usage API as the main user (non-impersonated)
+ - sql-scripts - deploys the sql scripts
