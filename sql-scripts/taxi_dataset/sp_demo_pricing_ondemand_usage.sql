@@ -26,7 +26,6 @@
 
 -- SEARCH and REPLACE the below values (if downloading this single file from GitHub)
 -- Replace Region          -> Search for: region-${bigquery_region}
--- Replace Dataset         -> Search for: ${bigquery_taxi_dataset}
 -- Replace GCS bucket Path -> Search for: gs://${raw_bucket_name}
 
 Use Cases:
@@ -41,14 +40,21 @@ Reference:
 
 
 Clean up / Reset script:
-    DROP TABLE IF EXISTS `${bigquery_taxi_dataset}.usage_export_project`;
-    DROP TABLE IF EXISTS `${bigquery_taxi_dataset}.usage_export_data`;
-    DROP TABLE IF EXISTS `${bigquery_taxi_dataset}.usage_import_data`;
+    DROP SCHEMA IF EXISTS `${project_id}.ondemand_query_usage` CASCADE;  
+    DROP SCHEMA IF EXISTS `${project_id}.ondemand_query_analysis` CASCADE;  
 */
 
 
+-- This is designed to help you understand where you should focus your efforts or costs
+-- It is NOT an exact costs savings calculator
+CREATE SCHEMA `${project_id}.ondemand_query_usage`
+    OPTIONS (
+    location = "us"
+    );
+
+
 -- Track which projects we are able to get data 
-CREATE OR REPLACE TABLE `${bigquery_taxi_dataset}.usage_export_project`
+CREATE OR REPLACE TABLE `${project_id}.ondemand_query_usage.usage_export_project`
 (
   project_id STRING,
   result STRING
@@ -56,7 +62,7 @@ CREATE OR REPLACE TABLE `${bigquery_taxi_dataset}.usage_export_project`
 
 
 -- Create a table to hold the results
-CREATE OR REPLACE TABLE `${bigquery_taxi_dataset}.usage_export_data` 
+CREATE OR REPLACE TABLE `${project_id}.ondemand_query_usage.usage_export_data` 
 (
   creation_time TIMESTAMP,
   project_id STRING,
@@ -107,7 +113,7 @@ FOR record IN (SELECT DISTINCT project_id
 DO
   BEGIN
   EXECUTE IMMEDIATE FORMAT("""
-  INSERT INTO ${bigquery_taxi_dataset}.usage_export_data 
+  INSERT INTO `${project_id}.ondemand_query_usage.usage_export_data`
     (
     creation_time,
     project_id,
@@ -199,11 +205,11 @@ DO
   GROUP BY 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34;
   """,record.project_id);
 
-  INSERT INTO `${bigquery_taxi_dataset}.usage_export_project` (project_id, result) VALUES (record.project_id,'SUCCESS');
+  INSERT INTO `${project_id}.ondemand_query_usage.usage_export_project` (project_id, result) VALUES (record.project_id,'SUCCESS');
 
   EXCEPTION WHEN ERROR THEN
     -- do nothing we do not have access to the project
-    INSERT INTO `${bigquery_taxi_dataset}.usage_export_project` (project_id, result) VALUES (record.project_id,'FAILED');
+    INSERT INTO `${project_id}.ondemand_query_usage.usage_export_project` (project_id, result) VALUES (record.project_id,'FAILED');
   END;
 
 END FOR;
@@ -211,34 +217,299 @@ END FOR;
 
 -- Export the data (some people transfer this to have an analysis performed)
 -- You should delete the data from this path before exporting
--- You can also share the data via Analytics Hub
+-- You can also share the data via Analytics Hub (Preferred Method of Sharing)
 EXPORT DATA
 OPTIONS (
-   uri = 'gs://${raw_bucket_name}/query_usage/*.parquet',
+   uri = 'gs://${raw_bucket_name}/ondemand_query_usage/*.parquet',
    format = 'PARQUET',
    overwrite = true
    )
 AS (
    SELECT *
-     FROM `${bigquery_taxi_dataset}.usage_export_data`
+     FROM `${project_id}.ondemand_query_usage.usage_export_data`
 );
 
 
 -- Test loading the data
-DROP TABLE IF EXISTS `${bigquery_taxi_dataset}.usage_import_data`;
+DROP TABLE IF EXISTS `${project_id}.ondemand_query_usage.usage_import_data`;
 
-LOAD DATA OVERWRITE `${bigquery_taxi_dataset}.usage_import_data`
+LOAD DATA OVERWRITE `${project_id}.ondemand_query_usage.usage_import_data`
 FROM FILES (
   format = 'PARQUET',
-  uris = ['gs://${raw_bucket_name}/query_usage/*.parquet']
+  uris = ['gs://${raw_bucket_name}/ondemand_query_usage/*.parquet']
 );
 
+
 -- See which projects worked/failed
-SELECT * FROM ${bigquery_taxi_dataset}.usage_export_project ORDER BY result DESC;
+SELECT * FROM `${project_id}.ondemand_query_usage.usage_export_project` ORDER BY result DESC;
+
 
 -- See some results
 SELECT project_id, query, SUM(est_on_demand_cost) AS est_sum_on_demand_cost, COUNT(1) AS Cnt
-  FROM `${bigquery_taxi_dataset}.usage_export_data`
+  FROM `${project_id}.ondemand_query_usage.usage_export_data`
  GROUP BY 1, 2
  ORDER BY 3 DESC
  LIMIT 100;
+
+
+------------------------------------------------------------------------------------------------------------
+-- Do Analysis
+------------------------------------------------------------------------------------------------------------
+
+-- This is designed to help you understand where you should focus your efforts or costs
+-- It is NOT an exact costs savings calculator
+CREATE SCHEMA `${project_id}.ondemand_query_analysis`
+    OPTIONS (
+    location = "us"
+    );
+
+
+-- In case we have duplicates (the tables were not dropped between runs)
+CREATE OR REPLACE TABLE `${project_id}.ondemand_query_analysis.usage_data` AS
+SELECT DISTINCT *
+  FROM `${project_id}.ondemand_query_usage.usage_import_data`
+ WHERE error_result_reason IS NULL  
+   AND reservation_id IS NULL;
+
+
+-- Cost by month for top 1000 most expensive queries
+CREATE OR REPLACE TABLE `${project_id}.ondemand_query_analysis.usage_cost_by_query_top_1000` AS
+SELECT project_id, 
+       EXTRACT(YEAR  FROM start_time) AS Year,
+       EXTRACT(MONTH FROM start_time) AS Month,
+       query, 
+       SUM(est_on_demand_cost) AS est_sum_on_demand_cost, 
+       COUNT(1) AS Cnt,
+       AVG(total_bytes_processed) / 1000000000 AS average_gb_processed,
+       AVG(job_avg_slots) AS average_job_avg_slots,
+       AVG(estimated_runnable_units) AS average_estimated_runnable_units,
+  FROM `${project_id}.ondemand_query_analysis.usage_data`
+ WHERE error_result_reason IS NULL
+   AND reservation_id IS NULL
+ GROUP BY 1, 2, 3, 4
+ LIMIT 1000;
+
+SELECT project_id,
+       Year,
+       Month,
+       query,
+       CAST(est_sum_on_demand_cost AS INT64) AS est_sum_on_demand_cost,
+       Cnt,
+       CAST(average_gb_processed AS INT64)   AS average_gb_processed,
+       CAST(average_job_avg_slots AS INT64)  AS average_job_avg_slots,
+       CAST(average_estimated_runnable_units AS INT64) AS average_estimated_runnable_units  
+  FROM `${project_id}.ondemand_query_analysis.usage_cost_by_query_top_1000`
+ ORDER BY est_sum_on_demand_cost DESC;
+
+
+ -- Usage Costs by Project
+CREATE OR REPLACE TABLE `${project_id}.ondemand_query_analysis.usage_cost_by_project` AS
+SELECT project_id, 
+       EXTRACT(YEAR  FROM start_time) AS Year,
+       EXTRACT(MONTH FROM start_time) AS Month,
+       SUM(est_on_demand_cost) AS est_sum_on_demand_cost, 
+       AVG(total_bytes_processed) / 1000000000 AS average_gb_processed,
+       AVG(job_avg_slots) AS average_job_avg_slots,
+       AVG(estimated_runnable_units) AS average_estimated_runnable_units,
+  FROM `${project_id}.ondemand_query_analysis.usage_data`
+ GROUP BY 1, 2, 3;
+
+SELECT project_id,
+       Year,
+       Month,
+       CAST(est_sum_on_demand_cost AS INT64) AS est_sum_on_demand_cost,
+       CAST(average_gb_processed AS INT64)   AS average_gb_processed,
+       CAST(average_job_avg_slots AS INT64)  AS average_job_avg_slots,
+       CAST(average_estimated_runnable_units AS INT64) AS average_estimated_runnable_units  
+  FROM `${project_id}.ondemand_query_analysis.usage_cost_by_project`
+ ORDER BY est_sum_on_demand_cost DESC;
+
+
+-- Total costs for each month single month
+-- This is based off of Retail Pricing (no discounts)
+-- If you have a 10% discount then you can change the below to (1 minus .10 = .90) SUM(est_sum_on_demand_cost * .90)
+SELECT Year,
+       Month,
+       CAST(SUM(est_sum_on_demand_cost) AS INT64)  AS total
+  FROM `${project_id}.ondemand_query_analysis.usage_cost_by_project`
+GROUP BY 1,2
+ORDER BY Year, Month;
+
+
+-- For each minute, for each job, get the maximum number of slots
+CREATE OR REPLACE TABLE `${project_id}.ondemand_query_analysis.usage_slots_by_job` AS
+SELECT project_id, 
+       job_id,
+       EXTRACT(YEAR FROM start_time)   AS Year,
+       EXTRACT(MONTH FROM start_time)  AS Month,
+
+       ((EXTRACT(DAY    FROM start_time) - 1) * (24*60)) +
+       (EXTRACT(HOUR   FROM start_time) * 60) +
+       (EXTRACT(MINUTE FROM start_time)) AS start_minute_of_job,
+
+       ((EXTRACT(DAY    FROM end_time) - 1) * (24*60)) +
+       (EXTRACT(HOUR   FROM end_time) * 60) +
+       (EXTRACT(MINUTE FROM end_time)) AS end_minute_of_job,
+
+       MAX(job_avg_slots) AS average_job_max_slots
+
+  FROM `${project_id}.ondemand_query_analysis.usage_data`
+ GROUP BY 1,2,3,4,5,6;
+
+
+SELECT *
+  FROM `${project_id}.ondemand_query_analysis.usage_slots_by_job`
+ LIMIT 100;
+
+
+-- For each minute in the month sum the max slots used by the jobs
+-- For each minute determine the number of slots to buy (in increments of 100)
+CREATE OR REPLACE TABLE `${project_id}.ondemand_query_analysis.usage_slots_data_per_minute` AS
+WITH minutes AS
+(
+  -- every minute in the month
+  SELECT element as minute_number
+    FROM UNNEST(GENERATE_ARRAY(1, 44640)) AS element
+)
+ SELECT project_id, 
+        Year,
+        Month,
+        minute_number,
+        CAST(SUM(average_job_max_slots) AS INT64) AS avg_slots,
+        CAST(FLOOR((CAST(SUM(average_job_max_slots) AS INT64) + 99) / 100) * 100  AS INT64) AS avg_slots_rounded_up_100_slots
+   FROM `${project_id}.ondemand_query_analysis.usage_slots_by_job` AS usage_slots_by_job
+        INNER JOIN minutes
+                ON minute_number BETWEEN start_minute_of_job AND end_minute_of_job
+GROUP BY 1,2,3,4;
+
+
+SELECT *
+ FROM `${project_id}.ondemand_query_analysis.usage_slots_data_per_minute`
+ORDER BY project_id, 
+         Year,
+         Month,
+         minute_number
+LIMIT 10000;
+
+
+-- For each minute determine the number of slots to buy (in increments of 100)
+-- 0.060 = US PAYG Slot price per 100 per minute at Retail price
+CREATE OR REPLACE TABLE `${project_id}.ondemand_query_analysis.usage_slots_payg_slot_cost` AS
+ SELECT project_id, 
+        Year,
+        Month,
+        CAST(0.060 * FLOOR((SUM(avg_slots_rounded_up_100_slots) + 99) / 100) AS INT64) AS payg_slot_cost
+   FROM `${project_id}.ondemand_query_analysis.usage_slots_data_per_minute` AS usage_slots_data_per_minute
+GROUP BY 1,2,3;
+
+
+
+-- Compare On-Demand versus Slots (HIGH LEVEL ESTIMATE FOR SEEING IF SLOTS SHOULD BE EVAULATED)
+-- The above pricing is a ROUGH estimate so we say payg_slot_cost * 2 to account for any inefficiencies in auto-scaling
+SELECT usage_cost_by_project.project_id,
+       usage_cost_by_project.Year,
+       usage_cost_by_project.Month,
+       CAST(AVG(CAST(usage_cost_by_project.est_sum_on_demand_cost AS INT64)) AS INT64) AS est_sum_on_demand_cost,
+       CAST(AVG(usage_slots_payg_slot_cost.payg_slot_cost) AS INT64)                   AS est_payg_slot_cost
+  FROM `${project_id}.ondemand_query_analysis.usage_cost_by_project` AS usage_cost_by_project
+        INNER JOIN `${project_id}.ondemand_query_analysis.usage_slots_payg_slot_cost` AS usage_slots_payg_slot_cost
+                ON usage_cost_by_project.project_id = usage_slots_payg_slot_cost.project_id
+               AND usage_cost_by_project.Year       = usage_slots_payg_slot_cost.Year
+               AND usage_cost_by_project.Month      = usage_slots_payg_slot_cost.Month
+  WHERE est_sum_on_demand_cost > payg_slot_cost * 2
+ GROUP BY 1,2,3
+ ORDER BY 4 DESC;
+
+-- $2000 is used as a high level estimate of 100 slots
+ SELECT usage_cost_by_project.project_id,
+        usage_cost_by_project.Year,
+        usage_cost_by_project.Month,
+        CAST(AVG(CAST(usage_cost_by_project.est_sum_on_demand_cost AS INT64)) AS INT64) -
+        CAST(AVG(usage_slots_payg_slot_cost.payg_slot_cost) AS INT64)                   AS rough_savings,
+        REPEAT('$', CAST((CAST(AVG(CAST(usage_cost_by_project.est_sum_on_demand_cost AS INT64)) AS INT64) -
+        CAST(AVG(usage_slots_payg_slot_cost.payg_slot_cost) AS INT64))/2000 AS INT))
+  FROM `${project_id}.ondemand_query_analysis.usage_cost_by_project` AS usage_cost_by_project
+        INNER JOIN `${project_id}.ondemand_query_analysis.usage_slots_payg_slot_cost` AS usage_slots_payg_slot_cost
+                ON usage_cost_by_project.project_id = usage_slots_payg_slot_cost.project_id
+               AND usage_cost_by_project.Year       = usage_slots_payg_slot_cost.Year
+               AND usage_cost_by_project.Month      = usage_slots_payg_slot_cost.Month
+  WHERE est_sum_on_demand_cost > payg_slot_cost * 2
+ GROUP BY 1,2,3
+ORDER BY 4 DESC;
+
+
+-- Create Looker Views
+CREATE OR REPLACE VIEW `${project_id}.ondemand_query_analysis.looker_cost_per_month` AS
+SELECT Year,
+       Month,
+       CAST(CONCAT(CAST(Year AS STRING),'-',CAST(Month AS STRING),'-01') AS DATE) AS SortDate,
+       CAST(SUM(est_sum_on_demand_cost) AS INT64)  AS Total
+  FROM `${project_id}.ondemand_query_analysis.usage_cost_by_project`
+GROUP BY 1,2;
+
+
+CREATE OR REPLACE VIEW `${project_id}.ondemand_query_analysis.looker_cost_per_month_per_project` AS
+SELECT project_id,
+       Year,
+       Month,
+       CAST(CONCAT(CAST(Year AS STRING),'-',CAST(Month AS STRING),'-01') AS DATE) AS SortDate,
+       CAST(SUM(est_sum_on_demand_cost) AS INT64)  AS Total
+  FROM `${project_id}.ondemand_query_analysis.usage_cost_by_project`
+GROUP BY 1,2,3;
+
+
+CREATE OR REPLACE VIEW `${project_id}.ondemand_query_analysis.looker_most_expensive_queries` AS
+SELECT project_id,
+       Year,
+       Month,
+       SUBSTRING(query, 1, 1000) AS query,
+       CAST(est_sum_on_demand_cost AS INT64) AS est_sum_on_demand_cost,
+       Cnt AS execution_count,
+       CAST(average_gb_processed AS INT64)   AS average_gb_processed,
+       CAST(average_job_avg_slots AS INT64)  AS average_job_avg_slots,
+       CAST(average_estimated_runnable_units AS INT64) AS average_estimated_runnable_units  
+  FROM `${project_id}.ondemand_query_analysis.usage_cost_by_query_top_1000`;
+
+
+-- $2000 is used as a high level estimate of 100 slots
+CREATE OR REPLACE VIEW `${project_id}.ondemand_query_analysis.looker_ondemand_vs_slots` AS
+WITH data AS
+(
+ SELECT usage_cost_by_project.project_id,
+        usage_cost_by_project.Year,
+        usage_cost_by_project.Month,
+        CAST(SUM(usage_cost_by_project.est_sum_on_demand_cost) AS INT64) AS est_sum_on_demand_cost,
+        CAST(AVG(CAST(usage_cost_by_project.est_sum_on_demand_cost AS INT64)) AS INT64) -
+        CAST(AVG(usage_slots_payg_slot_cost.payg_slot_cost) AS INT64)                   AS rough_savings,
+        REPEAT('$', CAST((CAST(AVG(CAST(usage_cost_by_project.est_sum_on_demand_cost AS INT64)) AS INT64) -
+        CAST(AVG(usage_slots_payg_slot_cost.payg_slot_cost) AS INT64))/2000 AS INT)) AS stars
+  FROM `${project_id}.ondemand_query_analysis.usage_cost_by_project` AS usage_cost_by_project
+        INNER JOIN `${project_id}.ondemand_query_analysis.usage_slots_payg_slot_cost` AS usage_slots_payg_slot_cost
+                ON usage_cost_by_project.project_id = usage_slots_payg_slot_cost.project_id
+               AND usage_cost_by_project.Year       = usage_slots_payg_slot_cost.Year
+               AND usage_cost_by_project.Month      = usage_slots_payg_slot_cost.Month
+  WHERE est_sum_on_demand_cost > payg_slot_cost * 2
+ GROUP BY 1,2,3
+)
+SELECT *
+  FROM data;
+
+
+-- Show the Looker report:
+/*
+Clone this report: https://lookerstudio.google.com/reporting/32c72a9a-1172-44d3-8f92-3eebdb042a02
+Click the 3 dots in the top right and select "Make a copy"
+Click "Copy Report"
+Click "Resouce" menu then "Manage added data sources"
+Click "Edit" under Actions title
+Click "${project_id}" (or enter the Project Id) under Project title
+Click "${bigquery_taxi_dataset}" under Dataset title
+Click "looker_most_expensive_queries" under Table title
+Click "Reconnect"
+Click "Apply" - there should be no field changes
+Click "Done" - in top right
+Repeat the above for each data source (3 additional ones)
+Click "Close" - in top right
+You can now see the data
+*/
+SELECT * FROM `${project_id}.ondemand_query_analysis.looker_ondemand_vs_slots` ORDER BY rough_savings DESC;

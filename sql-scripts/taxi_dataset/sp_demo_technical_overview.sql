@@ -21,8 +21,8 @@ Use Cases:
 
 Running this demo:
     - Start the Spanner Airflow DAG: sample-bigquery-start-spanner (takes about 10 minutes to deploy and shuts down after 4 hours)
-    - Start the Datastream Airflow DAG: sample-datastream-public-ip-deploy (takes about 10 minutes to deploy)
-        - Start the Change Data Capture (generate data) DAG: sample-datastream-public-ip-generate-data (starts immedately)
+    - Start the Datastream Airflow DAG: sample-datastream-private-ip-deploy (takes about 10 minutes to deploy)
+        - Start the Change Data Capture (generate data) DAG: sample-datastream-private-ip-generate-data (starts immedately)
     - Start the Dataflow Airflow DAG: sample-dataflow-start-streaming-job (takes about 10 minutes to deploy and shuts down after 4 hours)
     - Run the managed notebook DAG: sample-create-managed-notebook (takes about 5 minutes to deploy)
     -   You should run the notebook: BigQuery-Create-TensorFlow-Model.ipynb 
@@ -240,7 +240,9 @@ SELECT COUNT(*) AS Cnt FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips_p
 
 -- * Datastream *
 -- https://console.cloud.google.com/datastream/streams?project=${project_id}
-SELECT COUNT(*) FROM `${project_id}.datastream_public_ip_public.entries` ;
+SELECT * FROM `${project_id}.datastream_private_ip_public.driver`;
+SELECT * FROM `${project_id}.datastream_private_ip_public.review`;
+SELECT * FROM `${project_id}.datastream_private_ip_public.payment`;
 
 
 -- * Spanner Federated Query *
