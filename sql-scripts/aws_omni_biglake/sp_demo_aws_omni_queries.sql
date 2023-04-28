@@ -31,6 +31,7 @@ References:
     - https://cloud.google.com/bigquery/docs/omni-aws-introduction
 
 Clean up / Reset script:
+    DROP TABLE IF EXISTS `${project_id}.${bigquery_taxi_dataset}.omni_aws_query_results`;
 
 */
 
@@ -274,4 +275,47 @@ WITH CONNECTION `${shared_demo_project_id}.${aws_omni_biglake_dataset_region}.${
 -- Show the tables loaded with data from AWS
 SELECT * FROM `${project_id}.${bigquery_taxi_dataset}.aws_results_csv`;
 SELECT * FROM `${project_id}.${bigquery_taxi_dataset}.aws_results_parquet`;
+
+
+-- Use CTAS to query and directy load into BigQuery
+-- Load query results directly into a local BigQuery table
+CREATE OR REPLACE TABLE `${project_id}.${bigquery_taxi_dataset}.omni_aws_query_results` AS
+WITH MaxPickupTotalAmountPerDay AS
+(
+    SELECT TIMESTAMP_TRUNC(Pickup_DateTime, DAY) AS TripDay, PULocationID, Max(Total_Amount) AS MaxPickup,
+      FROM `${project_id}.${aws_omni_biglake_dataset_name}.taxi_s3_yellow_trips_parquet`
+     GROUP BY TripDay, PULocationID
+),
+MaxDropoffTotalAmountPerDay AS
+(
+    SELECT TIMESTAMP_TRUNC(Pickup_DateTime, DAY) AS TripDay, DOLocationID, Max(Total_Amount) AS MaxDropOff,
+      FROM `${project_id}.${aws_omni_biglake_dataset_name}.taxi_s3_yellow_trips_parquet`
+     GROUP BY TripDay, DOLocationID
+),
+PickupMax AS 
+(
+    SELECT TripDay, PULocationID, MaxPickup, RANK() OVER (PARTITION BY TripDay ORDER BY MaxPickup DESC) AS Ranking
+    FROM MaxPickupTotalAmountPerDay
+),
+DropOffMax AS 
+(
+    SELECT TripDay, DOLocationID, MaxDropOff, RANK() OVER (PARTITION BY TripDay ORDER BY MaxDropOff DESC) AS Ranking
+      FROM MaxDropoffTotalAmountPerDay
+)
+SELECT PickupMax.TripDay            AS PickupMax_TripDay, 
+       PickupMax.PULocationID       AS PickupMax_PULocationID, 
+       PickupMax.MaxPickup          AS PickupMax_MaxPickup,
+       DropOffMax.TripDay           AS DropOffMax_TripDay, 
+       DropOffMax.DOLocationID      AS DropOffMax_DOLocationID, 
+       DropOffMax.MaxDropOff        AS DropOffMax_MaxDropOff
+  FROM PickupMax
+       INNER JOIN DropOffMax
+       ON PickupMax.TripDay = DropOffMax.TripDay
+       AND PickupMax.Ranking = 1
+       AND DropOffMax.Ranking = 1
+ORDER BY PickupMax.TripDay;
+
+
+SELECT * FROM `${project_id}.${bigquery_taxi_dataset}.omni_aws_query_results`;
+
 

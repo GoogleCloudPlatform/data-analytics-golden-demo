@@ -47,7 +47,7 @@ default_args = {
     'dagrun_timeout' : timedelta(minutes=60),
     }
 
-project_id         = os.environ['GCP_PROJECT'] 
+project_id         = os.environ['ENV_PROJECT_ID'] 
 root_password      = os.environ['ENV_RANDOM_EXTENSION'] 
 cloud_sql_region   = os.environ['ENV_CLOUD_SQL_REGION']
 datastream_region  = os.environ['ENV_DATASTREAM_REGION']

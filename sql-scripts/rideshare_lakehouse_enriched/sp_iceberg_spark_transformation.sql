@@ -18,7 +18,7 @@ OPTIONS (engine='SPARK',
      ("spark.sql.catalog.rideshare_iceberg_catalog.gcp_location","${bigquery_region}"),
      ("spark.sql.catalog.rideshare_iceberg_catalog","org.apache.iceberg.spark.SparkCatalog"),
      ("spark.sql.catalog.rideshare_iceberg_catalog.warehouse","gs://rideshare-lakehouse-enriched-rexm45tpvr/biglake-iceberg-warehouse")],
-     jar_uris=["gs://spark-lib/biglake/iceberg-biglake-catalog-0.0.1-with-dependencies.jar"])
+     jar_uris=["gs://spark-lib/biglake/biglake-catalog-iceberg1.2.0-0.1.0-with-dependencies.jar"])
 	LANGUAGE python AS R"""
 
  ##################################################################################

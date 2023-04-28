@@ -50,7 +50,7 @@ default_args = {
     'dagrun_timeout' : timedelta(minutes=600),
 }
 
-project_id               = os.environ['GCP_PROJECT'] 
+project_id               = os.environ['ENV_PROJECT_ID'] 
 region                   = os.environ['ENV_DATAPROC_SERVERLESS_REGION'] 
 raw_bucket_name          = os.environ['ENV_RAW_BUCKET'] 
 processed_bucket_name    = "gs://" + os.environ['ENV_PROCESSED_BUCKET'] 

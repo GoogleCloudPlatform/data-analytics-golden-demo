@@ -100,6 +100,28 @@ resource "google_bigquery_routine" "sproc_sp_create_demo_dataform" {
 
 
 ####################################################################################
+# sp_create_datastream_cdc_data
+####################################################################################
+resource "google_bigquery_routine" "sproc_sp_create_datastream_cdc_data" {
+  dataset_id      = var.bigquery_taxi_dataset
+  routine_id      = "sp_create_datastream_cdc_data"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = templatefile("../sql-scripts/taxi_dataset/sp_create_datastream_cdc_data.sql", 
+  { 
+    project_id = var.project_id
+    project_number = var.project_number
+    
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+    bigquery_thelook_ecommerce_dataset = var.bigquery_thelook_ecommerce_dataset
+    raw_bucket_name = "raw-${var.storage_bucket}"
+    bigquery_region = var.bigquery_region
+    gcp_account_name = var.gcp_account_name
+  })
+}
+
+
+####################################################################################
 # sp_create_taxi_biglake_tables
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_create_taxi_biglake_tables" {
@@ -257,27 +279,6 @@ resource "google_bigquery_routine" "sproc_sp_demo_biglake" {
 
 }
 
-####################################################################################
-# sp_demo_bigquery_pricing
-####################################################################################
-resource "google_bigquery_routine" "sproc_sp_demo_bigquery_pricing" {
-  dataset_id      = var.bigquery_taxi_dataset
-  routine_id      = "sp_demo_bigquery_pricing"
-  routine_type    = "PROCEDURE"
-  language        = "SQL"
-  definition_body = templatefile("../sql-scripts/taxi_dataset/sp_demo_bigquery_pricing.sql", 
-  { 
-    project_id = var.project_id
-    
-    bigquery_taxi_dataset = var.bigquery_taxi_dataset
-    bigquery_thelook_ecommerce_dataset = var.bigquery_thelook_ecommerce_dataset
-    bucket_name = "processed-${var.storage_bucket}"
-    bigquery_region = var.bigquery_region
-    gcp_account_name = var.gcp_account_name
-  })
-
-}
-
 
 ####################################################################################
 # sp_demo_bigquery_queries
@@ -387,6 +388,50 @@ resource "google_bigquery_routine" "sproc_sp_demo_data_transfer_service" {
     gcp_account_name = var.gcp_account_name
   })
 
+}
+
+
+####################################################################################
+# sp_demo_datastream_private_ip
+####################################################################################
+resource "google_bigquery_routine" "sproc_sp_demo_datastream_private_ip" {
+  dataset_id      = var.bigquery_taxi_dataset
+  routine_id      = "sp_demo_datastream_private_ip"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = templatefile("../sql-scripts/taxi_dataset/sp_demo_datastream_private_ip.sql", 
+  { 
+    project_id = var.project_id
+    
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+    bigquery_thelook_ecommerce_dataset = var.bigquery_thelook_ecommerce_dataset
+    bucket_name = "processed-${var.storage_bucket}"
+    bigquery_region = var.bigquery_region
+    gcp_account_name = var.gcp_account_name
+    random_extension = var.random_extension
+  })
+}
+
+
+####################################################################################
+# sp_demo_datastream_public_ip
+####################################################################################
+resource "google_bigquery_routine" "sproc_sp_demo_datastream_public_ip" {
+  dataset_id      = var.bigquery_taxi_dataset
+  routine_id      = "sp_demo_datastream_public_ip"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = templatefile("../sql-scripts/taxi_dataset/sp_demo_datastream_public_ip.sql", 
+  { 
+    project_id = var.project_id
+    
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+    bigquery_thelook_ecommerce_dataset = var.bigquery_thelook_ecommerce_dataset
+    bucket_name = "processed-${var.storage_bucket}"
+    bigquery_region = var.bigquery_region
+    gcp_account_name = var.gcp_account_name
+    random_extension = var.random_extension
+  })
 }
 
 
@@ -646,6 +691,49 @@ resource "google_bigquery_routine" "sproc_sp_demo_materialized_views_joins" {
 
 
 ####################################################################################
+# sp_demo_pricing
+####################################################################################
+resource "google_bigquery_routine" "sproc_sp_demo_pricing" {
+  dataset_id      = var.bigquery_taxi_dataset
+  routine_id      = "sp_demo_pricing"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = templatefile("../sql-scripts/taxi_dataset/sp_demo_pricing.sql", 
+  { 
+    project_id = var.project_id
+    
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+    bigquery_thelook_ecommerce_dataset = var.bigquery_thelook_ecommerce_dataset
+    bucket_name = "processed-${var.storage_bucket}"
+    bigquery_region = var.bigquery_region
+    gcp_account_name = var.gcp_account_name
+  })
+
+}
+
+
+####################################################################################
+# sp_demo_pricing_ondemand_usage
+####################################################################################
+resource "google_bigquery_routine" "sproc_sp_demo_pricing_ondemand_usage" {
+  dataset_id      = var.bigquery_taxi_dataset
+  routine_id      = "sp_demo_pricing_ondemand_usage"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = templatefile("../sql-scripts/taxi_dataset/sp_demo_pricing_ondemand_usage.sql", 
+  { 
+    project_id = var.project_id
+    
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+    bigquery_thelook_ecommerce_dataset = var.bigquery_thelook_ecommerce_dataset
+    raw_bucket_name = "raw-${var.storage_bucket}"
+    bigquery_region = var.bigquery_region
+    gcp_account_name = var.gcp_account_name
+  })
+
+}
+
+####################################################################################
 # sp_demo_security_col_encryption_shredding
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_security_col_encryption_shredding" {
@@ -706,6 +794,39 @@ resource "google_bigquery_routine" "sproc_sp_demo_taxi_streaming_data" {
     gcp_account_name = var.gcp_account_name
   })
 }
+
+
+####################################################################################
+# sp_demo_technical_overview
+####################################################################################
+resource "google_bigquery_routine" "sproc_sp_demo_technical_overview" {
+  dataset_id      = var.bigquery_taxi_dataset
+  routine_id      = "sp_demo_technical_overview"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = templatefile("../sql-scripts/taxi_dataset/sp_demo_technical_overview.sql", 
+  { 
+    project_id = var.project_id
+    
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+    bigquery_thelook_ecommerce_dataset = var.bigquery_thelook_ecommerce_dataset
+    processed_bucket_name = "processed-${var.storage_bucket}"
+    bigquery_region = var.bigquery_region
+    gcp_account_name = var.gcp_account_name
+    bigquery_rideshare_lakehouse_enriched_dataset = var.bigquery_rideshare_lakehouse_enriched_dataset
+    bigquery_rideshare_lakehouse_curated_dataset = var.bigquery_rideshare_lakehouse_curated_dataset
+    bigquery_rideshare_lakehouse_raw_dataset = var.bigquery_rideshare_lakehouse_raw_dataset
+    aws_omni_biglake_s3_bucket = var.aws_omni_biglake_s3_bucket
+    random_extension = var.random_extension
+    shared_demo_project_id = var.shared_demo_project_id
+    gcs_rideshare_lakehouse_raw_bucket = var.gcs_rideshare_lakehouse_raw_bucket
+    aws_omni_biglake_dataset_name = var.aws_omni_biglake_dataset_name
+    aws_omni_biglake_connection = var.aws_omni_biglake_connection
+    spanner_region = var.spanner_region
+    gcs_rideshare_lakehouse_enriched_bucket = var.gcs_rideshare_lakehouse_enriched_bucket
+  })
+}
+
 
 
 ####################################################################################

@@ -51,7 +51,7 @@ default_args = {
     'dagrun_timeout' : timedelta(minutes=60),
 }
 
-project_id            = os.environ['GCP_PROJECT'] 
+project_id            = os.environ['ENV_PROJECT_ID'] 
 bigquery_region       = os.environ['ENV_BIGQUERY_REGION'] 
 processed_bucket_name = "gs://" + os.environ['ENV_PROCESSED_BUCKET'] 
 

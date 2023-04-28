@@ -195,6 +195,7 @@ module "resources" {
   appengine_region                  = var.appengine_region
   dataproc_serverless_region        = var.dataproc_serverless_region
   cloud_sql_region                  = var.cloud_sql_region
+  cloud_sql_zone                    = var.cloud_sql_zone
   datastream_region                 = var.datastream_region
 
   storage_bucket                    = local.local_storage_bucket
@@ -408,6 +409,22 @@ output "data_catalog_region" {
 
 output "appengine_region" {
   value = var.appengine_region
+}
+
+output "dataproc_serverless_region" {
+  value = var.dataproc_serverless_region
+}
+
+output "cloud_sql_region" {
+  value = var.cloud_sql_region
+}
+
+output "cloud_sql_zone" {
+  value = var.cloud_sql_zone
+}
+
+output "datastream_region" {
+  value = var.datastream_region
 }
 
 output "shared_demo_project_id" {

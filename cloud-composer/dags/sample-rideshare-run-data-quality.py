@@ -61,7 +61,7 @@ default_args = {
     'dagrun_timeout' : timedelta(minutes=60),
 }
 
-project_id                            = os.environ['GCP_PROJECT'] 
+project_id                            = os.environ['ENV_PROJECT_ID'] 
 rideshare_dataset_id                  = "rideshare_lakehouse_curated"
 code_bucket_name                      = os.environ['ENV_CODE_BUCKET'] 
 yaml_path                             = "gs://" + code_bucket_name + "/dataplex/data-quality/dataplex_data_quality_rideshare.yaml"

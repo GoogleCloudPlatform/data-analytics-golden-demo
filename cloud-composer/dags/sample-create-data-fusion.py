@@ -45,7 +45,7 @@ default_args = {
     'dagrun_timeout' : timedelta(minutes=60),
 }
 
-project_id            = os.environ['GCP_PROJECT'] 
+project_id            = os.environ['ENV_PROJECT_ID'] 
 region                = os.environ['ENV_DATAFUSION_REGION'] 
 datafusion_name       = "data-fusion-prod-01"
 
@@ -116,7 +116,7 @@ def wait_for_data_fusion_provisioning(project_id, region, datafusion_name):
         
         """ Sample Response
         {
-            "name": "projects/data-analytics-demo-z4x77nbcc3/locations/us-west1/instances/qadatafusion",
+            "name": "projects/data-analytics-demo-z4x77nbcc3/locations/us-central1/instances/qadatafusion",
             "type": "BASIC",
             "networkConfig": {},
             "createTime": "2022-06-29T13:21:24.874523833Z",

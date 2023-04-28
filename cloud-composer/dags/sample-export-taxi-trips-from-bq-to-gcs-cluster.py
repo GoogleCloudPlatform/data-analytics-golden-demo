@@ -52,7 +52,7 @@ default_args = {
 }
 
 
-project_id               = os.environ['GCP_PROJECT'] 
+project_id               = os.environ['ENV_PROJECT_ID'] 
 raw_bucket_name          = os.environ['ENV_RAW_BUCKET'] 
 processed_bucket_name    = "gs://" + os.environ['ENV_PROCESSED_BUCKET'] 
 pyspark_code             = "gs://" + raw_bucket_name + "/pyspark-code/export_taxi_data_from_bq_to_gcs.py"
