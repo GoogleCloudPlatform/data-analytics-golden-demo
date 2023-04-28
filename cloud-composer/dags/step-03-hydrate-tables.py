@@ -40,7 +40,7 @@ default_args = {
     'dagrun_timeout' : timedelta(minutes=60),
 }
 
-project_id            = os.environ['GCP_PROJECT'] 
+project_id            = os.environ['ENV_PROJECT_ID'] 
 bigquery_region       = os.environ['ENV_BIGQUERY_REGION'] 
 
 sql_taxi_external_tables="CALL `{}.taxi_dataset.sp_create_taxi_external_tables`();".format(project_id)

@@ -50,7 +50,7 @@ default_args = {
     'dagrun_timeout' : timedelta(minutes=60),
 }
 
-project_id            = os.environ['GCP_PROJECT'] 
+project_id            = os.environ['ENV_PROJECT_ID'] 
 region                = os.environ['ENV_SPANNER_REGION'] 
 bigquery_region       = os.environ['ENV_BIGQUERY_REGION'] 
 spanner_instance_id   = os.environ['ENV_SPANNER_INSTANCE_ID']

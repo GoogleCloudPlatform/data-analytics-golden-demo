@@ -140,6 +140,40 @@ resource "google_storage_bucket_object" "deploy_airflow_data_sample_datastream_p
     ]  
 }
 
+
+# Upload the Airflow "data/template" files
+resource "google_storage_bucket_object" "deploy_airflow_data_sample_datastream_private_ip_deploy_postgres" {
+  name   = "${local.local_composer_data_path}/sample_datastream_private_ip_deploy_postgres.sh"
+  bucket = local.local_composer_bucket_name
+  source = "../cloud-composer/data/sample_datastream_private_ip_deploy_postgres.sh"
+
+  depends_on = [ 
+    ]  
+}
+
+
+# Upload the Airflow "data/template" files
+resource "google_storage_bucket_object" "deploy_airflow_data_sample_datastream_private_ip_deploy_datastream" {
+  name   = "${local.local_composer_data_path}/sample_datastream_private_ip_deploy_datastream.sh"
+  bucket = local.local_composer_bucket_name
+  source = "../cloud-composer/data/sample_datastream_private_ip_deploy_datastream.sh"
+
+  depends_on = [ 
+    ]  
+}
+
+
+# Upload the Airflow "data/template" files
+resource "google_storage_bucket_object" "deploy_airflow_data_sample_datastream_private_ip_destroy" {
+  name   = "${local.local_composer_data_path}/sample_datastream_private_ip_destroy.sh"
+  bucket = local.local_composer_bucket_name
+  source = "../cloud-composer/data/sample_datastream_private_ip_destroy.sh"
+
+  depends_on = [ 
+    ]  
+}
+
+
 # Upload the Airflow "data/template" files
 resource "google_storage_bucket_object" "deploy_airflow_data_bash_create_managed_notebook" {
   name   = "${local.local_composer_data_path}/bash_create_managed_notebook.sh"
@@ -203,6 +237,36 @@ resource "google_storage_bucket_object" "deploy_airflow_data_bash_seed_unstructu
     ]  
 }
 
+# Upload the Airflow "data/template" files
+resource "google_storage_bucket_object" "deploy_airflow_data_cloud_sql_reverse_proxy_template" {
+  name   = "${local.local_composer_data_path}/cloud_sql_reverse_proxy_template.sh"
+  bucket = local.local_composer_bucket_name
+  source = "../cloud-composer/data/cloud_sql_reverse_proxy_template.sh"
+
+  depends_on = [ 
+    ]  
+}
+
+# Upload the Airflow "data/template" files
+resource "google_storage_bucket_object" "deploy_airflow_data_postgres_create_datastream_replication" {
+  name   = "${local.local_composer_data_path}/postgres_create_datastream_replication.sql"
+  bucket = local.local_composer_bucket_name
+  source = "../cloud-composer/data/postgres_create_datastream_replication.sql"
+
+  depends_on = [ 
+    ]  
+}
+
+
+# Upload the Airflow "data/template" files
+resource "google_storage_bucket_object" "deploy_airflow_data_postgres_create_schema" {
+  name   = "${local.local_composer_data_path}/postgres_create_schema.sql"
+  bucket = local.local_composer_bucket_name
+  source = "../cloud-composer/data/postgres_create_schema.sql"
+
+  depends_on = [ 
+    ]  
+}
 
 ####################################################################################
 # Upload the PySpark scripts
@@ -429,6 +493,27 @@ resource "google_storage_bucket_object" "deploy_bigspark_sample-bigspark-discoun
   name   = "${local.local_bigspark_path}/sample-bigspark-discount-data.csv"
   bucket = "raw-${var.storage_bucket}"
   source = "../sample-data/bigspark/sample-bigspark-discount-data.csv"
+
+  depends_on = [ 
+    ]  
+}
+
+
+# Random name file
+resource "google_storage_bucket_object" "deploy_sample_data-random_names" {
+  name   = "random_names/random_names.csv"
+  bucket = "raw-${var.storage_bucket}"
+  source = "../sample-data/random_names/random_names.csv"
+
+  depends_on = [ 
+    ]  
+}
+
+# Pickup and Dropoff location data
+resource "google_storage_bucket_object" "deploy_sample_data-location" {
+  name   = "processed/taxi-data/location/location.parquet"
+  bucket = "processed-${var.storage_bucket}"
+  source = "../sample-data/location/location.parquet"
 
   depends_on = [ 
     ]  
@@ -938,6 +1023,43 @@ resource "google_storage_bucket_object" "deploy_airflow_dag_sample-datastream-pu
     time_sleep.wait_for_airflow_dag_sync
     ]  
 }
+
+
+# Upload DAG
+resource "google_storage_bucket_object" "deploy_airflow_dag_sample-datastream-private-ip-deploy" {
+  name   = "${local.local_composer_dag_path}/sample-datastream-private-ip-deploy.py"
+  bucket = local.local_composer_bucket_name
+  source = "../cloud-composer/dags/sample-datastream-private-ip-deploy.py"
+
+  depends_on = [ 
+    time_sleep.wait_for_airflow_dag_sync
+    ]  
+}
+
+
+# Upload DAG
+resource "google_storage_bucket_object" "deploy_airflow_dag_sample-datastream-private-ip-destroy" {
+  name   = "${local.local_composer_dag_path}/sample-datastream-private-ip-destroy.py"
+  bucket = local.local_composer_bucket_name
+  source = "../cloud-composer/dags/sample-datastream-private-ip-destroy.py"
+
+  depends_on = [ 
+    time_sleep.wait_for_airflow_dag_sync
+    ]  
+}
+
+
+# Upload DAG
+resource "google_storage_bucket_object" "deploy_airflow_dag_sample-datastream-private-ip-generate-data" {
+  name   = "${local.local_composer_dag_path}/sample-datastream-private-ip-generate-data.py"
+  bucket = local.local_composer_bucket_name
+  source = "../cloud-composer/dags/sample-datastream-private-ip-generate-data.py"
+
+  depends_on = [ 
+    time_sleep.wait_for_airflow_dag_sync
+    ]  
+}
+
 
 # Upload DAG
 resource "google_storage_bucket_object" "deploy_airflow_dag_sample-dataplex-run-data-quality" {

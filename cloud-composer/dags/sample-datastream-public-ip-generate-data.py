@@ -36,6 +36,7 @@ from pathlib import Path
 import psycopg2
 import time
 import random
+from google.cloud import bigquery
 
 default_args = {
     'owner': 'airflow',
@@ -48,7 +49,7 @@ default_args = {
     'dagrun_timeout' : timedelta(minutes=60),
     }
 
-project_id         = os.environ['GCP_PROJECT'] 
+project_id         = os.environ['ENV_PROJECT_ID'] 
 root_password      = os.environ['ENV_RANDOM_EXTENSION'] 
 cloud_sql_region   = os.environ['ENV_CLOUD_SQL_REGION']
 datastream_region  = os.environ['ENV_DATASTREAM_REGION']
@@ -65,10 +66,10 @@ params_list = {
 # Set the datastream replication items
 def run_postgres_sql(database_password):
     print("start run_postgres_sql")
-    ipAddress = Path('/home/airflow/gcs/data/postgres_ip_address.txt').read_text()
+    ipAddress = Path('/home/airflow/gcs/data/postgres_public_ip_address.txt').read_text()
     print("ipAddress:", ipAddress)
 
-    database_name = "guestbook"
+    database_name = "demodb"
     postgres_user = "postgres"
 
     conn = psycopg2.connect(
@@ -77,18 +78,86 @@ def run_postgres_sql(database_password):
     user=postgres_user,
     password=database_password)
 
+   # create default config
+    config_data = {
+        "interation_count" : 0,
+        "min_index" : 1,
+        "max_index" : 10010000,
+        "current_index": 1
+    }
+
+    if os.path.exists('/home/airflow/gcs/data/datastream-public-ip-generate-data.json'):
+        # read the data
+        datastream_cdc_config_json = Path('/home/airflow/gcs/data/datastream-public-ip-generate-data.json').read_text()
+        config_data = json.loads(datastream_cdc_config_json)
+    else:
+        # write the default config
+        with open('/home/airflow/gcs/data/datastream-public-ip-generate-data.json', 'w') as f:
+            json.dump(config_data, f)
+
     try:
-        # This runs for about 5 hours
+        # This runs for 4 hours
         cur = conn.cursor()
-        for loop in range(100000):
-            command = "INSERT INTO entries (guestName, content) values ('Guest {}', 'Arrived at {}');".format(loop,round(1 + random.random() * (100000 - 1)))
-            cur.execute(command)
-            if loop % 5 == 0:
-                time.sleep(1)
-                print("Loop: ", loop)
+        client = bigquery.Client()
+        
+        # Loop for 4 hours (14400 seconds)
+        start_time = datetime.now()
+        loop_count = 0
+        while (datetime.now() - start_time).total_seconds() < 14400 :
+            print("interation_count:",config_data["interation_count"])
+            print("min_index:",config_data["min_index"])
+            print("max_index:",config_data["max_index"])
+            print("current_index:",config_data["current_index"])
+            
+            for index in range(config_data["current_index"], config_data["max_index"], 50):
+                loop_count = loop_count + 1
+                bigquery_sql = "SELECT sql_statement, table_name " + \
+                                        " FROM taxi_dataset.datastream_cdc_data " + \
+                                        "WHERE execution_order BETWEEN {} AND {};".format(index, index+49)
+                # print("bigquery_sql: ", bigquery_sql)
+                query_job = client.query(bigquery_sql)
+                results = query_job.result()  # Waits for job to complete.
+
+                for row in results:
+                    # print("row.table_name:", row.table_name)
+                    # print("row.sql_statement:", row.sql_statement)
+
+                    if config_data["interation_count"] == 0:
+                        # okay to execute
+                        cur.execute(row.sql_statement)
+                    else:
+                        if row.table_name != "driver":
+                            # okay to execute (we do not want to create duplicate drivers)
+                            cur.execute(row.sql_statement)
+
+                if index+49 >= config_data["max_index"]:
+                    config_data["interation_count"] = config_data["interation_count"] + 1
+                    config_data["current_index"] = 1
+
                 conn.commit()
+                config_data["current_index"] = index+49
+                # Write the file ever so often
+                if loop_count % 100 == 0:
+                    print("bigquery_sql: ", bigquery_sql)
+                    print("loop_count: ", loop_count)
+                    print("config_data[current_index]: ", config_data["current_index"])
+                    with open('/home/airflow/gcs/data/datastream-public-ip-generate-data.json', 'w') as f:
+                        json.dump(config_data, f)                    
+
+                if (datetime.now() - start_time).total_seconds() > 14400:
+                    break
+
+        # Save
+        with open('/home/airflow/gcs/data/datastream-public-ip-generate-data.json', 'w') as f:
+            json.dump(config_data, f)
+        
         cur.close()
         conn.commit()
+
+        # Save our state
+        with open('/home/airflow/gcs/data/datastream-public-ip-generate-data.json', 'w') as f:
+            json.dump(config_data, f)
+
     except (Exception, psycopg2.DatabaseError) as error:
         print(error)
     finally:

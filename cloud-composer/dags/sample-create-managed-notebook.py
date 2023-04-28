@@ -47,7 +47,7 @@ default_args = {
     'dagrun_timeout' : timedelta(minutes=60),
 }
 
-project_id            = os.environ['GCP_PROJECT'] 
+project_id            = os.environ['ENV_PROJECT_ID'] 
 vertex_ai_region      = os.environ['ENV_VERTEX_AI_REGION'] 
 gcp_account_name      = os.environ['ENV_GCP_ACCOUNT_NAME']
 dataproc_account_name = os.environ['ENV_DATAPROC_SERVICE_ACCOUNT']

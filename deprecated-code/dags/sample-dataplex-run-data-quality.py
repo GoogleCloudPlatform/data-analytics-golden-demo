@@ -46,7 +46,7 @@ default_args = {
     'dagrun_timeout' : timedelta(minutes=60),
 }
 
-project_id                      = os.environ['GCP_PROJECT'] 
+project_id                      = os.environ['ENV_PROJECT_ID'] 
 taxi_dataset_id                 = os.environ['ENV_TAXI_DATASET_ID']
 processed_bucket_name           = os.environ['ENV_PROCESSED_BUCKET'] 
 yaml_path                       = "gs://" + processed_bucket_name + "/dataplex/dataplex_data_quality_taxi.yaml"

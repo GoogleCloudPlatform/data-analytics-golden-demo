@@ -53,6 +53,7 @@ variable "data_catalog_region" {}
 variable "appengine_region" {}
 variable "dataproc_serverless_region" {}
 variable "cloud_sql_region" {}
+variable "cloud_sql_zone" {}
 variable "datastream_region" {}
 
 variable "storage_bucket" {}
@@ -171,6 +172,19 @@ resource "google_compute_network" "default_network" {
   mtu                     = 1460
 }
 
+resource "google_compute_subnetwork" "compute_subnet" {
+  project       = var.project_id
+  name          = "compute-subnet"
+  ip_cidr_range = "10.1.0.0/16"
+  region        = var.cloud_sql_region
+  network       = google_compute_network.default_network.id
+  private_ip_google_access = true
+
+  depends_on = [
+    google_compute_network.default_network
+  ]
+}
+
 # Firewall for NAT Router
 resource "google_compute_firewall" "subnet_firewall_rule" {
   project  = var.project_id
@@ -188,7 +202,7 @@ resource "google_compute_firewall" "subnet_firewall_rule" {
   allow {
     protocol = "udp"
   }
-  source_ranges = ["10.2.0.0/16","10.3.0.0/16","10.4.0.0/16","10.5.0.0/16"]
+  source_ranges = ["10.1.0.0/16","10.2.0.0/16","10.3.0.0/16","10.4.0.0/16","10.5.0.0/16"]
 
   depends_on = [
     google_compute_subnetwork.composer_subnet,
@@ -221,6 +235,154 @@ resource "google_compute_router_nat" "nat-config" {
 
   depends_on = [
     google_compute_router.nat-router
+  ]
+}
+
+
+####################################################################################
+# Datastream
+####################################################################################
+# Firewall rule for Cloud Shell to SSH in Compute VMs
+# A compute VM will be deployed as a SQL Reverse Proxy for Datastream private connectivity
+resource "google_compute_firewall" "cloud_shell_ssh_firewall_rule" {
+  project  = var.project_id
+  name     = "cloud-shell-ssh-firewall-rule"
+  network  = google_compute_network.default_network.id
+
+  allow {
+    protocol = "tcp"
+    ports    = ["22"]
+  }
+
+  direction = "INGRESS"
+  target_tags = ["ssh-firewall-tag"]
+
+  source_ranges = ["35.235.240.0/20"]
+
+  depends_on = [
+    google_compute_network.default_network
+  ]
+}
+
+
+# Datastream ingress rules for SQL Reverse Proxy communication
+resource "google_compute_firewall" "datastream_ingress_rule_firewall_rule" {
+  project  = var.project_id
+  name     = "datastream-ingress-rule"
+  network  = google_compute_network.default_network.id
+
+  allow {
+    protocol = "tcp"
+    ports    = ["5432"]
+  }
+
+  direction = "INGRESS"
+
+  source_ranges = ["10.6.0.0/16","10.7.0.0/29"]
+
+  depends_on = [
+    google_compute_network.default_network
+  ]
+}
+
+
+# Datastream egress rules for SQL Reverse Proxy communication
+resource "google_compute_firewall" "datastream_egress_rule_firewall_rule" {
+  project  = var.project_id
+  name     = "datastream-egress-rule"
+  network  = google_compute_network.default_network.id
+
+  allow {
+    protocol = "tcp"
+    ports    = ["5432"]
+  }
+
+  direction = "EGRESS"
+
+  destination_ranges = ["10.6.0.0/16","10.7.0.0/29"]
+
+  depends_on = [
+    google_compute_network.default_network
+  ]
+}
+
+
+# Create the Datastream Private Connection (takes a while so it is done here and not created on the fly in Airflow)
+resource "google_datastream_private_connection" "datastream_cloud-sql-private-connect" {
+    project               = var.project_id
+    display_name          = "cloud-sql-private-connect"
+    location              = var.datastream_region
+    private_connection_id = "cloud-sql-private-connect"
+
+    vpc_peering_config {
+        vpc = google_compute_network.default_network.id
+        subnet = "10.7.0.0/29"
+    }
+
+  depends_on = [
+    google_compute_network.default_network
+  ]    
+}
+
+
+# For Cloud SQL / Datastream demo 
+# Allocate an IP address range
+# https://cloud.google.com/sql/docs/mysql/configure-private-services-access#allocate-ip-address-range   
+resource "google_compute_global_address" "google_compute_global_address_vpc_main" {
+  project       = var.project_id
+  name          = "google-managed-services-vpc-main"
+  purpose       = "VPC_PEERING"
+  address_type  = "INTERNAL"
+  prefix_length = 16
+  network       = google_compute_network.default_network.id
+
+  depends_on = [
+    google_compute_network.default_network
+  ] 
+}
+
+
+# Create a private connection
+# https://cloud.google.com/sql/docs/mysql/configure-private-services-access#create_a_private_connection
+resource "google_service_networking_connection" "google_service_networking_connection_default" {
+  # project                 = var.project_id
+  network                 = google_compute_network.default_network.id
+  service                 = "servicenetworking.googleapis.com"
+  reserved_peering_ranges = [google_compute_global_address.google_compute_global_address_vpc_main.name]
+
+  depends_on = [
+    google_compute_network.default_network,
+    google_compute_global_address.google_compute_global_address_vpc_main
+  ] 
+}
+
+# Force the service account to get created so we can grant permisssions
+resource "google_project_service_identity" "service_identity_servicenetworking" {
+  project  = var.project_id
+  service  = "servicenetworking.googleapis.com"
+  depends_on = [
+    google_compute_network.default_network,
+    google_service_networking_connection.google_service_networking_connection_default
+  ]
+}
+
+resource "time_sleep" "service_identity_servicenetworking_time_delay" {
+  depends_on      = [google_project_service_identity.service_identity_servicenetworking]
+  create_duration = "30s"
+}
+
+
+# Add permissions for the database to get created
+resource "google_project_iam_member" "iam_service_networking" {
+  project  = var.project_id
+  role     = "roles/servicenetworking.serviceAgent"
+  member   = "serviceAccount:${google_project_service_identity.service_identity_servicenetworking.email}"
+  #member   = "serviceAccount:service-${var.project_number}@service-networking.iam.gserviceaccount.com "
+
+  depends_on = [
+    google_compute_network.default_network,
+    google_service_networking_connection.google_service_networking_connection_default,
+    time_sleep.service_identity_servicenetworking_time_delay
   ]
 }
 
@@ -486,6 +648,9 @@ resource "google_composer_environment" "composer_env" {
       }      
 
       env_variables = {
+        ENV_PROJECT_ID                           = var.project_id,
+        ENV_PROJECT_NUMBER                       = var.project_number,
+
         ENV_RAW_BUCKET                           = "raw-${var.storage_bucket}",
         ENV_PROCESSED_BUCKET                     = "processed-${var.storage_bucket}",
         ENV_CODE_BUCKET                          = "code-${var.storage_bucket}",
@@ -508,6 +673,7 @@ resource "google_composer_environment" "composer_env" {
         ENV_DATAPROC_SERVERLESS_SUBNET           = "projects/${var.project_id}/regions/${var.dataproc_serverless_region}/subnetworks/dataproc-serverless-subnet",
         ENV_DATAPROC_SERVERLESS_SUBNET_NAME      = google_compute_subnetwork.dataproc_serverless_subnet.name,
         ENV_CLOUD_SQL_REGION                     = var.cloud_sql_region,
+        ENV_CLOUD_SQL_ZONE                       = var.cloud_sql_zone,
         ENV_DATASTREAM_REGION                    = var.datastream_region,
 
         ENV_DATAPROC_BUCKET                      = "dataproc-${var.storage_bucket}",
@@ -1631,24 +1797,35 @@ resource "google_project_iam_member" "dataflow_service_account_editor_role" {
 #       to be created, a call must be made to the service.  The below will do a "list" call which
 #       will return nothing, but will trigger the cloud to create the service account.  Then
 #       IAM permissions can be set for this account.
-resource "null_resource" "trigger_data_trasfer_service_account_create" {
-  provisioner "local-exec" {
-    interpreter = ["/bin/bash","-c"]
-    command     = <<EOF
-if [ -z "$${GOOGLE_APPLICATION_CREDENTIALS}" ]
-then
-    echo "We are not running in a local docker container.  No need to login."
-else
-    echo "We are running in local docker container. Logging in."
-    gcloud auth activate-service-account "${var.deployment_service_account_name}" --key-file="$${GOOGLE_APPLICATION_CREDENTIALS}" --project="${var.project_id}"
-    gcloud config set account "${var.deployment_service_account_name}"
-fi 
-curl "https://bigquerydatatransfer.googleapis.com/v1/projects/${var.project_id}/locations/${var.bigquery_non_multi_region}/transferConfigs" \
-  --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})"  \
-  --header "Accept: application/json" \
-  --compressed
-EOF
-  }
+# resource "null_resource" "trigger_data_trasfer_service_account_create" {
+#   provisioner "local-exec" {
+#     interpreter = ["/bin/bash","-c"]
+#     command     = <<EOF
+# if [ -z "$${GOOGLE_APPLICATION_CREDENTIALS}" ]
+# then
+#     echo "We are not running in a local docker container.  No need to login."
+# else
+#     echo "We are running in local docker container. Logging in."
+#     gcloud auth activate-service-account "${var.deployment_service_account_name}" --key-file="$${GOOGLE_APPLICATION_CREDENTIALS}" --project="${var.project_id}"
+#     gcloud config set account "${var.deployment_service_account_name}"
+# fi 
+# curl "https://bigquerydatatransfer.googleapis.com/v1/projects/${var.project_id}/locations/${var.bigquery_non_multi_region}/transferConfigs" \
+#   --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})"  \
+#   --header "Accept: application/json" \
+#   --compressed
+# EOF
+#   }
+#   depends_on = [
+#     google_project_iam_member.cloudcomposer_account_service_agent_v2_ext,
+#     google_project_iam_member.cloudcomposer_account_service_agent,
+#     google_service_account.composer_service_account
+#   ]
+# }
+
+# Add the Service Account Short Term Token Minter role to a Google-managed service account used by the BigQuery Data Transfer Service
+resource "google_project_service_identity" "service_identity_bigquery_data_transfer" {
+  project  = var.project_id
+  service  = "bigquerydatatransfer.googleapis.com"
   depends_on = [
     google_project_iam_member.cloudcomposer_account_service_agent_v2_ext,
     google_project_iam_member.cloudcomposer_account_service_agent,
@@ -1658,7 +1835,7 @@ EOF
 
 
 resource "time_sleep" "create_bigquerydatatransfer_account_time_delay" {
-  depends_on      = [null_resource.trigger_data_trasfer_service_account_create]
+  depends_on      = [google_project_service_identity.service_identity_bigquery_data_transfer]
   create_duration = "30s"
 }
 
@@ -1666,24 +1843,18 @@ resource "time_sleep" "create_bigquerydatatransfer_account_time_delay" {
 resource "google_service_account_iam_member" "service_account_impersonation" {
   service_account_id = google_service_account.composer_service_account.name
   role               = "roles/iam.serviceAccountTokenCreator"
-  member             = "serviceAccount:service-${var.project_number}@gcp-sa-bigquerydatatransfer.iam.gserviceaccount.com"
+  member             = "serviceAccount:${google_project_service_identity.service_identity_bigquery_data_transfer.email}"
+  #                    "serviceAccount:service-${var.project_number}@gcp-sa-bigquerydatatransfer.iam.gserviceaccount.com"
   depends_on         = [ time_sleep.create_bigquerydatatransfer_account_time_delay ]
 }
-/*
-resource "google_service_account_iam_binding" "service_account_impersonation" {
-  provider           = google
-  service_account_id = google_service_account.composer_service_account.name
-  role               = "roles/iam.serviceAccountTokenCreator"
 
-  members = [
-    "serviceAccount:service-${var.project_number}@gcp-sa-bigquerydatatransfer.iam.gserviceaccount.com"
-  ]
 
-  depends_on = [
-    time_sleep.create_bigquerydatatransfer_account_time_delay,
-  ]
+resource "google_project_iam_member" "iam_member_bigquerydatatransfer_serviceAgent" {
+  project            = var.project_id
+  role               = "roles/bigquerydatatransfer.serviceAgent"
+  member             = "serviceAccount:${google_project_service_identity.service_identity_bigquery_data_transfer.email}"
+  depends_on         = [ google_service_account_iam_member.service_account_impersonation ]
 }
-*/
 
 
 ####################################################################################
@@ -1897,6 +2068,33 @@ resource "google_data_catalog_tag_template" "column_dq_tag_template" {
 resource "google_app_engine_application" "rideshare_plus_app_engine" {
   project     = var.project_id
   location_id = var.appengine_region
+}
+
+
+####################################################################################
+# Pub/Sub
+####################################################################################
+resource "google_project_service_identity" "service_identity_pub_sub" {
+  project  = var.project_id
+  service  = "pubsub.googleapis.com"
+  depends_on = [
+  ]
+}
+
+resource "time_sleep" "create_pubsub_account_time_delay" {
+  depends_on      = [google_project_service_identity.service_identity_pub_sub]
+  create_duration = "30s"
+}
+
+# Grant require worker role
+resource "google_bigquery_dataset_access" "pubsub_access_bq_taxi_dataset" {
+  dataset_id    = google_bigquery_dataset.taxi_dataset.dataset_id
+  role          = "roles/bigquery.dataOwner"
+  user_by_email = google_project_service_identity.service_identity_pub_sub.email
+
+  depends_on = [ 
+    time_sleep.create_pubsub_account_time_delay
+  ]  
 }
 
 

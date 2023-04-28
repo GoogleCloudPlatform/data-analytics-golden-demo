@@ -42,7 +42,7 @@ default_args = {
     'dagrun_timeout' : timedelta(minutes=60),
 }
 
-project_id            = os.environ['GCP_PROJECT'] 
+project_id            = os.environ['ENV_PROJECT_ID'] 
 bigquery_region       = os.environ['ENV_BIGQUERY_REGION'] 
 
 sp_rideshare_lakehouse_raw_sp_create_raw_data="CALL `{}.rideshare_lakehouse_raw.sp_create_raw_data`();".format(project_id)

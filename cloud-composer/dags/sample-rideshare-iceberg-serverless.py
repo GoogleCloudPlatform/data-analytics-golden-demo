@@ -47,12 +47,12 @@ default_args = {
     'dagrun_timeout' : timedelta(minutes=600),
 }
 
-project_id               = os.environ['GCP_PROJECT'] 
+project_id               = os.environ['ENV_PROJECT_ID'] 
 region                   = os.environ['ENV_DATAPROC_SERVERLESS_REGION']
 raw_bucket_name          = os.environ['ENV_RAW_BUCKET'] 
 processed_bucket_name    = "gs://" + os.environ['ENV_PROCESSED_BUCKET'] 
 pyspark_code             = "gs://" + raw_bucket_name + "/pyspark-code/rideshare_iceberg_serverless.py"
-jar_file                 = "gs://spark-lib/biglake/iceberg-biglake-catalog-0.0.1-with-dependencies.jar"
+jar_file                 = "gs://spark-lib/biglake/biglake-catalog-iceberg1.2.0-0.1.0-with-dependencies.jar"
 
 # hardcoded the subnet name
 dataproc_subnet          = os.environ['ENV_DATAPROC_SERVERLESS_SUBNET_NAME']
