@@ -48,11 +48,11 @@ project_id="my-project"
 project_number="000000000000"
 
 # 5 - When the script is complete, reenable the following Org Policies (or revert to parent policy)
-#     - (DO NOT RENABLE) requireOsLogin 
-#     - (RENABLE) requireShieldedVm 
-#     - (RENABLE) allowedIngressSettings 
-#     - (RENABLE) allowedPolicyMemberDomains 
-#     - (RENABLE) restrictVpcPeering  
+#     - (DO NOT RE-ENABLE) requireOsLogin 
+#     - (RE-ENABLE) requireShieldedVm 
+#     - (RE-ENABLE) allowedIngressSettings 
+#     - (RE-ENABLE) allowedPolicyMemberDomains 
+#     - (RE-ENABLE) restrictVpcPeering  
 
 
 ####################################################################################
