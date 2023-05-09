@@ -89,6 +89,7 @@ Deploys an end-to-end Data Analytics technical walkthrough on Google Cloud.  All
 
 ## Deploy
 ### To deploy to New Project (Requires Elevated Privileges)
+- Video [Link] (https://youtu.be/QvCCo35qgys)
 - **The following IAM roles are required to deploy the solution**
  - Prerequisite:  Billing Account User (to create the project with billing)
  - Prerequisite:  Organization Administrator (to create all assets)
@@ -105,6 +106,7 @@ Deploys an end-to-end Data Analytics technical walkthrough on Google Cloud.  All
 
 
 ### To deploy to an Existing Project (Requires Assistance from IT and Owner Project Privileges)
+- Video [Link](https://youtu.be/SLzr737SHXM)
 - **The following items are required to deploy the solution**
  - Prerequisite: You will need a project created for you (IT can do this for you)
  - Prerequisite: You will need to be an Owner (IAM role) of the project to run the below script
