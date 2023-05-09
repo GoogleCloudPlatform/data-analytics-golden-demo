@@ -121,10 +121,10 @@ Deploys an end-to-end Data Analytics technical walkthrough on Google Cloud.  All
 5. Run ```source deploy-use-existing-project-non-org-admin.sh```
 6. Your Organization Policy Administrator can then reenable the following Organization Policies
   - (DO NOT RE-ENABLE) requireOsLogin = false
-  - (RENABLE) requireShieldedVm = false
-  - (RENABLE) allowedIngressSettings = allow all
-  - (RENABLE) allowedPolicyMemberDomains = allow all
-  - (RENABLE) restrictVpcPeering = allow all
+  - (RE-ENABLE)) requireShieldedVm = false
+  - (RE-ENABLE)) allowedIngressSettings = allow all
+  - (RE-ENABLE)) allowedPolicyMemberDomains = allow all
+  - (RE-ENABLE)) restrictVpcPeering = allow all
 
 
 
