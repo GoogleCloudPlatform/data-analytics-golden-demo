@@ -2,7 +2,7 @@
 Deploys an end-to-end Data Analytics technical walkthrough on Google Cloud.  All the services are connected, configured and ready to run.  The deployed artifacts can be run in any order letting you set your own path through the system.  The system has 70 to 700+ million rows of data so that you can show "true life" performance, scale and integration of various services.  The system orchestates itself using Airflow, communicates over private IP addresses and has working code to demonstrate how to build an end to end system.
 
 ## Monthly Video Update (May 2023)
-[![Monthly Update](./images/MonthlyUpdateImage.png)](https://youtu.be/VAIBgDPC-w8)
+[![Monthly Update](./images/MonthlyUpdate.png)](https://youtu.be/VAIBgDPC-w8)
 
 
 ## Demo Artifacts
