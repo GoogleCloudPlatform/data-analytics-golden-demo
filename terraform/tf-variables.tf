@@ -103,7 +103,7 @@ variable "default_zone" {
 variable "composer_region" {
   type        = string
   description = "The GCP region for composer."
-  default     = "us-central1"
+  default     = "us-west2"
   validation {
     condition     = length(var.composer_region) > 0
     error_message = "The composer region is required."
@@ -127,16 +127,6 @@ variable "dataplex_region" {
   validation {
     condition     = length(var.dataplex_region) > 0
     error_message = "The dataplex region is required."
-  }
-}
-
-variable "nat_router_region" {
-  type        = string
-  description = "The GCP region for teh NAT Router."
-  default     = "us-central1"
-  validation {
-    condition     = length(var.nat_router_region) > 0
-    error_message = "The nat router region is required."
   }
 }
 
@@ -184,7 +174,7 @@ variable "bigquery_non_multi_region" {
 variable "spanner_region" {
   type        = string
   description = "The GCP region for the main Spanner node."
-  default     = "us-central1"
+  default     = "us-west2"
   validation {
     condition     = length(var.spanner_region) > 0
     error_message = "The spanner region is required."
@@ -195,7 +185,7 @@ variable "spanner_region" {
 variable "spanner_config" {
   type        = string
   description = "This should be a spanner config in the region.  See: https://cloud.google.com/spanner/docs/instance-configurations#available-configurations-multi-region"
-  default     = "nam6"
+  default     = "nam8"
   validation {
     condition     = length(var.spanner_config) > 0
     error_message = "The spanner_config is required."
@@ -268,7 +258,7 @@ variable "dataproc_serverless_region" {
 variable "cloud_sql_region" {
   type        = string
   description = "The GCP region for Cloud SQL."
-  default     = "us-central1"
+  default     = "us-west2"
   validation {
     condition     = length(var.cloud_sql_region) > 0
     error_message = "The Cloud SQL region is required."
@@ -278,25 +268,24 @@ variable "cloud_sql_region" {
 variable "cloud_sql_zone" {
   type        = string
   description = "The GCP zone for Cloud SQL and Datastream reverse proxy."
-  default     = "us-central1-a"
+  default     = "us-west2-a"
   validation {
     condition     = length(var.cloud_sql_zone) > 0
     error_message = "The Cloud SQL zone is required."
   }
 }
 
-# NOTE: If you change this you need to change the script: bash_create_datastream_cdc_public_ip.sh 
 # This is in the Airflow data directory
 # The IP (allowlist) are hardcoded
 variable "datastream_region" {
   type        = string
   description = "The GCP region for Datastream (should match cloud sql region)."
-  default     = "us-central1"
+  default     = "us-west2"
   validation {
     condition     = length(var.datastream_region) > 0
     error_message = "The Datastream region is required."
   }
-}###############
+}
 
 
 

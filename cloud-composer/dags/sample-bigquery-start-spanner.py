@@ -51,7 +51,8 @@ default_args = {
 }
 
 project_id            = os.environ['ENV_PROJECT_ID'] 
-region                = os.environ['ENV_SPANNER_REGION'] 
+spanner_region        = os.environ['ENV_SPANNER_REGION'] 
+dataflow_region       = os.environ['ENV_DATAFLOW_REGION'] 
 bigquery_region       = os.environ['ENV_BIGQUERY_REGION'] 
 spanner_instance_id   = os.environ['ENV_SPANNER_INSTANCE_ID']
 processed_bucket_name = os.environ['ENV_PROCESSED_BUCKET'] 
@@ -62,7 +63,8 @@ spanner_config = os.environ['ENV_SPANNER_CONFIG']
 
 params_list = { 
     "project_id" : project_id,
-    "region": region,
+    "spanner_region": spanner_region,
+    "dataflow_region": dataflow_region,
     "bigquery_region" : bigquery_region,
     "processed_bucket_name" : processed_bucket_name,
     "raw_bucket_name" : raw_bucket_name,
@@ -166,22 +168,22 @@ gcloud_truncate_table=("gcloud spanner databases execute-sql weather " + \
 
 # Dataflow template command to run a Spanner import from CSV files
 gcloud_load_weather_table=("gcloud dataflow jobs run importspannerweatherdata " + \
-  "--gcs-location gs://dataflow-templates-{region}/latest/GCS_Text_to_Cloud_Spanner " + \
-  "--region {region} " + \
+  "--gcs-location gs://dataflow-templates-{dataflow_region}/latest/GCS_Text_to_Cloud_Spanner " + \
+  "--region {dataflow_region} " + \
   "--max-workers 1 " + \
   "--num-workers 1 " + \
   "--service-account-email \"dataflow-service-account@{project_id}.iam.gserviceaccount.com\" " + \
   "--worker-machine-type \"n1-standard-4\" " + \
   "--staging-location gs://{raw_bucket_name} " + \
   "--network vpc-main " + \
-  "--subnetwork regions/{region}/subnetworks/dataflow-subnet  " + \
+  "--subnetwork regions/{dataflow_region}/subnetworks/dataflow-subnet  " + \
   "--disable-public-ips " + \
   "--parameters " + \
   "instanceId={spanner_instance_id}," + \
   "databaseId=weather," + \
   "spannerProjectId={project_id}," + \
   "importManifest=gs://{processed_bucket_name}/spanner/weather/spanner-manifest.json").format(\
-    region=region,
+    dataflow_region=dataflow_region,
     processed_bucket_name=processed_bucket_name,
     raw_bucket_name=raw_bucket_name,
     project_id=project_id,

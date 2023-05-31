@@ -180,7 +180,6 @@ terraform apply \
   -var="composer_region=europe-west1" \
   -var="dataform_region=europe-west1" \
   -var="dataplex_region=europe-west1" \
-  -var="nat_router_region=europe-west1" \
   -var="dataproc_region=europe-west1" \
   -var="dataflow_region=europe-west1" \
   -var="bigquery_region=eu" \
@@ -257,7 +256,6 @@ then
       -var="composer_region=europe-west1" \
       -var="dataform_region=europe-west1" \
       -var="dataplex_region=europe-west1" \
-      -var="nat_router_region=europe-west1" \
       -var="dataproc_region=europe-west1" \
       -var="dataflow_region=europe-west1" \
       -var="bigquery_region=eu" \

@@ -44,12 +44,12 @@ default_args = {
 }
 
 project_id            = os.environ['ENV_PROJECT_ID'] 
-region                = os.environ['ENV_SPANNER_REGION'] 
+spanner_region        = os.environ['ENV_SPANNER_REGION'] 
 spanner_instance_id   = os.environ['ENV_SPANNER_INSTANCE_ID']
 
 spanner_uri = "projects/" + project_id + "/instances/" + spanner_instance_id
 
-delete_bigquery_connection="bq rm --connection --location=\"" + region + "\" bq_spanner_connection"
+delete_bigquery_connection="bq rm --connection --location=\"" + spanner_region + "\" bq_spanner_connection"
 
 
 # Opens the json written out when the job was started
