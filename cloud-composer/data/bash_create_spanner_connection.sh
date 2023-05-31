@@ -19,17 +19,17 @@
 # TODO: move to Terraform, but cannot find a working example for spanner (they just show cloudsql)
 # Terraform: https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/bigquery_connection
 # REST API:  https://cloud.google.com/bigquery/docs/reference/bigqueryconnection/rest/v1beta1/projects.locations.connections#Connection
-# bq ls --connection --project_id=big-query-demo-09 --location=REPLACE-REGION --format json
+# bq ls --connection --project_id=big-query-demo-09 --location=REPLACE-spanner_region --format json
 
-STR=$(bq ls --connection --project_id={{ params.project_id }} --location={{ params.region }} --format json)
+STR=$(bq ls --connection --project_id={{ params.project_id }} --location={{ params.spanner_region }} --format json)
 SUB='bq_spanner_connection'
 if [[ "$STR" == *"$SUB"* ]]; then
-    bq rm --connection --location={{ params.region }}  bq_spanner_connection
+    bq rm --connection --location={{ params.spanner_region }}  bq_spanner_connection
     sleep 15
 fi
 bq mk --connection \
     --connection_type='CLOUD_SPANNER' \
     --properties="{\"database\":\"projects/{{ params.project_id }}/instances/{{ params.spanner_instance_id}}/databases/weather\"}" \
     --project_id="{{ params.project_id }}" \
-    --location="{{ params.region }}" \
+    --location="{{ params.spanner_region }}" \
     bq_spanner_connection

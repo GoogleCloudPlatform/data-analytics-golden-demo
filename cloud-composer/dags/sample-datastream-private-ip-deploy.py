@@ -75,6 +75,7 @@ params_list = {
 def run_postgres_sql(database_password):
     print("start run_postgres_sql")
     ipAddress = Path('/home/airflow/gcs/data/postgres_private_ip_address.txt').read_text()
+    ipAddress = ipAddress.replace("\n", "")
     print("ipAddress:", ipAddress)
 
     database_name = "demodb"

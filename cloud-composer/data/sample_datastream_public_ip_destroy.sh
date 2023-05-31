@@ -58,3 +58,6 @@ gcloud sql instances delete "${INSTANCE}" \
 
 # Delete the BigQuery Dataset
 bq rm -r -f --dataset ${PROJECT_ID}:datastream_public_ip_public
+
+# Reset the CDC file:
+rm /home/airflow/gcs/data/datastream-public-ip-generate-data.json

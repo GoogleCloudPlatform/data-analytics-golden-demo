@@ -89,3 +89,6 @@ gcloud compute instances delete sql-reverse-proxy \
 # gcloud compute firewall-rules delete datastream-egress-rule \
 #    --project="${PROJECT_ID}" \
 #    --quiet
+
+# Reset the CDC file:
+rm /home/airflow/gcs/data/datastream-private-ip-generate-data.json

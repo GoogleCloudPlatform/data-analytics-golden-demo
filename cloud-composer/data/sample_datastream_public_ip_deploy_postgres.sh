@@ -39,10 +39,18 @@ DATASTREAM_REGION="{{ params.datastream_region }}"
 
 DATASTREAM_IPS="ERROR-NOT-SET"
 
+# https://cloud.google.com/datastream/docs/ip-allowlists-and-regions
+
 # us-central1
 if [[ "$DATASTREAM_REGION" = "us-central1" ]]; 
 then
     DATASTREAM_IPS="34.71.242.81,34.72.28.29,34.67.6.157,34.67.234.134,34.72.239.218"
+fi
+
+# us-west2
+if [[ "$DATASTREAM_REGION" = "us-west2" ]]; 
+then
+    DATASTREAM_IPS="35.235.83.92,34.94.230.251,34.94.60.44,34.102.102.81,34.94.40.175"
 fi
 
 # "europe-west1

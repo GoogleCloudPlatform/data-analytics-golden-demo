@@ -182,7 +182,6 @@ module "resources" {
   composer_region                   = var.composer_region
   dataform_region                   = var.dataform_region
   dataplex_region                   = var.dataplex_region
-  nat_router_region                 = var.nat_router_region
   dataproc_region                   = var.dataproc_region
   dataflow_region                   = var.dataflow_region
   bigquery_region                   = var.bigquery_region
@@ -363,10 +362,6 @@ output "dataplex_region" {
   value = var.dataplex_region
 }
 
-output "nat_router_region" {
-  value = var.nat_router_region
-}
-
 output "dataproc_region" {
   value = var.dataproc_region
 }
@@ -499,9 +494,11 @@ output "default_network" {
   value = module.resources.default_network
 }
 
+/*
 output "nat-router" {
   value = module.resources.nat-router
 }
+*/
 
 output "dataproc_subnet_name" {
   value = module.resources.dataproc_subnet_name

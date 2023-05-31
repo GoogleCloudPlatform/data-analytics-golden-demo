@@ -45,10 +45,10 @@ SSH to the SQL Reverse Proxy (so you can run psql SQL statements against the Clo
 
 Install postgresql client (you only needed to do once on the VM)
     sudo apt-get install wget ca-certificates -y
-    wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
-    sudo sh -c 'deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -cs`-pgdg main" >> /etc/apt/sources.list.d/pgdg.list'
+    wget -O- https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor | sudo tee /etc/apt/keyrings/EXAMPLE.gpg > /dev/null
+    sudo sh -c 'echo deb http://apt.postgresql.org/pub/repos/apt/ focal-pgdg main >> /etc/apt/sources.list.d/pgdg.list'
     sudo apt-get update -y
-    sudo apt-get install postgresql postgresql-contrib -y
+    sudo apt-get install postgresql-client -y    
 
 Run psql so you can run Ad-hov SQL statements:
     Open this to find the IP Address of your Cloud SQL: https://console.cloud.google.com/sql/instances?project=${project_id}

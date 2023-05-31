@@ -40,7 +40,6 @@ variable "project_id" {}
 variable "composer_region" {}
 variable "dataform_region" {}
 variable "dataplex_region" {}
-variable "nat_router_region" {}
 variable "dataproc_region" {}
 variable "dataflow_region" {}
 variable "bigquery_region" {}
@@ -212,32 +211,48 @@ resource "google_compute_firewall" "subnet_firewall_rule" {
   ]
 }
 
+# We want a NAT for every region
+locals {
+   distinctRegions = distinct([ var.composer_region,
+                                var.dataform_region,
+                                var.dataplex_region,
+                                var.dataproc_region,
+                                var.dataflow_region,
+                                var.bigquery_non_multi_region,
+                                var.spanner_region,
+                                var.datafusion_region,
+                                var.vertex_ai_region,  
+                                var.cloud_function_region,
+                                var.data_catalog_region,
+                                var.dataproc_serverless_region,
+                                var.cloud_sql_region,
+                                var.datastream_region
+                              ])
+}
 
-# Creation of a router so private IPs can access the internet
-resource "google_compute_router" "nat-router" {
-  name    = "nat-router"
-  region  = var.nat_router_region
-  network  = google_compute_network.default_network.id
+resource "google_compute_router" "nat-router-distinct-regions" {
+  count   = length(local.distinctRegions)
+  name    = "nat-router-${local.distinctRegions[count.index]}"
+  region  = "${local.distinctRegions[count.index]}"
+  network = google_compute_network.default_network.id
 
   depends_on = [
     google_compute_firewall.subnet_firewall_rule
   ]
 }
 
-
-# Creation of a NAT
-resource "google_compute_router_nat" "nat-config" {
-  name                               = "nat-config"
-  router                             = "${google_compute_router.nat-router.name}"
-  region                             = var.nat_router_region
+resource "google_compute_router_nat" "nat-config-distinct-regions" {
+  count                              = length(local.distinctRegions)
+  name                               = "nat-config-${local.distinctRegions[count.index]}"
+  router                             = "${google_compute_router.nat-router-distinct-regions[count.index].name}"
+  region                             = "${local.distinctRegions[count.index]}"
   nat_ip_allocate_option             = "AUTO_ONLY"
   source_subnetwork_ip_ranges_to_nat = "ALL_SUBNETWORKS_ALL_IP_RANGES"
 
   depends_on = [
-    google_compute_router.nat-router
+    google_compute_router.nat-router-distinct-regions
   ]
 }
-
 
 ####################################################################################
 # Datastream
@@ -641,7 +656,7 @@ resource "google_composer_environment" "composer_env" {
   config {
 
     software_config {
-      image_version = "composer-2.0.31-airflow-2.3.3"
+      image_version = "composer-2.2.0-airflow-2.5.1" # "composer-2.0.31-airflow-2.3.3"
 
       pypi_packages = {
         psycopg2-binary = "==2.9.6"
@@ -658,7 +673,6 @@ resource "google_composer_environment" "composer_env" {
         ENV_COMPOSER_REGION                      = var.composer_region
         ENV_DATAFORM_REGION                      = var.dataform_region
         ENV_DATAPLEX_REGION                      = var.dataplex_region
-        ENV_NAT_ROUTER_REGION                    = var.nat_router_region
         ENV_DATAPROC_REGION                      = var.dataproc_region
         ENV_DATAFLOW_REGION                      = var.dataflow_region
         ENV_BIGQUERY_REGION                      = var.bigquery_region
@@ -737,7 +751,7 @@ resource "google_composer_environment" "composer_env" {
     google_service_account.composer_service_account,
     google_project_iam_member.composer_service_account_worker_role,
     google_project_iam_member.composer_service_account_bq_admin_role,
-    #google_spanner_database.spanner_weather_database
+    google_compute_router_nat.nat-config-distinct-regions
   ]
 
   timeouts {
@@ -2118,9 +2132,9 @@ output "default_network" {
   value = google_compute_network.default_network.name
 }
 
-output "nat-router" {
-  value = google_compute_router.nat-router.name
-}
+#output "nat-router" {
+#  value = google_compute_router.nat-router.name
+#}
 
 output "dataproc_subnet_name" {
   value = google_compute_subnetwork.dataproc_subnet.name
