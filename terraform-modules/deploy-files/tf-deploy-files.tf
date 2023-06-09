@@ -268,6 +268,27 @@ resource "google_storage_bucket_object" "deploy_airflow_data_postgres_create_sch
     ]  
 }
 
+
+# Upload the Airflow "data/template" files
+resource "google_storage_bucket_object" "deploy_airflow_data_sample_terraform_dataplex" {
+  name   = "${local.local_composer_data_path}/sample_terraform_dataplex.sh"
+  bucket = local.local_composer_bucket_name
+  source = "../cloud-composer/data/sample_terraform_dataplex.sh"
+
+  depends_on = [ 
+    ]  
+}
+
+# Upload the Airflow "data/template" files
+resource "google_storage_bucket_object" "deploy_airflow_data_terraform_dataplex" {
+  name   = "${local.local_composer_data_path}/terraform/dataplex/terraform.tf"
+  bucket = local.local_composer_bucket_name
+  source = "../cloud-composer/data/terraform/dataplex/terraform.tf"
+
+  depends_on = [ 
+    ]  
+}
+
 ####################################################################################
 # Upload the PySpark scripts
 ###################################################################################
@@ -987,6 +1008,18 @@ resource "google_storage_bucket_object" "deploy_airflow_dag_sample-dataplex-depl
     time_sleep.wait_for_airflow_dag_sync
     ]  
 }
+
+# Upload DAG
+resource "google_storage_bucket_object" "deploy_airflow_dag_sample-dataplex-destroy" {
+  name   = "${local.local_composer_dag_path}/sample-dataplex-destroy.py"
+  bucket = local.local_composer_bucket_name
+  source = "../cloud-composer/dags/sample-dataplex-destroy.py"
+
+  depends_on = [ 
+    time_sleep.wait_for_airflow_dag_sync
+    ]  
+}
+
 
 
 # Upload DAG

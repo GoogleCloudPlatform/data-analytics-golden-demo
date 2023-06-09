@@ -18,6 +18,7 @@
 # Summary: Install Terraform and executes the Terrform script
 #          This same DAG is used for the Destroy DAG. Copy and paste this and just
 #          change the ' terraform_destroy= "-destroy" ' line
+          
 
 # [START dag]
 from datetime import datetime, timedelta
@@ -37,26 +38,13 @@ default_args = {
     'dagrun_timeout' : timedelta(minutes=60),
     }
 
-airflow_data_path_to_tf_script = "/home/airflow/gcs/data/terraform/dataplex"
+project_id                     = os.environ['ENV_PROJECT_ID'] 
+impersonate_service_account    = "data-analytics-demo-kczbg9ogek@data-analytics-demo-kczbg9ogek.iam.gserviceaccount.com" # os.environ['ENV_TERRAFORM_IMPERSONATION_ACCOUNT'] 
+bucket_name                    = "paternostroadam"
+bucket_region                  = "us-central1"
+airflow_data_path_to_tf_script = "/home/airflow/gcs/data/terraform/gcs"
 terraform_destroy              = ""
 #terraform_destroy              = "-destroy"
-
-project_id                  = os.environ['ENV_PROJECT_ID'] 
-impersonate_service_account = "data-analytics-demo-kczbg9ogek@data-analytics-demo-kczbg9ogek.iam.gserviceaccount.com" # os.environ['ENV_TERRAFORM_IMPERSONATION_ACCOUNT'] 
-
-dataplex_region             = os.environ['ENV_DATAPLEX_REGION'] 
-raw_bucket_name             = os.environ['ENV_RAW_BUCKET'] 
-processed_bucket_name       = os.environ['ENV_PROCESSED_BUCKET'] 
-taxi_dataset_id             = os.environ['ENV_TAXI_DATASET_ID']
-thelook_dataset_id          = "thelook_ecommerce"
-random_extension            = os.environ['ENV_RANDOM_EXTENSION']
-rideshare_raw_bucket        = os.environ['ENV_RIDESHARE_LAKEHOUSE_RAW_BUCKET']
-rideshare_enriched_bucket   = os.environ['ENV_RIDESHARE_LAKEHOUSE_ENRICHED_BUCKET']
-rideshare_curated_bucket    = os.environ['ENV_RIDESHARE_LAKEHOUSE_CURATED_BUCKET']
-rideshare_raw_dataset       = os.environ['ENV_RIDESHARE_LAKEHOUSE_RAW_DATASET']
-rideshare_enriched_dataset  = os.environ['ENV_RIDESHARE_LAKEHOUSE_ENRICHED_DATASET']
-rideshare_curated_dataset   = os.environ['ENV_RIDESHARE_LAKEHOUSE_CURATED_DATASET']
-
 
 suffix = "deploy"
 if terraform_destroy == "-destroy":
@@ -66,23 +54,13 @@ params_list = {
     'airflow_data_path_to_tf_script' : airflow_data_path_to_tf_script,
     'project_id'                     : project_id,
     'impersonate_service_account'    : impersonate_service_account, 
-    'dataplex_region'                : dataplex_region, 
-    'raw_bucket_name'                : raw_bucket_name, 
-    'processed_bucket_name'          : processed_bucket_name, 
-    'taxi_dataset_id'                : taxi_dataset_id, 
-    'thelook_dataset_id'             : thelook_dataset_id, 
-    'random_extension'               : random_extension, 
-    'rideshare_raw_bucket'           : rideshare_raw_bucket, 
-    'rideshare_enriched_bucket'      : rideshare_enriched_bucket, 
-    'rideshare_curated_bucket'       : rideshare_curated_bucket, 
-    'rideshare_raw_dataset'          : rideshare_raw_dataset,
-    'rideshare_enriched_dataset'     : rideshare_enriched_dataset,
-    'rideshare_curated_dataset'      : rideshare_curated_dataset,
+    'bucket_name'                    : bucket_name, 
+    'bucket_region'                  : bucket_region, 
     'terraform_destroy'              : terraform_destroy
     }
 
 
-with airflow.DAG('sample-dataplex-' + suffix,
+with airflow.DAG('sample-gcs-terraform-' + suffix,
                  default_args=default_args,
                  start_date=datetime(2021, 1, 1),
                  # Add the Composer "Data" directory which will hold the SQL/Bash scripts for deployment
@@ -96,7 +74,7 @@ with airflow.DAG('sample-dataplex-' + suffix,
     # install to be in the same step versus risking a seperate operator that might run on a different node
     execute_terraform = bash_operator.BashOperator(
           task_id='execute_terraform',
-          bash_command='sample_terraform_dataplex.sh',
+          bash_command='sample_terraform_gcs.sh',
           params=params_list,
           dag=dag
           )

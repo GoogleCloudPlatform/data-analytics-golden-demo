@@ -38,8 +38,8 @@ default_args = {
     }
 
 airflow_data_path_to_tf_script = "/home/airflow/gcs/data/terraform/dataplex"
-terraform_destroy              = ""
-#terraform_destroy              = "-destroy"
+#terraform_destroy              = ""
+terraform_destroy              = "-destroy"
 
 project_id                  = os.environ['ENV_PROJECT_ID'] 
 impersonate_service_account = "data-analytics-demo-kczbg9ogek@data-analytics-demo-kczbg9ogek.iam.gserviceaccount.com" # os.environ['ENV_TERRAFORM_IMPERSONATION_ACCOUNT'] 
