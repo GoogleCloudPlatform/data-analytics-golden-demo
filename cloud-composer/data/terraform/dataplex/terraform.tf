@@ -556,8 +556,8 @@ gcloud dataplex assets create "rideshare-raw-unstructured-${RANDOM_EXTENSION}" \
 resource "google_dataplex_asset" "rideshare-raw-unstructured" {
   project       = var.project_id
   location      = var.dataplex_region
-  lake          = google_dataplex_lake.rideshare-data-lake
-  dataplex_zone = google_dataplex_zone.rideshare-raw-zone
+  lake          = google_dataplex_lake.rideshare-data-lake.name
+  dataplex_zone = google_dataplex_zone.rideshare-raw-zone.name
   name          = "rideshare-raw-unstructured-${var.random_extension}"
   description   = "Raw Asset - Unstructured"
   display_name  = "Raw Asset - Unstructured"
@@ -592,8 +592,8 @@ gcloud dataplex assets create "rideshare-raw-structured-${RANDOM_EXTENSION}" \
 resource "google_dataplex_asset" "rideshare-raw-structured" {
   project       = var.project_id
   location      = var.dataplex_region
-  lake          = google_dataplex_lake.rideshare-data-lake
-  dataplex_zone = google_dataplex_zone.rideshare-raw-zone
+  lake          = google_dataplex_lake.rideshare-data-lake.name
+  dataplex_zone = google_dataplex_zone.rideshare-raw-zone.name
   name          = "rideshare-raw-structured-${var.random_extension}"
   description   = "Raw Asset - Structured"
   display_name  = "Raw Asset - Structured"
@@ -603,7 +603,7 @@ resource "google_dataplex_asset" "rideshare-raw-structured" {
   }
 
   resource_spec {
-    name = "projects/${var.project_id}/datasets/${var.rideshare_lakehouse_raw_dataset}"
+    name = "projects/${var.project_id}/datasets/${var.rideshare_raw_dataset}"
     type = "BIGQUERY_DATASET"
   }
 
@@ -669,8 +669,8 @@ gcloud dataplex assets create "rideshare-enriched-unstructured-${RANDOM_EXTENSIO
 resource "google_dataplex_asset" "rideshare-enriched-unstructured" {
   project       = var.project_id
   location      = var.dataplex_region
-  lake          = google_dataplex_lake.rideshare-data-lake
-  dataplex_zone = google_dataplex_zone.rideshare-enriched-zone
+  lake          = google_dataplex_lake.rideshare-data-lake.name
+  dataplex_zone = google_dataplex_zone.rideshare-enriched-zone.name
   name          = "rideshare-enriched-unstructured-${var.random_extension}"
   description   = "Enriched Asset - Unstructured"
   display_name  = "Enriched Asset - Unstructured"
@@ -706,8 +706,8 @@ gcloud dataplex assets create "rideshare-enriched-structured-${RANDOM_EXTENSION}
 resource "google_dataplex_asset" "rideshare-enriched-structured" {
   project       = var.project_id
   location      = var.dataplex_region
-  lake          = google_dataplex_lake.rideshare-data-lake
-  dataplex_zone = google_dataplex_zone.rideshare-enriched-zone
+  lake          = google_dataplex_lake.rideshare-data-lake.name
+  dataplex_zone = google_dataplex_zone.rideshare-enriched-zone.name
   name          = "rideshare-enriched-structured-${var.random_extension}"
   description   = "Enriched Asset - Structured"
   display_name  = "Enriched Asset - Structured"
@@ -717,7 +717,7 @@ resource "google_dataplex_asset" "rideshare-enriched-structured" {
   }
 
   resource_spec {
-    name = "projects/${var.project_id}/datasets/${var.rideshare_lakehouse_enriched_dataset}"
+    name = "projects/${var.project_id}/datasets/${var.rideshare_enriched_dataset}"
     type = "BIGQUERY_DATASET"
   }
 
@@ -783,8 +783,8 @@ gcloud dataplex assets create "rideshare-curated-unstructured-${RANDOM_EXTENSION
 resource "google_dataplex_asset" "rideshare-curated-unstructured" {
   project       = var.project_id
   location      = var.dataplex_region
-  lake          = google_dataplex_lake.rideshare-data-lake
-  dataplex_zone = google_dataplex_zone.rideshare-curated-zone
+  lake          = google_dataplex_lake.rideshare-data-lake.name
+  dataplex_zone = google_dataplex_zone.rideshare-curated-zone.name
   name          = "rideshare-curated-unstructured-${var.random_extension}"
   description   = "Curated Asset - Unstructured"
   display_name  = "Curated Asset - Unstructured"
@@ -820,8 +820,8 @@ gcloud dataplex assets create "rideshare-curated-structured-${RANDOM_EXTENSION}"
 resource "google_dataplex_asset" "rideshare-curated-structured" {
   project       = var.project_id
   location      = var.dataplex_region
-  lake          = google_dataplex_lake.rideshare-data-lake
-  dataplex_zone = google_dataplex_zone.rideshare-curated-zone
+  lake          = google_dataplex_lake.rideshare-data-lake.name
+  dataplex_zone = google_dataplex_zone.rideshare-curated-zone.name
   name          = "rideshare-curated-structured-${var.random_extension}"
   description   = "Curated Asset - Structured"
   display_name  = "Curated Asset - Structured"
@@ -831,7 +831,7 @@ resource "google_dataplex_asset" "rideshare-curated-structured" {
   }
 
   resource_spec {
-    name = "projects/${var.project_id}/datasets/${var.rideshare_lakehouse_curated_dataset}"
+    name = "projects/${var.project_id}/datasets/${var.rideshare_curated_dataset}"
     type = "BIGQUERY_DATASET"
   }
 
