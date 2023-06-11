@@ -42,7 +42,7 @@ variable "deployment_service_account_name" {}
 variable "composer_name" {}
 variable "composer_dag_bucket" {}
 variable "demo_rest_api_service_uri" {}
-
+variable "code_bucket_name" {}
   
 
 locals {
@@ -279,7 +279,38 @@ resource "google_storage_bucket_object" "deploy_airflow_data_sample_terraform_da
     ]  
 }
 
-# Upload the Airflow "data/template" files
+
+####################################################################################
+# Dataplex Terraform
+####################################################################################
+
+# Backend State file
+# The bucket for the state must be substituted.  We do not want to do this for the other files since we
+# would need to escape all the ${var} with $${var}.
+resource "google_storage_bucket_object" "deploy_airflow_data_terraform_dataplex_backend" {
+  name   = "${local.local_composer_data_path}/terraform/dataplex/backend.tf"
+  bucket = local.local_composer_bucket_name
+
+  content = templatefile("../cloud-composer/data/terraform/dataplex/backend.tf", 
+  { 
+    code_bucket_name = var.code_bucket_name
+  })
+
+  depends_on = [ 
+    ]  
+}
+
+# Variables file
+resource "google_storage_bucket_object" "deploy_airflow_data_terraform_dataplex_variables" {
+  name   = "${local.local_composer_data_path}/terraform/dataplex/variables.tf"
+  bucket = local.local_composer_bucket_name
+  source = "../cloud-composer/data/terraform/dataplex/variables.tf"
+
+  depends_on = [ 
+    ]  
+}
+
+# Main Resources file
 resource "google_storage_bucket_object" "deploy_airflow_data_terraform_dataplex" {
   name   = "${local.local_composer_data_path}/terraform/dataplex/terraform.tf"
   bucket = local.local_composer_bucket_name

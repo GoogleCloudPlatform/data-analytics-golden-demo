@@ -34,7 +34,7 @@ STR=$(which terraform)
 SUB='terraform'
 echo "STR=${STR}"
 if [[ "$STR" == *"$SUB"* ]]; then
-  echo "Terraform is install, skipping..."
+  echo "Terraform is installed, skipping..."
 else
   sudo apt-get update -y && sudo apt-get install -y gnupg software-properties-common
 

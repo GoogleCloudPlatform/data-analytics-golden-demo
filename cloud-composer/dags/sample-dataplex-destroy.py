@@ -16,8 +16,8 @@
 
 # Author:  Adam Paternostro
 # Summary: Install Terraform and executes the Terrform script
-#          This same DAG is used for the Destroy DAG. Copy and paste this and just
-#          change the ' terraform_destroy= "-destroy" ' line
+#          This code is the SAME EXACT code in the sample-xxx-deploy and sample-xxx-destroy
+#          Make two files and place the SAME code in each.  The file name determine if a destroy will be performed.
 
 # [START dag]
 from datetime import datetime, timedelta
@@ -38,8 +38,15 @@ default_args = {
     }
 
 airflow_data_path_to_tf_script = "/home/airflow/gcs/data/terraform/dataplex"
-#terraform_destroy              = ""
-terraform_destroy              = "-destroy"
+
+# Based upon the filename the "terraform destroy" will be invoked
+# This means the sample-xxx-deploy and sample-xxx-destroy contain the SAME EXACT code
+suffix = "deploy"
+terraform_destroy = ""
+print("os.path.basename(__file__):", os.path.basename(__file__))
+if "destroy" in os.path.basename(__file__):
+    suffix            = "destroy"
+    terraform_destroy = "-destroy" # parameter to terraform script
 
 project_id                  = os.environ['ENV_PROJECT_ID'] 
 impersonate_service_account = "data-analytics-demo-kczbg9ogek@data-analytics-demo-kczbg9ogek.iam.gserviceaccount.com" # os.environ['ENV_TERRAFORM_IMPERSONATION_ACCOUNT'] 
@@ -57,10 +64,6 @@ rideshare_raw_dataset       = os.environ['ENV_RIDESHARE_LAKEHOUSE_RAW_DATASET']
 rideshare_enriched_dataset  = os.environ['ENV_RIDESHARE_LAKEHOUSE_ENRICHED_DATASET']
 rideshare_curated_dataset   = os.environ['ENV_RIDESHARE_LAKEHOUSE_CURATED_DATASET']
 
-
-suffix = "deploy"
-if terraform_destroy == "-destroy":
-    suffix = "destroy"
 
 params_list = { 
     'airflow_data_path_to_tf_script' : airflow_data_path_to_tf_script,
