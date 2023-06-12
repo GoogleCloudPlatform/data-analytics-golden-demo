@@ -208,6 +208,8 @@ module "resources" {
   azure_omni_biglake_dataset_name   = var.azure_omni_biglake_dataset_name
   azure_omni_biglake_dataset_region = var.azure_omni_biglake_dataset_region
 
+  terraform_impersonation_account   = local.local_impersonation_account
+
   depends_on = [
     module.project,
     module.service-account,
@@ -302,6 +304,7 @@ module "deploy-files-module" {
   composer_name                   = module.resources.composer_env_name
   composer_dag_bucket             = module.resources.composer_env_dag_bucket
   demo_rest_api_service_uri       = module.resources.demo_rest_api_service_uri
+  code_bucket_name                = module.resources.gcs_code_bucket
 
   depends_on = [
     module.project,

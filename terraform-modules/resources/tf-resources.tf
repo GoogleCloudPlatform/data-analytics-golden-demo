@@ -67,6 +67,8 @@ variable "aws_omni_biglake_dataset_name" {}
 variable "azure_omni_biglake_dataset_name" {}
 variable "azure_omni_biglake_dataset_region" {}
 
+variable "terraform_impersonation_account" {}
+
 # Hardcoded
 variable "bigquery_taxi_dataset" {
   type        = string
@@ -630,6 +632,7 @@ resource "google_project_iam_member" "composer_service_account_bq_admin_role" {
 }
 
 # Let composer impersonation the service account that can change org policies (for demo purposes)
+# This account also will be running Terraform scripts and impersonating this account
 resource "google_service_account_iam_member" "cloudcomposer_service_account_impersonation" {
   service_account_id ="projects/${var.project_id}/serviceAccounts/${var.project_id}@${var.project_id}.iam.gserviceaccount.com"
   role               = "roles/iam.serviceAccountTokenCreator"
@@ -706,6 +709,8 @@ resource "google_composer_environment" "composer_env" {
         ENV_RIDESHARE_LAKEHOUSE_RAW_DATASET      = var.bigquery_rideshare_lakehouse_raw_dataset
         ENV_RIDESHARE_LAKEHOUSE_ENRICHED_DATASET = var.bigquery_rideshare_lakehouse_enriched_dataset
         ENV_RIDESHARE_LAKEHOUSE_CURATED_DATASET  = var.bigquery_rideshare_lakehouse_curated_dataset
+
+        ENV_TERRAFORM_IMPERSONATION_ACCOUNT      = var.terraform_impersonation_account
       }
     }
 
