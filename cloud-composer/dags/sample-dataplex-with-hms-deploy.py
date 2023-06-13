@@ -35,6 +35,7 @@ from airflow.operators.python_operator import PythonOperator
 airflow_data_path_to_tf_script = "/home/airflow/gcs/data/terraform/dataplex"
 dag_prefix_name = "sample-dataplex-with-hms"
 auto_delete_hours = 48 # 2 days # set to zero to never delete
+terraform_bash_file = "sample_terraform_dataplex_with_hms.sh"
 
 # Required for deployment
 project_id                  = os.environ['ENV_PROJECT_ID'] 
@@ -65,16 +66,19 @@ terraform_destroy = ""
 is_deploy_or_destroy = ""
 terraform_bash_script_deploy = ""
 terraform_bash_script_destroy = ""
+env_run_bash_deploy=""
 print("os.path.basename(__file__):", os.path.basename(__file__))
 if "destroy" in os.path.basename(__file__):
+    env_run_bash_deploy="false"
     terraform_bash_script_deploy = "echo 'Skiping Deploy'"
-    terraform_bash_script_destroy = "sample_terraform_dataplex.sh"
+    terraform_bash_script_destroy = terraform_bash_file
     is_deploy_or_destroy = "destroy"
     dag_display_name = dag_prefix_name + "-destroy"
     terraform_destroy = "-destroy" # parameter to terraform script
     schedule_interval=timedelta(minutes=15)
 else:
-    terraform_bash_script_deploy = "sample_terraform_dataplex.sh"
+    env_run_bash_deploy="true"
+    terraform_bash_script_deploy = terraform_bash_file
     terraform_bash_script_destroy = "echo 'Skiping Destroy'"
     is_deploy_or_destroy = "deploy"
     dag_display_name = dag_prefix_name + "-deploy"
@@ -118,9 +122,9 @@ default_args = {
 
 # Write out a file that will log when we deployed
 # This file can then be used for auto-delete
-def write_deployment_file(is_deploy_or_destroy):
+def write_deployment_file(deploy_or_destroy):
     print("BEGIN: write_deployment_file")
-    if is_deploy_or_destroy == "deploy":
+    if deploy_or_destroy == "deploy":
         run_datetime = datetime.now()
         data = {
             "deployment_datetime" : run_datetime.strftime("%m/%d/%Y %H:%M:%S"),
@@ -133,12 +137,11 @@ def write_deployment_file(is_deploy_or_destroy):
     print("END: write_deployment_file")
 
 
-# Delete the environment if necessary
-def delete_environment(is_deploy_or_destroy, terraform_bash_script_destroy):
+# Determine if it is tiem to delete the environment if necessary
+def delete_environment(deploy_or_destroy):
     print("BEGIN: delete_environment")
     delete_environment = False
-    if is_deploy_or_destroy == "destroy":
-        run_datetime = datetime.now()
+    if deploy_or_destroy == "destroy":
         filePath = '/home/airflow/gcs/data/' + dag_prefix_name + '.json'
         if os.path.exists(filePath):
             with open(filePath) as f:
@@ -146,7 +149,7 @@ def delete_environment(is_deploy_or_destroy, terraform_bash_script_destroy):
             
             print("deployment_datetime: ", data['deployment_datetime'])
             deployment_datetime = datetime.strptime(data['deployment_datetime'], "%m/%d/%Y %H:%M:%S")
-            difference = run_datetime - datetime.now()
+            difference = deployment_datetime - datetime.now()
             print("difference.total_seconds(): ", abs(difference.total_seconds()))
             # Test for auto_delete_hours hours
             if auto_delete_hours == 0:
@@ -160,11 +163,20 @@ def delete_environment(is_deploy_or_destroy, terraform_bash_script_destroy):
     else:
         print("delete_environment is skipped since this DAG is not a destroy DAG.")
     
-    if delete_environment:
-        return terraform_bash_script_destroy
+    if delete_environment:       
+        return True
     else:
-        return "echo 'Skiping Destroy'"
+        return False
 
+
+# Removes the deployment file so we do not keep re-deleting
+def delete_deployment_file(delete_environment):
+    print("BEGIN: delete_deployment_file")
+    print("delete_environment:",str(delete_environment).lower())
+    if str(delete_environment).lower() == "true":
+        print("Deleting file:", '/home/airflow/gcs/data/' + dag_prefix_name + '.json')
+        os.remove('/home/airflow/gcs/data/' + dag_prefix_name + '.json')
+    print("END: delete_deployment_file")
 
 
 with airflow.DAG(dag_display_name,
@@ -176,41 +188,58 @@ with airflow.DAG(dag_display_name,
                  # Either run manually or every 15 minutes (for auto delete)
                  schedule_interval=schedule_interval) as dag:
 
-      # NOTE: The Composer Service Account will Impersonate the Terrform service account
+    # NOTE: The Composer Service Account will Impersonate the Terrform service account
 
-    # You need to ensure Terraform is installed and since they can be many worker nodes you want the
-    # install to be in the same step versus risking a seperate operator that might run on a different node
+    # This will deploy the Terraform code if this DAG ends with "-deploy"
     execute_terraform_deploy = bash_operator.BashOperator(
-          task_id='execute_terraform_deploy',
-          bash_command=terraform_bash_script_deploy,
-          params=params_list,
-          dag=dag
-          )
-    
+        task_id='execute_terraform_deploy',
+        bash_command=terraform_bash_file,
+        params=params_list,
+        execution_timeout=timedelta(minutes=60),
+        env={"ENV_RUN_BASH": env_run_bash_deploy},
+        append_env=True,
+        dag=dag
+        )
+
+    # This will write out the deployment time to a file if this DAG ends with "-deploy"
     write_deployment_file = PythonOperator(
         task_id='write_deployment_file',
         python_callable= write_deployment_file,
-        op_kwargs = { "is_deploy_or_destroy" : is_deploy_or_destroy },
+        op_kwargs = { "deploy_or_destroy" : is_deploy_or_destroy },
         execution_timeout=timedelta(minutes=1),
         dag=dag,
         ) 
     
+    # This determine if it is time to delete the deployment if this DAG ends with "-destroy"
     delete_environment = PythonOperator(
         task_id='delete_environment',
         python_callable= delete_environment,
-        op_kwargs = { "is_deploy_or_destroy" : is_deploy_or_destroy, "terraform_bash_script_destroy" : terraform_bash_script_destroy },
+        op_kwargs = { "deploy_or_destroy" : is_deploy_or_destroy },
         execution_timeout=timedelta(minutes=1),
         dag=dag,
         ) 
     
+    # This will delete the deployment if this DAG ends with "-destroy" and delete_environment = True (time to delete has passed)
     execute_terraform_destroy = bash_operator.BashOperator(
-          task_id='execute_terraform_destroy',
-          bash_command="{{ task_instance.xcom_pull(task_ids='delete_environment') }}",
-          params=params_list,
-          dag=dag
-          )    
+        task_id='execute_terraform_destroy',
+        bash_command=terraform_bash_file,
+        params=params_list,
+        execution_timeout=timedelta(minutes=60),
+        env={"ENV_RUN_BASH": "{{ task_instance.xcom_pull(task_ids='delete_environment').lower() }}"},
+        append_env=True,
+        dag=dag
+        )
+
+    # This will delete the deployment "file" if this DAG ends with "-destroy" and delete_environment = True (time to delete has passed)
+    delete_deployment_file = PythonOperator(
+        task_id='delete_deployment_file',
+        python_callable= delete_deployment_file,
+        op_kwargs = { "delete_environment" : "{{ task_instance.xcom_pull(task_ids='delete_environment') }}" },
+        execution_timeout=timedelta(minutes=1),
+        dag=dag,
+        )        
     
     # DAG Graph
-    execute_terraform_deploy >> write_deployment_file >> delete_environment >> execute_terraform_destroy
+    execute_terraform_deploy >> write_deployment_file >> delete_environment >> execute_terraform_destroy >> delete_deployment_file
 
 # [END dag]

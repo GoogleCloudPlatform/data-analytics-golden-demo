@@ -25,6 +25,18 @@
 
 
 ####################################################################################
+# Skip script if not required to run via the DAG
+####################################################################################
+echo "ENV_RUN_BASH: $ENV_RUN_BASH"
+if [[ "$ENV_RUN_BASH" == "true" ]]; 
+then
+  echo "Executing Terraform Bash Script"
+else
+  echo "Skipping Terraform Bash Script"
+  exit 0
+fi
+
+####################################################################################
 # Install Terraform (do not change)
 ####################################################################################
 # https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli
