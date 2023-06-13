@@ -32,10 +32,10 @@ from airflow.operators.python_operator import PythonOperator
 ####################################################################################
 # Set these values (the DAG name and the auto-delete time)
 ####################################################################################
-airflow_data_path_to_tf_script = "/home/airflow/gcs/data/terraform/dataplex"
-dag_prefix_name = "sample-dataplex"
-auto_delete_hours = 120 # 5 days # set to zero to never delete
-terraform_bash_file = "sample_terraform_dataplex.sh"
+airflow_data_path_to_tf_script = "/home/airflow/gcs/data/terraform/dataplex-with-hms"
+dag_prefix_name = "sample-dataplex-with-hms"
+auto_delete_hours = 48 # 2 days # set to zero to never delete
+terraform_bash_file = "sample_terraform_dataplex_with_hms.sh"
 
 # Required for deployment
 project_id                  = os.environ['ENV_PROJECT_ID'] 
@@ -101,7 +101,7 @@ params_list = {
     'rideshare_curated_bucket'       : rideshare_curated_bucket, 
     'rideshare_raw_dataset'          : rideshare_raw_dataset,
     'rideshare_enriched_dataset'     : rideshare_enriched_dataset,
-    'rideshare_curated_dataset'      : rideshare_curated_dataset
+    'rideshare_curated_dataset'      : rideshare_curated_dataset,
     }
 
 

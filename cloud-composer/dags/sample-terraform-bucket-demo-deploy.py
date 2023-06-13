@@ -19,6 +19,7 @@
 #          This DAG will perform the Deploy and the Destroy
 #          Terraform will deploy this file twice (once named xxx-deploy and xxx-destroy)
 #          The destroy will run every 15 minutes and based upon the auto_delete_hours the assets will be deleted
+       
 
 # [START dag]
 from datetime import datetime, timedelta
@@ -32,28 +33,19 @@ from airflow.operators.python_operator import PythonOperator
 ####################################################################################
 # Set these values (the DAG name and the auto-delete time)
 ####################################################################################
-airflow_data_path_to_tf_script = "/home/airflow/gcs/data/terraform/dataplex"
-dag_prefix_name = "sample-dataplex"
-auto_delete_hours = 120 # 5 days # set to zero to never delete
-terraform_bash_file = "sample_terraform_dataplex.sh"
+airflow_data_path_to_tf_script = "/home/airflow/gcs/data/terraform/bucket-demo"
+dag_prefix_name = "sample-terraform-bucket-demo"
+auto_delete_hours = 1 # set to zero to never delete
+terraform_bash_file = "sample_terraform_bucket_demo.sh"
 
 # Required for deployment
 project_id                  = os.environ['ENV_PROJECT_ID'] 
 impersonate_service_account = os.environ['ENV_TERRAFORM_SERVICE_ACCOUNT'] 
 
 # Parameters to Terraform
-dataplex_region             = os.environ['ENV_DATAPLEX_REGION'] 
-raw_bucket_name             = os.environ['ENV_RAW_BUCKET'] 
-processed_bucket_name       = os.environ['ENV_PROCESSED_BUCKET'] 
-taxi_dataset_id             = os.environ['ENV_TAXI_DATASET_ID']
-thelook_dataset_id          = "thelook_ecommerce"
-random_extension            = os.environ['ENV_RANDOM_EXTENSION']
-rideshare_raw_bucket        = os.environ['ENV_RIDESHARE_LAKEHOUSE_RAW_BUCKET']
-rideshare_enriched_bucket   = os.environ['ENV_RIDESHARE_LAKEHOUSE_ENRICHED_BUCKET']
-rideshare_curated_bucket    = os.environ['ENV_RIDESHARE_LAKEHOUSE_CURATED_BUCKET']
-rideshare_raw_dataset       = os.environ['ENV_RIDESHARE_LAKEHOUSE_RAW_DATASET']
-rideshare_enriched_dataset  = os.environ['ENV_RIDESHARE_LAKEHOUSE_ENRICHED_DATASET']
-rideshare_curated_dataset   = os.environ['ENV_RIDESHARE_LAKEHOUSE_CURATED_DATASET']
+random_extension  = os.environ['ENV_RANDOM_EXTENSION']
+bucket_name       = "terraform-bucket-demo-" + os.environ['ENV_RANDOM_EXTENSION']
+bucket_region     = os.environ['ENV_BIGQUERY_REGION'] 
 
 
 ####################################################################################
@@ -90,18 +82,8 @@ params_list = {
     'project_id'                     : project_id,
     'impersonate_service_account'    : impersonate_service_account,
     'terraform_destroy'              : terraform_destroy,
-    'dataplex_region'                : dataplex_region, 
-    'raw_bucket_name'                : raw_bucket_name, 
-    'processed_bucket_name'          : processed_bucket_name, 
-    'taxi_dataset_id'                : taxi_dataset_id, 
-    'thelook_dataset_id'             : thelook_dataset_id, 
-    'random_extension'               : random_extension, 
-    'rideshare_raw_bucket'           : rideshare_raw_bucket, 
-    'rideshare_enriched_bucket'      : rideshare_enriched_bucket, 
-    'rideshare_curated_bucket'       : rideshare_curated_bucket, 
-    'rideshare_raw_dataset'          : rideshare_raw_dataset,
-    'rideshare_enriched_dataset'     : rideshare_enriched_dataset,
-    'rideshare_curated_dataset'      : rideshare_curated_dataset
+    'bucket_name'                    : bucket_name, 
+    'bucket_region'                  : bucket_region
     }
 
 

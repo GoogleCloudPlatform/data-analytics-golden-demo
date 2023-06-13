@@ -18,7 +18,7 @@
 
 
 # Author:  Adam Paternostro
-# Summary: This will deploy dataplex via Terraform. 
+# Summary: This will deploy dataplex (with an Dataproc Hive Metastore Service) via Terraform. 
 #          The parameters are piped in via Airflow.
 #          This script will also be used for destroying resources.
 #          To copy this, you just need to change the Terraform Apply code (and the echo)

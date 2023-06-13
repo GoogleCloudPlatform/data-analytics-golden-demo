@@ -269,20 +269,30 @@ resource "google_storage_bucket_object" "deploy_airflow_data_postgres_create_sch
 }
 
 
-# Upload the Airflow "data/template" files
-resource "google_storage_bucket_object" "deploy_airflow_data_sample_terraform_dataplex" {
-  name   = "${local.local_composer_data_path}/sample_terraform_dataplex.sh"
-  bucket = local.local_composer_bucket_name
-  source = "../cloud-composer/data/sample_terraform_dataplex.sh"
-
-  depends_on = [ 
-    ]  
-}
-
-
 ####################################################################################
 # Dataplex Terraform
 ####################################################################################
+# Upload Deploy DAG
+resource "google_storage_bucket_object" "deploy_airflow_dag_sample-dataplex-deploy" {
+  name   = "${local.local_composer_dag_path}/sample-dataplex-deploy.py"
+  bucket = local.local_composer_bucket_name
+  source = "../cloud-composer/dags/sample-dataplex-deploy.py"
+
+  depends_on = [ 
+    time_sleep.wait_for_airflow_dag_sync
+    ]  
+}
+
+# Upload Destroy DAG (Copy the Deploy AS THE Destroy)
+resource "google_storage_bucket_object" "deploy_airflow_dag_sample-dataplex-destroy" {
+  name   = "${local.local_composer_dag_path}/sample-dataplex-destroy.py"
+  bucket = local.local_composer_bucket_name
+  source = "../cloud-composer/dags/sample-dataplex-deploy.py"
+
+  depends_on = [ 
+    time_sleep.wait_for_airflow_dag_sync
+    ]  
+}
 
 # Backend State file
 # The bucket for the state must be substituted.  We do not want to do this for the other files since we
@@ -319,6 +329,163 @@ resource "google_storage_bucket_object" "deploy_airflow_data_terraform_dataplex"
   depends_on = [ 
     ]  
 }
+
+# Bash script to run and install Terraform
+resource "google_storage_bucket_object" "deploy_airflow_data_sample_terraform_dataplex" {
+  name   = "${local.local_composer_data_path}/sample_terraform_dataplex.sh"
+  bucket = local.local_composer_bucket_name
+  source = "../cloud-composer/data/sample_terraform_dataplex.sh"
+
+  depends_on = [ 
+    ]  
+}
+
+
+####################################################################################
+# Dataplex Terraform WITH Hive Metastore Service
+####################################################################################
+# Upload Deploy DAG
+resource "google_storage_bucket_object" "deploy_airflow_dag_sample-dataplex-with-hms-deploy" {
+  name   = "${local.local_composer_dag_path}/sample-dataplex-with-hms-deploy.py"
+  bucket = local.local_composer_bucket_name
+  source = "../cloud-composer/dags/sample-dataplex-with-hms-deploy.py"
+
+  depends_on = [ 
+    time_sleep.wait_for_airflow_dag_sync
+    ]  
+}
+
+# Upload Destroy DAG (Copy the Deploy AS THE Destroy)
+resource "google_storage_bucket_object" "deploy_airflow_dag_sample-dataplex-with-hms-destroy" {
+  name   = "${local.local_composer_dag_path}/sample-dataplex-with-hms-destroy.py"
+  bucket = local.local_composer_bucket_name
+  source = "../cloud-composer/dags/sample-dataplex-with-hms-deploy.py"
+
+  depends_on = [ 
+    time_sleep.wait_for_airflow_dag_sync
+    ]  
+}
+
+# Backend State file
+# The bucket for the state must be substituted.  We do not want to do this for the other files since we
+# would need to escape all the ${var} with $${var}.
+resource "google_storage_bucket_object" "deploy_airflow_data_terraform_dataplex_backend_with_hms" {
+  name   = "${local.local_composer_data_path}/terraform/dataplex-with-hms/backend.tf"
+  bucket = local.local_composer_bucket_name
+
+  content = templatefile("../cloud-composer/data/terraform/dataplex-with-hms/backend.tf", 
+  { 
+    code_bucket_name = var.code_bucket_name
+  })
+
+  depends_on = [ 
+    ]  
+}
+
+# Variables file
+resource "google_storage_bucket_object" "deploy_airflow_data_terraform_dataplex_variables_with_hms" {
+  name   = "${local.local_composer_data_path}/terraform/dataplex-with-hms/variables.tf"
+  bucket = local.local_composer_bucket_name
+  source = "../cloud-composer/data/terraform/dataplex-with-hms/variables.tf"
+
+  depends_on = [ 
+    ]  
+}
+
+# Main Resources file
+resource "google_storage_bucket_object" "deploy_airflow_data_terraform_dataplex_with_hms" {
+  name   = "${local.local_composer_data_path}/terraform/dataplex-with-hms/terraform.tf"
+  bucket = local.local_composer_bucket_name
+  source = "../cloud-composer/data/terraform/dataplex-with-hms/terraform.tf"
+
+  depends_on = [ 
+    ]  
+}
+
+# Bash script to run and install Terraform
+resource "google_storage_bucket_object" "deploy_airflow_data_sample_terraform_dataplex_with_hms" {
+  name   = "${local.local_composer_data_path}/sample_terraform_dataplex_with_hms.sh"
+  bucket = local.local_composer_bucket_name
+  source = "../cloud-composer/data/sample_terraform_dataplex_with_hms.sh"
+
+  depends_on = [ 
+    ]  
+}
+
+
+####################################################################################
+# Bucket Demo Terraform
+####################################################################################
+# Upload Deploy DAG
+resource "google_storage_bucket_object" "deploy_airflow_dag_sample-terraform-bucket-demo-deploy" {
+  name   = "${local.local_composer_dag_path}/sample-terraform-bucket-demo-deploy.py"
+  bucket = local.local_composer_bucket_name
+  source = "../cloud-composer/dags/sample-terraform-bucket-demo-deploy.py"
+
+  depends_on = [ 
+    time_sleep.wait_for_airflow_dag_sync
+    ]  
+}
+
+# Upload Destroy DAG (Copy the Deploy AS THE Destroy)
+resource "google_storage_bucket_object" "deploy_airflow_dag_sample-terraform-bucket-demo-destroy" {
+  name   = "${local.local_composer_dag_path}/sample-terraform-bucket-demo-destroy.py"
+  bucket = local.local_composer_bucket_name
+  source = "../cloud-composer/dags/sample-terraform-bucket-demo-deploy.py"
+
+  depends_on = [ 
+    time_sleep.wait_for_airflow_dag_sync
+    ]  
+}
+
+# Backend State file
+# The bucket for the state must be substituted.  We do not want to do this for the other files since we
+# would need to escape all the ${var} with $${var}.
+resource "google_storage_bucket_object" "deploy_airflow_data_terraform_bucket-demo_backend" {
+  name   = "${local.local_composer_data_path}/terraform/bucket-demo/backend.tf"
+  bucket = local.local_composer_bucket_name
+
+  content = templatefile("../cloud-composer/data/terraform/bucket-demo/backend.tf", 
+  { 
+    code_bucket_name = var.code_bucket_name
+  })
+
+  depends_on = [ 
+    ]  
+}
+
+# Variables file
+resource "google_storage_bucket_object" "deploy_airflow_data_terraform_bucket-demo_variables" {
+  name   = "${local.local_composer_data_path}/terraform/bucket-demo/variables.tf"
+  bucket = local.local_composer_bucket_name
+  source = "../cloud-composer/data/terraform/bucket-demo/variables.tf"
+
+  depends_on = [ 
+    ]  
+}
+
+# Main Resources file
+resource "google_storage_bucket_object" "deploy_airflow_data_terraform_bucket-demo" {
+  name   = "${local.local_composer_data_path}/terraform/bucket-demo/terraform.tf"
+  bucket = local.local_composer_bucket_name
+  source = "../cloud-composer/data/terraform/bucket-demo/terraform.tf"
+
+  depends_on = [ 
+    ]  
+}
+
+# Bash script to run and install Terraform
+resource "google_storage_bucket_object" "deploy_airflow_data_sample_terraform_bucket_demo" {
+  name   = "${local.local_composer_data_path}/sample_terraform_bucket_demo.sh"
+  bucket = local.local_composer_bucket_name
+  source = "../cloud-composer/data/sample_terraform_bucket_demo.sh"
+
+  depends_on = [ 
+    ]  
+}
+
+
+
 
 ####################################################################################
 # Upload the PySpark scripts
@@ -1027,30 +1194,6 @@ resource "google_storage_bucket_object" "deploy_airflow_dag_sample-dataflow-stop
     time_sleep.wait_for_airflow_dag_sync
     ]  
 }
-
-
-# Upload DAG
-resource "google_storage_bucket_object" "deploy_airflow_dag_sample-dataplex-deploy" {
-  name   = "${local.local_composer_dag_path}/sample-dataplex-deploy.py"
-  bucket = local.local_composer_bucket_name
-  source = "../cloud-composer/dags/sample-dataplex-deploy.py"
-
-  depends_on = [ 
-    time_sleep.wait_for_airflow_dag_sync
-    ]  
-}
-
-# Upload DAG
-resource "google_storage_bucket_object" "deploy_airflow_dag_sample-dataplex-destroy" {
-  name   = "${local.local_composer_dag_path}/sample-dataplex-destroy.py"
-  bucket = local.local_composer_bucket_name
-  source = "../cloud-composer/dags/sample-dataplex-destroy.py"
-
-  depends_on = [ 
-    time_sleep.wait_for_airflow_dag_sync
-    ]  
-}
-
 
 
 # Upload DAG

@@ -36,7 +36,6 @@ else
   exit 0
 fi
 
-
 ####################################################################################
 # Install Terraform (do not change)
 ####################################################################################
@@ -91,37 +90,16 @@ echo '
 terraform apply {{ params.terraform_destroy }}  -auto-approve \
   -var="project_id={{ params.project_id }}" \
   -var="impersonate_service_account={{ params.impersonate_service_account }}" \
-  -var="dataplex_region={{ params.dataplex_region }}" \
-  -var="raw_bucket_name={{ params.raw_bucket_name }}" \
-  -var="processed_bucket_name={{ params.processed_bucket_name }}" \
-  -var="taxi_dataset_id={{ params.taxi_dataset_id }}" \
-  -var="thelook_dataset_id={{ params.thelook_dataset_id }}" \
-  -var="random_extension={{ params.random_extension }}" \
-  -var="rideshare_raw_bucket={{ params.rideshare_raw_bucket }}" \
-  -var="rideshare_enriched_bucket={{ params.rideshare_enriched_bucket }}" \
-  -var="rideshare_curated_bucket={{ params.rideshare_curated_bucket }}" \
-  -var="rideshare_raw_dataset={{ params.rideshare_raw_dataset }}" \
-  -var="rideshare_enriched_dataset={{ params.rideshare_enriched_dataset }}" \
-  -var="rideshare_curated_dataset={{ params.rideshare_curated_dataset }}"
+  -var="bucket_name={{ params.bucket_name }}" \
+  -var="bucket_region={{ params.bucket_region }}"
 '  
 
 # Run the Terraform Apply
 terraform apply {{ params.terraform_destroy }}  -auto-approve \
   -var="project_id={{ params.project_id }}" \
   -var="impersonate_service_account={{ params.impersonate_service_account }}" \
-  -var="dataplex_region={{ params.dataplex_region }}" \
-  -var="raw_bucket_name={{ params.raw_bucket_name }}" \
-  -var="processed_bucket_name={{ params.processed_bucket_name }}" \
-  -var="taxi_dataset_id={{ params.taxi_dataset_id }}" \
-  -var="thelook_dataset_id={{ params.thelook_dataset_id }}" \
-  -var="random_extension={{ params.random_extension }}" \
-  -var="rideshare_raw_bucket={{ params.rideshare_raw_bucket }}" \
-  -var="rideshare_enriched_bucket={{ params.rideshare_enriched_bucket }}" \
-  -var="rideshare_curated_bucket={{ params.rideshare_curated_bucket }}" \
-  -var="rideshare_raw_dataset={{ params.rideshare_raw_dataset }}" \
-  -var="rideshare_enriched_dataset={{ params.rideshare_enriched_dataset }}" \
-  -var="rideshare_curated_dataset={{ params.rideshare_curated_dataset }}"
-
+  -var="bucket_name={{ params.bucket_name }}" \
+  -var="bucket_region={{ params.bucket_region }}"
 
 # Print exit code
 terraform_exit_code=$?

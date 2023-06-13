@@ -110,7 +110,6 @@ module "apis-batch-enable" {
 
   project_id                      = local.local_project_id
   project_number                  = var.project_number == "" ? module.project[0].output-project-number : var.project_number
-  deployment_service_account_name = var.deployment_service_account_name  
 
   depends_on = [
     module.project,
@@ -207,8 +206,7 @@ module "resources" {
   aws_omni_biglake_dataset_name     = var.aws_omni_biglake_dataset_name
   azure_omni_biglake_dataset_name   = var.azure_omni_biglake_dataset_name
   azure_omni_biglake_dataset_region = var.azure_omni_biglake_dataset_region
-
-  terraform_impersonation_account   = local.local_impersonation_account
+  terraform_service_account         = module.service-account.deployment_service_account
 
   depends_on = [
     module.project,

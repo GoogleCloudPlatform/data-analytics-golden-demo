@@ -67,7 +67,7 @@ variable "aws_omni_biglake_dataset_name" {}
 variable "azure_omni_biglake_dataset_name" {}
 variable "azure_omni_biglake_dataset_region" {}
 
-variable "terraform_impersonation_account" {}
+variable "terraform_service_account" {}
 
 # Hardcoded
 variable "bigquery_taxi_dataset" {
@@ -710,7 +710,7 @@ resource "google_composer_environment" "composer_env" {
         ENV_RIDESHARE_LAKEHOUSE_ENRICHED_DATASET = var.bigquery_rideshare_lakehouse_enriched_dataset
         ENV_RIDESHARE_LAKEHOUSE_CURATED_DATASET  = var.bigquery_rideshare_lakehouse_curated_dataset
 
-        ENV_TERRAFORM_IMPERSONATION_ACCOUNT      = var.terraform_impersonation_account
+        ENV_TERRAFORM_SERVICE_ACCOUNT            = var.terraform_service_account
       }
     }
 
