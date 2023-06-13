@@ -208,8 +208,6 @@ module "resources" {
   azure_omni_biglake_dataset_name   = var.azure_omni_biglake_dataset_name
   azure_omni_biglake_dataset_region = var.azure_omni_biglake_dataset_region
 
-  terraform_impersonation_account   = local.local_impersonation_account
-
   depends_on = [
     module.project,
     module.service-account,

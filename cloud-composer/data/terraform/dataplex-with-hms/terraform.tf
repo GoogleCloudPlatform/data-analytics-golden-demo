@@ -311,11 +311,14 @@ resource "google_dataplex_lake" "ecommerce-data-lake" {
   description  = "The Look eCommerce Data Lake"
   display_name = "The Look eCommerce Data Lake"
 
+  # Each Data Lake requires its own HMS
+  /*
   metastore {
     service = "projects/${var.project_id}/locations/${var.dataplex_region}/services/${var.hms_service_id}"
   }
 
   depends_on = [ google_dataproc_metastore_service.dataplex_hms ]
+  */
 }
 
 /*
@@ -410,11 +413,14 @@ resource "google_dataplex_lake" "rideshare-data-lake" {
   description  = "Rideshare Lakehouse"
   display_name = "Rideshare Lakehouse"
 
+  # Each Data Lake requires its own HMS
+  /*
   metastore {
     service = "projects/${var.project_id}/locations/${var.dataplex_region}/services/${var.hms_service_id}"
   }
 
   depends_on = [ google_dataproc_metastore_service.dataplex_hms ]
+  */
 }
 
 
