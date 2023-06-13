@@ -15,10 +15,10 @@
 ####################################################################################
 
 # Author:  Adam Paternostro
-# Summary: This is a sample of how to use Terraform within Airflow!
-#          Install Terraform and executes the Terrform script
-#          This code is the SAME EXACT code in the sample-xxx-deploy and sample-xxx-destroy
-#          Make two files and place the SAME code in each.  The file name determine if a destroy will be performed.
+# Summary: Install Terraform and executes the Terrform script
+#          This DAG will perform the Deploy and the Destroy
+#          Terraform will deploy this file twice (once named xxx-deploy and xxx-destroy)
+#          The destroy will run every 15 minutes and based upon the auto_delete_hours the assets will be deleted
        
 
 # [START dag]
@@ -39,7 +39,7 @@ auto_delete_hours = 1 # set to zero to never delete
 
 # Required for deployment
 project_id                  = os.environ['ENV_PROJECT_ID'] 
-impersonate_service_account = os.environ['ENV_DEPLOYMENT_SERVICE_ACCOUNT_NAME'] 
+impersonate_service_account = os.environ['ENV_TERRAFORM_SERVICE_ACCOUNT'] 
 
 # Parameters to Terraform
 random_extension  = os.environ['ENV_RANDOM_EXTENSION']
@@ -76,7 +76,8 @@ else:
 params_list = { 
     'airflow_data_path_to_tf_script' : airflow_data_path_to_tf_script,
     'project_id'                     : project_id,
-    'impersonate_service_account'    : impersonate_service_account, 
+    'impersonate_service_account'    : impersonate_service_account,
+    'terraform_destroy'              : terraform_destroy,
     'bucket_name'                    : bucket_name, 
     'bucket_region'                  : bucket_region
     }
@@ -151,6 +152,7 @@ def delete_environment(is_deploy_or_destroy, terraform_bash_script_destroy):
 with airflow.DAG(dag_display_name,
                  default_args=default_args,
                  start_date=datetime(2021, 1, 1),
+                 catchup=False,
                  # Add the Composer "Data" directory which will hold the SQL/Bash scripts for deployment
                  template_searchpath=['/home/airflow/gcs/data'],
                  # Either run manually or every 15 minutes (for auto delete)
@@ -185,7 +187,7 @@ with airflow.DAG(dag_display_name,
     
     execute_terraform_destroy = bash_operator.BashOperator(
           task_id='execute_terraform_destroy',
-          bash_command="{{ task_instance.xcom_pull(task_ids='delete_environment') }}" # terraform_bash_script_destroy,
+          bash_command="{{ task_instance.xcom_pull(task_ids='delete_environment') }}",
           params=params_list,
           dag=dag
           )    

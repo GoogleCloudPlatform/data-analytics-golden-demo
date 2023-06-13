@@ -285,9 +285,9 @@ resource "google_storage_bucket_object" "deploy_airflow_dag_sample-dataplex-depl
 
 # Upload Destroy DAG (Copy the Deploy AS THE Destroy)
 resource "google_storage_bucket_object" "deploy_airflow_dag_sample-dataplex-destroy" {
-  name   = "${local.local_composer_dag_path}/sample-dataplex-deploy.py"
+  name   = "${local.local_composer_dag_path}/sample-dataplex-destroy.py"
   bucket = local.local_composer_bucket_name
-  source = "../cloud-composer/dags/sample-dataplex-destroy.py"
+  source = "../cloud-composer/dags/sample-dataplex-deploy.py"
 
   depends_on = [ 
     time_sleep.wait_for_airflow_dag_sync
@@ -357,9 +357,9 @@ resource "google_storage_bucket_object" "deploy_airflow_dag_sample-dataplex-with
 
 # Upload Destroy DAG (Copy the Deploy AS THE Destroy)
 resource "google_storage_bucket_object" "deploy_airflow_dag_sample-dataplex-with-hms-destroy" {
-  name   = "${local.local_composer_dag_path}/sample-dataplex-with-hms-deploy.py"
+  name   = "${local.local_composer_dag_path}/sample-dataplex-with-hms-destroy.py"
   bucket = local.local_composer_bucket_name
-  source = "../cloud-composer/dags/sample-dataplex-with-hms-destroy.py"
+  source = "../cloud-composer/dags/sample-dataplex-with-hms-deploy.py"
 
   depends_on = [ 
     time_sleep.wait_for_airflow_dag_sync
@@ -429,9 +429,9 @@ resource "google_storage_bucket_object" "deploy_airflow_dag_sample-terraform-buc
 
 # Upload Destroy DAG (Copy the Deploy AS THE Destroy)
 resource "google_storage_bucket_object" "deploy_airflow_dag_sample-terraform-bucket-demo-destroy" {
-  name   = "${local.local_composer_dag_path}/sample-terraform-bucket-demo-deploy.py"
+  name   = "${local.local_composer_dag_path}/sample-terraform-bucket-demo-destroy.py"
   bucket = local.local_composer_bucket_name
-  source = "../cloud-composer/dags/sample-terraform-bucket-demo-destroy.py"
+  source = "../cloud-composer/dags/sample-terraform-bucket-demo-deploy.py"
 
   depends_on = [ 
     time_sleep.wait_for_airflow_dag_sync
