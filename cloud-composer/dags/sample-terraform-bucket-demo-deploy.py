@@ -96,7 +96,7 @@ default_args = {
     'email': None,
     'email_on_failure': False,
     'email_on_retry': False,
-    'retries': 0,
+    'retries': 2,
     'retry_delay': timedelta(minutes=5),
     'dagrun_timeout' : timedelta(minutes=60),
     }
@@ -146,16 +146,16 @@ def delete_environment(deploy_or_destroy):
         print("delete_environment is skipped since this DAG is not a destroy DAG.")
     
     if delete_environment:       
-        return True
+        return "true"
     else:
-        return False
+        return "false"
 
 
 # Removes the deployment file so we do not keep re-deleting
 def delete_deployment_file(delete_environment):
     print("BEGIN: delete_deployment_file")
-    print("delete_environment:",str(delete_environment).lower())
-    if str(delete_environment).lower() == "true":
+    print("delete_environment:",delete_environment)
+    if delete_environment == "true":
         print("Deleting file:", '/home/airflow/gcs/data/' + dag_prefix_name + '.json')
         os.remove('/home/airflow/gcs/data/' + dag_prefix_name + '.json')
     print("END: delete_deployment_file")
@@ -207,7 +207,7 @@ with airflow.DAG(dag_display_name,
         bash_command=terraform_bash_file,
         params=params_list,
         execution_timeout=timedelta(minutes=60),
-        env={"ENV_RUN_BASH": "{{ task_instance.xcom_pull(task_ids='delete_environment').lower() }}"},
+        env={"ENV_RUN_BASH": "{{ task_instance.xcom_pull(task_ids='delete_environment') }}"},
         append_env=True,
         dag=dag
         )

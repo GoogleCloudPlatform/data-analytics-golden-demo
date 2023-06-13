@@ -73,6 +73,10 @@ resource "google_dataproc_metastore_service" "dataplex_hms" {
     }
   }
 
+  timeouts {
+    create = "45m"
+  }  
+
 }
 
 ##########################################################################################
