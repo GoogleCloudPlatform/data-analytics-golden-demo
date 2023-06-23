@@ -654,6 +654,18 @@ resource "google_storage_bucket_object" "dataplex_data_quality_rideshare_yaml" {
   bucket      = "code-${var.storage_bucket}"
 }
 
+
+resource "google_storage_bucket_object" "dataplex_data-explore-dataplex-explore" {
+  name        = "dataplex/data-explore/dataplex-explore.sql"
+  content     = templatefile("../dataplex/data-explore/dataplex-explore.sql", 
+  { 
+    project_id       = var.project_id
+    dataplex_region  = var.dataplex_region
+    random_extension = var.random_extension
+  })
+  bucket      = "code-${var.storage_bucket}"
+}
+
 ####################################################################################
 # Deploy Jupyter notebooks
 ####################################################################################

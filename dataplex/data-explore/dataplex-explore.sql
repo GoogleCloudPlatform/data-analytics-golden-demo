@@ -45,24 +45,79 @@
     -
   
  Clean up / Reset script:
-    -
+    - gsutil delete external files
 
 */
 
 -- Sample query using Spark SQL
 -- We can query our discovered assets
-SELECT * 
-  FROM taxi_curated_zone_93b2hjnp0r.taxi_trips 
- WHERE TaxiCompany = 'Green' 
- LIMIT 10;
+
+-- BigQuery tables
+SELECT taxi_trips.TaxiCompany,
+       CAST(taxi_trips.Pickup_DateTime AS DATE) AS Pickup_Date,
+       payment_type.Payment_Type_Description,
+       SUM(Total_Amount) AS Total_Amount
+  FROM taxi_curated_zone_93b2hjnp0r.taxi_trips AS taxi_trips
+       INNER JOIN taxi_curated_zone_93b2hjnp0r.payment_type AS payment_type
+               ON taxi_trips.payment_type_id = payment_type.payment_type_id
+              AND TaxiCompany = 'Green' 
+              AND PartitionDate = '2022-01-01'
+GROUP BY 1, 2, 3
+ORDER BY 1, 2, 3;
+
+-- Data Lake Tables
+SELECT 'Green' AS TaxiCompany,
+       CAST(taxi_trips.Pickup_DateTime AS DATE) AS Pickup_Date,
+       payment_type.Payment_Type_Description,
+       SUM(Total_Amount) AS Total_Amount
+  FROM taxi_curated_zone_93b2hjnp0r.processed_taxi_data_green_trips_table_parquet AS taxi_trips
+       INNER JOIN taxi_curated_zone_93b2hjnp0r.processed_taxi_data_payment_type_table AS payment_type
+               ON taxi_trips.payment_type_id = payment_type.payment_type_id
+              AND pickup_datetime BETWEEN '2022-01-01' AND '2022-02-01'
+GROUP BY 1, 2, 3
+ORDER BY 1, 2, 3;
+
 
 -- Join data
 
--- Create an internal table
 
 -- Create an external table
+CREATE EXTERNAL TABLE parquet_table_name (x INT, y STRING)
+LOCATION '/test-warehouse/tinytable'
+STORED AS PARQUET;
+
+INSERT INTO parquet_table_name (x,y) VALUES (1,2);
+
+SELECT *
+  FROM parquet_table_name;
+
+
+-- CTAS (for lineage)
+
+-- https://cwiki.apache.org/confluence/display/hive/languagemanual+ddl#LanguageManualDDL-CreateTableAsSelect(CTAS)
+CREATE TABLE parquet_table_name_2(x INT, y STRING)
+ COMMENT 'This is the page view table'
+LOCATION '/test-warehouse/parquet_table_name_2'
+STORED AS PARQUET;
+
+
+CREATE EXTERNAL TABLE parquet_table_name_3 (x INT, y STRING)
+LOCATION 'gs://processed-data-analytics-demo-93b2hjnp0r/parquet_table_name'
+STORED AS PARQUET;
+
 
 -- Show tables
+SHOW TABLES;
 
+-- Show in UI in the "default" folder
+-- You can see that PATH too to the files: 
 
 -- Show Hive tables in Data Catalog
+-- https://console.cloud.google.com/dataplex/search?project=data-analytics-demo-93b2hjnp0r&supportedpurview=project&q=parquet_table_name
+
+-- Lineage (source from CSV)
+
+-- Import a notebook
+-- Schedule a notebook and/or script
+
+-- Share script / notebooks
