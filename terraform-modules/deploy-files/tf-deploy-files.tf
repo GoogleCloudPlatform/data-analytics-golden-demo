@@ -43,7 +43,11 @@ variable "composer_name" {}
 variable "composer_dag_bucket" {}
 variable "demo_rest_api_service_uri" {}
 variable "code_bucket_name" {}
-  
+
+variable "bigquery_taxi_dataset" {
+  type        = string
+  default     = "taxi_dataset"
+}  
 
 locals {
   # Replace gs://composer-generated-name/dags to composer-generated-name
@@ -655,13 +659,27 @@ resource "google_storage_bucket_object" "dataplex_data_quality_rideshare_yaml" {
 }
 
 
-resource "google_storage_bucket_object" "dataplex_data-explore-dataplex-explore" {
-  name        = "dataplex/data-explore/dataplex-explore.sql"
-  content     = templatefile("../dataplex/data-explore/dataplex-explore.sql", 
+resource "google_storage_bucket_object" "dataplex_data-explore-dataplex-explore-notebook" {
+  name        = "dataplex/data-explore/dataplex-explore-notebook.ipynb"
+  content     = templatefile("../dataplex/data-explore/dataplex-explore-notebook.ipynb", 
   { 
-    project_id       = var.project_id
-    dataplex_region  = var.dataplex_region
-    random_extension = var.random_extension
+    project_id            = var.project_id
+    dataplex_region       = var.dataplex_region
+    random_extension      = var.random_extension
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+  })
+  bucket      = "code-${var.storage_bucket}"
+}
+
+resource "google_storage_bucket_object" "dataplex_data-explore-dataplex-explore-script" {
+  name        = "dataplex/data-explore/dataplex-explore-script.sql"
+  content     = templatefile("../dataplex/data-explore/dataplex-explore-script.sql", 
+  { 
+    project_id            = var.project_id
+    dataplex_region       = var.dataplex_region
+    random_extension      = var.random_extension
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+
   })
   bucket      = "code-${var.storage_bucket}"
 }
