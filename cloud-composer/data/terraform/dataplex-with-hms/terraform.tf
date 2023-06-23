@@ -116,7 +116,7 @@ resource "null_resource" "taxi_datalake_dataplex_default_environment" {
     when    = create
     command = <<EOF
     curl --request POST \
-      'https://dataplex.googleapis.com/v1/projects/${self.triggers.project_id}/locations${self.triggers.dataplex_region}/lakes/taxi-data-lake-${self.triggers.random_extension}/environments?environmentId=default' \
+      'https://dataplex.googleapis.com/v1/projects/${self.triggers.project_id}/locations/${self.triggers.dataplex_region}/lakes/taxi-data-lake-${self.triggers.random_extension}/environments?environmentId=default' \
       --header "Authorization: Bearer $(gcloud auth print-access-token --impersonate-service-account=${self.triggers.impersonate_service_account})" \
       --header 'Accept: application/json' \
       --header 'Content-Type: application/json' \

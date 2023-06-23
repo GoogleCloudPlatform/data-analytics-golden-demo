@@ -26,52 +26,55 @@
 
     - In the console open your Taxi Data Lake:
         - https://console.cloud.google.com/dataplex/lakes/taxi-data-lake-93b2hjnp0r;location=us-central1/environments?project=data-analytics-demo-93b2hjnp0r&supportedpurview=project
-        - Click "Create Default Environment"
         - Click on the Details tab
             - Make sure your metastore is ready to use (e.g.): Metastore status: Ready as of June 14, 2023 at 10:52:03 AM UTC-4
 
-    - It can then take another 45 minutes for Dataplex to scan and initialize
+    - It can then take another 30 minutes for Dataplex to scan and initialize
 
     - Goto the Explore UI:
         - https://console.cloud.google.com/dataplex/explore/lakes/taxi-data-lake-93b2hjnp0r;location=us-central1/query/workbench?project=data-analytics-demo-93b2hjnp0r&supportedpurview=project
         - Make sure Taxi Data Lake is selected 
             - NOTE: If you do not see any "tables" in the left hand side, then your Metastore might still be initializing
-            - NOTE: The Dataproc Metastore is ONLY mounted to the Taxi Data Lake and not the others.  Each Data Lake requires its own Metastore (at this point in time).
+            - NOTE: The Dataproc Metastore is ONLY mounted to the Taxi Data Lake and not the other data lakes.  
+                    Each Data Lake requires its own Metastore (at this point in time).
 
  Use Cases:
-    -
+    - You can run Spark SQL that can query BigQuery, your Data Lake and create/work with Hive tables
 
  Description: 
-    -
+    - This will query the above resources (BigQuery, Data Lake and Hive)
+    - You can see the Hive tables in your Data Catalog
+    - You can join BigQuery to Data Lake and to Hive!
   
  Clean up / Reset script:
-    - gsutil delete external files
+    - not required
 
 */
 
--- Sample query using Spark SQL
--- We can query our discovered assets
 
--- BigQuery tables
+-- Query BigQuery tables directly
 SELECT taxi_trips.TaxiCompany,
        CAST(taxi_trips.Pickup_DateTime AS DATE) AS Pickup_Date,
        payment_type.Payment_Type_Description,
        SUM(Total_Amount) AS Total_Amount
-  FROM taxi_curated_zone_93b2hjnp0r.taxi_trips AS taxi_trips
-       INNER JOIN taxi_curated_zone_93b2hjnp0r.payment_type AS payment_type
+  FROM taxi_curated_zone_wreia9bjqx.taxi_trips AS taxi_trips
+       INNER JOIN taxi_curated_zone_wreia9bjqx.payment_type AS payment_type
                ON taxi_trips.payment_type_id = payment_type.payment_type_id
               AND TaxiCompany = 'Green' 
               AND PartitionDate = '2022-01-01'
 GROUP BY 1, 2, 3
 ORDER BY 1, 2, 3;
 
--- Data Lake Tables
+
+-- Query Data Lake Tables 
+-- NOTE: This is a small cluster (1 node) so do not run large Spark SQL unless you create an additional environment.
+--       If you create an additional environment, you must MANUALLY delete since the Destroy DAG will not be able to delete Dataplex.
 SELECT 'Green' AS TaxiCompany,
        CAST(taxi_trips.Pickup_DateTime AS DATE) AS Pickup_Date,
        payment_type.Payment_Type_Description,
        SUM(Total_Amount) AS Total_Amount
-  FROM taxi_curated_zone_93b2hjnp0r.processed_taxi_data_green_trips_table_parquet AS taxi_trips
-       INNER JOIN taxi_curated_zone_93b2hjnp0r.processed_taxi_data_payment_type_table AS payment_type
+  FROM taxi_curated_zone_wreia9bjqx.processed_taxi_data_green_trips_table_parquet AS taxi_trips
+       INNER JOIN taxi_curated_zone_wreia9bjqx.processed_taxi_data_payment_type_table AS payment_type
                ON taxi_trips.payment_type_id = payment_type.payment_type_id
               AND pickup_datetime BETWEEN '2022-01-01' AND '2022-02-01'
 GROUP BY 1, 2, 3
@@ -81,33 +84,74 @@ ORDER BY 1, 2, 3;
 -- Join data
 
 
--- Create an external table
-CREATE EXTERNAL TABLE parquet_table_name (x INT, y STRING)
-LOCATION '/test-warehouse/tinytable'
+-- Create a Hive External table
+CREATE EXTERNAL TABLE taxi_driver (taxi_driver_id INT, driver_name STRING, license_number STRING, license_plate STRING)
+LOCATION '/hive-warehouse/taxi_driver'
 STORED AS PARQUET;
 
-INSERT INTO parquet_table_name (x,y) VALUES (1,2);
+INSERT INTO taxi_driver (taxi_driver_id,driver_name,license_number,license_plate)
+VALUES 
+  (1, 'Agostino Combi',        '76-662-3795-233','919-528');
+, (2, 'Alex Hoareau',          '70-954-6424-635','936-158');
+, (3, 'Alexis Chavez',         '79-305-2973-350','417-543');
+, (4, 'Allegra Toscanini',     '25-910-1913-490','218-923');
+, (5, 'Alphonse Guillou-Hamel','70-101-1542-408','433-526');
+, (6, 'Amber Chavez',          '63-430-4210-300','882-730');
+, (7, 'Amy Floyd',             '19-133-5461-640','266-833');
+, (8, 'Andrew Carey',          '45-654-6851-906','490-496');
+, (9, 'André de Pasquier',     '98-881-5026-333','746-621');
+, (10,'Annedore Scholl-Klemt', '61-367-1954-677','395-449');
 
+-- Query the table
 SELECT *
-  FROM parquet_table_name;
+  FROM taxi_driver;
 
 
--- CTAS (for lineage)
-
--- https://cwiki.apache.org/confluence/display/hive/languagemanual+ddl#LanguageManualDDL-CreateTableAsSelect(CTAS)
-CREATE TABLE parquet_table_name_2(x INT, y STRING)
- COMMENT 'This is the page view table'
-LOCATION '/test-warehouse/parquet_table_name_2'
+CREATE EXTERNAL TABLE taxi_review (taxi_review_id INT, taxi_driver_id INT, passenger_id INT, review_date DATE, ride_date DATE, pickup_location_id INT, dropoff_location_id INT ,
+                                   total_amount FLOAT, review_rating INT)
+LOCATION '/hive-warehouse/taxi_review'
 STORED AS PARQUET;
 
+INSERT INTO taxi_review (taxi_review_id,taxi_driver_id,review_date,ride_date,pickup_location_id,dropoff_location_id,total_amount,review_rating) 
+VALUES 
+  (1,  1,  '2022-11-07','2022-10-31',249, 244, 40.33, 8);
+, (2,  2,  '2022-11-11','2022-10-31',162, 230, 8.8,   7);
+, (3,  3,  '2022-11-10','2022-10-31',138, 179, 18.55, 2);
+, (4,  4,  '2022-11-01','2022-10-31',186, 107, 13.3,  1);
+, (5,  5,  '2022-11-09','2022-10-31',70,  17,  37.55, 9);
+, (6,  6,  '2022-11-04','2022-10-31',138, 112, 22.05, 2);
+, (7,  7,  '2022-11-02','2022-10-31',142, 263, 17.6,  9);
+, (8,  8,  '2022-11-10','2022-10-31',264, 264, 14.76, 2);	
+, (9,  9,  '2022-11-04','2022-10-31',249, 227, 42.3,  9);
+, (10, 10, '2022-11-05','2022-10-31',68,  228, 41.35, 7);
 
-CREATE EXTERNAL TABLE parquet_table_name_3 (x INT, y STRING)
-LOCATION 'gs://processed-data-analytics-demo-93b2hjnp0r/parquet_table_name'
-STORED AS PARQUET;
-
+-- Query the table
+SELECT *
+  FROM taxi_review;
 
 -- Show tables
 SHOW TABLES;
+
+
+-- Join BigQuery to Data Lake to Hive
+SELECT taxi_driver.driver_name, 
+       taxi_review.review_rating,
+       payment_type_table.Payment_Type_Description
+  FROM -- BigQuery Table
+       taxi_curated_zone_wreia9bjqx.taxi_trips AS trips
+       INNER JOIN taxi_review AS taxi_review      
+               ON taxi_review.ride_date           = CAST(trips.Pickup_DateTime AS DATE)
+              AND taxi_review.pickup_location_id  = trips.PULocationID
+              AND taxi_review.dropoff_location_id = trips.DOLocationID
+              AND taxi_review.total_amount        = trips.Total_Amount
+       -- Hive Table
+       INNER JOIN taxi_driver AS taxi_driver
+               ON taxi_review.taxi_driver_id = taxi_driver.taxi_driver_id
+       -- Taxi Data Lake
+       INNER JOIN taxi_curated_zone_wreia9bjqx.processed_taxi_data_payment_type_table AS payment_type_table
+               ON payment_type_table.payment_type_id = trips.payment_type_id
+;
+
 
 -- Show in UI in the "default" folder
 -- You can see that PATH too to the files: 
