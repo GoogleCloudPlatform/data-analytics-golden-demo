@@ -125,14 +125,49 @@ resource "null_resource" "taxi_datalake_dataplex_default_environment" {
       EOF
     }
 
+  # Bash variable do not use currly brackets to avoid double dollars signs for Terraform
   provisioner "local-exec" {
     when = destroy
     command = <<EOF
+echo "BEGIN: jq Install"
+STR=$(which jq)
+SUB='jq'
+echo "STR=$STR"
+if [[ "$STR" == *"$SUB"* ]]; then
+  echo "jq is installed, skipping..."
+else
+  sudo apt update -y
+  sudo apt install jq -y
+fi
+echo "END: jq Install"
+
+echo "Get all the Dataplex Content(s)"
+json=$(curl \
+  'https://dataplex.googleapis.com/v1/projects/${self.triggers.project_id}/locations/${self.triggers.dataplex_region}/lakes/taxi-data-lake-${self.triggers.random_extension}/content' \
+  --header "Authorization: Bearer $(gcloud auth print-access-token --impersonate-service-account=${self.triggers.impersonate_service_account})" \
+  --header 'Accept: application/json' \
+  --compressed)
+echo "json: $json"
+
+items=$(echo $json | jq .content[].name --raw-output)
+echo "items: $items"
+
+echo "Delete each Dataplex Content"
+for item in $(echo "$items"); do
+    echo "Deleting: $item" 
     curl --request DELETE \
-      'https://dataplex.googleapis.com/v1/projects/${self.triggers.project_id}/locations/${self.triggers.dataplex_region}/lakes/taxi-data-lake-${self.triggers.random_extension}/environments/default' \
+      "https://dataplex.googleapis.com/v1/$item" \
       --header "Authorization: Bearer $(gcloud auth print-access-token --impersonate-service-account=${self.triggers.impersonate_service_account})" \
       --header 'Accept: application/json' \
-      --compressed
+      --compressed    
+done
+
+echo "Delete the Dataplex Environment (all content must first be deleted)"
+curl --request DELETE \
+  'https://dataplex.googleapis.com/v1/projects/${self.triggers.project_id}/locations/${self.triggers.dataplex_region}/lakes/taxi-data-lake-${self.triggers.random_extension}/environments/default' \
+  --header "Authorization: Bearer $(gcloud auth print-access-token --impersonate-service-account=${self.triggers.impersonate_service_account})" \
+  --header 'Accept: application/json' \
+  --compressed
     EOF
   }
 

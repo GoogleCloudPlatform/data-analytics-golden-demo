@@ -34,7 +34,7 @@ from airflow.operators.python_operator import PythonOperator
 ####################################################################################
 airflow_data_path_to_tf_script = "/home/airflow/gcs/data/terraform/dataplex-with-hms"
 dag_prefix_name = "sample-dataplex-with-hms"
-auto_delete_hours = 48 # 2 days # set to zero to never delete
+auto_delete_hours = 8 # set to zero to never delete
 terraform_bash_file = "sample_terraform_dataplex_with_hms.sh"
 
 # Required for deployment
