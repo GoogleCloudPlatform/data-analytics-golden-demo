@@ -145,6 +145,23 @@ resource "google_storage_bucket" "rideshare_lakehouse_curated" {
 }
 
 
+resource "google_storage_bucket" "iceberg_catalog_bucket" {
+  project                     = var.project_id
+  name                        = "iceberg-catalog-${var.random_extension}"
+  location                    = var.bigquery_region
+  force_destroy               = true
+  uniform_bucket_level_access = true
+}
+
+
+resource "google_storage_bucket" "iceberg_catalog_source_data_bucket" {
+  project                     = var.project_id
+  name                        = "iceberg-source-data-${var.random_extension}"
+  location                    = var.bigquery_region
+  force_destroy               = true
+  uniform_bucket_level_access = true
+}
+
 ####################################################################################
 # Custom Roles
 ####################################################################################
@@ -158,7 +175,12 @@ resource "google_project_iam_custom_role" "customconnectiondelegate" {
   "bigquery.connections.delegate"]
 }
 
-
+resource "google_project_iam_custom_role" "custom-role-custom-delegate" {
+  role_id     = "CustomDelegate"
+  title       = "Custom Delegate"
+  description = "Used for BLMS connections"
+  permissions = ["bigquery.connections.delegate"]
+}
 
 ####################################################################################
 # Default Network

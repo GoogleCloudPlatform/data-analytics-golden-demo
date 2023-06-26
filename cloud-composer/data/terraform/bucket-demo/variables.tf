@@ -30,7 +30,7 @@ variable "project_id" {
 variable "impersonate_service_account" {
   type        = string
   description = "We want to impersonate the Terraform service account"
-  default     = "us-west2"
+  default     = ""
   validation {
     condition     = length(var.impersonate_service_account) > 0
     error_message = "The impersonate_service_account is required."
