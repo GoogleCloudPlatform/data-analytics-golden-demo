@@ -779,6 +779,18 @@ resource "google_storage_bucket_object" "deploy_resnet_imagenet_labels-data" {
     ]  
 }
 
+
+# Upload BigLake Meatastore sample data
+resource "google_storage_bucket_object" "deploy_biglake-metastore-payment-type-data" {
+  name   = "payment_type_table/payment_type_table.snappy.parquet"
+  bucket = "iceberg-source-data-${var.random_extension}"
+  source = "../sample-data/iceberg_source_data/payment_type_table.snappy.parquet"
+
+  depends_on = [ 
+    ]  
+}
+
+
 ####################################################################################
 # Delta IO Files
 ####################################################################################
