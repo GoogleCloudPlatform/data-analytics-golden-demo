@@ -28,6 +28,8 @@
 
   Clean up / Reset script:
     DROP ALL ROW ACCESS POLICIES ON `${project_id}.${bigquery_rideshare_lakehouse_raw_dataset}.biglake_rideshare_zone_csv`;
+    DROP TABLE IF EXISTS `${project_id}.${bigquery_rideshare_lakehouse_raw_dataset}.rideshare_plus_rides`;
+    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${aws_omni_biglake_dataset_name}.rideshare_plus_rides`;
 
 */
 
@@ -59,6 +61,41 @@ SELECT * FROM `${project_id}.${bigquery_rideshare_lakehouse_raw_dataset}.biglake
 
 -- Drop the policy (do not break things in future demo steps)
 DROP ALL ROW ACCESS POLICIES ON `${project_id}.${bigquery_rideshare_lakehouse_raw_dataset}.biglake_rideshare_zone_csv`;
+
+
+--------------------------------------------------------------------------------------------------------------
+-- OMNI (Bring in data from other clouds)
+--------------------------------------------------------------------------------------------------------------
+-- Create a table on data in AWS (S3)
+CREATE OR REPLACE EXTERNAL TABLE `${project_id}.${aws_omni_biglake_dataset_name}.rideshare_plus_rides`
+WITH PARTITION COLUMNS (
+    year  INTEGER, -- column order must match the external path
+    month INTEGER
+)
+WITH CONNECTION `${shared_demo_project_id}.${aws_omni_biglake_dataset_region}.${aws_omni_biglake_connection}`
+OPTIONS (
+  format = "PARQUET",
+  hive_partition_uri_prefix = "s3://${aws_omni_biglake_s3_bucket}/taxi-data/yellow/trips_table/parquet/",
+  uris = ['s3://${aws_omni_biglake_s3_bucket}/taxi-data/yellow/trips_table/parquet/*.parquet']
+);
+
+-- Retrieve some aggregate data from AWS
+-- Use CTAS to query and directy load into a local BigQuery table
+CREATE OR REPLACE TABLE `${project_id}.${bigquery_rideshare_lakehouse_raw_dataset}.rideshare_plus_rides` AS
+SELECT CAST(Pickup_DateTime AS DATE)  AS PickupDate,
+       CAST(Dropoff_DateTime AS DATE) AS DropoffDate,
+       PULocationID                   AS PickupLocationId,
+       DOLocationID                   AS DropoffLocationId,
+       AVG(Passenger_Count)           AS AvgPassengerCnt,
+       AVG(Tip_Amount)                AS AvgTipAmt,
+       AVG(Total_Amount)              AS AvgTotalAmt
+  FROM `${project_id}.${aws_omni_biglake_dataset_name}.rideshare_plus_rides`
+ WHERE year=2022
+   AND month=1
+ GROUP BY 1, 2, 3, 4;
+
+-- We now have data in Google BigQuery to used for our analysis
+SELECT * FROM `${project_id}.${bigquery_rideshare_lakehouse_raw_dataset}.rideshare_plus_rides`;
 
 
 --------------------------------------------------------------------------------------------------------------
@@ -115,7 +152,7 @@ WITH UnstructuredData AS
 , ScoreAI AS 
 (
   -- call a remote function
-  SELECT `${bigquery_rideshare_lakehouse_enriched_dataset}.ext_udf_ai_localize_objects`(UnstructuredData.uri) AS json_result
+  SELECT `${project_id}.${bigquery_rideshare_lakehouse_enriched_dataset}.ext_udf_ai_localize_objects`(UnstructuredData.uri) AS json_result
     FROM UnstructuredData
 )
 SELECT item.name,
