@@ -16,6 +16,9 @@
 
   
 /*
+YouTube:
+    - https://youtu.be/ow17MIXHOqw
+
 Prerequisites (10 minutes):
     - Execute Airflow DAG: sample-datastream-PRIVATE-ip-deploy (this will deploy a Cloud SQL database, a reverse proxy vm and datastream)
 

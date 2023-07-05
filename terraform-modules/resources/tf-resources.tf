@@ -971,6 +971,15 @@ resource "google_data_catalog_policy_tag_iam_member" "member_azure" {
 }
 
 ####################################################################################
+# Dataplex / Data Lineage
+####################################################################################
+resource "google_project_iam_member" "gcp_roles_datalineage_admin" {
+  project  = var.project_id
+  role     = "roles/datalineage.admin"
+  member   = "user:${var.gcp_account_name}"
+}
+
+####################################################################################
 # Bring in Analytics Hub reference
 ####################################################################################
 # https://cloud.google.com/bigquery/docs/reference/analytics-hub/rest/v1/projects.locations.dataExchanges.listings/subscribe

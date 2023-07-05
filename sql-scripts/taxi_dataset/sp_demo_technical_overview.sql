@@ -15,10 +15,12 @@
 ###################################################################################*/
 
 /*
+YouTube:
+    - https://youtu.be/bMS4p2XHMpE
+
 Use Cases:
     - General overview of BigQuery recent features
     
-
 Running this demo:
     - Start the Spanner Airflow DAG: sample-bigquery-start-spanner (takes about 10 minutes to deploy and shuts down after 4 hours)
     - Start the Datastream Airflow DAG: sample-datastream-private-ip-deploy (takes about 10 minutes to deploy)

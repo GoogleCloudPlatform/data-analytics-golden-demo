@@ -16,6 +16,10 @@
 
 
 /*
+YouTube:
+    - This is for private IP, but is mainly the same demo: https://youtu.be/ow17MIXHOqw
+    - For the public IP you can access the data from your laptop via pgAdmin versus SSHing to the VM
+    
 Prerequisites (10 minutes):
     - Disable Org Policy: sql.restrictAuthorizedNetworks
       OPEN: https://console.cloud.google.com/iam-admin/orgpolicies/sql-restrictAuthorizedNetworks/edit?project=${project_id}

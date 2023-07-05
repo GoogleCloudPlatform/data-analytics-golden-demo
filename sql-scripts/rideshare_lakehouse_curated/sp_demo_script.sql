@@ -14,6 +14,9 @@
   # limitations under the License.
   ###################################################################################*/
   /*
+  YouTube:
+      - https://youtu.be/Yru78Pk1jMM
+
   Use Cases:
       - Analytical Lakehouse
 

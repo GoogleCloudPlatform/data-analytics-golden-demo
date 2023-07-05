@@ -14,6 +14,10 @@
 # limitations under the License.
 ####################################################################################
 
+####################################################################################
+# Implementing your own Terraform scripts in the demo
+# YouTube: https://youtu.be/2Qu29_hR2Z0
+####################################################################################
 
 ####################################################################################
 # Provider with service account impersonation
@@ -141,7 +145,7 @@ else
 fi
 echo "END: jq Install"
 
-echo "Get all the Dataplex Content(s)"
+echo "Get all the Dataplex Content(s) Spark SQL and Notebooks"
 json=$(curl \
   'https://dataplex.googleapis.com/v1/projects/${self.triggers.project_id}/locations/${self.triggers.dataplex_region}/lakes/taxi-data-lake-${self.triggers.random_extension}/content' \
   --header "Authorization: Bearer $(gcloud auth print-access-token --impersonate-service-account=${self.triggers.impersonate_service_account})" \
@@ -153,6 +157,48 @@ items=$(echo $json | jq .content[].name --raw-output)
 echo "items: $items"
 
 echo "Delete each Dataplex Content"
+for item in $(echo "$items"); do
+    echo "Deleting: $item" 
+    curl --request DELETE \
+      "https://dataplex.googleapis.com/v1/$item" \
+      --header "Authorization: Bearer $(gcloud auth print-access-token --impersonate-service-account=${self.triggers.impersonate_service_account})" \
+      --header 'Accept: application/json' \
+      --compressed    
+done
+
+echo "Get all the Data Quality jobs run via Airflow"
+json=$(curl \
+  'https://dataplex.googleapis.com/v1/projects/${self.triggers.project_id}/locations/${self.triggers.dataplex_region}/lakes/taxi-data-lake-${self.triggers.random_extension}/tasks' \
+  --header "Authorization: Bearer $(gcloud auth print-access-token --impersonate-service-account=${self.triggers.impersonate_service_account})" \
+  --header 'Accept: application/json' \
+  --compressed)
+echo "json: $json"
+
+items=$(echo $json | jq .tasks[].name --raw-output)
+echo "items: $items"
+
+echo "Delete each Dataplex Task"
+for item in $(echo "$items"); do
+    echo "Deleting: $item" 
+    curl --request DELETE \
+      "https://dataplex.googleapis.com/v1/$item" \
+      --header "Authorization: Bearer $(gcloud auth print-access-token --impersonate-service-account=${self.triggers.impersonate_service_account})" \
+      --header 'Accept: application/json' \
+      --compressed    
+done
+
+echo "Get all the Data Scans"
+json=$(curl \
+  'https://dataplex.googleapis.com/v1/projects/${self.triggers.project_id}/locations/${self.triggers.dataplex_region}/dataScans' \
+  --header "Authorization: Bearer $(gcloud auth print-access-token --impersonate-service-account=${self.triggers.impersonate_service_account})" \
+  --header 'Accept: application/json' \
+  --compressed)
+echo "json: $json"
+
+items=$(echo $json | jq .dataScans[].name --raw-output)
+echo "items: $items"
+
+echo "Delete each Data Scan"
 for item in $(echo "$items"); do
     echo "Deleting: $item" 
     curl --request DELETE \
