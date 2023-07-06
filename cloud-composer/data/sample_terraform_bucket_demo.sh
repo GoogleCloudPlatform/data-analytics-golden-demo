@@ -85,7 +85,7 @@ terraform init
 terraform validate
 echo "terraform validate"
 
-# Display for debugging (copy the below terrform apply comamnd here so you can see the output)
+# Display for debugging (copy the below terraform apply comamnd here so you can see the output)
 echo '
 terraform apply {{ params.terraform_destroy }}  -auto-approve \
   -var="project_id={{ params.project_id }}" \

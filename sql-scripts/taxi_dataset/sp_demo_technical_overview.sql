@@ -746,9 +746,9 @@ SELECT project_id,
        user_email,
        total_bytes_billed,
 
-       -- 5 / 1,099,511,627,776 = 0.00000000000454747350886464 ($5 per TB so cost per byte is 0.00000000000454747350886464)
+       -- 6.25 / 1,099,511,627,776 = 0.00000000000568434188608080 ($6.25 per TB so cost per byte is 0.00000000000568434188608080)
        CASE WHEN reservation_id IS NULL
-            THEN CAST(total_bytes_billed AS BIGDECIMAL) * CAST(0.00000000000454747350886464 AS BIGDECIMAL) 
+            THEN CAST(total_bytes_billed AS BIGDECIMAL) * CAST(0.00000000000568434188608080 AS BIGDECIMAL) 
             ELSE 0
        END      
        as est_cost,

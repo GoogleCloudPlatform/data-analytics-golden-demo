@@ -15,7 +15,7 @@
 ####################################################################################
 
 # Author:  Adam Paternostro
-# Summary: Install Terraform and executes the Terrform script
+# Summary: Install Terraform and executes the Terraform script
 #          This same DAG is used for the Destroy DAG. Copy and paste this and just
 #          change the ' terraform_destroy= "-destroy" ' line
           
@@ -68,7 +68,7 @@ with airflow.DAG('sample-gcs-terraform-' + suffix,
                  # Not scheduled, trigger only
                  schedule_interval=None) as dag:
 
-    # NOTE: The Composer Service Account will Impersonate the Terrform service account
+    # NOTE: The Composer Service Account will Impersonate the Terraform service account
 
     # You need to ensure Terraform is installed and since they can be many worker nodes you want the
     # install to be in the same step versus risking a seperate operator that might run on a different node

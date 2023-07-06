@@ -187,7 +187,7 @@ for item in $(echo "$items"); do
       --compressed    
 done
 
-echo "Get all the Data Scans"
+echo "Get all the Data Scans (for all lakes)"
 json=$(curl \
   'https://dataplex.googleapis.com/v1/projects/${self.triggers.project_id}/locations/${self.triggers.dataplex_region}/dataScans' \
   --header "Authorization: Bearer $(gcloud auth print-access-token --impersonate-service-account=${self.triggers.impersonate_service_account})" \
@@ -198,7 +198,7 @@ echo "json: $json"
 items=$(echo $json | jq .dataScans[].name --raw-output)
 echo "items: $items"
 
-echo "Delete each Data Scan"
+echo "Delete each Data Scan (we could get a race condition with the other lakes, but we can ignore the errors)"
 for item in $(echo "$items"); do
     echo "Deleting: $item" 
     curl --request DELETE \
@@ -445,6 +445,117 @@ resource "google_dataplex_lake" "ecommerce-data-lake" {
   */
 }
 
+# Clean up any resources created in the lake, so we can delete (use REST API to avoid gcloud version issues)
+resource "null_resource" "ecommerce-data-lake-cleanup" {
+  triggers = {
+    project_id                  = var.project_id
+    dataplex_region             = var.dataplex_region
+    random_extension            = var.random_extension
+    impersonate_service_account = var.impersonate_service_account
+  }
+
+  provisioner "local-exec" {
+    when    = create
+    command = <<EOF
+    echo "The default environment will not be created in the The Look eCommerce Data Lake."
+    EOF
+    }
+
+  # Bash variable do not use currly brackets to avoid double dollars signs for Terraform
+  provisioner "local-exec" {
+    when = destroy
+    command = <<EOF
+echo "BEGIN: jq Install"
+STR=$(which jq)
+SUB='jq'
+echo "STR=$STR"
+if [[ "$STR" == *"$SUB"* ]]; then
+  echo "jq is installed, skipping..."
+else
+  sudo apt update -y
+  sudo apt install jq -y
+fi
+echo "END: jq Install"
+
+echo "Get all the Dataplex Content(s) Spark SQL and Notebooks"
+json=$(curl \
+  'https://dataplex.googleapis.com/v1/projects/${self.triggers.project_id}/locations/${self.triggers.dataplex_region}/lakes/ecommerce-data-lake-${self.triggers.random_extension}/content' \
+  --header "Authorization: Bearer $(gcloud auth print-access-token --impersonate-service-account=${self.triggers.impersonate_service_account})" \
+  --header 'Accept: application/json' \
+  --compressed)
+echo "json: $json"
+
+items=$(echo $json | jq .content[].name --raw-output)
+echo "items: $items"
+
+echo "Delete each Dataplex Content"
+for item in $(echo "$items"); do
+    echo "Deleting: $item" 
+    curl --request DELETE \
+      "https://dataplex.googleapis.com/v1/$item" \
+      --header "Authorization: Bearer $(gcloud auth print-access-token --impersonate-service-account=${self.triggers.impersonate_service_account})" \
+      --header 'Accept: application/json' \
+      --compressed    
+done
+
+echo "Get all the Data Quality jobs run via Airflow"
+json=$(curl \
+  'https://dataplex.googleapis.com/v1/projects/${self.triggers.project_id}/locations/${self.triggers.dataplex_region}/lakes/ecommerce-data-lake-${self.triggers.random_extension}/tasks' \
+  --header "Authorization: Bearer $(gcloud auth print-access-token --impersonate-service-account=${self.triggers.impersonate_service_account})" \
+  --header 'Accept: application/json' \
+  --compressed)
+echo "json: $json"
+
+items=$(echo $json | jq .tasks[].name --raw-output)
+echo "items: $items"
+
+echo "Delete each Dataplex Task"
+for item in $(echo "$items"); do
+    echo "Deleting: $item" 
+    curl --request DELETE \
+      "https://dataplex.googleapis.com/v1/$item" \
+      --header "Authorization: Bearer $(gcloud auth print-access-token --impersonate-service-account=${self.triggers.impersonate_service_account})" \
+      --header 'Accept: application/json' \
+      --compressed    
+done
+
+echo "Get all the Data Scans (for all lakes)"
+json=$(curl \
+  'https://dataplex.googleapis.com/v1/projects/${self.triggers.project_id}/locations/${self.triggers.dataplex_region}/dataScans' \
+  --header "Authorization: Bearer $(gcloud auth print-access-token --impersonate-service-account=${self.triggers.impersonate_service_account})" \
+  --header 'Accept: application/json' \
+  --compressed)
+echo "json: $json"
+
+items=$(echo $json | jq .dataScans[].name --raw-output)
+echo "items: $items"
+
+echo "Delete each Data Scan (we could get a race condition with the other lakes, but we can ignore the errors)"
+for item in $(echo "$items"); do
+    echo "Deleting: $item" 
+    curl --request DELETE \
+      "https://dataplex.googleapis.com/v1/$item" \
+      --header "Authorization: Bearer $(gcloud auth print-access-token --impersonate-service-account=${self.triggers.impersonate_service_account})" \
+      --header 'Accept: application/json' \
+      --compressed    
+done
+
+echo "Delete the Dataplex Environment (all content must first be deleted)"
+curl --request DELETE \
+  'https://dataplex.googleapis.com/v1/projects/${self.triggers.project_id}/locations/${self.triggers.dataplex_region}/lakes/ecommerce-data-lake-${self.triggers.random_extension}/environments/default' \
+  --header "Authorization: Bearer $(gcloud auth print-access-token --impersonate-service-account=${self.triggers.impersonate_service_account})" \
+  --header 'Accept: application/json' \
+  --compressed
+    EOF
+  }
+
+  depends_on = [
+    google_dataplex_lake.ecommerce-data-lake
+    ]
+}
+
+
+
 /*
 gcloud dataplex zones create "ecommerce-curated-zone-${RANDOM_EXTENSION}" \
     --lake="ecommerce-data-lake-${RANDOM_EXTENSION}" \
@@ -545,6 +656,116 @@ resource "google_dataplex_lake" "rideshare-data-lake" {
 
   depends_on = [ google_dataproc_metastore_service.dataplex_hms ]
   */
+}
+
+
+# Clean up any resources created in the lake, so we can delete (use REST API to avoid gcloud version issues)
+resource "null_resource" "rideshare-data-lake-cleanup" {
+  triggers = {
+    project_id                  = var.project_id
+    dataplex_region             = var.dataplex_region
+    random_extension            = var.random_extension
+    impersonate_service_account = var.impersonate_service_account
+  }
+
+  provisioner "local-exec" {
+    when    = create
+    command = <<EOF
+    echo "The default environment will not be created in the Rideshare Lakehouse."
+    EOF
+    }
+
+  # Bash variable do not use currly brackets to avoid double dollars signs for Terraform
+  provisioner "local-exec" {
+    when = destroy
+    command = <<EOF
+echo "BEGIN: jq Install"
+STR=$(which jq)
+SUB='jq'
+echo "STR=$STR"
+if [[ "$STR" == *"$SUB"* ]]; then
+  echo "jq is installed, skipping..."
+else
+  sudo apt update -y
+  sudo apt install jq -y
+fi
+echo "END: jq Install"
+
+echo "Get all the Dataplex Content(s) Spark SQL and Notebooks"
+json=$(curl \
+  'https://dataplex.googleapis.com/v1/projects/${self.triggers.project_id}/locations/${self.triggers.dataplex_region}/lakes/rideshare-lakehouse-${self.triggers.random_extension}/content' \
+  --header "Authorization: Bearer $(gcloud auth print-access-token --impersonate-service-account=${self.triggers.impersonate_service_account})" \
+  --header 'Accept: application/json' \
+  --compressed)
+echo "json: $json"
+
+items=$(echo $json | jq .content[].name --raw-output)
+echo "items: $items"
+
+echo "Delete each Dataplex Content"
+for item in $(echo "$items"); do
+    echo "Deleting: $item" 
+    curl --request DELETE \
+      "https://dataplex.googleapis.com/v1/$item" \
+      --header "Authorization: Bearer $(gcloud auth print-access-token --impersonate-service-account=${self.triggers.impersonate_service_account})" \
+      --header 'Accept: application/json' \
+      --compressed    
+done
+
+echo "Get all the Data Quality jobs run via Airflow"
+json=$(curl \
+  'https://dataplex.googleapis.com/v1/projects/${self.triggers.project_id}/locations/${self.triggers.dataplex_region}/lakes/rideshare-lakehouse-${self.triggers.random_extension}/tasks' \
+  --header "Authorization: Bearer $(gcloud auth print-access-token --impersonate-service-account=${self.triggers.impersonate_service_account})" \
+  --header 'Accept: application/json' \
+  --compressed)
+echo "json: $json"
+
+items=$(echo $json | jq .tasks[].name --raw-output)
+echo "items: $items"
+
+echo "Delete each Dataplex Task"
+for item in $(echo "$items"); do
+    echo "Deleting: $item" 
+    curl --request DELETE \
+      "https://dataplex.googleapis.com/v1/$item" \
+      --header "Authorization: Bearer $(gcloud auth print-access-token --impersonate-service-account=${self.triggers.impersonate_service_account})" \
+      --header 'Accept: application/json' \
+      --compressed    
+done
+
+echo "Get all the Data Scans (for all lakes)"
+json=$(curl \
+  'https://dataplex.googleapis.com/v1/projects/${self.triggers.project_id}/locations/${self.triggers.dataplex_region}/dataScans' \
+  --header "Authorization: Bearer $(gcloud auth print-access-token --impersonate-service-account=${self.triggers.impersonate_service_account})" \
+  --header 'Accept: application/json' \
+  --compressed)
+echo "json: $json"
+
+items=$(echo $json | jq .dataScans[].name --raw-output)
+echo "items: $items"
+
+echo "Delete each Data Scan (we could get a race condition with the other lakes, but we can ignore the errors)"
+for item in $(echo "$items"); do
+    echo "Deleting: $item" 
+    curl --request DELETE \
+      "https://dataplex.googleapis.com/v1/$item" \
+      --header "Authorization: Bearer $(gcloud auth print-access-token --impersonate-service-account=${self.triggers.impersonate_service_account})" \
+      --header 'Accept: application/json' \
+      --compressed    
+done
+
+echo "Delete the Dataplex Environment (all content must first be deleted)"
+curl --request DELETE \
+  'https://dataplex.googleapis.com/v1/projects/${self.triggers.project_id}/locations/${self.triggers.dataplex_region}/lakes/rideshare-lakehouse-${self.triggers.random_extension}/environments/default' \
+  --header "Authorization: Bearer $(gcloud auth print-access-token --impersonate-service-account=${self.triggers.impersonate_service_account})" \
+  --header 'Accept: application/json' \
+  --compressed
+    EOF
+  }
+
+  depends_on = [
+    google_dataplex_lake.rideshare-data-lake
+    ]
 }
 
 
