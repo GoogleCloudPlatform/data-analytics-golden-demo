@@ -115,12 +115,16 @@ FROM `region-${bigquery_region}`.INFORMATION_SCHEMA.JOBS AS job
       CROSS JOIN UNNEST(timeline) AS unnest_timeline
 WHERE project_id = '${project_id}'
   AND creation_time BETWEEN TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 15 MINUTE) AND CURRENT_TIMESTAMP() 
-  AND query LIKE 'WITH TaxiDataRanking AS%'
+  AND query LIKE '%WITH TaxiDataRanking AS%'
 GROUP BY 1,2,3,4,5,6,7,8,9,10,11
 ORDER BY creation_time DESC
 LIMIT 10;
 
-  
+
+-- See slot estimator (how many slots do I need)
+-- https://console.cloud.google.com/bigquery/admin/reservations;region=${bigquery_region}/slot-estimator?project=${project_id}&region=${bigquery_region}
+
+
 -- Create an Autoscaling Resevation
 -- NOTE: After you run this query you will start getting BILLED!  
 -- You must DROP this to avoid getting charged for the baseline slots (which is zero)
@@ -232,12 +236,16 @@ FROM `region-${bigquery_region}`.INFORMATION_SCHEMA.JOBS AS job
       CROSS JOIN UNNEST(timeline) AS unnest_timeline
 WHERE project_id = '${project_id}'
   AND creation_time BETWEEN TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 15 MINUTE) AND CURRENT_TIMESTAMP() 
-  AND query LIKE 'WITH TaxiDataRanking AS%'
+  AND query LIKE '%WITH TaxiDataRanking AS%'
 GROUP BY 1,2,3,4,5,6,7,8,9,10,11
 ORDER BY creation_time DESC
 LIMIT 10;
+
+
+-- See slot estimator (we have a reservation)
+-- https://console.cloud.google.com/bigquery/admin/reservations;region=${bigquery_region}/slot-estimator?project=${project_id}&region=${bigquery_region}
   
-  
+
 -- ******************************************************************************************
 -- IMPORTANT!  IMPORTANT!  IMPORTANT!  IMPORTANT!  IMPORTANT!  IMPORTANT!  IMPORTANT!  
 -- ******************************************************************************************
