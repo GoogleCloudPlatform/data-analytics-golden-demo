@@ -20,6 +20,9 @@ BEGIN
 /*
 IMPORTANT: If you create a reservation, you MUST DROP it or else you will get BILLED.  See the end of the script!
 
+YouTube:
+    - https://youtu.be/PPF8wBjJOxU
+    
 Use Cases:
     - Pricing for companies that want a warehouse do not want a commit can use ad-hoc pricing
     - Pricing for companies that want a fixed cost model can use reservations pricing model
