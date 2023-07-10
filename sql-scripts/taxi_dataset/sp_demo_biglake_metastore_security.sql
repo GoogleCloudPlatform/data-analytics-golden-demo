@@ -36,8 +36,8 @@ LANGUAGE python AS R"""
 # limitations under the License.
 ###################################################################################
 #
-# Video:
-#     - https://youtu.be/IQR9gJuLXbQ
+# YouTube:
+#    - https://youtu.be/IQR9gJuLXbQ
 #
 # Use Cases:
 #     - Runs a BigSpark job that will create an Iceberg table using the BigLake Metastore

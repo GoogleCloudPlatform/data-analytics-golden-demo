@@ -1683,7 +1683,13 @@ resource "google_bigquery_routine" "sproc_sp_demo_script" {
     bigquery_rideshare_lakehouse_enriched_dataset = var.bigquery_rideshare_lakehouse_enriched_dataset
     gcs_rideshare_lakehouse_enriched_bucket = var.gcs_rideshare_lakehouse_enriched_bucket
     bigquery_rideshare_lakehouse_curated_dataset = var.bigquery_rideshare_lakehouse_curated_dataset
-    gcs_rideshare_lakehouse_curated_bucket = var.gcs_rideshare_lakehouse_curated_bucket   
+    gcs_rideshare_lakehouse_curated_bucket = var.gcs_rideshare_lakehouse_curated_bucket
+    # AWS OMNI
+    shared_demo_project_id          = var.shared_demo_project_id
+    aws_omni_biglake_dataset_region = var.aws_omni_biglake_dataset_region
+    aws_omni_biglake_dataset_name   = var.aws_omni_biglake_dataset_name
+    aws_omni_biglake_connection     = var.aws_omni_biglake_connection
+    aws_omni_biglake_s3_bucket      = var.aws_omni_biglake_s3_bucket
   })
 }
 

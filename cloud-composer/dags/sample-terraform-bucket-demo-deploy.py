@@ -15,7 +15,7 @@
 ####################################################################################
 
 # Author:  Adam Paternostro
-# Summary: Install Terraform and executes the Terrform script
+# Summary: Install Terraform and executes the Terraform script
 #          This DAG will perform the Deploy and the Destroy
 #          Terraform will deploy this file twice (once named xxx-deploy and xxx-destroy)
 #          The destroy will run every 15 minutes and based upon the auto_delete_hours the assets will be deleted
@@ -170,7 +170,7 @@ with airflow.DAG(dag_display_name,
                  # Either run manually or every 15 minutes (for auto delete)
                  schedule_interval=schedule_interval) as dag:
 
-    # NOTE: The Composer Service Account will Impersonate the Terrform service account
+    # NOTE: The Composer Service Account will Impersonate the Terraform service account
 
     # This will deploy the Terraform code if this DAG ends with "-deploy"
     execute_terraform_deploy = bash_operator.BashOperator(

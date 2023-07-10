@@ -1,3 +1,5 @@
+CREATE OR REPLACE PROCEDURE `${project_id}.${bigquery_taxi_dataset}.sp_demo_pricing`()
+BEGIN
 /*##################################################################################
 # Copyright 2022 Google LLC
 #
@@ -16,61 +18,87 @@
 
 
 /*
-IMPORTANT: If you create Capacity, you MUST DROP it or else you will get BILLED.  See the end of the script!
+IMPORTANT: If you create a reservation, you MUST DROP it or else you will get BILLED.  See the end of the script!
 
+YouTube:
+    - https://youtu.be/PPF8wBjJOxU
+    
 Use Cases:
     - Pricing for companies that want a warehouse do not want a commit can use ad-hoc pricing
     - Pricing for companies that want a fixed cost model can use reservations pricing model
+      - Autoscaling can introduce flexible costs even when using reservations.
+      - You can set your baseline and max slots to the same number to prevent autoscaling.
 
 Description: 
-    - Discuss ad-hoc vs slot base billing
-    - Show the ad-hoc pricing query
-    - Show the steps to create a resevation and assign it
-    - Discuss how un-used slots are used accross the entire organization.  Other warehouses are constrained to sharing
-      capacity within a cluster.  BigQuery has no such contraint and un-used slots are shared for your entire company.  If
-      a query is submitted and fails under a reservation in which another job is utilizing the idle resources BigQuery scales
-      back the running query to begin execution of the new query. 
+    - 
+    
     - Discuss slots can be purchased in 100 level increments.  Others warehouse double your pricing when scaling and incremental
       growth is not possible leading to high costs.
 
 Reference:
     - https://cloud.google.com/bigquery/docs/information-schema-jobs
     - To set quotas: https://console.cloud.google.com/apis/api/bigquery.googleapis.com/quotas
-    - Buy Flex Slots: https://cloud.google.com/bigquery/docs/reservations-get-started
+    - Editions Features: https://cloud.google.com/bigquery/docs/editions-intro
+    - Autoscaling: https://cloud.google.com/blog/products/data-analytics/introducing-new-bigquery-pricing-editions
+    - Reservations: https://cloud.google.com/bigquery/docs/reservations-intro
+    - Storage Pricing: https://cloud.google.com/bigquery/pricing#storage
     - To setup quotas for user/project: 
       https://cloud.google.com/bigquery/docs/custom-quotas#example
       https://cloud.google.com/bigquery/docs/custom-quotas#how_to_set_or_modify_custom_quotas
+    - https://cloud.google.com/blog/topics/developers-practitioners/monitoring-bigquery-reservations-and-slot-utilization-information_schema
+    - https://cloud.google.com/bigquery/docs/information-schema-jobs      
 
 Clean up / Reset script:
-    DROP ASSIGNMENT  `${project_id}.region-${bigquery_region}.demo-reservation-flex-100.demo-assignment-flex-100`;
-    DROP RESERVATION `${project_id}.region-${bigquery_region}.demo-reservation-flex-100`;
-    DROP CAPACITY    `${project_id}.region-${bigquery_region}.demo-commitment-flex-100`;
-*/
+    DROP ASSIGNMENT  `${project_id}.region-${bigquery_region}.pricing-reservation-autoscale-100.pricing-assignment-autoscale-100`;
+    DROP RESERVATION `${project_id}.region-${bigquery_region}.pricing-reservation-autoscale-100`;
 
--- Query 1: Compute the price for the past 5 days per user using retail costs $5 per TB scanned
+*/
+  
+
+-- TURN OFF CACHED RESULTS
+-- Go to More | Query Settings | Cache preference | Use cached results
+
+-- Run a query that scans a decent amount of data
+WITH TaxiDataRanking AS
+(
+SELECT CAST(Pickup_DateTime AS DATE) AS Pickup_Date,
+       taxi_trips.Payment_Type_Id,
+       taxi_trips.Passenger_Count,
+       taxi_trips.Total_Amount,
+       RANK() OVER (PARTITION BY CAST(Pickup_DateTime AS DATE),
+                                 taxi_trips.Payment_Type_Id
+                        ORDER BY taxi_trips.Passenger_Count DESC, 
+                                 taxi_trips.Total_Amount DESC) AS Ranking
+  FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips` AS taxi_trips
+)
+SELECT Pickup_Date,
+       Payment_Type_Description,
+       Passenger_Count,
+       Total_Amount
+  FROM TaxiDataRanking
+       INNER JOIN `${project_id}.${bigquery_taxi_dataset}.payment_type` AS payment_type
+               ON TaxiDataRanking.Payment_Type_Id = payment_type.Payment_Type_Id
+WHERE Ranking = 1
+ORDER BY Pickup_Date, Payment_Type_Description;
+
+
+-- Compute the price for above query
 -- The reservation_id will be NULL since you do not have any reservations
 -- See the physical SQL statement that was run 
-
--- References:
--- https://cloud.google.com/blog/topics/developers-practitioners/monitoring-bigquery-reservations-and-slot-utilization-information_schema
--- https://cloud.google.com/bigquery/docs/information-schema-jobs
-
--- Compute the cost per Job, Average slots per Job and Max slots per Job (at the job stage level)
--- This will show you the cost for the Query and the Maximum number of slots used and if any additional slots where requested (to help gauge for reservations)
 SELECT project_id,
        job_id,
        reservation_id,
-       EXTRACT(DATE FROM creation_time) AS creation_date,
+       creation_time,
        TIMESTAMP_DIFF(end_time, creation_time, SECOND) AS job_duration_seconds,
        job_type,
        user_email,
        total_bytes_billed,
 
-       -- 5 / 1,099,511,627,776 = 0.00000000000454747350886464 ($5 per TB so cost per byte is 0.00000000000454747350886464)
+       -- 6.25 / 1,099,511,627,776 = 0.00000000000568434188608080 ($6.25 per TB so cost per byte is 0.00000000000568434188608080)
        CASE WHEN job.reservation_id IS NULL
-            THEN CAST(total_bytes_billed AS BIGDECIMAL) * CAST(0.00000000000454747350886464 AS BIGDECIMAL)
-            ELSE 0
-        END AS est_on_demand_cost,
+           THEN CAST(total_bytes_billed AS BIGDECIMAL) * CAST(0.00000000000568434188608080 AS BIGDECIMAL)
+           ELSE 0
+       END AS est_on_demand_cost,
 
        -- Average slot utilization per job is calculated by dividing
        -- total_slot_ms by the millisecond duration of the job
@@ -89,106 +117,109 @@ FROM `region-${bigquery_region}`.INFORMATION_SCHEMA.JOBS AS job
       CROSS JOIN UNNEST(job_stages) as unnest_job_stages
       CROSS JOIN UNNEST(timeline) AS unnest_timeline
 WHERE project_id = '${project_id}'
-  AND DATE(creation_time) BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY) AND CURRENT_DATE() 
+  AND creation_time BETWEEN TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 15 MINUTE) AND CURRENT_TIMESTAMP() 
+  AND query LIKE '%WITH TaxiDataRanking AS%'
 GROUP BY 1,2,3,4,5,6,7,8,9,10,11
-ORDER BY job_id ;
+ORDER BY creation_time DESC
+LIMIT 10;
 
 
+-- See slot estimator (how many slots do I need)
+-- https://console.cloud.google.com/bigquery/admin/reservations;region=${bigquery_region}/slot-estimator?project=${project_id}&region=${bigquery_region}
 
--- Query 2: Allocate Capacity which will later be assigned
+
+-- Create an Autoscaling Resevation
 -- NOTE: After you run this query you will start getting BILLED!  
--- You must DROP this to avoid getting charged for the slots! ($2,920 for a month)
--- 100 slots for 1 hour is $4.00/hour.  This is fine for a demo.  You will only use for 5 minutes so not a large expense.
+-- You must DROP this to avoid getting charged for the baseline slots (which is zero)
 -- You must wait 60 seconds in order to DROP this capacity
-CREATE CAPACITY `${project_id}.region-${bigquery_region}.demo-commitment-flex-100`
-    AS JSON """{
-        "slot_count": 100,
-        "plan": "FLEX"
-        }""" ;
+CREATE RESERVATION `${project_id}.region-${bigquery_region}.pricing-reservation-autoscale-100`
+OPTIONS (
+  edition = "enterprise",
+  slot_capacity = 0, -- change to 100 for a baseline of 100 (faster query start time)
+  autoscale_max_slots = 200);
+  
+-- Open Capacity management to see the reservation
+-- https://console.cloud.google.com/bigquery/admin/reservations?project=${project_id}
+  
 
--- Query 3: Create a Reservervation from the overall Capacity.  You can have many reservations for your capacity.
-CREATE RESERVATION `${project_id}.region-${bigquery_region}.demo-reservation-flex-100`
-    AS JSON """{
-        "slot_capacity": 100
-        }""";
-
-
--- Query 4: Assign the reservation to a project
+-- Assign the reservation to a project
 -- Assignments can be done at the project, folder or organization level.  This lets you create
 -- workload managements assigments for various divsions or workloads in your company 
-CREATE ASSIGNMENT `${project_id}.region-${bigquery_region}.demo-reservation-flex-100.demo-assignment-flex-100`
-    AS JSON """{
-        "assignee": "projects/${project_id}",
-        "job_type": "QUERY"
-        }""";
+CREATE ASSIGNMENT `${project_id}.region-${bigquery_region}.pricing-reservation-autoscale-100.pricing-assignment-autoscale-100`
+OPTIONS(
+   assignee = "projects/${project_id}",
+   job_type = "QUERY"
+);
+
+-- Open Capacity management to see the reservation assignment
+-- https://console.cloud.google.com/bigquery/admin/reservations?project=${project_id}
+-- Expand the arrow on the left to see the assignment
 
 
--- Query 5: View the data.  You need to WAIT for this to show, it can take several minutes..
+-- View the assigment.  You will want to wait for this query to return results.
 -- When you create a reservation assignment, wait at least several minutes before running a query. 
--- Both queries must return results in order to continue
-SELECT *
-  FROM `region-${bigquery_region}.INFORMATION_SCHEMA.CAPACITY_COMMITMENTS_BY_PROJECT`
- WHERE project_id = '${project_id}';
-
 SELECT *
   FROM `region-${bigquery_region}.INFORMATION_SCHEMA.ASSIGNMENTS_BY_PROJECT`
- WHERE project_id = '${project_id}';
+  WHERE project_id = '${project_id}';
+
+-- Review the UI for creating reservations while the assignment takes effect
+-- https://console.cloud.google.com/bigquery/admin/reservations;region=${bigquery_region}/create?project=${project_id}&region=${bigquery_region}
+-- Show: Edition, 
+--       Max reservation size
+--       Baseline slots
+--       Ignore idle slots
+
+-- Show creating a commitment
+-- https://console.cloud.google.com/bigquery/admin/reservations;region=${bigquery_region}/capacity-commitments/create;noExistingSlots=false?project=${project_id}&region=${bigquery_region}
 
 
--- Query 6: Run any query just so we can then check the billing tables
-SELECT taxi_trips.TaxiCompany,
-       vendor.Vendor_Description, 
-       CAST(taxi_trips.Pickup_DateTime AS DATE)   AS Pickup_Date,
-        SUM(taxi_trips.Total_Amount)               AS Total_Total_Amount 
+/* If you have commitments you would like to see, you can run this
+SELECT *
+  FROM `region-${bigquery_region}.INFORMATION_SCHEMA.CAPACITY_COMMITMENTS_BY_PROJECT`
+  WHERE project_id = '${project_id}';
+*/
+
+
+-- Re-run the first query (cached results need to be off)
+WITH TaxiDataRanking AS
+(
+SELECT CAST(Pickup_DateTime AS DATE) AS Pickup_Date,
+       taxi_trips.Payment_Type_Id,
+       taxi_trips.Passenger_Count,
+       taxi_trips.Total_Amount,
+       RANK() OVER (PARTITION BY CAST(Pickup_DateTime AS DATE),
+                                 taxi_trips.Payment_Type_Id
+                        ORDER BY taxi_trips.Passenger_Count DESC, 
+                                 taxi_trips.Total_Amount DESC) AS Ranking
   FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips` AS taxi_trips
-       INNER JOIN `${project_id}.${bigquery_taxi_dataset}.vendor` AS vendor
-               ON taxi_trips.Vendor_Id = vendor.Vendor_Id
-              AND CAST(taxi_trips.Pickup_DateTime AS DATE) BETWEEN '2019-05-01' AND '2020-06-20'
- GROUP BY taxi_trips.TaxiCompany, vendor.Vendor_Description, CAST(taxi_trips.Pickup_DateTime AS DATE);
+)
+SELECT Pickup_Date,
+       Payment_Type_Description,
+       Passenger_Count,
+       Total_Amount
+  FROM TaxiDataRanking
+       INNER JOIN `${project_id}.${bigquery_taxi_dataset}.payment_type` AS payment_type
+               ON TaxiDataRanking.Payment_Type_Id = payment_type.Payment_Type_Id
+WHERE Ranking = 1
+ORDER BY Pickup_Date, Payment_Type_Description;
 
 
--- Query 7: Same as Query 1.  The reservation_id should now be populated with the flex slot we just created.
-SELECT project_id,
-       user_email,
-       job_type,
-       reservation_id,
-       EXTRACT(DATE FROM  creation_time) AS execution_date, 
-       SUM(total_slot_ms) / (1000*60*60*24*7) AS avg_slots,
-       SUM(total_bytes_billed) AS total_bytes_billed,
-       
-       -- 5 / 1,099,511,627,776 = 0.00000000000454747350886464 ($5 per TB so cost per byte is 0.00000000000454747350886464)
-       CASE WHEN reservation_id IS NULL
-            THEN CAST(SUM(total_bytes_billed) AS BIGDECIMAL) * CAST(0.00000000000454747350886464 AS BIGDECIMAL)
-            ELSE 0
-        END AS est_on_deman_cost       
-  FROM `region-${bigquery_region}`.INFORMATION_SCHEMA.JOBS_BY_PROJECT
- WHERE creation_time BETWEEN TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 5 DAY) AND CURRENT_TIMESTAMP()
-   AND end_time      BETWEEN TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 1 DAY) AND CURRENT_TIMESTAMP()
- GROUP BY project_id, user_email, job_type, reservation_id, EXTRACT(DATE FROM  creation_time);
-
-
--- See the physical SQL statement that was run 
-
--- References:
--- https://cloud.google.com/blog/topics/developers-practitioners/monitoring-bigquery-reservations-and-slot-utilization-information_schema
--- https://cloud.google.com/bigquery/docs/information-schema-jobs
-
--- Compute the cost per Job, Average slots per Job and Max slots per Job (at the job stage level)
--- This will show you the cost for the Query and the Maximum number of slots used and if any additional slots where requested (to help gauge for reservations)
+-- We should now see the reservation id populated since we used our reservation
+-- est_on_demand_cost should be Zero
 SELECT project_id,
        job_id,
        reservation_id,
-       EXTRACT(DATE FROM creation_time) AS creation_date,
+       creation_time,
        TIMESTAMP_DIFF(end_time, creation_time, SECOND) AS job_duration_seconds,
        job_type,
        user_email,
        total_bytes_billed,
 
-       -- 5 / 1,099,511,627,776 = 0.00000000000454747350886464 ($5 per TB so cost per byte is 0.00000000000454747350886464)
+       -- 6.25 / 1,099,511,627,776 = 0.00000000000568434188608080 ($6.25 per TB so cost per byte is 0.00000000000568434188608080)
        CASE WHEN job.reservation_id IS NULL
-            THEN CAST(total_bytes_billed AS BIGDECIMAL) * CAST(0.00000000000454747350886464 AS BIGDECIMAL)
-            ELSE 0
-        END AS est_on_demand_cost,
+           THEN CAST(total_bytes_billed AS BIGDECIMAL) * CAST(0.00000000000568434188608080 AS BIGDECIMAL)
+           ELSE 0
+       END AS est_on_demand_cost,
 
        -- Average slot utilization per job is calculated by dividing
        -- total_slot_ms by the millisecond duration of the job
@@ -207,19 +238,29 @@ FROM `region-${bigquery_region}`.INFORMATION_SCHEMA.JOBS AS job
       CROSS JOIN UNNEST(job_stages) as unnest_job_stages
       CROSS JOIN UNNEST(timeline) AS unnest_timeline
 WHERE project_id = '${project_id}'
-  AND DATE(creation_time) BETWEEN DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY) AND CURRENT_DATE() 
+  AND creation_time BETWEEN TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 15 MINUTE) AND CURRENT_TIMESTAMP() 
+  AND query LIKE '%WITH TaxiDataRanking AS%'
 GROUP BY 1,2,3,4,5,6,7,8,9,10,11
-ORDER BY job_id ;
+ORDER BY creation_time DESC
+LIMIT 10;
 
+
+-- See slot estimator (we have a reservation)
+-- https://console.cloud.google.com/bigquery/admin/reservations;region=${bigquery_region}/slot-estimator?project=${project_id}&region=${bigquery_region}
+  
 
 -- ******************************************************************************************
 -- IMPORTANT!  IMPORTANT!  IMPORTANT!  IMPORTANT!  IMPORTANT!  IMPORTANT!  IMPORTANT!  
 -- ******************************************************************************************
--- Query 8: Drop the flex slots (clean up or you WILL GET BILLED!)
+-- !!!!!!!!!!! DROP YOUR RESERVATION !!!!!!!!!!! (clean up or you WILL GET BILLED!)
 -- ******************************************************************************************
 -- IMPORTANT!  IMPORTANT!  IMPORTANT!  IMPORTANT!  IMPORTANT!  IMPORTANT!  IMPORTANT!  
 -- ******************************************************************************************
-DROP ASSIGNMENT  `${project_id}.region-${bigquery_region}.demo-reservation-flex-100.demo-assignment-flex-100`;
-DROP RESERVATION `${project_id}.region-${bigquery_region}.demo-reservation-flex-100`;
-DROP CAPACITY    `${project_id}.region-${bigquery_region}.demo-commitment-flex-100`;
+DROP ASSIGNMENT  `${project_id}.region-${bigquery_region}.pricing-reservation-autoscale-100.pricing-assignment-autoscale-100`;
+DROP RESERVATION `${project_id}.region-${bigquery_region}.pricing-reservation-autoscale-100`;
 
+-- Open Capacity management to see the reservation has been removed
+-- https://console.cloud.google.com/bigquery/admin/reservations?project=${project_id}
+  
+  
+END;

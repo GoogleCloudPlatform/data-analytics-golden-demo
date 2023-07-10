@@ -179,25 +179,25 @@ then
   terraform output -json > tf-output.json
 
   # Get the name of the bucket the user specified to upload the output file
-  terrform_output_bucket=$(terraform output -raw terraform-output-bucket)
-  echo "terrform_output_bucket: ${terrform_output_bucket}"
+  terraform_output_bucket=$(terraform output -raw terraform-output-bucket)
+  echo "terraform_output_bucket: ${terraform_output_bucket}"
 
   # Copy TF Output - Check to see if the user did not specify an output bucket
-  if [[ $terrform_output_bucket == *"Error"* ]]; 
+  if [[ $terraform_output_bucket == *"Error"* ]]; 
   then
-    echo "No terrform_output_bucket specified.  Not copying tf-output.json"
+    echo "No terraform_output_bucket specified.  Not copying tf-output.json"
   else
-    echo "Copying tf-output.json: gsutil cp tf-output.json gs://${terrform_output_bucket}/terraform/output/"
-    gsutil cp tf-output.json "gs://${terrform_output_bucket}/terraform/output/"
+    echo "Copying tf-output.json: gsutil cp tf-output.json gs://${terraform_output_bucket}/terraform/output/"
+    gsutil cp tf-output.json "gs://${terraform_output_bucket}/terraform/output/"
   fi
 
   # Copy TF State file - Check to see if the user did not specify an output bucket
-  if [[ $terrform_output_bucket == *"Error"* ]]; 
+  if [[ $terraform_output_bucket == *"Error"* ]]; 
   then
-    echo "No terrform_output_bucket specified.  Not copying Terraform State file"
+    echo "No terraform_output_bucket specified.  Not copying Terraform State file"
   else
-    echo "Copying terraform.tfstate: gsutil cp terraform.tfstate gs://${terrform_output_bucket}/terraform/state/"
-    gsutil cp terraform.tfstate "gs://${terrform_output_bucket}/terraform/state/"
+    echo "Copying terraform.tfstate: gsutil cp terraform.tfstate gs://${terraform_output_bucket}/terraform/state/"
+    gsutil cp terraform.tfstate "gs://${terraform_output_bucket}/terraform/state/"
   fi
 
   # Copy the EMPTY org policies over the existing one

@@ -138,7 +138,7 @@ SHOW TABLES;
 -- Show in UI in the "default" folder
 -- You can see that PATH too to the files: 
 -- Show Hive tables in Data Catalog
--- https://console.cloud.google.com/dataplex/search?project=data-analytics-demo-${random_extension}&supportedpurview=project&q=taxi_*
+-- https://console.cloud.google.com/dataplex/search?project=data-analytics-demo-${random_extension}&supportedpurview=project&q=taxi_review
 
 
 
@@ -155,7 +155,7 @@ SELECT taxi_driver.driver_name                     AS driver,
        trips.Pickup_DateTime                       AS pickup_date
   FROM -- BigQuery Table
        taxi_curated_zone_${random_extension}.taxi_trips AS trips
-       INNER JOIN taxi_review3 AS taxi_review      
+       INNER JOIN taxi_review AS taxi_review      
                ON CAST(taxi_review.ride_date AS DATE)      = CAST(trips.Pickup_DateTime AS DATE)
               AND taxi_review.pickup_location_id           = trips.PULocationID
               AND taxi_review.dropoff_location_id          = trips.DOLocationID

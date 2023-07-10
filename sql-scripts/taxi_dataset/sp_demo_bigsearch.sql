@@ -19,7 +19,7 @@
 Use Cases:
     - Show BigSearch on 5.83 TB table with 5.2 billion rows
     - Show the table with and without a BigSearch index
-    - NOTE: You will be consuming at lot of bytes scanned during this demo ($5 per 1 TB scanned)
+    - NOTE: You will be consuming at lot of bytes scanned during this demo ($6.25 per 1 TB scanned)
     - NOTE: Drop the Large tables to save on Costs! (at end of script)
 
 Description: 
