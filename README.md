@@ -1,8 +1,11 @@
 # Data-Analytics-Golden-Demo
 Deploys an end-to-end Data Analytics technical walkthrough on Google Cloud.  All the services are connected, configured and ready to run.  The deployed artifacts can be run in any order letting you set your own path through the system.  The system has 70 to 700+ million rows of data so that you can show "true life" performance, scale and integration of various services.  The system orchestates itself using Airflow, communicates over private IP addresses and has working code to demonstrate how to build an end to end system.
 
-## Monthly Video Update (May 2023)
-[![Monthly Update](./images/MonthlyUpdate.png)](https://youtu.be/VAIBgDPC-w8)
+## Monthly Video Update (June 2023)
+[![Monthly Update](./images/MonthlyUpdate.png)](https://youtu.be/nTJAxm8oiF4)
+
+Prior Months
+- [May 2023](https://youtu.be/VAIBgDPC-w8)
 
 
 ## Demo Artifacts
@@ -12,7 +15,7 @@ Deploys an end-to-end Data Analytics technical walkthrough on Google Cloud.  All
 ## Table of Contents (All Links and Videos are coming soon)
 |Category|Title|Description|Link|Video||
 |---|---|---|---|---|---|
-| Ready-To-Go Demos | Rideshare Plus (Analytics Lakehouse)|This is an end to end demo of an Analytics Lakehouse.  The demo goes through the creation of a fictitious company that wants to predict high value rides for rideshare drivers.  The demo takes you through the process from the raw zone to the curated zone and highlights our analytics stack.| Link | Video |
+| Ready-To-Go Demos | Rideshare Plus (Analytics Lakehouse)|This is an end to end demo of an Analytics Lakehouse.  The demo goes through the creation of a fictitious company that wants to predict high value rides for rideshare drivers.  The demo takes you through the process from the raw zone to the curated zone and highlights our analytics stack.| [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/sql-scripts/rideshare_lakehouse_curated/sp_demo_script.sql) | [Video](https://youtu.be/Yru78Pk1jMM) |
 | | BigQuery Technical Overview | See some top features in BigQuery.  We will explore loading data into BigQuery, streaming data directly into BigQuery, using change data capture with BigQuery and even federated queries with Spanner.  We will then explore data governance, data quality, security and data lineage.  After we have clean and secure data we will build some machine learning models, search billions of rows and explore unstructured data analytics.  Finally, we will explore BigQuery’s serverless infrastructure which includes autoscaling along with various monitoring tools.  | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/sql-scripts/taxi_dataset/sp_demo_technical_overview.sql) | [Video](https://youtu.be/bMS4p2XHMpE) |
 | | High Level Overview Demo | The high level overview highlights some key features: Looker, BigQuery, Analytics Hub, OMNI, BQML. | Link | Video |
 | | Technical Demo 1 | This shows: Data Lake, Dataplex, Data Catalog, BigQuery, BQML, BigQuery security and Jupyter notebooks. | Link | Video |
@@ -41,7 +44,8 @@ Deploys an end-to-end Data Analytics technical walkthrough on Google Cloud.  All
 | BigLake | BigLake tables with Security | See how to create a BigLake table and secure it with row and column level access. | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/sql-scripts/taxi_dataset/sp_demo_biglake.sql) | Video |
 | | Unstructured data analytics using Object tables | DESC | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/sql-scripts/taxi_dataset/sp_demo_biglake_unstructured_data.sql) | Video |
 | | Query Acceleration | Accelerate your data lake queries by caching your file metadata in BigQuery. | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/sql-scripts/taxi_dataset/sp_demo_biglake_query_acceleration.sql) | Video |
-| | Iceberg format | See how to read Iceberg files in BigQuery | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/sql-scripts/taxi_dataset/sp_demo_biglake_iceberg.sql) | Video |
+| | Iceberg format | See how to read Iceberg files in BigQuery | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/sql-scripts/taxi_dataset/sp_demo_biglake_metastore_security.sql) |[Video](https://youtu.be/IQR9gJuLXbQ) |
+| | BigLake Metastore (security) | End to end demo of setting up BigLake Metastore show each and every security detail. | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/sql-scripts/taxi_dataset/sp_demo_biglake_iceberg.sql) | Video |
 | OMNI (AWS) w/BigLake | Create tables in AWS | See how to create BigLake tables on hive based directory structure on csv, json and parquet. | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/sql-scripts/aws_omni_biglake/sp_demo_aws_omni_create_tables.sql) | Video |
 | | Read Delta Lake | See how to use the delta.io manifest files to read delta format on AWS. | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/sql-scripts/aws_omni_biglake/sp_demo_aws_omni_delta_lake.sql) | Video |
 | | Query / Export / Load | See how to write queries on the AWS data, export results to S3 and transfer results back to the Google Cloud. | [Link]() | Video |
@@ -54,6 +58,7 @@ Deploys an end-to-end Data Analytics technical walkthrough on Google Cloud.  All
 | | Column Level Security | Create column level security on Azure tables | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/sql-scripts/azure_omni_biglake/sp_demo_azure_omni_security_cls.sql) | Video |
 | | Row Level Security | Create row level security on Azure Tables | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/sql-scripts/azure_omni_biglake/sp_demo_azure_omni_security_rls.sql) | Video |
 | Dataplex | Dataplex | Deploy Dataplex and have your data lakes setup and configured so you can demo Dataplex. | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/cloud-composer/dags/sample-dataplex-deploy.py) | Video |
+| | Dataplex Explore with Metastore (HMS) | Deploy Dataplex with a Dataproc Metastore so you can demo the Explore feature of Dataplex.  This includes a Spark SQL script and a notebook. | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/dataplex/data-explore/dataplex-explore-script.sql) | [Video](https://youtu.be/l_UKjNIR_eg) |
 | | Data Quality | Run a data quality check on your data to ensure data integrity and verify various conditions are meet.  The results are then published to data catalog. | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/cloud-composer/dags/sample-dataplex-run-data-quality.py) | Video |
 | BigQuery Features | External Functions | Call an External Cloud Function that scores data using our Vision API. | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/sql-scripts/taxi_dataset/sp_demo_external_function.sql) | Video |
 | | Federated Query | Show how you can query Spanner directly from BigQuery and join the data across systems. | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/sql-scripts/taxi_dataset/sp_demo_federated_query.sql) | Video |
@@ -66,7 +71,10 @@ Deploys an end-to-end Data Analytics technical walkthrough on Google Cloud.  All
 | Dataform | Dataform Demo | Perform an ETL with Dataform using data streamed into a table from Pub/Sub and join lookup data with a BigLake table.  Also, shows Git integration. | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/sql-scripts/taxi_dataset/sp_create_demo_dataform.sql) | Video |
 | Datastream | Private IP Demo | Show changed data capture (10 million rows) from a Cloud SQL (Postgres) database to BigQuery over Private Service Connectivity (no public IP addresses) | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/sql-scripts/taxi_dataset/sp_demo_datastream_private_ip.sql) | [Video](https://youtu.be/ow17MIXHOqw) |
 |  | Public IP Demo | Show changed data capture (10 million rows) from a Cloud SQL (Postgres) database to BigQuery over a Public IP address | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/sql-scripts/taxi_dataset/sp_demo_datastream_public_ip.sql) | [Video](https://youtu.be/ow17MIXHOqw) |
-
+| Customize |  | Add you own items to the demo using Terraform.  Follow the below pattern to add your own features to the demo without going through the work of provisioning an entire environment with lots of test data. |  | [Video](https://youtu.be/2Qu29_hR2Z0) |
+|  | DAG | The DAG sample-terraform-bucket-demo-deploy.py is a sample you can use as a template. The DAG does both the deploy and destroy.  By replacing the word deploy with destroy in the filename, the DAG will become a destroy DAG.  You simply need to upload the same file twice to Airflow, one with a deploy and one with a destroy filename. | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/cloud-composer/dags/sample-terraform-bucket-demo-deploy.py) | See above |
+|  | Terraform | This is sample Terraform you can copy.  You need to ensure you pass in the project_id and the impersonate_service_account in the variables file [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/tree/main/cloud-composer/data/terraform/bucket-demo) | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/tree/main/cloud-composer/data/terraform/bucket-demo) | See above |
+|  | Script | This is the bash script that is called by the DAG.  You will need to change these lines to pass in your Terraform custom parameters [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/cloud-composer/data/sample_terraform_bucket_demo.sh#L97-L102). | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/cloud-composer/data/sample_terraform_bucket_demo.sh) | See above |
 
 ## Deploy
 ### Demo Cost

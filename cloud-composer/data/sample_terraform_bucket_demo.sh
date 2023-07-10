@@ -22,6 +22,7 @@
 #          The parameters are piped in via Airflow.
 #          This script will also be used for destroying resources.
 #          To copy this, you just need to change the Terraform Apply code (and the echo)
+# YouTube: https://youtu.be/2Qu29_hR2Z0
 
 
 ####################################################################################

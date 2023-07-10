@@ -19,7 +19,7 @@
 #          This DAG will perform the Deploy and the Destroy
 #          Terraform will deploy this file twice (once named xxx-deploy and xxx-destroy)
 #          The destroy will run every 15 minutes and based upon the auto_delete_hours the assets will be deleted
-       
+# YouTube: https://youtu.be/2Qu29_hR2Z0
 
 # [START dag]
 from datetime import datetime, timedelta
