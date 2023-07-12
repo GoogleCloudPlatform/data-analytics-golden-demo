@@ -79,6 +79,14 @@ resource "google_storage_bucket_object" "deploy_airflow_dag_step-01-taxi-data-do
   depends_on = [ 
     ]  
 }
+resource "google_storage_bucket_object" "deploy_airflow_dag_step-01-taxi-data-download-quick-copy" {
+  name   = "${local.local_composer_dag_path}/step-01-taxi-data-download-quick-copy.py"
+  bucket = local.local_composer_bucket_name
+  source = "../cloud-composer/dags/step-01-taxi-data-download-quick-copy.py"
+
+  depends_on = [ 
+    ]  
+}
 
 
 # Upload DAG
@@ -90,6 +98,15 @@ resource "google_storage_bucket_object" "deploy_airflow_dag_step-02-taxi-data-pr
   depends_on = [ 
     ]  
 }
+resource "google_storage_bucket_object" "deploy_airflow_dag_step-02-taxi-data-processing-quick-copy" {
+  name   = "${local.local_composer_dag_path}/step-02-taxi-data-processing-quick-copy.py"
+  bucket = local.local_composer_bucket_name
+  source = "../cloud-composer/dags/step-02-taxi-data-processing-quick-copy.py"
+
+  depends_on = [ 
+    ]  
+}
+
 
 # Upload DAG
 resource "google_storage_bucket_object" "deploy_airflow_dag_step-03-hydrate-tables" {
@@ -1132,6 +1149,8 @@ resource "google_storage_bucket_object" "deploy_sample_data_delta_io_manifest_Ri
 # Only a few DAGs are uploaded so that we can sync quicker
 resource "time_sleep" "wait_for_airflow_dag_sync" {
   depends_on = [
+    google_storage_bucket_object.deploy_airflow_dag_step-01-taxi-data-download-quick-copy,
+    google_storage_bucket_object.deploy_airflow_dag_step-02-taxi-data-processing-quick-copy,
     google_storage_bucket_object.deploy_airflow_dag_step-01-taxi-data-download,
     google_storage_bucket_object.deploy_airflow_dag_step-02-taxi-data-processing,
     google_storage_bucket_object.deploy_airflow_dag_step-03-hydrate-tables,

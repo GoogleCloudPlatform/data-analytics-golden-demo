@@ -46,6 +46,13 @@ default_args = {
 
 sp_datastream_cdc_data="CALL `{}.taxi_dataset.sp_create_datastream_cdc_data`();".format(project_id)
 
+step_01_trigger_dag_id = "step-01-taxi-data-download"
+step_02_trigger_dag_id = "step-02-taxi-data-processing"
+
+# Quick copy (comment this out to actually process the data from source)
+step_01_trigger_dag_id = "step-01-taxi-data-download-quick-copy"
+step_02_trigger_dag_id = "step-02-taxi-data-processing-quick-copy"
+
 
 with airflow.DAG('run-all-dags',
                  default_args=default_args,

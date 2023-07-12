@@ -135,7 +135,8 @@ resource "google_bigquery_routine" "sproc_sp_create_taxi_biglake_tables" {
     
     bigquery_taxi_dataset = var.bigquery_taxi_dataset
     bigquery_thelook_ecommerce_dataset = var.bigquery_thelook_ecommerce_dataset
-    bucket_name = "processed-${var.storage_bucket}"
+    raw_bucket_name = "raw-${var.storage_bucket}"
+    processed_bucket_name = "processed-${var.storage_bucket}"
     bigquery_region = var.bigquery_region
     gcp_account_name = var.gcp_account_name
   })
@@ -883,6 +884,24 @@ resource "google_bigquery_routine" "sproc_sp_demo_transactions" {
     bigquery_taxi_dataset = var.bigquery_taxi_dataset
     bigquery_thelook_ecommerce_dataset = var.bigquery_thelook_ecommerce_dataset
     bucket_name = "processed-${var.storage_bucket}"
+    bigquery_region = var.bigquery_region
+    gcp_account_name = var.gcp_account_name
+  })
+}
+
+
+####################################################################################
+# sp_demo_vertex_ai_generate_text
+####################################################################################
+resource "google_bigquery_routine" "sproc_sp_demo_vertex_ai_generate_text" {
+  dataset_id      = var.bigquery_taxi_dataset
+  routine_id      = "sp_demo_vertex_ai_generate_text"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = templatefile("../sql-scripts/taxi_dataset/sp_demo_vertex_ai_generate_text.sql", 
+  { 
+    project_id = var.project_id   
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
     bigquery_region = var.bigquery_region
     gcp_account_name = var.gcp_account_name
   })

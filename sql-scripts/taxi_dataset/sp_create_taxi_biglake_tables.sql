@@ -33,6 +33,7 @@ References:
     - https://cloud.google.com/bigquery/docs/hive-partitioned-queries-gcs
 
 Clean up / Reset script:
+    DROP EXTERNAL TABLE IF EXISTS `${project_id}.${bigquery_taxi_dataset}.biglake_random_name`;
     DROP EXTERNAL TABLE IF EXISTS `${project_id}.${bigquery_taxi_dataset}.biglake_green_trips_parquet`;
     DROP EXTERNAL TABLE IF EXISTS `${project_id}.${bigquery_taxi_dataset}.biglake_yellow_trips_csv`;
     DROP EXTERNAL TABLE IF EXISTS `${project_id}.${bigquery_taxi_dataset}.biglake_yellow_trips_json`;
@@ -43,6 +44,20 @@ Clean up / Reset script:
     DROP EXTERNAL TABLE IF EXISTS `${project_id}.${bigquery_taxi_dataset}.biglake_trip_type`;
 */
 
+-- Create random name table for taxi driver's name and reviewer name
+CREATE OR REPLACE EXTERNAL TABLE `${project_id}.${bigquery_taxi_dataset}.biglake_random_name`
+(
+    name STRING
+)
+WITH CONNECTION `${project_id}.${bigquery_region}.biglake-connection`
+OPTIONS (
+    format = "CSV",
+    field_delimiter = ',',
+    skip_leading_rows = 0,
+    uris = ['gs://${raw_bucket_name}/random_names/*.csv']
+);
+
+
 CREATE OR REPLACE EXTERNAL TABLE `${project_id}.${bigquery_taxi_dataset}.biglake_green_trips_parquet`
 WITH PARTITION COLUMNS (
     year  INTEGER, -- column order must match the external path
@@ -51,8 +66,8 @@ WITH PARTITION COLUMNS (
 WITH CONNECTION `${project_id}.${bigquery_region}.biglake-connection`
 OPTIONS (
     format = "PARQUET",
-    hive_partition_uri_prefix = "gs://${bucket_name}/processed/taxi-data/green/trips_table/parquet/",
-    uris = ['gs://${bucket_name}/processed/taxi-data/green/trips_table/parquet/*.parquet']
+    hive_partition_uri_prefix = "gs://${processed_bucket_name}/processed/taxi-data/green/trips_table/parquet/",
+    uris = ['gs://${processed_bucket_name}/processed/taxi-data/green/trips_table/parquet/*.parquet']
 );
 
 
@@ -87,8 +102,8 @@ OPTIONS (
     format = "CSV",
     field_delimiter = ',',
     skip_leading_rows = 1,
-    hive_partition_uri_prefix = "gs://${bucket_name}/processed/taxi-data/yellow/trips_table/csv/",
-    uris = ['gs://${bucket_name}/processed/taxi-data/yellow/trips_table/csv/*.csv']
+    hive_partition_uri_prefix = "gs://${processed_bucket_name}/processed/taxi-data/yellow/trips_table/csv/",
+    uris = ['gs://${processed_bucket_name}/processed/taxi-data/yellow/trips_table/csv/*.csv']
 );
 
 
@@ -121,8 +136,8 @@ WITH PARTITION COLUMNS (
 WITH CONNECTION `${project_id}.${bigquery_region}.biglake-connection`
 OPTIONS (
     format = "JSON",
-    hive_partition_uri_prefix = "gs://${bucket_name}/processed/taxi-data/yellow/trips_table/json/",
-    uris = ['gs://${bucket_name}/processed/taxi-data/yellow/trips_table/json/*.json']
+    hive_partition_uri_prefix = "gs://${processed_bucket_name}/processed/taxi-data/yellow/trips_table/json/",
+    uris = ['gs://${processed_bucket_name}/processed/taxi-data/yellow/trips_table/json/*.json']
 );
 
 
@@ -135,8 +150,8 @@ WITH PARTITION COLUMNS (
 WITH CONNECTION `${project_id}.${bigquery_region}.biglake-connection`
 OPTIONS (
     format = "PARQUET",
-    hive_partition_uri_prefix = "gs://${bucket_name}/processed/taxi-data/yellow/trips_table/parquet/",
-    uris = ['gs://${bucket_name}/processed/taxi-data/yellow/trips_table/parquet/*.parquet']
+    hive_partition_uri_prefix = "gs://${processed_bucket_name}/processed/taxi-data/yellow/trips_table/parquet/",
+    uris = ['gs://${processed_bucket_name}/processed/taxi-data/yellow/trips_table/parquet/*.parquet']
 );
 
 
@@ -144,7 +159,7 @@ CREATE OR REPLACE EXTERNAL TABLE `${project_id}.${bigquery_taxi_dataset}.biglake
 WITH CONNECTION `${project_id}.${bigquery_region}.biglake-connection`
     OPTIONS (
     format = "PARQUET",
-    uris = ['gs://${bucket_name}/processed/taxi-data/vendor_table/*.parquet']
+    uris = ['gs://${processed_bucket_name}/processed/taxi-data/vendor_table/*.parquet']
 );
 
 
@@ -152,7 +167,7 @@ CREATE OR REPLACE EXTERNAL TABLE `${project_id}.${bigquery_taxi_dataset}.biglake
 WITH CONNECTION `${project_id}.${bigquery_region}.biglake-connection`
     OPTIONS (
     format = "PARQUET",
-    uris = ['gs://${bucket_name}/processed/taxi-data/rate_code_table/*.parquet']
+    uris = ['gs://${processed_bucket_name}/processed/taxi-data/rate_code_table/*.parquet']
 );
 
 
@@ -160,7 +175,7 @@ CREATE OR REPLACE EXTERNAL TABLE `${project_id}.${bigquery_taxi_dataset}.biglake
 WITH CONNECTION `${project_id}.${bigquery_region}.biglake-connection`
     OPTIONS (
     format = "PARQUET",
-    uris = ['gs://${bucket_name}/processed/taxi-data/payment_type_table/*.parquet']
+    uris = ['gs://${processed_bucket_name}/processed/taxi-data/payment_type_table/*.parquet']
 );
 
 
@@ -168,14 +183,14 @@ CREATE OR REPLACE EXTERNAL TABLE `${project_id}.${bigquery_taxi_dataset}.biglake
 WITH CONNECTION `${project_id}.${bigquery_region}.biglake-connection`
     OPTIONS (
     format = "PARQUET",
-    uris = ['gs://${bucket_name}/processed/taxi-data/trip_type_table/*.parquet']
+    uris = ['gs://${processed_bucket_name}/processed/taxi-data/trip_type_table/*.parquet']
 );
 
 CREATE OR REPLACE EXTERNAL TABLE `${project_id}.${bigquery_taxi_dataset}.biglake_location`
 WITH CONNECTION `${project_id}.${bigquery_region}.biglake-connection`
     OPTIONS (
     format = "PARQUET",
-    uris = ['gs://${bucket_name}/processed/taxi-data/location/*.parquet']
+    uris = ['gs://${processed_bucket_name}/processed/taxi-data/location/*.parquet']
 );
 
 
