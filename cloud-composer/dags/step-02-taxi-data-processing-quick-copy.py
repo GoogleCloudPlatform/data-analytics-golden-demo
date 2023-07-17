@@ -38,7 +38,7 @@ default_args = {
 
 
 processed_bucket_name = os.environ['ENV_PROCESSED_BUCKET'] 
-gsutil_copy_command   = "gsutil cp -r gs://data-analytics-demos/data-analytics-golden-demo/processed-bucket/taxi-data gs://{}/processed/taxi-data".format(processed_bucket_name)
+gsutil_copy_command   = "gsutil -m cp -r gs://data-analytics-golden-demo/processed-bucket/processed gs://{}/".format(processed_bucket_name)
 
 
 with airflow.DAG('step-02-taxi-data-processing-quick-copy',

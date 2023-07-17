@@ -64,13 +64,13 @@ with airflow.DAG('run-all-dags',
 
     step_01_taxi_data_download = TriggerDagRunOperator(
         task_id="step_01_taxi_data_download",
-        trigger_dag_id="step-01-taxi-data-download",
+        trigger_dag_id=step_01_trigger_dag_id,
         wait_for_completion=True
     )        
 
     step_02_taxi_data_processing = TriggerDagRunOperator(
         task_id="step_02_taxi_data_processing",
-        trigger_dag_id="step-02-taxi-data-processing",
+        trigger_dag_id=step_02_trigger_dag_id,
         wait_for_completion=True
     )   
 
