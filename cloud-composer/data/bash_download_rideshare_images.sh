@@ -37,7 +37,7 @@ curl -L "https://images.pexels.com/photos/1008155/pexels-photo-1008155.jpeg"  --
 gcloud storage cp pexels-photo-1008155.jpeg "gs://${RIDESHARE_RAW_BUCKET}/rideshare_images/pexels-photo-1008155.jpeg" --custom-metadata="location_id=1"
 
 # Copy public domain images
-gcloud storage cp gs://data-analytics-golden-demo/rideshare-lakehouse-raw/rideshare_images/* gs://${RIDESHARE_RAW_BUCKET}/rideshare_images/
+gcloud storage cp gs://data-analytics-golden-demo/rideshare-lakehouse-raw-bucket/rideshare_images/* gs://${RIDESHARE_RAW_BUCKET}/rideshare_images/
 
 
 # Copy public domain images from the public storage account

@@ -221,7 +221,7 @@ CREATE OR REPLACE FUNCTION `${project_id}.${bigquery_taxi_dataset}.ext_udf_ai_de
 -- The Vision API can detect and extract multiple objects in an image with Object Localization.
 -- Object localization identifies multiple objects in an image and provides a LocalizedObjectAnnotation for each object in the image.
 -- https://cloud.google.com/vision/docs/object-localizer
--- For more images: gsutil ls gs://cloud-samples-data/vision/object_localization/
+-- For more images: gcloud storage ls gs://cloud-samples-data/vision/object_localization/
 WITH Data AS
 (
   SELECT uri
@@ -247,7 +247,7 @@ SELECT uri,
 -- The Vision API can detect and extract information about entities in an image, across a broad group of categories.
 -- Labels can identify general objects, locations, activities, animal species, products, and more.
 -- https://cloud.google.com/vision/docs/labels
--- For more images: gsutil ls gs://cloud-samples-data/vision/label
+-- For more images: gcloud storage ls gs://cloud-samples-data/vision/label
 WITH Data AS
 (
   SELECT uri
@@ -269,10 +269,10 @@ SELECT uri,
 
 
 -- Call the landmark_detection method of Vision API
--- For more images: gsutil ls gs://cloud-samples-data/vision/landmark
+-- For more images: gcloud storage ls gs://cloud-samples-data/vision/landmark
 -- Landmark Detection detects popular natural and human-made structures within an image
 -- https://cloud.google.com/vision/docs/detecting-landmarks
--- For more images: gsutil ls gs://cloud-samples-data/vision/landmark
+-- For more images: gcloud storage ls gs://cloud-samples-data/vision/landmark
 WITH Data AS
 (
   SELECT uri
@@ -296,7 +296,7 @@ SELECT uri,
 -- Call the logo_detection method of Vision API
 -- Logo Detection detects popular product logos within an image.
 -- https://cloud.google.com/vision/docs/detecting-logos
--- For more images: gsutil ls gs://cloud-samples-data/vision/logo
+-- For more images: gcloud storage ls gs://cloud-samples-data/vision/logo
 WITH Data AS
 (
   SELECT uri
