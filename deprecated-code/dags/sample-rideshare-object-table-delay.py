@@ -52,29 +52,31 @@ rideshare_lakehouse_raw = os.environ['ENV_RIDESHARE_LAKEHOUSE_RAW_DATASET']
 # We need to wait for the data to show up before we process the data
 def wait_for_object_table():
     # Wait for job to start
-    print ("wait_for_object_table STARTED, sleeping for 60 seconds for jobs to start")
-    time.sleep(60)
+    print ("wait_for_object_table STARTED, sleeping for 15 seconds for jobs to start")
+    time.sleep(15)
     rowCount = 0
 
 
     client = bigquery.Client()
-    sql = f"SELECT COUNT(*) AS RowCount FROM `{project_id}.{rideshare_lakehouse_raw}.biglake_rideshare_images`"   
-
+    sql1 = f"CALL BQ.REFRESH_EXTERNAL_METADATA_CACHE('{project_id}.{rideshare_lakehouse_raw}.biglake_rideshare_images');"   
+    sql2 = f"SELECT COUNT(*) AS RowCount FROM `{project_id}.{rideshare_lakehouse_raw}.biglake_rideshare_images`;"   
+ 
 
     # Run for for so many interations
     counter  = 1
     while (counter < 60):    
         try:
-            query_job = client.query(sql)
+            query_job1 = client.query(sql1)
+            query_job2 = client.query(sql2)
 
-            for row in query_job:
+            for row in query_job2:
                 # Row values can be accessed by field name or index.
                 print("RowCount = {}".format(row["RowCount"]))
                 rowCount = int(str(row["RowCount"]))
 
             if rowCount == 0:
                 print("Sleeping...")
-                time.sleep(30)
+                time.sleep(15)
             else:
                 print("Exiting")
                 return True

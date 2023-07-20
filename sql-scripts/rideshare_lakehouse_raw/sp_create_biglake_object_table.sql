@@ -55,9 +55,16 @@ IF NOT EXISTS (SELECT  1
         uris = ['gs://${gcs_rideshare_lakehouse_raw_bucket}/rideshare_images/*.jpg',
                 'gs://${gcs_rideshare_lakehouse_raw_bucket}/rideshare_images/*.jpeg'],
         max_staleness=INTERVAL 30 MINUTE, 
-        metadata_cache_mode="AUTOMATIC"
+        --metadata_cache_mode="AUTOMATIC"
+        -- set to Manual for demo
+        metadata_cache_mode="MANUAL"
         ); 
 END IF;
+
+
+-- For the demo, refresh the table (so we do not need to wait)
+-- Refresh can only be done for "manual" cache mode
+CALL BQ.REFRESH_EXTERNAL_METADATA_CACHE('${project_id}.${bigquery_rideshare_lakehouse_raw_dataset}.biglake_rideshare_images');
 
 
 -- Show our objects in GCS / Data Lake

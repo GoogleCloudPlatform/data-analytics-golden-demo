@@ -46,6 +46,13 @@ default_args = {
 
 sp_datastream_cdc_data="CALL `{}.taxi_dataset.sp_create_datastream_cdc_data`();".format(project_id)
 
+step_01_trigger_dag_id = "step-01-taxi-data-download"
+step_02_trigger_dag_id = "step-02-taxi-data-processing"
+
+# Quick copy (comment this out to actually process the data from source)
+step_01_trigger_dag_id = "step-01-taxi-data-download-quick-copy"
+step_02_trigger_dag_id = "step-02-taxi-data-processing-quick-copy"
+
 
 with airflow.DAG('run-all-dags',
                  default_args=default_args,
@@ -57,13 +64,13 @@ with airflow.DAG('run-all-dags',
 
     step_01_taxi_data_download = TriggerDagRunOperator(
         task_id="step_01_taxi_data_download",
-        trigger_dag_id="step-01-taxi-data-download",
+        trigger_dag_id=step_01_trigger_dag_id,
         wait_for_completion=True
     )        
 
     step_02_taxi_data_processing = TriggerDagRunOperator(
         task_id="step_02_taxi_data_processing",
-        trigger_dag_id="step-02-taxi-data-processing",
+        trigger_dag_id=step_02_trigger_dag_id,
         wait_for_completion=True
     )   
 
@@ -78,16 +85,6 @@ with airflow.DAG('run-all-dags',
     sample_dataflow_start_streaming_job = TriggerDagRunOperator(
         task_id="sample_dataflow_start_streaming_job",
         trigger_dag_id="sample-dataflow-start-streaming-job",
-        wait_for_completion=True
-    )  
-
-    # Rideshare Analytics Lakehouse demo
-    # This table takes a few minutes to get populated with the GCS metadata
-    # It is done in advance of the full script so the full script has data to process
-    # The dataproc job (step 2) can take a while
-    sample_rideshare_hydrate_object_table = TriggerDagRunOperator(
-        task_id="sample_rideshare_hydrate_object_table",
-        trigger_dag_id="sample-rideshare-hydrate-object-table",
         wait_for_completion=True
     )  
 
@@ -112,13 +109,6 @@ with airflow.DAG('run-all-dags',
         wait_for_completion=True
     )  
 
-     # Wait for data in the object table
-    sample_rideshare_object_table_delay = TriggerDagRunOperator(
-        task_id="sample_rideshare_object_table_delay",
-        trigger_dag_id="sample-rideshare-object-table-delay",
-        wait_for_completion=True
-    )     
-
      # Download object table seed data and ML models
     sample_seed_unstructured_data = TriggerDagRunOperator(
         task_id="sample_seed_unstructured_data",
@@ -137,9 +127,8 @@ with airflow.DAG('run-all-dags',
         })       
     
     # DAG Graph
-    step_01_taxi_data_download >> [step_02_taxi_data_processing, sample_seed_unstructured_data, sample_rideshare_hydrate_object_table, sample_rideshare_download_images]
+    step_01_taxi_data_download >> [step_02_taxi_data_processing, sample_seed_unstructured_data, sample_rideshare_download_images]
     step_02_taxi_data_processing >> [step_03_hydrate_tables, sample_rideshare_website]
-    step_03_hydrate_tables >> [sample_dataflow_start_streaming_job, sp_datastream_cdc_data, sample_rideshare_object_table_delay]
-    sample_rideshare_object_table_delay >> sample_rideshare_hydrate_data
+    step_03_hydrate_tables >> [sample_dataflow_start_streaming_job, sp_datastream_cdc_data, sample_rideshare_hydrate_data]
 
 # [END dag]

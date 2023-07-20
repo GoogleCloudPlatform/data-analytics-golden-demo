@@ -1529,7 +1529,29 @@ resource "google_project_iam_member" "biglake_customconnectiondelegate" {
 }
 
 
+# Vertex AI connection
+resource "google_bigquery_connection" "vertex_ai_connection" {
+   connection_id = "vertex-ai"
+   location      = var.bigquery_region
+   friendly_name = "vertex-ai"
+   description   = "vertex-ai"
+   cloud_resource {}
+   depends_on = [ 
+      google_bigquery_connection.biglake_connection
+   ]
+}
 
+
+# Allow Vertex AI connection to Vertex User
+resource "google_project_iam_member" "vertex_ai_connection_vertex_user_role" {
+  project  = var.project_id
+  role     = "roles/aiplatform.user"
+  member   = "serviceAccount:${google_bigquery_connection.vertex_ai_connection.cloud_resource[0].service_account_id}"
+
+  depends_on = [
+    google_bigquery_connection.vertex_ai_connection
+  ]  
+}
 
 
 ####################################################################################

@@ -105,6 +105,18 @@ resource "google_org_policy_policy" "org_policy_allowed_ingress_settings" {
 }
 
 
+resource "google_org_policy_policy" "org_policy_allowed_ingress" {
+  name     = "projects/${var.project_id}/policies/run.allowedIngress"
+  parent   = "projects/${var.project_id}"
+
+  spec {
+    rules {
+      allow_all = "TRUE"
+    }
+  }
+}
+
+
 # To set service accounts (since sometimes they cause a voliation)
 resource "google_org_policy_policy" "org_policy_allowed_policy_member_domains" {
   name     = "projects/${var.project_id}/policies/iam.allowedPolicyMemberDomains"
@@ -144,6 +156,7 @@ resource "time_sleep" "time_sleep_org_policies" {
     google_org_policy_policy.org_policy_require_os_login,
     google_org_policy_policy.org_policy_require_shielded_vm,
     google_org_policy_policy.org_policy_allowed_ingress_settings,
+    google_org_policy_policy.org_policy_allowed_ingress,
     google_org_policy_policy.org_policy_allowed_policy_member_domains,
     google_org_policy_policy.org_policy_allowed_vpc_peering
   ]

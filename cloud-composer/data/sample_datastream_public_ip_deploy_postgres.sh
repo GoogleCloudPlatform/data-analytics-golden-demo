@@ -47,13 +47,44 @@ then
     DATASTREAM_IPS="34.71.242.81,34.72.28.29,34.67.6.157,34.67.234.134,34.72.239.218"
 fi
 
+# us-east1
+if [[ "$DATASTREAM_REGION" = "us-east1" ]]; 
+then
+    DATASTREAM_IPS="34.74.216.163,34.75.166.194,104.196.6.24,34.73.50.6,35.237.45.20"
+fi
+
+# us-east4
+if [[ "$DATASTREAM_REGION" = "us-east4" ]]; 
+then
+    DATASTREAM_IPS="35.245.110.238,34.85.182.28,34.150.213.121,34.150.171.115,34.145.160.237"
+fi
+
+# us-west1
+if [[ "$DATASTREAM_REGION" = "us-west1" ]]; 
+then
+    DATASTREAM_IPS="35.247.10.221,35.233.208.195,34.82.253.59,35.247.95.52,34.82.254.46"
+fi
+
 # us-west2
 if [[ "$DATASTREAM_REGION" = "us-west2" ]]; 
 then
     DATASTREAM_IPS="35.235.83.92,34.94.230.251,34.94.60.44,34.102.102.81,34.94.40.175"
 fi
 
-# "europe-west1
+# us-west3
+if [[ "$DATASTREAM_REGION" = "us-west3" ]]; 
+then
+    DATASTREAM_IPS="34.106.215.166,34.106.204.197,34.106.119.245,34.106.60.77,34.106.53.183"
+fi
+
+# us-west4
+if [[ "$DATASTREAM_REGION" = "us-west4" ]]; 
+then
+    DATASTREAM_IPS="34.125.243.211,34.125.107.65,34.125.139.78,34.125.158.25,34.125.152.20"
+fi
+
+
+# europe-west1
 if [[ "$DATASTREAM_REGION" = "europe-west1" ]]; 
 then
     DATASTREAM_IPS="35.187.27.174,104.199.6.64,35.205.33.30,34.78.213.130,35.205.125.111"

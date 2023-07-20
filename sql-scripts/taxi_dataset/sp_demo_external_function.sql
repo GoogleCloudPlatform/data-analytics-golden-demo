@@ -34,10 +34,10 @@
       - The Cloud Funcation requires an authenicated call
   
   Download images:
-      gsutil cp gs://cloud-samples-data/vision/object_localization/duck_and_truck.jpg .
-      gsutil cp gs://cloud-samples-data/vision/label/setagaya.jpeg .
-      gsutil cp gs://cloud-samples-data/vision/landmark/eiffel_tower.jpg .
-      gsutil cp gs://cloud-samples-data/vision/logo/google_logo.jpg .  
+      gcloud storage cp gs://cloud-samples-data/vision/object_localization/duck_and_truck.jpg .
+      gcloud storage cp gs://cloud-samples-data/vision/label/setagaya.jpeg .
+      gcloud storage cp gs://cloud-samples-data/vision/landmark/eiffel_tower.jpg .
+      gcloud storage cp gs://cloud-samples-data/vision/logo/google_logo.jpg .  
   
   References:
       - https://cloud.google.com/bigquery/docs/reference/standard-sql/remote-functions
@@ -112,13 +112,13 @@
       );
   
   
-  -- Images from: "gsutil ls  gs://cloud-samples-data/vision"
+  -- Images from: "gcloud storage ls  gs://cloud-samples-data/vision"
   
   -- Call the object_localization method of Vision API
   -- The Vision API can detect and extract multiple objects in an image with Object Localization.
   -- Object localization identifies multiple objects in an image and provides a LocalizedObjectAnnotation for each object in the image.
   -- https://cloud.google.com/vision/docs/object-localizer
-  -- For more images: gsutil ls gs://cloud-samples-data/vision/object_localization/
+  -- For more images: gcloud storage ls gs://cloud-samples-data/vision/object_localization/
   WITH Data AS
   (
       SELECT `${project_id}.${bigquery_taxi_dataset}.ext_udf_ai_localize_objects`('gs://cloud-samples-data/vision/object_localization/duck_and_truck.jpg') AS json_result
@@ -134,7 +134,7 @@
   -- The Vision API can detect and extract information about entities in an image, across a broad group of categories.
   -- Labels can identify general objects, locations, activities, animal species, products, and more.
   -- https://cloud.google.com/vision/docs/labels
-  -- For more images: gsutil ls gs://cloud-samples-data/vision/label
+  -- For more images: gcloud storage ls gs://cloud-samples-data/vision/label
   WITH Data AS
   (
       SELECT `${project_id}.${bigquery_taxi_dataset}.ext_udf_ai_detect_labels`('gs://cloud-samples-data/vision/label/setagaya.jpeg') AS json_result
@@ -146,10 +146,10 @@
   
   
   -- Call the landmark_detection method of Vision API
-  -- For more images: gsutil ls gs://cloud-samples-data/vision/landmark
+  -- For more images: gcloud storage ls gs://cloud-samples-data/vision/landmark
   -- Landmark Detection detects popular natural and human-made structures within an image
   -- https://cloud.google.com/vision/docs/detecting-landmarks
-  -- For more images: gsutil ls gs://cloud-samples-data/vision/landmark
+  -- For more images: gcloud storage ls gs://cloud-samples-data/vision/landmark
   WITH Data AS
   (
       SELECT `${project_id}.${bigquery_taxi_dataset}.ext_udf_ai_detect_landmarks`('gs://cloud-samples-data/vision/landmark/eiffel_tower.jpg') AS json_result
@@ -164,7 +164,7 @@
   -- Call the logo_detection method of Vision API
   -- Logo Detection detects popular product logos within an image.
   -- https://cloud.google.com/vision/docs/detecting-logos
-  -- For more images: gsutil ls gs://cloud-samples-data/vision/logo
+  -- For more images: gcloud storage ls gs://cloud-samples-data/vision/logo
   WITH Data AS
   (
       SELECT `${project_id}.${bigquery_taxi_dataset}.ext_udf_ai_detect_logos`('gs://cloud-samples-data/vision/logo/google_logo.jpg') AS json_result
