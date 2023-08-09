@@ -79,12 +79,13 @@ Prior Months
 
 ## Deploy
 ### Demo Cost
-- Currently the demo costs about $20 USD to run.
-- Several of the demos start up a service and then shut it down after 4 hours via Airflow automation.
-- Composer is the largest daily cost ~$17 per day.  You can technically delete Composer, but then you lack the automation it provides.  You would want to run any DAGs you are interested in deploying before removing Composer.
-
-
-
+- The demo costs about $20 USD a day to run or $2 USD per day if you remove Composer.
+- Several of the demos start up a service and then shut it down after 4 hours via Airflow automation to save on costs.
+- To save on costs you can delete Composer since it costs ~$17 USD per day.
+  - Once you remove Composer cost drops to ~$2 USD per day. 
+  - You will lack the automation Composer provides.
+  - You would want to run any DAGs you are interested in deploying before removing Composer.
+  
 
 ## Diagrams
 ![alt tag](./images/Technical-Architecture.png)
