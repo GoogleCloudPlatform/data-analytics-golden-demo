@@ -107,10 +107,10 @@ Prior Months
 - Deployment [Video](https://youtu.be/QvCCo35qgys)
 - Post Deployment Verification [Video](https://youtu.be/r1mp4Yve0VY)
 - **The following IAM roles are required to deploy the solution**
- - Prerequisite:  Billing Account User (to create the project with billing)
- - Prerequisite:  Organization Administrator (to create all assets)
- - Prerequisite:  Organization Policy Administrator (to change org policies)
- - Optional:      Folder Editor (if you alter the script to place the project in a folder)
+   - Prerequisite:  Billing Account User (to create the project with billing)
+   - Prerequisite:  Organization Administrator (to create all assets)
+   - Prerequisite:  Organization Policy Administrator (to change org policies)
+   - Optional:      Folder Editor (if you alter the script to place the project in a folder)
 1. Open a Google Cloud Shell: http://shell.cloud.google.com/
 2. Type: ```git clone https://github.com/GoogleCloudPlatform/data-analytics-golden-demo```
 3. Switch the prompt to the directory: ```cd data-analytics-golden-demo```
@@ -125,31 +125,31 @@ Prior Months
 - Deployment [Video](https://youtu.be/SLzr737SHXM)
 - Post Deployment Verification [Video](https://youtu.be/r1mp4Yve0VY)
 - **The following items are required to deploy the solution**
- - Prerequisite: You will need a project created for you (IT can do this for you)
- - Prerequisite: You will need to be an Owner (IAM role) of the project to run the below script
- - Prerequisite: You will need an Organization Policy Administrator to disable the following Org Policies (IT can do this for you)
-   - requireOsLogin = false
-   - requireShieldedVm = false
-   - allowedIngressSettings = allow all
-   - allowedPolicyMemberDomains = allow all
-   - restrictVpcPeering = allow all
+   - Prerequisite: You will need a project created for you (IT can do this for you)
+   - Prerequisite: You will need to be an Owner (IAM role) of the project to run the below script
+   - Prerequisite: You will need an Organization Policy Administrator to disable the following Org Policies (IT can do this for you)
+      - requireOsLogin = false
+      - requireShieldedVm = false
+      - allowedIngressSettings = allow all
+      - allowedPolicyMemberDomains = allow all
+      - restrictVpcPeering = allow all
 1. Open a Google Cloud Shell: http://shell.cloud.google.com/
 2. Type: ```git clone https://github.com/GoogleCloudPlatform/data-analytics-golden-demo```
 3. Switch the prompt to the directory: ```cd data-analytics-golden-demo```
 4. Update the hard coded values in ```deploy-use-existing-project-non-org-admin.sh```
 5. Run ```source deploy-use-existing-project-non-org-admin.sh```
 6. Your Organization Policy Administrator can then reenable the following Organization Policies
-  - (DO NOT RE-ENABLE) requireOsLogin = false
-  - (RE-ENABLE) requireShieldedVm = false
-  - (RE-ENABLE) allowedIngressSettings = allow all
-  - (RE-ENABLE) allowedPolicyMemberDomains = allow all
-  - (RE-ENABLE) restrictVpcPeering = allow all
+   - (DO NOT RE-ENABLE) requireOsLogin = false
+   - (RE-ENABLE) requireShieldedVm = false
+   - (RE-ENABLE) allowedIngressSettings = allow all
+   - (RE-ENABLE) allowedPolicyMemberDomains = allow all
+   - (RE-ENABLE) restrictVpcPeering = allow all
 
 
 
 
 ### To deploy the project to a different region
-1. By default the solution deploys to us-central1 region and US (multi-region)
+1. By default the solution deploys to us-west{x} region and US (multi-region)
 2. To deploy to another region review the code in [deploy-europe-region.sh](deploy-europe-region.sh)
 3. You can run either of the above deployment methods.  Copy the Terraform  "region" parameters to either of the above scripts.
 
