@@ -44,6 +44,12 @@ variable "composer_dag_bucket" {}
 variable "demo_rest_api_service_uri" {}
 variable "code_bucket_name" {}
 
+variable "bigquery_rideshare_llm_raw_dataset" {}
+variable "bigquery_rideshare_llm_enriched_dataset" {}
+variable "bigquery_rideshare_llm_curated_dataset" {}
+variable "gcs_rideshare_lakehouse_raw_bucket" {}
+
+
 variable "bigquery_taxi_dataset" {
   type        = string
   default     = "taxi_dataset"
@@ -1159,6 +1165,7 @@ resource "time_sleep" "wait_for_airflow_dag_sync" {
     google_storage_bucket_object.deploy_airflow_dag_sample-rideshare-iceberg-serverless,
     google_storage_bucket_object.deploy_airflow_dag_sample-rideshare-download-images,
     google_storage_bucket_object.deploy_airflow_dag_sample-rideshare-website,
+    google_storage_bucket_object.deploy_airflow_dag_sample-ridshare-llm-hydrate-data,
     google_storage_bucket_object.deploy_airflow_dag_sample-rideshare-hydrate-data,
 
   ]
@@ -1446,6 +1453,16 @@ resource "google_storage_bucket_object" "deploy_airflow_dag_sample-rideshare-web
 }
 
 # Upload DAG
+resource "google_storage_bucket_object" "deploy_airflow_dag_sample-ridshare-llm-hydrate-data" {
+  name   = "${local.local_composer_dag_path}/sample-ridshare-llm-hydrate-data.py"
+  bucket = local.local_composer_bucket_name
+  source = "../cloud-composer/dags/sample-ridshare-llm-hydrate-data.py"
+
+  depends_on = [ 
+    ]  
+}
+
+# Upload DAG
 resource "google_storage_bucket_object" "deploy_airflow_dag_sample-seed-unstructured-data" {
   name   = "${local.local_composer_dag_path}/sample-seed-unstructured-data.py"
   bucket = local.local_composer_bucket_name
@@ -1515,3 +1532,119 @@ resource "google_storage_bucket_object" "deploy_rideshare_website_www_reports" {
 }
 
 
+
+
+####################################################################################
+# Deploy Cobal notebooks
+####################################################################################
+resource "google_storage_bucket_object" "deploy_notebook_rideshare_llm_step_01_customer_sentiment_analysis" {
+  name   = "colab-enterprise/rideshare-llm/rideshare_llm_step_01_customer_sentiment_analysis.ipynb"
+  bucket = "code-${var.storage_bucket}"
+  content = templatefile("../colab-enterprise/rideshare-llm/rideshare_llm_step_01_customer_sentiment_analysis.ipynb", 
+  { 
+    project_id = var.project_id
+
+    bigquery_rideshare_llm_raw_dataset = var.bigquery_rideshare_llm_raw_dataset
+    bigquery_rideshare_llm_enriched_dataset = var.bigquery_rideshare_llm_enriched_dataset
+    bigquery_rideshare_llm_curated_dataset = var.bigquery_rideshare_llm_curated_dataset
+
+    gcs_rideshare_lakehouse_raw_bucket = var.gcs_rideshare_lakehouse_raw_bucket    
+  })
+  depends_on = []  
+}
+
+resource "google_storage_bucket_object" "deploy_notebook_rideshare_llm_step_02_driver_themes" {
+  name   = "colab-enterprise/rideshare-llm/rideshare_llm_step_02_driver_themes.ipynb"
+  bucket = "code-${var.storage_bucket}"
+  content = templatefile("../colab-enterprise/rideshare-llm/rideshare_llm_step_02_driver_themes.ipynb", 
+  { 
+    project_id = var.project_id
+
+    bigquery_rideshare_llm_raw_dataset = var.bigquery_rideshare_llm_raw_dataset
+    bigquery_rideshare_llm_enriched_dataset = var.bigquery_rideshare_llm_enriched_dataset
+    bigquery_rideshare_llm_curated_dataset = var.bigquery_rideshare_llm_curated_dataset
+
+    gcs_rideshare_lakehouse_raw_bucket = var.gcs_rideshare_lakehouse_raw_bucket    
+  })
+  depends_on = []  
+}
+
+resource "google_storage_bucket_object" "deploy_notebook_rideshare_llm_step_03_customer_themes" {
+  name   = "colab-enterprise/rideshare-llm/rideshare_llm_step_03_customer_themes.ipynb"
+  bucket = "code-${var.storage_bucket}"
+  content = templatefile("../colab-enterprise/rideshare-llm/rideshare_llm_step_03_customer_themes.ipynb", 
+  { 
+    project_id = var.project_id
+
+    bigquery_rideshare_llm_raw_dataset = var.bigquery_rideshare_llm_raw_dataset
+    bigquery_rideshare_llm_enriched_dataset = var.bigquery_rideshare_llm_enriched_dataset
+    bigquery_rideshare_llm_curated_dataset = var.bigquery_rideshare_llm_curated_dataset
+
+    gcs_rideshare_lakehouse_raw_bucket = var.gcs_rideshare_lakehouse_raw_bucket    
+  })
+  depends_on = []  
+}
+
+resource "google_storage_bucket_object" "deploy_notebook_rideshare_llm_step_04_driver_summary" {
+  name   = "colab-enterprise/rideshare-llm/rideshare_llm_step_04_driver_summary.ipynb"
+  bucket = "code-${var.storage_bucket}"
+  content = templatefile("../colab-enterprise/rideshare-llm/rideshare_llm_step_04_driver_summary.ipynb", 
+  { 
+    project_id = var.project_id
+
+    bigquery_rideshare_llm_raw_dataset = var.bigquery_rideshare_llm_raw_dataset
+    bigquery_rideshare_llm_enriched_dataset = var.bigquery_rideshare_llm_enriched_dataset
+    bigquery_rideshare_llm_curated_dataset = var.bigquery_rideshare_llm_curated_dataset
+
+    gcs_rideshare_lakehouse_raw_bucket = var.gcs_rideshare_lakehouse_raw_bucket    
+  })
+  depends_on = []  
+}
+
+resource "google_storage_bucket_object" "deploy_notebook_rideshare_llm_step_05_customer_summary" {
+  name   = "colab-enterprise/rideshare-llm/rideshare_llm_step_05_customer_summary.ipynb"
+  bucket = "code-${var.storage_bucket}"
+  content = templatefile("../colab-enterprise/rideshare-llm/rideshare_llm_step_05_customer_summary.ipynb", 
+  { 
+    project_id = var.project_id
+
+    bigquery_rideshare_llm_raw_dataset = var.bigquery_rideshare_llm_raw_dataset
+    bigquery_rideshare_llm_enriched_dataset = var.bigquery_rideshare_llm_enriched_dataset
+    bigquery_rideshare_llm_curated_dataset = var.bigquery_rideshare_llm_curated_dataset
+
+    gcs_rideshare_lakehouse_raw_bucket = var.gcs_rideshare_lakehouse_raw_bucket    
+  })
+  depends_on = []  
+}
+
+resource "google_storage_bucket_object" "deploy_notebook_rideshare_llm_step_06_driver_quantitative_analysis" {
+  name   = "colab-enterprise/rideshare-llm/rideshare_llm_step_06_driver_quantitative_analysis.ipynb"
+  bucket = "code-${var.storage_bucket}"
+  content = templatefile("../colab-enterprise/rideshare-llm/rideshare_llm_step_06_driver_quantitative_analysis.ipynb", 
+  { 
+    project_id = var.project_id
+
+    bigquery_rideshare_llm_raw_dataset = var.bigquery_rideshare_llm_raw_dataset
+    bigquery_rideshare_llm_enriched_dataset = var.bigquery_rideshare_llm_enriched_dataset
+    bigquery_rideshare_llm_curated_dataset = var.bigquery_rideshare_llm_curated_dataset
+
+    gcs_rideshare_lakehouse_raw_bucket = var.gcs_rideshare_lakehouse_raw_bucket    
+  })
+  depends_on = []  
+}
+
+resource "google_storage_bucket_object" "deploy_notebook_rideshare_llm_step_07_customer_quantitative_analysis" {
+  name   = "colab-enterprise/rideshare-llm/rideshare_llm_step_07_customer_quantitative_analysis.ipynb"
+  bucket = "code-${var.storage_bucket}"
+  content = templatefile("../colab-enterprise/rideshare-llm/rideshare_llm_step_07_customer_quantitative_analysis.ipynb", 
+  { 
+    project_id = var.project_id
+
+    bigquery_rideshare_llm_raw_dataset = var.bigquery_rideshare_llm_raw_dataset
+    bigquery_rideshare_llm_enriched_dataset = var.bigquery_rideshare_llm_enriched_dataset
+    bigquery_rideshare_llm_curated_dataset = var.bigquery_rideshare_llm_curated_dataset
+
+    gcs_rideshare_lakehouse_raw_bucket = var.gcs_rideshare_lakehouse_raw_bucket    
+  })
+  depends_on = []  
+}

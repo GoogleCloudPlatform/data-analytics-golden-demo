@@ -59,6 +59,10 @@ variable "gcs_rideshare_lakehouse_enriched_bucket" {}
 variable "bigquery_rideshare_lakehouse_curated_dataset" {}
 variable "gcs_rideshare_lakehouse_curated_bucket" {}
 
+variable "bigquery_rideshare_llm_raw_dataset" {}
+variable "bigquery_rideshare_llm_enriched_dataset" {}
+variable "bigquery_rideshare_llm_curated_dataset" {}
+
 # Hardcoded
 variable "bigquery_taxi_dataset" {
   type        = string
@@ -1807,5 +1811,202 @@ resource "google_bigquery_routine" "sproc_sp_website_score_data" {
     gcs_rideshare_lakehouse_enriched_bucket = var.gcs_rideshare_lakehouse_enriched_bucket
     bigquery_rideshare_lakehouse_curated_dataset = var.bigquery_rideshare_lakehouse_curated_dataset
     gcs_rideshare_lakehouse_curated_bucket = var.gcs_rideshare_lakehouse_curated_bucket  
+  })
+}
+
+
+#===================================================================================
+#===================================================================================
+# Rideshare LLM Raw
+#===================================================================================
+#===================================================================================
+
+####################################################################################
+# sp_step_00_initialize
+####################################################################################
+resource "google_bigquery_routine" "sproc_sp_rideshare_llm_raw_sp_step_00_initialize" {
+  dataset_id      = var.bigquery_rideshare_llm_raw_dataset
+  routine_id      = "sp_step_00_initialize"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = templatefile("../sql-scripts/rideshare_llm_raw/sp_step_00_initialize.sql", 
+  { 
+    project_id = var.project_id
+    project_number = var.project_number
+    
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+    bigquery_region = var.bigquery_region
+    gcp_account_name = var.gcp_account_name
+
+    bigquery_rideshare_llm_raw_dataset = var.bigquery_rideshare_llm_raw_dataset
+    bigquery_rideshare_llm_enriched_dataset = var.bigquery_rideshare_llm_enriched_dataset
+    bigquery_rideshare_llm_curated_dataset = var.bigquery_rideshare_llm_curated_dataset
+
+    gcs_rideshare_lakehouse_raw_bucket = var.gcs_rideshare_lakehouse_raw_bucket
+  })
+}
+
+
+#===================================================================================
+#===================================================================================
+# Rideshare LLM Enriched
+#===================================================================================
+#===================================================================================
+
+####################################################################################
+# sp_step_00_initialize
+####################################################################################
+resource "google_bigquery_routine" "sproc_sp_rideshare_llm_enriched_sp_step_00_initialize" {
+  dataset_id      = var.bigquery_rideshare_llm_enriched_dataset
+  routine_id      = "sp_step_00_initialize"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = templatefile("../sql-scripts/rideshare_llm_enriched/sp_step_00_initialize.sql", 
+  { 
+    project_id = var.project_id
+    project_number = var.project_number
+    
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+    bigquery_region = var.bigquery_region
+    gcp_account_name = var.gcp_account_name
+
+    bigquery_rideshare_llm_raw_dataset = var.bigquery_rideshare_llm_raw_dataset
+    bigquery_rideshare_llm_enriched_dataset = var.bigquery_rideshare_llm_enriched_dataset
+    bigquery_rideshare_llm_curated_dataset = var.bigquery_rideshare_llm_curated_dataset
+
+    gcs_rideshare_lakehouse_raw_bucket = var.gcs_rideshare_lakehouse_raw_bucket
+  })
+}
+
+####################################################################################
+# sp_step_01_quantitative_analysis
+####################################################################################
+resource "google_bigquery_routine" "sproc_sp_rideshare_llm_enriched_sp_step_01_quantitative_analysis" {
+  dataset_id      = var.bigquery_rideshare_llm_enriched_dataset
+  routine_id      = "sp_step_01_quantitative_analysis"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = templatefile("../sql-scripts/rideshare_llm_enriched/sp_step_01_quantitative_analysis.sql", 
+  { 
+    project_id = var.project_id
+    project_number = var.project_number
+    
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+    bigquery_region = var.bigquery_region
+    gcp_account_name = var.gcp_account_name
+
+    bigquery_rideshare_llm_raw_dataset = var.bigquery_rideshare_llm_raw_dataset
+    bigquery_rideshare_llm_enriched_dataset = var.bigquery_rideshare_llm_enriched_dataset
+    bigquery_rideshare_llm_curated_dataset = var.bigquery_rideshare_llm_curated_dataset
+
+    gcs_rideshare_lakehouse_raw_bucket = var.gcs_rideshare_lakehouse_raw_bucket
+  })
+}
+
+####################################################################################
+# sp_step_02_extract_driver_attributes
+####################################################################################
+resource "google_bigquery_routine" "sproc_sp_rideshare_llm_enriched_sp_step_02_extract_driver_attributes" {
+  dataset_id      = var.bigquery_rideshare_llm_enriched_dataset
+  routine_id      = "sp_step_02_extract_driver_attributes"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = templatefile("../sql-scripts/rideshare_llm_enriched/sp_step_02_extract_driver_attributes.sql", 
+  { 
+    project_id = var.project_id
+    project_number = var.project_number
+    
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+    bigquery_region = var.bigquery_region
+    gcp_account_name = var.gcp_account_name
+
+    bigquery_rideshare_llm_raw_dataset = var.bigquery_rideshare_llm_raw_dataset
+    bigquery_rideshare_llm_enriched_dataset = var.bigquery_rideshare_llm_enriched_dataset
+    bigquery_rideshare_llm_curated_dataset = var.bigquery_rideshare_llm_curated_dataset
+
+    gcs_rideshare_lakehouse_raw_bucket = var.gcs_rideshare_lakehouse_raw_bucket
+  })
+}
+
+####################################################################################
+# sp_step_03_extract_customer_attributes
+####################################################################################
+resource "google_bigquery_routine" "sproc_sp_rideshare_llm_enriched_sp_step_03_extract_customer_attributes" {
+  dataset_id      = var.bigquery_rideshare_llm_enriched_dataset
+  routine_id      = "sp_step_03_extract_customer_attributes"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = templatefile("../sql-scripts/rideshare_llm_enriched/sp_step_03_extract_customer_attributes.sql", 
+  { 
+    project_id = var.project_id
+    project_number = var.project_number
+    
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+    bigquery_region = var.bigquery_region
+    gcp_account_name = var.gcp_account_name
+
+    bigquery_rideshare_llm_raw_dataset = var.bigquery_rideshare_llm_raw_dataset
+    bigquery_rideshare_llm_enriched_dataset = var.bigquery_rideshare_llm_enriched_dataset
+    bigquery_rideshare_llm_curated_dataset = var.bigquery_rideshare_llm_curated_dataset
+
+    gcs_rideshare_lakehouse_raw_bucket = var.gcs_rideshare_lakehouse_raw_bucket
+  })
+}
+
+
+#===================================================================================
+#===================================================================================
+# Rideshare LLM Curated
+#===================================================================================
+#===================================================================================
+
+####################################################################################
+# sp_reset_demo
+####################################################################################
+resource "google_bigquery_routine" "sproc_sp_rideshare_llm_curated_sp_reset_demo" {
+  dataset_id      = var.bigquery_rideshare_llm_curated_dataset
+  routine_id      = "sp_reset_demo"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = templatefile("../sql-scripts/rideshare_llm_curated/sp_reset_demo.sql", 
+  { 
+    project_id = var.project_id
+    project_number = var.project_number
+    
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+    bigquery_region = var.bigquery_region
+    gcp_account_name = var.gcp_account_name
+
+    bigquery_rideshare_llm_raw_dataset = var.bigquery_rideshare_llm_raw_dataset
+    bigquery_rideshare_llm_enriched_dataset = var.bigquery_rideshare_llm_enriched_dataset
+    bigquery_rideshare_llm_curated_dataset = var.bigquery_rideshare_llm_curated_dataset
+
+    gcs_rideshare_lakehouse_raw_bucket = var.gcs_rideshare_lakehouse_raw_bucket
+  })
+}
+
+
+####################################################################################
+# sp_step_00_initialize
+####################################################################################
+resource "google_bigquery_routine" "sproc_sp_rideshare_llm_curated_sp_step_00_initialize" {
+  dataset_id      = var.bigquery_rideshare_llm_curated_dataset
+  routine_id      = "sp_step_00_initialize"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = templatefile("../sql-scripts/rideshare_llm_curated/sp_step_00_initialize.sql", 
+  { 
+    project_id = var.project_id
+    project_number = var.project_number
+    
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+    bigquery_region = var.bigquery_region
+    gcp_account_name = var.gcp_account_name
+
+    bigquery_rideshare_llm_raw_dataset = var.bigquery_rideshare_llm_raw_dataset
+    bigquery_rideshare_llm_enriched_dataset = var.bigquery_rideshare_llm_enriched_dataset
+    bigquery_rideshare_llm_curated_dataset = var.bigquery_rideshare_llm_curated_dataset
+
+    gcs_rideshare_lakehouse_raw_bucket = var.gcs_rideshare_lakehouse_raw_bucket
   })
 }

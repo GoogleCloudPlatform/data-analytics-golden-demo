@@ -195,6 +195,7 @@ terraform apply \
   -var="cloud_sql_region=europe-west1" \
   -var="cloud_sql_zone=europe-west1-b" \
   -var="datastream_region=europe-west1" \
+  -var="colab_enterprise_region=us-central1" \
   -var="default_region=europe-west1" \
   -var="default_zone=europe-west1-b"
 
@@ -271,6 +272,7 @@ then
       -var="cloud_sql_region=europe-west1" \
       -var="cloud_sql_zone=europe-west1-b" \
       -var="datastream_region=europe-west1" \
+      -var="colab_enterprise_region=us-central1" \
       -var="default_region=europe-west1" \
       -var="default_zone=europe-west1-b"
 

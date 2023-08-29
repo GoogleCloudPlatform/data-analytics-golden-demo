@@ -124,11 +124,18 @@ with airflow.DAG('run-all-dags',
                 "query": sp_datastream_cdc_data,
                 "useLegacySql": False,
             }
-        })       
+        }) 
+
+    sample_rideshare_llm_hydrate_data = TriggerDagRunOperator(
+        task_id="sample_rideshare_llm_hydrate_data",
+        trigger_dag_id="sample-rideshare-llm-hydrate-data",
+        wait_for_completion=True
+    )             
     
     # DAG Graph
     step_01_taxi_data_download >> [step_02_taxi_data_processing, sample_seed_unstructured_data, sample_rideshare_download_images]
     step_02_taxi_data_processing >> [step_03_hydrate_tables, sample_rideshare_website]
     step_03_hydrate_tables >> [sample_dataflow_start_streaming_job, sp_datastream_cdc_data, sample_rideshare_hydrate_data]
+    sample_rideshare_llm_hydrate_data
 
 # [END dag]

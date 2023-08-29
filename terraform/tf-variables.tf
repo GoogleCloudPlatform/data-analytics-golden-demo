@@ -287,9 +287,15 @@ variable "datastream_region" {
   }
 }
 
-
-
-
+variable "colab_enterprise_region" {
+  type        = string
+  description = "The GCP region for Colab Enterprise (should be close to your BigQuery region)."
+  default     = "us-central1"
+  validation {
+    condition     = length(var.colab_enterprise_region) > 0
+    error_message = "The Colal Enterprise region is required."
+  }
+}
 
 
 ########################################################################################################

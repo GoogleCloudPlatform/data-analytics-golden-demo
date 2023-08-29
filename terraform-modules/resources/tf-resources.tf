@@ -54,6 +54,7 @@ variable "dataproc_serverless_region" {}
 variable "cloud_sql_region" {}
 variable "cloud_sql_zone" {}
 variable "datastream_region" {}
+variable "colab_enterprise_region" {}
 
 variable "storage_bucket" {}
 variable "spanner_config" {}
@@ -89,6 +90,19 @@ variable "bigquery_rideshare_lakehouse_enriched_dataset" {
 variable "bigquery_rideshare_lakehouse_curated_dataset" {
   type        = string
   default     = "rideshare_lakehouse_curated"
+}
+
+variable "bigquery_rideshare_llm_raw_dataset" {
+  type        = string
+  default     = "rideshare_llm_raw"
+}
+variable "bigquery_rideshare_llm_enriched_dataset" {
+  type        = string
+  default     = "rideshare_llm_enriched"
+}
+variable "bigquery_rideshare_llm_curated_dataset" {
+  type        = string
+  default     = "rideshare_llm_curated"
 }
 
 ####################################################################################
@@ -732,6 +746,10 @@ resource "google_composer_environment" "composer_env" {
         ENV_RIDESHARE_LAKEHOUSE_ENRICHED_DATASET = var.bigquery_rideshare_lakehouse_enriched_dataset
         ENV_RIDESHARE_LAKEHOUSE_CURATED_DATASET  = var.bigquery_rideshare_lakehouse_curated_dataset
 
+        ENV_RIDESHARE_LLM_RAW_DATASET            = var.bigquery_rideshare_llm_raw_dataset
+        ENV_RIDESHARE_LLM_ENRICHED_DATASET       = var.bigquery_rideshare_llm_enriched_dataset
+        ENV_RIDESHARE_LLM_CURATED_DATASET        = var.bigquery_rideshare_llm_curated_dataset
+
         ENV_TERRAFORM_SERVICE_ACCOUNT            = var.terraform_service_account
       }
     }
@@ -810,7 +828,7 @@ resource "google_bigquery_dataset" "rideshare_lakehouse_raw_dataset" {
   project       = var.project_id
   dataset_id    = var.bigquery_rideshare_lakehouse_raw_dataset
   friendly_name = var.bigquery_rideshare_lakehouse_raw_dataset
-  description   = "This contains the rideshare plus raw zone"
+  description   = "This contains the Rideshare Plus Analytics Raw Zone"
   location      = var.bigquery_region
 }
 
@@ -818,7 +836,7 @@ resource "google_bigquery_dataset" "rideshare_lakehouse_enriched_dataset" {
   project       = var.project_id
   dataset_id    = var.bigquery_rideshare_lakehouse_enriched_dataset
   friendly_name = var.bigquery_rideshare_lakehouse_enriched_dataset
-  description   = "This contains the rideshare plus enriched zone"
+  description   = "This contains the Rideshare Plus Analytics Curated Zone"
   location      = var.bigquery_region
 }
 
@@ -826,15 +844,33 @@ resource "google_bigquery_dataset" "rideshare_lakehouse_curated_dataset" {
   project       = var.project_id
   dataset_id    = var.bigquery_rideshare_lakehouse_curated_dataset
   friendly_name = var.bigquery_rideshare_lakehouse_curated_dataset
-  description   = "This contains the rideshare plus curated zone"
+  description   = "This contains the Rideshare Plus Analytics Curated Zone"
   location      = var.bigquery_region
 }
 
+resource "google_bigquery_dataset" "rideshare_llm_raw_dataset" {
+  project       = var.project_id
+  dataset_id    = var.bigquery_rideshare_llm_raw_dataset
+  friendly_name = var.bigquery_rideshare_llm_raw_dataset
+  description   = "This contains the Rideshare Plus LLM Raw Zone"
+  location      = var.bigquery_region
+}
 
+resource "google_bigquery_dataset" "rideshare_llm_enriched_dataset" {
+  project       = var.project_id
+  dataset_id    = var.bigquery_rideshare_llm_enriched_dataset
+  friendly_name = var.bigquery_rideshare_llm_enriched_dataset
+  description   = "This contains the Rideshare Plus LLM Enriched Zone"
+  location      = var.bigquery_region
+}
 
-
-
-
+resource "google_bigquery_dataset" "ideshare_llm_curated_dataset" {
+  project       = var.project_id
+  dataset_id    = var.bigquery_rideshare_llm_curated_dataset
+  friendly_name = var.bigquery_rideshare_llm_curated_dataset
+  description   = "This contains the Rideshare Plus LLM Curated Zone"
+  location      = var.bigquery_region
+}
 
 resource "google_bigquery_dataset" "aws_omni_biglake_dataset" {
   project       = var.project_id
@@ -2171,6 +2207,83 @@ resource "google_bigquery_dataset_access" "pubsub_access_bq_taxi_dataset" {
 
 
 ####################################################################################
+# Colab Enterprise
+####################################################################################
+# Subnet for dataproc cluster
+resource "google_compute_subnetwork" "colab_subnet" {
+  project       = var.project_id
+  name          = "colab-subnet"
+  ip_cidr_range = "10.8.0.0/16"
+  region        = var.colab_enterprise_region
+  network       = google_compute_network.default_network.id
+  private_ip_google_access = true
+
+  depends_on = [
+    google_compute_network.default_network,
+  ]
+}
+
+# https://cloud.google.com/vertex-ai/docs/reference/rest/v1beta1/projects.locations.notebookRuntimeTemplates
+resource "null_resource" "colab_runtime_template" {
+provisioner "local-exec" {
+  when    = create
+  command = <<EOF
+  curl -X POST \
+  https://${var.colab_enterprise_region}-aiplatform.googleapis.com/ui/projects/${var.project_id}/locations/${var.colab_enterprise_region}/notebookRuntimeTemplates?notebookRuntimeTemplateId=colab-enterprise-template \
+  --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
+  --header "Content-Type: application/json" \
+  --data '{
+        displayName: "colab-enterprise-template", 
+        description: "colab-enterprise-template",
+        isDefault: true,
+        machineSpec: {
+          machineType: "e2-highmem-4"
+        },
+        dataPersistentDiskSpec: {
+          diskType: "pd-standard",
+          diskSizeGb: 500,
+        },
+        networkSpec: {
+          enableInternetAccess: false,
+          network: "projects/${var.project_id}/global/networks/vpc-main", 
+          subnetwork: "projects/${var.project_id}/regions/${var.colab_enterprise_region}/subnetworks/colab-subnet"
+        }
+  }'
+EOF
+  }
+  depends_on = [
+    google_compute_subnetwork.colab_subnet
+    ]
+}
+
+# https://cloud.google.com/vertex-ai/docs/reference/rest/v1beta1/projects.locations.notebookRuntimes
+resource "null_resource" "colab_runtime" {
+provisioner "local-exec" {
+  when    = create
+  command = <<EOF
+  curl -X POST \
+  https://${var.colab_enterprise_region}-aiplatform.googleapis.com/ui/projects/${var.project_id}/locations/${var.colab_enterprise_region}/notebookRuntimes:assign \
+  --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
+  --header "Content-Type: application/json" \
+  --data '{
+      notebookRuntimeTemplate: "projects/${var.project_number}/locations/${var.colab_enterprise_region}/notebookRuntimeTemplates/colab-enterprise-template",
+      notebookRuntime: {
+        displayName: "colab-enterprise-runtime", 
+        description: "colab-enterprise-runtime",
+        runtimeUser: "${var.gcp_account_name}"
+      }
+}'  
+EOF
+  }
+  depends_on = [
+    google_compute_subnetwork.colab_subnet,
+    null_resource.colab_runtime_template
+    ]
+}
+
+
+
+####################################################################################
 # Outputs
 ####################################################################################
 
@@ -2312,4 +2425,16 @@ output "gcs_rideshare_lakehouse_curated_bucket" {
 
 output "demo_rest_api_service_uri" { 
   value = google_cloudfunctions2_function.rideshare_plus_function.service_config[0].uri
+}
+
+output "bigquery_rideshare_llm_raw_dataset" {
+  value = var.bigquery_rideshare_llm_raw_dataset
+}
+
+output "bigquery_rideshare_llm_enriched_dataset" {
+  value = var.bigquery_rideshare_llm_enriched_dataset
+}
+
+output "bigquery_rideshare_llm_curated_dataset" {
+  value = var.bigquery_rideshare_llm_curated_dataset
 }
