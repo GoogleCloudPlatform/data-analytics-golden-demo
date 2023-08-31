@@ -645,8 +645,8 @@ resource "google_dataplex_lake" "rideshare-data-lake" {
   project      = var.project_id
   location     = var.dataplex_region
   name         = "rideshare-lakehouse-${var.random_extension}"
-  description  = "Rideshare Lakehouse"
-  display_name = "Rideshare Lakehouse"
+  description  = "Rideshare AI Lakehouse"
+  display_name = "Rideshare AI Lakehouse"
 
   # Each Data Lake requires its own HMS
   /*
@@ -882,6 +882,31 @@ resource "google_dataplex_asset" "rideshare-raw-structured" {
   ]
 }
 
+resource "google_dataplex_asset" "rideshare-llm-raw-structured" {
+  project       = var.project_id
+  location      = var.dataplex_region
+  lake          = google_dataplex_lake.rideshare-data-lake.name
+  dataplex_zone = google_dataplex_zone.rideshare-raw-zone.name
+  name          = "rideshare-llm-raw-structured-${var.random_extension}"
+  description   = "Raw LLM BigQuery Dataset - Structured"
+  display_name  = "Raw LLM BigQuery Dataset - Structured"  
+
+  discovery_spec { 
+    enabled = true 
+  }
+
+  resource_spec {
+    name = "projects/${var.project_id}/datasets/${var.rideshare_llm_raw_dataset}"
+    type = "BIGQUERY_DATASET"
+  }
+
+  depends_on = [
+    google_dataplex_lake.rideshare-data-lake,
+    google_dataplex_zone.rideshare-raw-zone
+  ]
+}
+
+
 /*
 # Enriched
 gcloud dataplex zones create "rideshare-enriched-zone-${RANDOM_EXTENSION}" \
@@ -997,6 +1022,31 @@ resource "google_dataplex_asset" "rideshare-enriched-structured" {
 }
 
 
+resource "google_dataplex_asset" "rideshare-llm-enriched-structured" {
+  project       = var.project_id
+  location      = var.dataplex_region
+  lake          = google_dataplex_lake.rideshare-data-lake.name
+  dataplex_zone = google_dataplex_zone.rideshare-enriched-zone.name
+  name          = "rideshare-llm-enriched-structured-${var.random_extension}"
+  description   = "Enriched LLM BigQuery Dataset - Structured"
+  display_name  = "Enriched LLM BigQuery Dataset - Structured"    
+
+  discovery_spec { 
+    enabled = true 
+  }
+
+  resource_spec {
+    name = "projects/${var.project_id}/datasets/${var.rideshare_llm_enriched_dataset}"
+    type = "BIGQUERY_DATASET"
+  }
+
+  depends_on = [
+    google_dataplex_lake.rideshare-data-lake,
+    google_dataplex_zone.rideshare-enriched-zone
+  ]
+}
+
+
 /*
 # Curated
 gcloud dataplex zones create "rideshare-curated-zone-${RANDOM_EXTENSION}" \
@@ -1101,6 +1151,31 @@ resource "google_dataplex_asset" "rideshare-curated-structured" {
 
   resource_spec {
     name = "projects/${var.project_id}/datasets/${var.rideshare_curated_dataset}"
+    type = "BIGQUERY_DATASET"
+  }
+
+  depends_on = [
+    google_dataplex_lake.rideshare-data-lake,
+    google_dataplex_zone.rideshare-curated-zone
+  ]
+}
+
+
+resource "google_dataplex_asset" "rideshare-llm-curated-structured" {
+  project       = var.project_id
+  location      = var.dataplex_region
+  lake          = google_dataplex_lake.rideshare-data-lake.name
+  dataplex_zone = google_dataplex_zone.rideshare-curated-zone.name
+  name          = "rideshare-llm-curated-structured-${var.random_extension}"
+  description   = "Curated LLM BigQuery Dataset - Structured"
+  display_name  = "Curated LLM BigQuery Dataset - Structured"
+
+  discovery_spec { 
+    enabled = true 
+  }
+
+  resource_spec {
+    name = "projects/${var.project_id}/datasets/${var.rideshare_llm_curated_dataset}"
     type = "BIGQUERY_DATASET"
   }
 

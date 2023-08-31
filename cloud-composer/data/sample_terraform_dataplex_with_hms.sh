@@ -102,7 +102,10 @@ terraform apply {{ params.terraform_destroy }}  -auto-approve \
   -var="rideshare_curated_bucket={{ params.rideshare_curated_bucket }}" \
   -var="rideshare_raw_dataset={{ params.rideshare_raw_dataset }}" \
   -var="rideshare_enriched_dataset={{ params.rideshare_enriched_dataset }}" \
-  -var="rideshare_curated_dataset={{ params.rideshare_curated_dataset }}"
+  -var="rideshare_curated_dataset={{ params.rideshare_curated_dataset }}" \
+  -var="rideshare_llm_raw_dataset={{ params.rideshare_llm_raw_dataset }}" \
+  -var="rideshare_llm_enriched_dataset={{ params.rideshare_llm_enriched_dataset }}" \
+  -var="rideshare_llm_curated_dataset={{ params.rideshare_llm_curated_dataset }}"
 '  
 
 # Run the Terraform Apply
@@ -120,7 +123,11 @@ terraform apply {{ params.terraform_destroy }}  -auto-approve \
   -var="rideshare_curated_bucket={{ params.rideshare_curated_bucket }}" \
   -var="rideshare_raw_dataset={{ params.rideshare_raw_dataset }}" \
   -var="rideshare_enriched_dataset={{ params.rideshare_enriched_dataset }}" \
-  -var="rideshare_curated_dataset={{ params.rideshare_curated_dataset }}"
+  -var="rideshare_curated_dataset={{ params.rideshare_curated_dataset }}" \
+  -var="rideshare_llm_raw_dataset={{ params.rideshare_llm_raw_dataset }}" \
+  -var="rideshare_llm_enriched_dataset={{ params.rideshare_llm_enriched_dataset }}" \
+  -var="rideshare_llm_curated_dataset={{ params.rideshare_llm_curated_dataset }}"
+
 
 
 # Print exit code

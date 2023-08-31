@@ -152,3 +152,30 @@ variable "rideshare_curated_dataset" {
     error_message = "The rideshare_curated_dataset is required."
   }
 }
+
+variable "rideshare_llm_raw_dataset" {
+  type        = string
+  description = "The rideshare_raw_dataset"
+  validation {
+    condition     = length(var.rideshare_llm_raw_dataset) > 0
+    error_message = "The rideshare_llm_raw_dataset is required."
+  }
+}
+
+variable "rideshare_llm_enriched_dataset" {
+  type        = string
+  description = "The rideshare_llm_enriched_dataset"
+  validation {
+    condition     = length(var.rideshare_llm_enriched_dataset) > 0
+    error_message = "The rideshare_llm_enriched_dataset is required."
+  }
+}
+
+variable "rideshare_llm_curated_dataset" {
+  type        = string
+  description = "The rideshare_llm_curated_dataset"
+  validation {
+    condition     = length(var.rideshare_llm_curated_dataset) > 0
+    error_message = "The rideshare_llm_curated_dataset is required."
+  }
+}
