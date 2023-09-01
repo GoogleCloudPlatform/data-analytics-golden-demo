@@ -1431,6 +1431,7 @@ resource "google_storage_bucket_object" "deploy_airflow_dag_sample-rideshare-ice
 #     ]  
 # }
 
+
 # Upload DAG
 resource "google_storage_bucket_object" "deploy_airflow_dag_sample-rideshare-run-data-quality" {
   name   = "${local.local_composer_dag_path}/sample-rideshare-run-data-quality.py"
@@ -1537,6 +1538,22 @@ resource "google_storage_bucket_object" "deploy_rideshare_website_www_reports" {
 ####################################################################################
 # Deploy Cobal notebooks
 ####################################################################################
+resource "google_storage_bucket_object" "deploy_notebook_rideshare_llm_ai_lakehouse_demo" {
+  name   = "colab-enterprise/rideshare-llm/rideshare_llm_ai_lakehouse_demo.ipynb"
+  bucket = "code-${var.storage_bucket}"
+  content = templatefile("../colab-enterprise/rideshare-llm/rideshare_llm_ai_lakehouse_demo.ipynb", 
+  { 
+    project_id = var.project_id
+
+    bigquery_rideshare_llm_raw_dataset = var.bigquery_rideshare_llm_raw_dataset
+    bigquery_rideshare_llm_enriched_dataset = var.bigquery_rideshare_llm_enriched_dataset
+    bigquery_rideshare_llm_curated_dataset = var.bigquery_rideshare_llm_curated_dataset
+
+    gcs_rideshare_lakehouse_raw_bucket = var.gcs_rideshare_lakehouse_raw_bucket    
+  })
+  depends_on = []  
+}
+
 resource "google_storage_bucket_object" "deploy_notebook_rideshare_llm_step_01_customer_sentiment_analysis" {
   name   = "colab-enterprise/rideshare-llm/rideshare_llm_step_01_customer_sentiment_analysis.ipynb"
   bucket = "code-${var.storage_bucket}"

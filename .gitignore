@@ -48,3 +48,4 @@ iam_restrictAuthorizedNetworks.yaml
 source_config.json
 .venv/*
 gcloud-storage-copy.sh
+cloud-run/rideshare-plus-website.zip

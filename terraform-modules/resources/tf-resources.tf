@@ -72,37 +72,37 @@ variable "terraform_service_account" {}
 
 # Hardcoded
 variable "bigquery_taxi_dataset" {
-  type        = string
-  default     = "taxi_dataset"
+  type    = string
+  default = "taxi_dataset"
 }
 variable "bigquery_thelook_ecommerce_dataset" {
-  type        = string
-  default     = "thelook_ecommerce"
+  type    = string
+  default = "thelook_ecommerce"
 }
 variable "bigquery_rideshare_lakehouse_raw_dataset" {
-  type        = string
-  default     = "rideshare_lakehouse_raw"
+  type    = string
+  default = "rideshare_lakehouse_raw"
 }
 variable "bigquery_rideshare_lakehouse_enriched_dataset" {
-  type        = string
-  default     = "rideshare_lakehouse_enriched"
+  type    = string
+  default = "rideshare_lakehouse_enriched"
 }
 variable "bigquery_rideshare_lakehouse_curated_dataset" {
-  type        = string
-  default     = "rideshare_lakehouse_curated"
+  type    = string
+  default = "rideshare_lakehouse_curated"
 }
 
 variable "bigquery_rideshare_llm_raw_dataset" {
-  type        = string
-  default     = "rideshare_llm_raw"
+  type    = string
+  default = "rideshare_llm_raw"
 }
 variable "bigquery_rideshare_llm_enriched_dataset" {
-  type        = string
-  default     = "rideshare_llm_enriched"
+  type    = string
+  default = "rideshare_llm_enriched"
 }
 variable "bigquery_rideshare_llm_curated_dataset" {
-  type        = string
-  default     = "rideshare_llm_curated"
+  type    = string
+  default = "rideshare_llm_curated"
 }
 
 ####################################################################################
@@ -184,8 +184,8 @@ resource "google_project_iam_custom_role" "customconnectiondelegate" {
   role_id     = "CustomConnectionDelegate"
   title       = "Custom Connection Delegate"
   description = "Used for BQ connections"
-  permissions = ["biglake.tables.create","biglake.tables.delete","biglake.tables.get",
-  "biglake.tables.list","biglake.tables.lock","biglake.tables.update",
+  permissions = ["biglake.tables.create", "biglake.tables.delete", "biglake.tables.get",
+    "biglake.tables.list", "biglake.tables.lock", "biglake.tables.update",
   "bigquery.connections.delegate"]
 }
 
@@ -210,11 +210,11 @@ resource "google_compute_network" "default_network" {
 }
 
 resource "google_compute_subnetwork" "compute_subnet" {
-  project       = var.project_id
-  name          = "compute-subnet"
-  ip_cidr_range = "10.1.0.0/16"
-  region        = var.cloud_sql_region
-  network       = google_compute_network.default_network.id
+  project                  = var.project_id
+  name                     = "compute-subnet"
+  ip_cidr_range            = "10.1.0.0/16"
+  region                   = var.cloud_sql_region
+  network                  = google_compute_network.default_network.id
   private_ip_google_access = true
 
   depends_on = [
@@ -224,9 +224,9 @@ resource "google_compute_subnetwork" "compute_subnet" {
 
 # Firewall for NAT Router
 resource "google_compute_firewall" "subnet_firewall_rule" {
-  project  = var.project_id
-  name     = "subnet-nat-firewall"
-  network  = google_compute_network.default_network.id
+  project = var.project_id
+  name    = "subnet-nat-firewall"
+  network = google_compute_network.default_network.id
 
   allow {
     protocol = "icmp"
@@ -239,7 +239,7 @@ resource "google_compute_firewall" "subnet_firewall_rule" {
   allow {
     protocol = "udp"
   }
-  source_ranges = ["10.1.0.0/16","10.2.0.0/16","10.3.0.0/16","10.4.0.0/16","10.5.0.0/16"]
+  source_ranges = ["10.1.0.0/16", "10.2.0.0/16", "10.3.0.0/16", "10.4.0.0/16", "10.5.0.0/16"]
 
   depends_on = [
     google_compute_subnetwork.composer_subnet,
@@ -251,27 +251,27 @@ resource "google_compute_firewall" "subnet_firewall_rule" {
 
 # We want a NAT for every region
 locals {
-   distinctRegions = distinct([ var.composer_region,
-                                var.dataform_region,
-                                var.dataplex_region,
-                                var.dataproc_region,
-                                var.dataflow_region,
-                                var.bigquery_non_multi_region,
-                                var.spanner_region,
-                                var.datafusion_region,
-                                var.vertex_ai_region,  
-                                var.cloud_function_region,
-                                var.data_catalog_region,
-                                var.dataproc_serverless_region,
-                                var.cloud_sql_region,
-                                var.datastream_region
-                              ])
+  distinctRegions = distinct([var.composer_region,
+    var.dataform_region,
+    var.dataplex_region,
+    var.dataproc_region,
+    var.dataflow_region,
+    var.bigquery_non_multi_region,
+    var.spanner_region,
+    var.datafusion_region,
+    var.vertex_ai_region,
+    var.cloud_function_region,
+    var.data_catalog_region,
+    var.dataproc_serverless_region,
+    var.cloud_sql_region,
+    var.datastream_region
+  ])
 }
 
 resource "google_compute_router" "nat-router-distinct-regions" {
   count   = length(local.distinctRegions)
   name    = "nat-router-${local.distinctRegions[count.index]}"
-  region  = "${local.distinctRegions[count.index]}"
+  region  = local.distinctRegions[count.index]
   network = google_compute_network.default_network.id
 
   depends_on = [
@@ -282,8 +282,8 @@ resource "google_compute_router" "nat-router-distinct-regions" {
 resource "google_compute_router_nat" "nat-config-distinct-regions" {
   count                              = length(local.distinctRegions)
   name                               = "nat-config-${local.distinctRegions[count.index]}"
-  router                             = "${google_compute_router.nat-router-distinct-regions[count.index].name}"
-  region                             = "${local.distinctRegions[count.index]}"
+  router                             = google_compute_router.nat-router-distinct-regions[count.index].name
+  region                             = local.distinctRegions[count.index]
   nat_ip_allocate_option             = "AUTO_ONLY"
   source_subnetwork_ip_ranges_to_nat = "ALL_SUBNETWORKS_ALL_IP_RANGES"
 
@@ -298,16 +298,16 @@ resource "google_compute_router_nat" "nat-config-distinct-regions" {
 # Firewall rule for Cloud Shell to SSH in Compute VMs
 # A compute VM will be deployed as a SQL Reverse Proxy for Datastream private connectivity
 resource "google_compute_firewall" "cloud_shell_ssh_firewall_rule" {
-  project  = var.project_id
-  name     = "cloud-shell-ssh-firewall-rule"
-  network  = google_compute_network.default_network.id
+  project = var.project_id
+  name    = "cloud-shell-ssh-firewall-rule"
+  network = google_compute_network.default_network.id
 
   allow {
     protocol = "tcp"
     ports    = ["22"]
   }
 
-  direction = "INGRESS"
+  direction   = "INGRESS"
   target_tags = ["ssh-firewall-tag"]
 
   source_ranges = ["35.235.240.0/20"]
@@ -320,9 +320,9 @@ resource "google_compute_firewall" "cloud_shell_ssh_firewall_rule" {
 
 # Datastream ingress rules for SQL Reverse Proxy communication
 resource "google_compute_firewall" "datastream_ingress_rule_firewall_rule" {
-  project  = var.project_id
-  name     = "datastream-ingress-rule"
-  network  = google_compute_network.default_network.id
+  project = var.project_id
+  name    = "datastream-ingress-rule"
+  network = google_compute_network.default_network.id
 
   allow {
     protocol = "tcp"
@@ -331,7 +331,7 @@ resource "google_compute_firewall" "datastream_ingress_rule_firewall_rule" {
 
   direction = "INGRESS"
 
-  source_ranges = ["10.6.0.0/16","10.7.0.0/29"]
+  source_ranges = ["10.6.0.0/16", "10.7.0.0/29"]
 
   depends_on = [
     google_compute_network.default_network
@@ -341,9 +341,9 @@ resource "google_compute_firewall" "datastream_ingress_rule_firewall_rule" {
 
 # Datastream egress rules for SQL Reverse Proxy communication
 resource "google_compute_firewall" "datastream_egress_rule_firewall_rule" {
-  project  = var.project_id
-  name     = "datastream-egress-rule"
-  network  = google_compute_network.default_network.id
+  project = var.project_id
+  name    = "datastream-egress-rule"
+  network = google_compute_network.default_network.id
 
   allow {
     protocol = "tcp"
@@ -352,7 +352,7 @@ resource "google_compute_firewall" "datastream_egress_rule_firewall_rule" {
 
   direction = "EGRESS"
 
-  destination_ranges = ["10.6.0.0/16","10.7.0.0/29"]
+  destination_ranges = ["10.6.0.0/16", "10.7.0.0/29"]
 
   depends_on = [
     google_compute_network.default_network
@@ -362,19 +362,19 @@ resource "google_compute_firewall" "datastream_egress_rule_firewall_rule" {
 
 # Create the Datastream Private Connection (takes a while so it is done here and not created on the fly in Airflow)
 resource "google_datastream_private_connection" "datastream_cloud-sql-private-connect" {
-    project               = var.project_id
-    display_name          = "cloud-sql-private-connect"
-    location              = var.datastream_region
-    private_connection_id = "cloud-sql-private-connect"
+  project               = var.project_id
+  display_name          = "cloud-sql-private-connect"
+  location              = var.datastream_region
+  private_connection_id = "cloud-sql-private-connect"
 
-    vpc_peering_config {
-        vpc = google_compute_network.default_network.id
-        subnet = "10.7.0.0/29"
-    }
+  vpc_peering_config {
+    vpc    = google_compute_network.default_network.id
+    subnet = "10.7.0.0/29"
+  }
 
   depends_on = [
     google_compute_network.default_network
-  ]    
+  ]
 }
 
 
@@ -391,7 +391,7 @@ resource "google_compute_global_address" "google_compute_global_address_vpc_main
 
   depends_on = [
     google_compute_network.default_network
-  ] 
+  ]
 }
 
 
@@ -406,13 +406,13 @@ resource "google_service_networking_connection" "google_service_networking_conne
   depends_on = [
     google_compute_network.default_network,
     google_compute_global_address.google_compute_global_address_vpc_main
-  ] 
+  ]
 }
 
 # Force the service account to get created so we can grant permisssions
 resource "google_project_service_identity" "service_identity_servicenetworking" {
-  project  = var.project_id
-  service  = "servicenetworking.googleapis.com"
+  project = var.project_id
+  service = "servicenetworking.googleapis.com"
   depends_on = [
     google_compute_network.default_network,
     google_service_networking_connection.google_service_networking_connection_default
@@ -427,9 +427,9 @@ resource "time_sleep" "service_identity_servicenetworking_time_delay" {
 
 # Add permissions for the database to get created
 resource "google_project_iam_member" "iam_service_networking" {
-  project  = var.project_id
-  role     = "roles/servicenetworking.serviceAgent"
-  member   = "serviceAccount:${google_project_service_identity.service_identity_servicenetworking.email}"
+  project = var.project_id
+  role    = "roles/servicenetworking.serviceAgent"
+  member  = "serviceAccount:${google_project_service_identity.service_identity_servicenetworking.email}"
   #member   = "serviceAccount:service-${var.project_number}@service-networking.iam.gserviceaccount.com "
 
   depends_on = [
@@ -445,11 +445,11 @@ resource "google_project_iam_member" "iam_service_networking" {
 ####################################################################################
 # Subnet for dataproc cluster
 resource "google_compute_subnetwork" "dataproc_subnet" {
-  project       = var.project_id
-  name          = "dataproc-subnet"
-  ip_cidr_range = "10.3.0.0/16"
-  region        = var.dataproc_region
-  network       = google_compute_network.default_network.id
+  project                  = var.project_id
+  name                     = "dataproc-subnet"
+  ip_cidr_range            = "10.3.0.0/16"
+  region                   = var.dataproc_region
+  network                  = google_compute_network.default_network.id
   private_ip_google_access = true
 
   depends_on = [
@@ -459,9 +459,9 @@ resource "google_compute_subnetwork" "dataproc_subnet" {
 
 # Firewall rule for dataproc cluster
 resource "google_compute_firewall" "dataproc_subnet_firewall_rule" {
-  project  = var.project_id
-  name     = "dataproc-firewall"
-  network  = google_compute_network.default_network.id
+  project = var.project_id
+  name    = "dataproc-firewall"
+  network = google_compute_network.default_network.id
 
   allow {
     protocol = "icmp"
@@ -503,9 +503,9 @@ resource "google_service_account" "dataproc_service_account" {
 
 # Grant require worker role
 resource "google_project_iam_member" "dataproc_service_account_worker_role" {
-  project  = var.project_id
-  role     = "roles/dataproc.worker"
-  member   = "serviceAccount:${google_service_account.dataproc_service_account.email}"
+  project = var.project_id
+  role    = "roles/dataproc.worker"
+  member  = "serviceAccount:${google_service_account.dataproc_service_account.email}"
 
   depends_on = [
     google_service_account.dataproc_service_account
@@ -515,9 +515,9 @@ resource "google_project_iam_member" "dataproc_service_account_worker_role" {
 
 # Grant editor (too high) to service account
 resource "google_project_iam_member" "dataproc_service_account_editor_role" {
-  project  = var.project_id
-  role     = "roles/editor"
-  member   = "serviceAccount:${google_service_account.dataproc_service_account.email}"
+  project = var.project_id
+  role    = "roles/editor"
+  member  = "serviceAccount:${google_service_account.dataproc_service_account.email}"
 
   depends_on = [
     google_project_iam_member.dataproc_service_account_worker_role
@@ -526,13 +526,13 @@ resource "google_project_iam_member" "dataproc_service_account_editor_role" {
 
 # So dataproc can call theh BigLake connection in BigQuery
 resource "google_project_iam_member" "dataproc_customconnectiondelegate" {
-  project  = var.project_id
-  role     = google_project_iam_custom_role.customconnectiondelegate.id
-  member   = "serviceAccount:${google_service_account.dataproc_service_account.email}"
+  project = var.project_id
+  role    = google_project_iam_custom_role.customconnectiondelegate.id
+  member  = "serviceAccount:${google_service_account.dataproc_service_account.email}"
 
   depends_on = [
     google_project_iam_member.dataproc_service_account_editor_role
-  ]  
+  ]
 }
 
 # Create the cluster
@@ -604,17 +604,17 @@ resource "google_dataproc_cluster" "mycluster" {
 # Cloud Composer v2 API Service Agent Extension
 # The below does not overwrite at the Org level like GCP docs: https://cloud.google.com/composer/docs/composer-2/create-environments#terraform
 resource "google_project_iam_member" "cloudcomposer_account_service_agent_v2_ext" {
-  project  = var.project_id
-  role     = "roles/composer.ServiceAgentV2Ext"
-  member   = "serviceAccount:service-${var.project_number}@cloudcomposer-accounts.iam.gserviceaccount.com"
+  project = var.project_id
+  role    = "roles/composer.ServiceAgentV2Ext"
+  member  = "serviceAccount:service-${var.project_number}@cloudcomposer-accounts.iam.gserviceaccount.com"
 }
 
 
 # Cloud Composer API Service Agent
 resource "google_project_iam_member" "cloudcomposer_account_service_agent" {
-  project  = var.project_id
-  role     = "roles/composer.serviceAgent"
-  member   = "serviceAccount:service-${var.project_number}@cloudcomposer-accounts.iam.gserviceaccount.com"
+  project = var.project_id
+  role    = "roles/composer.serviceAgent"
+  member  = "serviceAccount:service-${var.project_number}@cloudcomposer-accounts.iam.gserviceaccount.com"
 
   depends_on = [
     google_project_iam_member.cloudcomposer_account_service_agent_v2_ext
@@ -623,11 +623,11 @@ resource "google_project_iam_member" "cloudcomposer_account_service_agent" {
 
 
 resource "google_compute_subnetwork" "composer_subnet" {
-  project       = var.project_id
-  name          = "composer-subnet"
-  ip_cidr_range = "10.2.0.0/16"
-  region        = var.composer_region
-  network       = google_compute_network.default_network.id
+  project                  = var.project_id
+  name                     = "composer-subnet"
+  ip_cidr_range            = "10.2.0.0/16"
+  region                   = var.composer_region
+  network                  = google_compute_network.default_network.id
   private_ip_google_access = true
 
   depends_on = [
@@ -644,9 +644,9 @@ resource "google_service_account" "composer_service_account" {
 
 
 resource "google_project_iam_member" "composer_service_account_worker_role" {
-  project  = var.project_id
-  role     = "roles/composer.worker"
-  member   = "serviceAccount:${google_service_account.composer_service_account.email}"
+  project = var.project_id
+  role    = "roles/composer.worker"
+  member  = "serviceAccount:${google_service_account.composer_service_account.email}"
 
   depends_on = [
     google_service_account.composer_service_account
@@ -658,9 +658,9 @@ resource "google_project_iam_member" "composer_service_account_worker_role" {
 # This role can be scaled down once the DAGs are created (the DAGS do high level Owner automation - just for demo purposes)
 resource "google_project_iam_member" "composer_service_account_bq_admin_role" {
   # provider= google.service_principal_impersonation
-  project  = var.project_id
-  role     = "roles/owner"
-  member   = "serviceAccount:${google_service_account.composer_service_account.email}"
+  project = var.project_id
+  role    = "roles/owner"
+  member  = "serviceAccount:${google_service_account.composer_service_account.email}"
 
   depends_on = [
     google_project_iam_member.composer_service_account_worker_role
@@ -670,17 +670,17 @@ resource "google_project_iam_member" "composer_service_account_bq_admin_role" {
 # Let composer impersonation the service account that can change org policies (for demo purposes)
 # This account also will be running Terraform scripts and impersonating this account
 resource "google_service_account_iam_member" "cloudcomposer_service_account_impersonation" {
-  service_account_id ="projects/${var.project_id}/serviceAccounts/${var.project_id}@${var.project_id}.iam.gserviceaccount.com"
+  service_account_id = "projects/${var.project_id}/serviceAccounts/${var.project_id}@${var.project_id}.iam.gserviceaccount.com"
   role               = "roles/iam.serviceAccountTokenCreator"
   member             = "serviceAccount:${google_service_account.composer_service_account.email}"
-  depends_on         = [ google_project_iam_member.composer_service_account_bq_admin_role ]
+  depends_on         = [google_project_iam_member.composer_service_account_bq_admin_role]
 }
 
 # ActAs role
 resource "google_project_iam_member" "cloudcomposer_act_as" {
-  project  = var.project_id
-  role     = "roles/iam.serviceAccountUser"
-  member   = "serviceAccount:${google_service_account.composer_service_account.email}"
+  project = var.project_id
+  role    = "roles/iam.serviceAccountUser"
+  member  = "serviceAccount:${google_service_account.composer_service_account.email}"
 
   depends_on = [
     google_service_account_iam_member.cloudcomposer_service_account_impersonation
@@ -688,9 +688,9 @@ resource "google_project_iam_member" "cloudcomposer_act_as" {
 }
 
 resource "google_composer_environment" "composer_env" {
-  project  = var.project_id
-  name     = "data-analytics-demo-composer-2"
-  region   = var.composer_region
+  project = var.project_id
+  name    = "data-analytics-demo-composer-2"
+  region  = var.composer_region
 
   config {
 
@@ -699,35 +699,35 @@ resource "google_composer_environment" "composer_env" {
 
       pypi_packages = {
         psycopg2-binary = "==2.9.6"
-      }      
+      }
 
       env_variables = {
-        ENV_PROJECT_ID                           = var.project_id,
-        ENV_PROJECT_NUMBER                       = var.project_number,
+        ENV_PROJECT_ID     = var.project_id,
+        ENV_PROJECT_NUMBER = var.project_number,
 
-        ENV_RAW_BUCKET                           = "raw-${var.storage_bucket}",
-        ENV_PROCESSED_BUCKET                     = "processed-${var.storage_bucket}",
-        ENV_CODE_BUCKET                          = "code-${var.storage_bucket}",
+        ENV_RAW_BUCKET       = "raw-${var.storage_bucket}",
+        ENV_PROCESSED_BUCKET = "processed-${var.storage_bucket}",
+        ENV_CODE_BUCKET      = "code-${var.storage_bucket}",
 
-        ENV_COMPOSER_REGION                      = var.composer_region
-        ENV_DATAFORM_REGION                      = var.dataform_region
-        ENV_DATAPLEX_REGION                      = var.dataplex_region
-        ENV_DATAPROC_REGION                      = var.dataproc_region
-        ENV_DATAFLOW_REGION                      = var.dataflow_region
-        ENV_BIGQUERY_REGION                      = var.bigquery_region
-        ENV_BIGQUERY_NON_MULTI_REGION            = var.bigquery_non_multi_region
-        ENV_SPANNER_REGION                       = var.spanner_region
-        ENV_DATAFUSION_REGION                    = var.datafusion_region
-        ENV_VERTEX_AI_REGION                     = var.vertex_ai_region  
-        ENV_CLOUD_FUNCTION_REGION                = var.cloud_function_region
-        ENV_DATA_CATALOG_REGION                  = var.data_catalog_region
-        ENV_APPENGINE_REGION                     = var.appengine_region
-        ENV_DATAPROC_SERVERLESS_REGION           = var.dataproc_serverless_region
-        ENV_DATAPROC_SERVERLESS_SUBNET           = "projects/${var.project_id}/regions/${var.dataproc_serverless_region}/subnetworks/dataproc-serverless-subnet",
-        ENV_DATAPROC_SERVERLESS_SUBNET_NAME      = google_compute_subnetwork.dataproc_serverless_subnet.name,
-        ENV_CLOUD_SQL_REGION                     = var.cloud_sql_region,
-        ENV_CLOUD_SQL_ZONE                       = var.cloud_sql_zone,
-        ENV_DATASTREAM_REGION                    = var.datastream_region,
+        ENV_COMPOSER_REGION                 = var.composer_region
+        ENV_DATAFORM_REGION                 = var.dataform_region
+        ENV_DATAPLEX_REGION                 = var.dataplex_region
+        ENV_DATAPROC_REGION                 = var.dataproc_region
+        ENV_DATAFLOW_REGION                 = var.dataflow_region
+        ENV_BIGQUERY_REGION                 = var.bigquery_region
+        ENV_BIGQUERY_NON_MULTI_REGION       = var.bigquery_non_multi_region
+        ENV_SPANNER_REGION                  = var.spanner_region
+        ENV_DATAFUSION_REGION               = var.datafusion_region
+        ENV_VERTEX_AI_REGION                = var.vertex_ai_region
+        ENV_CLOUD_FUNCTION_REGION           = var.cloud_function_region
+        ENV_DATA_CATALOG_REGION             = var.data_catalog_region
+        ENV_APPENGINE_REGION                = var.appengine_region
+        ENV_DATAPROC_SERVERLESS_REGION      = var.dataproc_serverless_region
+        ENV_DATAPROC_SERVERLESS_SUBNET      = "projects/${var.project_id}/regions/${var.dataproc_serverless_region}/subnetworks/dataproc-serverless-subnet",
+        ENV_DATAPROC_SERVERLESS_SUBNET_NAME = google_compute_subnetwork.dataproc_serverless_subnet.name,
+        ENV_CLOUD_SQL_REGION                = var.cloud_sql_region,
+        ENV_CLOUD_SQL_ZONE                  = var.cloud_sql_zone,
+        ENV_DATASTREAM_REGION               = var.datastream_region,
 
         ENV_DATAPROC_BUCKET                      = "dataproc-${var.storage_bucket}",
         ENV_DATAPROC_SUBNET                      = "projects/${var.project_id}/regions/${var.dataproc_region}/subnetworks/dataproc-subnet",
@@ -746,11 +746,13 @@ resource "google_composer_environment" "composer_env" {
         ENV_RIDESHARE_LAKEHOUSE_ENRICHED_DATASET = var.bigquery_rideshare_lakehouse_enriched_dataset
         ENV_RIDESHARE_LAKEHOUSE_CURATED_DATASET  = var.bigquery_rideshare_lakehouse_curated_dataset
 
-        ENV_RIDESHARE_LLM_RAW_DATASET            = var.bigquery_rideshare_llm_raw_dataset
-        ENV_RIDESHARE_LLM_ENRICHED_DATASET       = var.bigquery_rideshare_llm_enriched_dataset
-        ENV_RIDESHARE_LLM_CURATED_DATASET        = var.bigquery_rideshare_llm_curated_dataset
+        ENV_RIDESHARE_LLM_RAW_DATASET      = var.bigquery_rideshare_llm_raw_dataset
+        ENV_RIDESHARE_LLM_ENRICHED_DATASET = var.bigquery_rideshare_llm_enriched_dataset
+        ENV_RIDESHARE_LLM_CURATED_DATASET  = var.bigquery_rideshare_llm_curated_dataset
 
-        ENV_TERRAFORM_SERVICE_ACCOUNT            = var.terraform_service_account
+        ENV_TERRAFORM_SERVICE_ACCOUNT = var.terraform_service_account,
+
+        ENV_RIDESHARE_PLUS_SERVICE_ACCOUNT = google_service_account.cloud_run_rideshare_plus_service_account.email
       }
     }
 
@@ -786,7 +788,7 @@ resource "google_composer_environment" "composer_env" {
 
     private_environment_config {
       enable_private_endpoint = true
-    }    
+    }
   }
 
   depends_on = [
@@ -796,7 +798,8 @@ resource "google_composer_environment" "composer_env" {
     google_service_account.composer_service_account,
     google_project_iam_member.composer_service_account_worker_role,
     google_project_iam_member.composer_service_account_bq_admin_role,
-    google_compute_router_nat.nat-config-distinct-regions
+    google_compute_router_nat.nat-config-distinct-regions,
+    google_service_account.cloud_run_rideshare_plus_service_account
   ]
 
   timeouts {
@@ -905,9 +908,9 @@ resource "google_compute_subnetwork" "dataproc_serverless_subnet" {
 
 # Needed for BigSpark to Dataproc
 resource "google_compute_firewall" "dataproc_serverless_subnet_firewall_rule" {
-  project  = var.project_id
-  name     = "dataproc-serverless-firewall"
-  network  = google_compute_network.default_network.id
+  project = var.project_id
+  name    = "dataproc-serverless-firewall"
+  network = google_compute_network.default_network.id
 
   allow {
     protocol = "all"
@@ -926,8 +929,8 @@ resource "google_compute_firewall" "dataproc_serverless_subnet_firewall_rule" {
 # AWS Region
 ####################################################################################
 resource "google_data_catalog_taxonomy" "business_critical_taxonomy_aws" {
-  project  = var.project_id
-  region   = var.aws_omni_biglake_dataset_region
+  project = var.project_id
+  region  = var.aws_omni_biglake_dataset_region
   # Must be unique accross your Org
   display_name           = "Business-Critical-AWS-${var.random_extension}"
   description            = "A collection of policy tags (AWS)"
@@ -969,8 +972,8 @@ resource "google_data_catalog_policy_tag_iam_member" "member_aws" {
 # Azure Region
 ####################################################################################
 resource "google_data_catalog_taxonomy" "business_critical_taxonomy_azure" {
-  project  = var.project_id
-  region   = var.azure_omni_biglake_dataset_region
+  project = var.project_id
+  region  = var.azure_omni_biglake_dataset_region
   # Must be unique accross your Org
   display_name           = "Business-Critical-Azure-${var.random_extension}"
   description            = "A collection of policy tags (Azure)"
@@ -1010,9 +1013,9 @@ resource "google_data_catalog_policy_tag_iam_member" "member_azure" {
 # Dataplex / Data Lineage
 ####################################################################################
 resource "google_project_iam_member" "gcp_roles_datalineage_admin" {
-  project  = var.project_id
-  role     = "roles/datalineage.admin"
-  member   = "user:${var.gcp_account_name}"
+  project = var.project_id
+  role    = "roles/datalineage.admin"
+  member  = "user:${var.gcp_account_name}"
 }
 
 ####################################################################################
@@ -1030,9 +1033,9 @@ curl --request POST \
   --compressed
 */
 resource "null_resource" "analyticshub_daily_weather_data" {
-provisioner "local-exec" {
-  when    = create
-  command = <<EOF
+  provisioner "local-exec" {
+    when    = create
+    command = <<EOF
   curl --request POST \
     "https://analyticshub.googleapis.com/v1/projects/1057666841514/locations/us/dataExchanges/google_cloud_public_datasets_17e74966199/listings/ghcn_daily_17ee6ceb8e9:subscribe" \
     --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
@@ -1043,7 +1046,7 @@ provisioner "local-exec" {
     EOF
   }
   depends_on = [
-    ]
+  ]
 }
 
 
@@ -1052,8 +1055,8 @@ provisioner "local-exec" {
 # Taxi US Region
 ####################################################################################
 resource "google_data_catalog_taxonomy" "business_critical_taxonomy" {
-  project  = var.project_id
-  region   = var.bigquery_region
+  project = var.project_id
+  region  = var.bigquery_region
   # Must be unique accross your Org
   display_name           = "Business-Critical-${var.random_extension}"
   description            = "A collection of policy tags"
@@ -1106,9 +1109,9 @@ resource "google_data_catalog_policy_tag" "data_masking_policy_tag" {
 
 # Create a Hash Rule
 resource "null_resource" "deploy_data_masking_sha256" {
-provisioner "local-exec" {
-  when    = create
-  command = <<EOF
+  provisioner "local-exec" {
+    when    = create
+    command = <<EOF
     curl \
       --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
       --header "Accept: application/json" \
@@ -1119,15 +1122,15 @@ provisioner "local-exec" {
     EOF
   }
   depends_on = [
-     google_data_catalog_policy_tag.data_masking_policy_tag
-    ]
+    google_data_catalog_policy_tag.data_masking_policy_tag
+  ]
 }
 
 # Create a Nullify Rule
 resource "null_resource" "deploy_data_masking_nullify" {
-provisioner "local-exec" {
-  when    = create
-  command = <<EOF
+  provisioner "local-exec" {
+    when    = create
+    command = <<EOF
     curl \
       --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
       --header "Accept: application/json" \
@@ -1138,15 +1141,15 @@ provisioner "local-exec" {
     EOF
   }
   depends_on = [
-     null_resource.deploy_data_masking_sha256
-    ]
+    null_resource.deploy_data_masking_sha256
+  ]
 }
 
 # Create a Default-Value Rule
 resource "null_resource" "deploy_data_masking_default_value" {
-provisioner "local-exec" {
-  when    = create
-  command = <<EOF
+  provisioner "local-exec" {
+    when    = create
+    command = <<EOF
     curl \
       --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
       --header "Accept: application/json" \
@@ -1157,15 +1160,15 @@ provisioner "local-exec" {
     EOF
   }
   depends_on = [
-     null_resource.deploy_data_masking_nullify
-    ]
+    null_resource.deploy_data_masking_nullify
+  ]
 }
 
 # Grant access to the user to the Nullify (you can change during the demo)
 resource "null_resource" "deploy_data_masking_iam_permissions" {
-provisioner "local-exec" {
-  when    = create
-  command = <<EOT
+  provisioner "local-exec" {
+    when    = create
+    command = <<EOT
     curl \
       --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
       --header "Accept: application/json" \
@@ -1176,12 +1179,12 @@ provisioner "local-exec" {
     EOT
   }
   depends_on = [
-      google_data_catalog_taxonomy.business_critical_taxonomy,
-      google_data_catalog_policy_tag.data_masking_policy_tag,
-      null_resource.deploy_data_masking_sha256,
-      null_resource.deploy_data_masking_nullify,
-      null_resource.deploy_data_masking_default_value,
-    ]
+    google_data_catalog_taxonomy.business_critical_taxonomy,
+    google_data_catalog_policy_tag.data_masking_policy_tag,
+    null_resource.deploy_data_masking_sha256,
+    null_resource.deploy_data_masking_nullify,
+    null_resource.deploy_data_masking_default_value,
+  ]
 }
 
 ####################################################################################
@@ -1190,12 +1193,12 @@ provisioner "local-exec" {
 # Zip the source code
 data "archive_file" "bigquery_external_function_zip" {
   type        = "zip"
-  source_dir  = "../cloud-functions/bigquery-external-function" 
+  source_dir  = "../cloud-functions/bigquery-external-function"
   output_path = "../cloud-functions/bigquery-external-function.zip"
 
-  depends_on = [ 
+  depends_on = [
     google_storage_bucket.code_bucket
-    ]  
+  ]
 }
 
 # Upload code
@@ -1204,10 +1207,10 @@ resource "google_storage_bucket_object" "bigquery_external_function_zip_upload" 
   bucket = google_storage_bucket.code_bucket.name
   source = data.archive_file.bigquery_external_function_zip.output_path
 
-  depends_on = [ 
+  depends_on = [
     google_storage_bucket.code_bucket,
     data.archive_file.bigquery_external_function_zip
-    ]  
+  ]
 }
 
 
@@ -1227,11 +1230,11 @@ resource "google_cloudfunctions_function" "bigquery_external_function" {
   https_trigger_security_level = "SECURE_ALWAYS"
   entry_point                  = "bigquery_external_function"
   # no-allow-unauthenticated ???
-  depends_on = [ 
+  depends_on = [
     google_storage_bucket.code_bucket,
     data.archive_file.bigquery_external_function_zip,
     google_storage_bucket_object.bigquery_external_function_zip_upload
-  ]  
+  ]
 }
 
 
@@ -1242,12 +1245,12 @@ resource "google_cloudfunctions_function" "bigquery_external_function" {
 # Zip the source code
 data "archive_file" "rideshare_plus_function_zip" {
   type        = "zip"
-  source_dir  = "../cloud-functions/rideshare-plus-rest-api" 
+  source_dir  = "../cloud-functions/rideshare-plus-rest-api"
   output_path = "../cloud-functions/rideshare-plus-rest-api.zip"
 
-  depends_on = [ 
+  depends_on = [
     google_storage_bucket.code_bucket
-    ]  
+  ]
 }
 
 # Upload code
@@ -1256,10 +1259,10 @@ resource "google_storage_bucket_object" "rideshare_plus_function_zip_upload" {
   bucket = google_storage_bucket.code_bucket.name
   source = data.archive_file.rideshare_plus_function_zip.output_path
 
-  depends_on = [ 
+  depends_on = [
     google_storage_bucket.code_bucket,
     data.archive_file.rideshare_plus_function_zip
-    ]  
+  ]
 }
 
 # Deploy the function V2
@@ -1270,35 +1273,35 @@ resource "google_cloudfunctions2_function" "rideshare_plus_function" {
   description = "demo-rest-api-service"
 
   build_config {
-    runtime = "python310"
-    entry_point = "entrypoint"  # Set the entry point 
+    runtime     = "python310"
+    entry_point = "entrypoint" # Set the entry point 
     source {
       storage_source {
-        bucket = google_storage_bucket.code_bucket.name 
+        bucket = google_storage_bucket.code_bucket.name
         object = google_storage_bucket_object.rideshare_plus_function_zip_upload.name
       }
     }
   }
 
   service_config {
-    max_instance_count  = 10
-    min_instance_count = 1
-    available_memory    = "256M"
-    timeout_seconds     = 60
-    ingress_settings    = "ALLOW_ALL"
+    max_instance_count             = 10
+    min_instance_count             = 1
+    available_memory               = "256M"
+    timeout_seconds                = 60
+    ingress_settings               = "ALLOW_ALL"
     all_traffic_on_latest_revision = true
     environment_variables = {
-        PROJECT_ID       = var.project_id,
-        ENV_CODE_BUCKET  = "code-${var.storage_bucket}"
+      PROJECT_ID      = var.project_id,
+      ENV_CODE_BUCKET = "code-${var.storage_bucket}"
 
     }
   }
 
-  depends_on = [ 
+  depends_on = [
     google_storage_bucket.code_bucket,
     data.archive_file.rideshare_plus_function_zip,
     google_storage_bucket_object.rideshare_plus_function_zip_upload
-  ]    
+  ]
 }
 
 
@@ -1311,12 +1314,12 @@ resource "google_cloudfunctions2_function_iam_member" "rideshare_plus_function_i
   role   = "roles/cloudfunctions.invoker"
   member = "allUsers"
 
-  depends_on = [ 
+  depends_on = [
     google_storage_bucket.code_bucket,
     data.archive_file.rideshare_plus_function_zip,
     google_storage_bucket_object.rideshare_plus_function_zip_upload,
     google_cloudfunctions2_function.rideshare_plus_function
-  ]    
+  ]
 }
 
 # Update the Cloud Run to support allUsers used by Cloud Function V2
@@ -1325,15 +1328,15 @@ resource "google_cloud_run_service_iam_binding" "rideshare_plus_function_cloudru
   location = google_cloudfunctions2_function.rideshare_plus_function.location
   service  = google_cloudfunctions2_function.rideshare_plus_function.name
 
-  role     = "roles/run.invoker"
-  members  = ["allUsers"]
+  role    = "roles/run.invoker"
+  members = ["allUsers"]
 
-  depends_on = [ 
+  depends_on = [
     google_storage_bucket.code_bucket,
     data.archive_file.rideshare_plus_function_zip,
     google_storage_bucket_object.rideshare_plus_function_zip_upload,
     google_cloudfunctions2_function.rideshare_plus_function
-  ]    
+  ]
 }
 
 
@@ -1389,14 +1392,14 @@ resource "google_cloudfunctions_function_iam_member" "rideshare_plus_function_in
 # Cloud Function connection
 # https://cloud.google.com/bigquery/docs/biglake-quickstart#terraform
 resource "google_bigquery_connection" "cloud_function_connection" {
-   connection_id = "cloud-function"
-   location      = var.bigquery_region
-   friendly_name = "cloud-function"
-   description   = "cloud-function"
-   cloud_resource {}
-   depends_on = [ 
+  connection_id = "cloud-function"
+  location      = var.bigquery_region
+  friendly_name = "cloud-function"
+  description   = "cloud-function"
+  cloud_resource {}
+  depends_on = [
     google_bigquery_connection.cloud_function_connection
-    ]
+  ]
 }
 
 
@@ -1421,11 +1424,11 @@ resource "google_cloudfunctions_function_iam_member" "invoker" {
 
 # Allow cloud function service account to read storage [V1 Function]
 resource "google_project_iam_member" "bq_connection_iam_cloud_invoker" {
-  project  = var.project_id
-  role     = "roles/storage.objectViewer"
-  member   = "serviceAccount:${var.project_id}@appspot.gserviceaccount.com"
+  project = var.project_id
+  role    = "roles/storage.objectViewer"
+  member  = "serviceAccount:${var.project_id}@appspot.gserviceaccount.com"
 
-  depends_on = [ 
+  depends_on = [
     google_storage_bucket.code_bucket,
     data.archive_file.bigquery_external_function_zip,
     google_storage_bucket_object.bigquery_external_function_zip_upload,
@@ -1436,11 +1439,11 @@ resource "google_project_iam_member" "bq_connection_iam_cloud_invoker" {
 
 # Allow cloud function service account to read storage [V2 Function]
 resource "google_project_iam_member" "cloudfunction_rest_api_iam" {
-  project  = var.project_id
-  role     = "roles/storage.objectViewer"
-  member   = "serviceAccount:${var.project_number}-compute@developer.gserviceaccount.com"
+  project = var.project_id
+  role    = "roles/storage.objectViewer"
+  member  = "serviceAccount:${var.project_number}-compute@developer.gserviceaccount.com"
 
-  depends_on = [ 
+  depends_on = [
     google_storage_bucket.code_bucket,
     data.archive_file.bigquery_external_function_zip,
     google_storage_bucket_object.bigquery_external_function_zip_upload,
@@ -1457,23 +1460,23 @@ resource "google_storage_bucket_iam_member" "function_code_bucket_storage_admin"
   role   = "roles/storage.admin"
   member = "serviceAccount:${var.project_number}-compute@developer.gserviceaccount.com"
 
-  depends_on = [ 
+  depends_on = [
     google_storage_bucket.code_bucket,
     data.archive_file.bigquery_external_function_zip,
     google_storage_bucket_object.bigquery_external_function_zip_upload,
     google_cloudfunctions_function.bigquery_external_function,
     google_bigquery_connection.cloud_function_connection,
     google_project_iam_member.bq_connection_iam_cloud_invoker
-  ]  
+  ]
 }
 
 # Allow cloud function service account to run BQ jobs
 resource "google_project_iam_member" "cloud_function_bq_job_user" {
-  project  = var.project_id
-  role     = "roles/bigquery.jobUser"
-  member   = "serviceAccount:${var.project_number}-compute@developer.gserviceaccount.com"
+  project = var.project_id
+  role    = "roles/bigquery.jobUser"
+  member  = "serviceAccount:${var.project_number}-compute@developer.gserviceaccount.com"
 
-  depends_on = [ 
+  depends_on = [
     google_storage_bucket.code_bucket,
     data.archive_file.bigquery_external_function_zip,
     google_storage_bucket_object.bigquery_external_function_zip_upload,
@@ -1489,62 +1492,62 @@ resource "google_bigquery_dataset_access" "cloud_function_access_bq_rideshare_cu
   role          = "roles/bigquery.dataOwner"
   user_by_email = "${var.project_number}-compute@developer.gserviceaccount.com"
 
-  depends_on = [ 
+  depends_on = [
     data.archive_file.rideshare_plus_function_zip,
     google_storage_bucket_object.rideshare_plus_function_zip_upload,
     google_cloudfunctions2_function.rideshare_plus_function,
     google_bigquery_dataset.rideshare_lakehouse_curated_dataset
-  ]  
+  ]
 }
 
- # For streaming data / view
+# For streaming data / view
 resource "google_bigquery_dataset_access" "cloud_function_access_bq_rideshare_raw" {
   dataset_id    = google_bigquery_dataset.rideshare_lakehouse_raw_dataset.dataset_id
   role          = "roles/bigquery.dataViewer"
   user_by_email = "${var.project_number}-compute@developer.gserviceaccount.com"
 
-  depends_on = [ 
+  depends_on = [
     data.archive_file.rideshare_plus_function_zip,
     google_storage_bucket_object.rideshare_plus_function_zip_upload,
     google_cloudfunctions2_function.rideshare_plus_function,
     google_bigquery_dataset.rideshare_lakehouse_raw_dataset
-  ]  
+  ]
 }
 
- # For streaming data / view [V2 function]
+# For streaming data / view [V2 function]
 resource "google_bigquery_dataset_access" "cloud_function_access_bq_taxi_dataset" {
   dataset_id    = google_bigquery_dataset.taxi_dataset.dataset_id
   role          = "roles/bigquery.dataViewer"
   user_by_email = "${var.project_number}-compute@developer.gserviceaccount.com"
 
-  depends_on = [ 
+  depends_on = [
     data.archive_file.rideshare_plus_function_zip,
     google_storage_bucket_object.rideshare_plus_function_zip_upload,
     google_cloudfunctions2_function.rideshare_plus_function,
     google_bigquery_dataset.taxi_dataset
-  ]  
+  ]
 }
 
 
 
 # BigLake connection
 resource "google_bigquery_connection" "biglake_connection" {
-   connection_id = "biglake-connection"
-   location      = var.bigquery_region
-   friendly_name = "biglake-connection"
-   description   = "biglake-connection"
-   cloud_resource {}
-   depends_on = [ 
-      google_bigquery_connection.cloud_function_connection
-   ]
+  connection_id = "biglake-connection"
+  location      = var.bigquery_region
+  friendly_name = "biglake-connection"
+  description   = "biglake-connection"
+  cloud_resource {}
+  depends_on = [
+    google_bigquery_connection.cloud_function_connection
+  ]
 }
 
 
 # Allow BigLake to read storage
 resource "google_project_iam_member" "bq_connection_iam_object_viewer" {
-  project  = var.project_id
-  role     = "roles/storage.objectViewer"
-  member   = "serviceAccount:${google_bigquery_connection.biglake_connection.cloud_resource[0].service_account_id}"
+  project = var.project_id
+  role    = "roles/storage.objectViewer"
+  member  = "serviceAccount:${google_bigquery_connection.biglake_connection.cloud_resource[0].service_account_id}"
 
   depends_on = [
     google_bigquery_connection.biglake_connection
@@ -1554,39 +1557,39 @@ resource "google_project_iam_member" "bq_connection_iam_object_viewer" {
 
 # Allow BigLake to custom role
 resource "google_project_iam_member" "biglake_customconnectiondelegate" {
-  project  = var.project_id
-  role     = google_project_iam_custom_role.customconnectiondelegate.id
-  member   = "serviceAccount:${google_bigquery_connection.biglake_connection.cloud_resource[0].service_account_id}"
+  project = var.project_id
+  role    = google_project_iam_custom_role.customconnectiondelegate.id
+  member  = "serviceAccount:${google_bigquery_connection.biglake_connection.cloud_resource[0].service_account_id}"
 
   depends_on = [
     google_bigquery_connection.biglake_connection,
     google_project_iam_custom_role.customconnectiondelegate
-  ]  
+  ]
 }
 
 
 # Vertex AI connection
 resource "google_bigquery_connection" "vertex_ai_connection" {
-   connection_id = "vertex-ai"
-   location      = var.bigquery_region
-   friendly_name = "vertex-ai"
-   description   = "vertex-ai"
-   cloud_resource {}
-   depends_on = [ 
-      google_bigquery_connection.biglake_connection
-   ]
+  connection_id = "vertex-ai"
+  location      = var.bigquery_region
+  friendly_name = "vertex-ai"
+  description   = "vertex-ai"
+  cloud_resource {}
+  depends_on = [
+    google_bigquery_connection.biglake_connection
+  ]
 }
 
 
 # Allow Vertex AI connection to Vertex User
 resource "google_project_iam_member" "vertex_ai_connection_vertex_user_role" {
-  project  = var.project_id
-  role     = "roles/aiplatform.user"
-  member   = "serviceAccount:${google_bigquery_connection.vertex_ai_connection.cloud_resource[0].service_account_id}"
+  project = var.project_id
+  role    = "roles/aiplatform.user"
+  member  = "serviceAccount:${google_bigquery_connection.vertex_ai_connection.cloud_resource[0].service_account_id}"
 
   depends_on = [
     google_bigquery_connection.vertex_ai_connection
-  ]  
+  ]
 }
 
 
@@ -1739,8 +1742,8 @@ resource "google_bigquery_table" "taxi_trips_streaming" {
 
   time_partitioning {
     field = "timestamp"
-    type = "HOUR"
-  }  
+    type  = "HOUR"
+  }
 
   clustering = ["ride_id"]
 
@@ -1839,11 +1842,11 @@ resource "google_spanner_database" "spanner_weather_database" {
 ####################################################################################
 # Subnet for dataflow cluster
 resource "google_compute_subnetwork" "dataflow_subnet" {
-  project       = var.project_id
-  name          = "dataflow-subnet"
-  ip_cidr_range = "10.4.0.0/16"
-  region        = var.dataflow_region
-  network       = google_compute_network.default_network.id
+  project                  = var.project_id
+  name                     = "dataflow-subnet"
+  ip_cidr_range            = "10.4.0.0/16"
+  region                   = var.dataflow_region
+  network                  = google_compute_network.default_network.id
   private_ip_google_access = true
 
   depends_on = [
@@ -1854,9 +1857,9 @@ resource "google_compute_subnetwork" "dataflow_subnet" {
 
 # Firewall rule for dataflow cluster
 resource "google_compute_firewall" "dataflow_subnet_firewall_rule" {
-  project  = var.project_id
-  name     = "dataflow-firewall"
-  network  = google_compute_network.default_network.id
+  project = var.project_id
+  name    = "dataflow-firewall"
+  network = google_compute_network.default_network.id
 
   allow {
     protocol = "icmp"
@@ -1887,9 +1890,9 @@ resource "google_service_account" "dataflow_service_account" {
 
 # Grant editor (too high) to service account
 resource "google_project_iam_member" "dataflow_service_account_editor_role" {
-  project  = var.project_id
-  role     = "roles/editor"
-  member   = "serviceAccount:${google_service_account.dataflow_service_account.email}"
+  project = var.project_id
+  role    = "roles/editor"
+  member  = "serviceAccount:${google_service_account.dataflow_service_account.email}"
 
   depends_on = [
     google_service_account.dataflow_service_account
@@ -1932,8 +1935,8 @@ resource "google_project_iam_member" "dataflow_service_account_editor_role" {
 
 # Add the Service Account Short Term Token Minter role to a Google-managed service account used by the BigQuery Data Transfer Service
 resource "google_project_service_identity" "service_identity_bigquery_data_transfer" {
-  project  = var.project_id
-  service  = "bigquerydatatransfer.googleapis.com"
+  project = var.project_id
+  service = "bigquerydatatransfer.googleapis.com"
   depends_on = [
     google_project_iam_member.cloudcomposer_account_service_agent_v2_ext,
     google_project_iam_member.cloudcomposer_account_service_agent,
@@ -1953,15 +1956,15 @@ resource "google_service_account_iam_member" "service_account_impersonation" {
   role               = "roles/iam.serviceAccountTokenCreator"
   member             = "serviceAccount:${google_project_service_identity.service_identity_bigquery_data_transfer.email}"
   #                    "serviceAccount:service-${var.project_number}@gcp-sa-bigquerydatatransfer.iam.gserviceaccount.com"
-  depends_on         = [ time_sleep.create_bigquerydatatransfer_account_time_delay ]
+  depends_on = [time_sleep.create_bigquerydatatransfer_account_time_delay]
 }
 
 
 resource "google_project_iam_member" "iam_member_bigquerydatatransfer_serviceAgent" {
-  project            = var.project_id
-  role               = "roles/bigquerydatatransfer.serviceAgent"
-  member             = "serviceAccount:${google_project_service_identity.service_identity_bigquery_data_transfer.email}"
-  depends_on         = [ google_service_account_iam_member.service_account_impersonation ]
+  project    = var.project_id
+  role       = "roles/bigquerydatatransfer.serviceAgent"
+  member     = "serviceAccount:${google_project_service_identity.service_identity_bigquery_data_transfer.email}"
+  depends_on = [google_service_account_iam_member.service_account_impersonation]
 }
 
 
@@ -1972,11 +1975,11 @@ resource "google_project_iam_member" "iam_member_bigquerydatatransfer_serviceAge
 # https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/data_catalog_tag_template
 resource "google_data_catalog_tag_template" "table_dq_tag_template" {
   tag_template_id = "table_dq_tag_template"
-  region = var.data_catalog_region
-  display_name = "Data-Quality-Table"
+  region          = var.data_catalog_region
+  display_name    = "Data-Quality-Table"
 
   fields {
-    field_id = "table_name"
+    field_id     = "table_name"
     display_name = "Table Name"
     type {
       primitive_type = "STRING"
@@ -1985,7 +1988,7 @@ resource "google_data_catalog_tag_template" "table_dq_tag_template" {
   }
 
   fields {
-    field_id = "record_count"
+    field_id     = "record_count"
     display_name = "Number of rows in the data asset"
     type {
       primitive_type = "DOUBLE"
@@ -1993,7 +1996,7 @@ resource "google_data_catalog_tag_template" "table_dq_tag_template" {
   }
 
   fields {
-    field_id = "latest_execution_ts"
+    field_id     = "latest_execution_ts"
     display_name = "Last Data Quality Run Date"
     type {
       primitive_type = "TIMESTAMP"
@@ -2001,7 +2004,7 @@ resource "google_data_catalog_tag_template" "table_dq_tag_template" {
   }
 
   fields {
-    field_id = "columns_validated"
+    field_id     = "columns_validated"
     display_name = "Number of columns validated"
     type {
       primitive_type = "DOUBLE"
@@ -2009,7 +2012,7 @@ resource "google_data_catalog_tag_template" "table_dq_tag_template" {
   }
 
   fields {
-    field_id = "columns_count"
+    field_id     = "columns_count"
     display_name = "Number of columns in data asset"
     type {
       primitive_type = "DOUBLE"
@@ -2017,14 +2020,14 @@ resource "google_data_catalog_tag_template" "table_dq_tag_template" {
   }
 
   fields {
-    field_id = "success_pct"
+    field_id     = "success_pct"
     display_name = "Success Percentage"
     type {
       primitive_type = "DOUBLE"
     }
   }
   fields {
-    field_id = "failed_pct"
+    field_id     = "failed_pct"
     display_name = "Failed Percentage"
     type {
       primitive_type = "DOUBLE"
@@ -2032,7 +2035,7 @@ resource "google_data_catalog_tag_template" "table_dq_tag_template" {
   }
 
   fields {
-    field_id = "invocation_id"
+    field_id     = "invocation_id"
     display_name = "Data Quality Invocation Id"
     type {
       primitive_type = "STRING"
@@ -2046,12 +2049,12 @@ resource "google_data_catalog_tag_template" "table_dq_tag_template" {
 
 resource "google_data_catalog_tag_template" "column_dq_tag_template" {
   tag_template_id = "column_dq_tag_template"
-  region = var.data_catalog_region
-  display_name = "Data-Quality-Column"
+  region          = var.data_catalog_region
+  display_name    = "Data-Quality-Column"
 
 
   fields {
-    field_id = "table_name"
+    field_id     = "table_name"
     display_name = "Table Name"
     type {
       primitive_type = "STRING"
@@ -2060,7 +2063,7 @@ resource "google_data_catalog_tag_template" "column_dq_tag_template" {
   }
 
   fields {
-    field_id = "column_id"
+    field_id     = "column_id"
     display_name = "Column Name"
     type {
       primitive_type = "STRING"
@@ -2068,7 +2071,7 @@ resource "google_data_catalog_tag_template" "column_dq_tag_template" {
   }
 
   fields {
-    field_id = "execution_ts"
+    field_id     = "execution_ts"
     display_name = "Last Run Date"
     type {
       primitive_type = "TIMESTAMP"
@@ -2076,7 +2079,7 @@ resource "google_data_catalog_tag_template" "column_dq_tag_template" {
   }
 
   fields {
-    field_id = "rule_binding_id"
+    field_id     = "rule_binding_id"
     display_name = "Rule Binding"
     type {
       primitive_type = "STRING"
@@ -2084,7 +2087,7 @@ resource "google_data_catalog_tag_template" "column_dq_tag_template" {
   }
 
   fields {
-    field_id = "rule_id"
+    field_id     = "rule_id"
     display_name = "Rule Id"
     type {
       primitive_type = "STRING"
@@ -2092,7 +2095,7 @@ resource "google_data_catalog_tag_template" "column_dq_tag_template" {
   }
 
   fields {
-    field_id = "dimension"
+    field_id     = "dimension"
     display_name = "Dimension"
     type {
       primitive_type = "STRING"
@@ -2100,7 +2103,7 @@ resource "google_data_catalog_tag_template" "column_dq_tag_template" {
   }
 
   fields {
-    field_id = "rows_validated"
+    field_id     = "rows_validated"
     display_name = "Rows Validated"
     type {
       primitive_type = "DOUBLE"
@@ -2108,7 +2111,7 @@ resource "google_data_catalog_tag_template" "column_dq_tag_template" {
   }
 
   fields {
-    field_id = "success_count"
+    field_id     = "success_count"
     display_name = "Success Count"
     type {
       primitive_type = "DOUBLE"
@@ -2116,7 +2119,7 @@ resource "google_data_catalog_tag_template" "column_dq_tag_template" {
   }
 
   fields {
-    field_id = "success_pct"
+    field_id     = "success_pct"
     display_name = "Success Percentage"
     type {
       primitive_type = "DOUBLE"
@@ -2124,7 +2127,7 @@ resource "google_data_catalog_tag_template" "column_dq_tag_template" {
   }
 
   fields {
-    field_id = "failed_count"
+    field_id     = "failed_count"
     display_name = "Failed Count"
     type {
       primitive_type = "DOUBLE"
@@ -2132,15 +2135,15 @@ resource "google_data_catalog_tag_template" "column_dq_tag_template" {
   }
 
   fields {
-    field_id = "failed_pct"
+    field_id     = "failed_pct"
     display_name = "Failed Percentage"
     type {
       primitive_type = "DOUBLE"
     }
   }
 
- fields {
-    field_id = "null_count"
+  fields {
+    field_id     = "null_count"
     display_name = "Null Count"
     type {
       primitive_type = "DOUBLE"
@@ -2148,7 +2151,7 @@ resource "google_data_catalog_tag_template" "column_dq_tag_template" {
   }
 
   fields {
-    field_id = "null_pct"
+    field_id     = "null_pct"
     display_name = "Null Percentage"
     type {
       primitive_type = "DOUBLE"
@@ -2156,7 +2159,7 @@ resource "google_data_catalog_tag_template" "column_dq_tag_template" {
   }
 
   fields {
-    field_id = "invocation_id"
+    field_id     = "invocation_id"
     display_name = "Invocation Id"
     type {
       primitive_type = "STRING"
@@ -2166,7 +2169,7 @@ resource "google_data_catalog_tag_template" "column_dq_tag_template" {
 
   force_delete = "false"
 
-  depends_on      = [google_data_catalog_tag_template.table_dq_tag_template]
+  depends_on = [google_data_catalog_tag_template.table_dq_tag_template]
 }
 
 
@@ -2183,8 +2186,8 @@ resource "google_app_engine_application" "rideshare_plus_app_engine" {
 # Pub/Sub
 ####################################################################################
 resource "google_project_service_identity" "service_identity_pub_sub" {
-  project  = var.project_id
-  service  = "pubsub.googleapis.com"
+  project = var.project_id
+  service = "pubsub.googleapis.com"
   depends_on = [
   ]
 }
@@ -2200,9 +2203,9 @@ resource "google_bigquery_dataset_access" "pubsub_access_bq_taxi_dataset" {
   role          = "roles/bigquery.dataOwner"
   user_by_email = google_project_service_identity.service_identity_pub_sub.email
 
-  depends_on = [ 
+  depends_on = [
     time_sleep.create_pubsub_account_time_delay
-  ]  
+  ]
 }
 
 
@@ -2211,11 +2214,11 @@ resource "google_bigquery_dataset_access" "pubsub_access_bq_taxi_dataset" {
 ####################################################################################
 # Subnet for dataproc cluster
 resource "google_compute_subnetwork" "colab_subnet" {
-  project       = var.project_id
-  name          = "colab-subnet"
-  ip_cidr_range = "10.8.0.0/16"
-  region        = var.colab_enterprise_region
-  network       = google_compute_network.default_network.id
+  project                  = var.project_id
+  name                     = "colab-subnet"
+  ip_cidr_range            = "10.8.0.0/16"
+  region                   = var.colab_enterprise_region
+  network                  = google_compute_network.default_network.id
   private_ip_google_access = true
 
   depends_on = [
@@ -2225,9 +2228,9 @@ resource "google_compute_subnetwork" "colab_subnet" {
 
 # https://cloud.google.com/vertex-ai/docs/reference/rest/v1beta1/projects.locations.notebookRuntimeTemplates
 resource "null_resource" "colab_runtime_template" {
-provisioner "local-exec" {
-  when    = create
-  command = <<EOF
+  provisioner "local-exec" {
+    when    = create
+    command = <<EOF
   curl -X POST \
   https://${var.colab_enterprise_region}-aiplatform.googleapis.com/ui/projects/${var.project_id}/locations/${var.colab_enterprise_region}/notebookRuntimeTemplates?notebookRuntimeTemplateId=colab-enterprise-template \
   --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
@@ -2253,14 +2256,14 @@ EOF
   }
   depends_on = [
     google_compute_subnetwork.colab_subnet
-    ]
+  ]
 }
 
 # https://cloud.google.com/vertex-ai/docs/reference/rest/v1beta1/projects.locations.notebookRuntimes
 resource "null_resource" "colab_runtime" {
-provisioner "local-exec" {
-  when    = create
-  command = <<EOF
+  provisioner "local-exec" {
+    when    = create
+    command = <<EOF
   curl -X POST \
   https://${var.colab_enterprise_region}-aiplatform.googleapis.com/ui/projects/${var.project_id}/locations/${var.colab_enterprise_region}/notebookRuntimes:assign \
   --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
@@ -2278,9 +2281,296 @@ EOF
   depends_on = [
     google_compute_subnetwork.colab_subnet,
     null_resource.colab_runtime_template
-    ]
+  ]
 }
 
+
+
+####################################################################################
+# Cloud Run Rideshare Plus Website
+####################################################################################
+# Service account
+# Permissions to storage
+# Permissions to BigQuery (JobUser and Datasets)
+# Zip up a website
+resource "google_service_account" "cloud_run_rideshare_plus_service_account" {
+  project      = var.project_id
+  account_id   = "rideshare-plus-service-account"
+  display_name = "Service Account for Rideshare Plus website"
+}
+
+
+# Grant access to run BigQuery Jobs
+resource "google_project_iam_member" "cloud_run_rideshare_plus_service_account_jobuser" {
+  project = var.project_id
+  role    = "roles/bigquery.jobUser"
+  member  = "serviceAccount:${google_service_account.cloud_run_rideshare_plus_service_account.email}"
+
+  depends_on = [
+    google_service_account.cloud_run_rideshare_plus_service_account
+  ]
+}
+
+
+# Allow access to read/write storage 
+/*
+resource "google_project_iam_member" "cloud_run_rideshare_plus_service_account_objectadmin" {
+  project  = var.project_id
+  role     = "roles/storage.objectAdmin"
+  member   = "serviceAccount:${google_service_account.cloud_run_rideshare_plus_service_account.email}"
+
+  depends_on = [
+    google_service_account.cloud_run_rideshare_plus_service_account,
+    google_project_iam_member.cloud_run_rideshare_plus_service_account_jobuser
+  ]
+}
+*/
+
+# The cloud function needs to read/write to this bucket (code bucket)
+resource "google_storage_bucket_iam_member" "cloud_run_rideshare_plus_service_account_objectadmin" {
+  bucket = google_storage_bucket.code_bucket.name
+  role   = "roles/storage.objectAdmin"
+  member = "serviceAccount:${google_service_account.cloud_run_rideshare_plus_service_account.email}"
+
+  depends_on = [
+    google_service_account.cloud_run_rideshare_plus_service_account,
+    google_storage_bucket.code_bucket,
+    google_project_iam_member.cloud_run_rideshare_plus_service_account_jobuser
+  ]
+}
+
+
+resource "google_bigquery_dataset_access" "cloud_run_rideshare_lakehouse_curated_dataset" {
+  dataset_id    = google_bigquery_dataset.rideshare_lakehouse_curated_dataset.dataset_id
+  role          = "roles/bigquery.dataOwner"
+  user_by_email = google_service_account.cloud_run_rideshare_plus_service_account.email
+
+  depends_on = [
+    google_service_account.cloud_run_rideshare_plus_service_account,
+    google_bigquery_dataset.rideshare_lakehouse_curated_dataset,
+    google_storage_bucket_iam_member.cloud_run_rideshare_plus_service_account_objectadmin
+  ]
+}
+
+
+resource "google_bigquery_dataset_access" "cloud_run_rideshare_lakehouse_enriched_dataset" {
+  dataset_id    = google_bigquery_dataset.rideshare_lakehouse_enriched_dataset.dataset_id
+  role          = "roles/bigquery.dataOwner"
+  user_by_email = google_service_account.cloud_run_rideshare_plus_service_account.email
+
+  depends_on = [
+    google_service_account.cloud_run_rideshare_plus_service_account,
+    google_bigquery_dataset.rideshare_lakehouse_enriched_dataset,
+    google_bigquery_dataset_access.cloud_run_rideshare_lakehouse_curated_dataset
+  ]
+}
+
+resource "google_bigquery_dataset_access" "cloud_run_rideshare_lakehouse_raw_dataset" {
+  dataset_id    = google_bigquery_dataset.rideshare_lakehouse_raw_dataset.dataset_id
+  role          = "roles/bigquery.dataOwner"
+  user_by_email = google_service_account.cloud_run_rideshare_plus_service_account.email
+
+  depends_on = [
+    google_service_account.cloud_run_rideshare_plus_service_account,
+    google_bigquery_dataset.rideshare_lakehouse_raw_dataset,
+    google_bigquery_dataset_access.cloud_run_rideshare_lakehouse_enriched_dataset
+  ]
+}
+
+
+resource "google_bigquery_dataset_access" "cloud_run_rideshare_llm_curated_dataset" {
+  dataset_id    = google_bigquery_dataset.ideshare_llm_curated_dataset.dataset_id
+  role          = "roles/bigquery.dataOwner"
+  user_by_email = google_service_account.cloud_run_rideshare_plus_service_account.email
+
+  depends_on = [
+    google_service_account.cloud_run_rideshare_plus_service_account,
+    google_bigquery_dataset.ideshare_llm_curated_dataset,
+    google_bigquery_dataset_access.cloud_run_rideshare_lakehouse_raw_dataset
+  ]
+}
+
+
+resource "google_bigquery_dataset_access" "cloud_run_rideshare_llm_enriched_dataset" {
+  dataset_id    = google_bigquery_dataset.rideshare_llm_enriched_dataset.dataset_id
+  role          = "roles/bigquery.dataOwner"
+  user_by_email = google_service_account.cloud_run_rideshare_plus_service_account.email
+
+  depends_on = [
+    google_service_account.cloud_run_rideshare_plus_service_account,
+    google_bigquery_dataset.rideshare_llm_enriched_dataset,
+    google_bigquery_dataset_access.cloud_run_rideshare_llm_curated_dataset
+  ]
+}
+
+
+resource "google_bigquery_dataset_access" "cloud_run_rideshare_llm_raw_dataset" {
+  dataset_id    = google_bigquery_dataset.rideshare_llm_raw_dataset.dataset_id
+  role          = "roles/bigquery.dataOwner"
+  user_by_email = google_service_account.cloud_run_rideshare_plus_service_account.email
+
+  depends_on = [
+    google_service_account.cloud_run_rideshare_plus_service_account,
+    google_bigquery_dataset.rideshare_llm_raw_dataset,
+    google_bigquery_dataset_access.cloud_run_rideshare_llm_enriched_dataset
+  ]
+}
+
+resource "google_bigquery_dataset_access" "cloud_run_taxi_dataset" {
+  dataset_id    = google_bigquery_dataset.taxi_dataset.dataset_id
+  role          = "roles/bigquery.dataOwner"
+  user_by_email = google_service_account.cloud_run_rideshare_plus_service_account.email
+
+  depends_on = [
+    google_service_account.cloud_run_rideshare_plus_service_account,
+    google_bigquery_dataset.taxi_dataset,
+    google_bigquery_dataset_access.cloud_run_rideshare_llm_raw_dataset
+  ]
+}
+
+# Zip the source code
+data "archive_file" "cloud_run_rideshare_website_archive_file" {
+  type        = "zip"
+  source_dir  = "../cloud-run/rideshare-plus-website"
+  output_path = "../cloud-run/rideshare-plus-website.zip"
+
+  depends_on = [
+    google_storage_bucket.code_bucket
+  ]
+}
+
+# Upload code
+resource "google_storage_bucket_object" "cloud_run_rideshare_website_archive_upload" {
+  name   = "cloud-run/rideshare-plus-website/rideshare-plus-website.zip"
+  bucket = google_storage_bucket.code_bucket.name
+  source = data.archive_file.cloud_run_rideshare_website_archive_file.output_path
+
+  depends_on = [
+    google_storage_bucket.code_bucket,
+    data.archive_file.cloud_run_rideshare_website_archive_file
+  ]
+}
+
+# Repo for Docker Image
+resource "google_artifact_registry_repository" "artifact_registry_cloud_run_deploy" {
+  project       = var.project_id
+  location      = var.cloud_function_region
+  repository_id = "cloud-run-source-deploy"
+  description   = "cloud-run-source-deploy"
+  format        = "DOCKER"
+}
+
+
+# Deploy Cloud Run Web App
+# This is a C# MVC dotnet core application
+# We want cloud build to build an image and deploy to cloud run
+/*
+gcloud_make = f"gcloud builds submit " + \
+        f"--project=\"{project_id}\" " + \
+        f"--pack image=\"{cloud_function_region}-docker.pkg.dev/{project_id}/cloud-run-source-deploy/rideshareplus\" " + \
+        f"gs://{code_bucket_name}/cloud-run/rideshare-plus-website/rideshare-plus-website.zip"
+
+
+gcloud_deploy = f"gcloud run deploy demo-rideshare-plus-website " + \
+        f"--project=\"{project_id}\" " + \
+        f"--image \"{cloud_function_region}-docker.pkg.dev/{project_id}/cloud-run-source-deploy/rideshareplus\" " + \
+        f"--region=\"{cloud_function_region}\" " + \
+        f"--cpu=1 " + \
+        f"--allow-unauthenticated " + \
+        f"--service-account=\"{rideshare_plus_service_account}\" " + \
+        f"--set-env-vars \"ENV_PROJECT_ID={project_id}\" " + \
+        f"--set-env-vars \"ENV_RIDESHARE_LAKEHOUSE_CURATED_DATASET={rideshare_lakehouse_curated_dataset}\" " + \
+        f"--set-env-vars \"ENV_CODE_BUCKET={code_bucket_name}\" " + \
+        f"--set-env-vars \"ENV_RIDESHARE_LLM_CURATED_DATASET={rideshare_llm_curated_dataset}\""
+*/
+resource "null_resource" "cloudbuild_buildpack_rideshare_plus_image" {
+  provisioner "local-exec" {
+    when    = create
+    command = <<EOF
+gcloud builds submit \
+      --project="${var.project_id}" \
+      --pack image="${var.cloud_function_region}-docker.pkg.dev/${var.project_id}/cloud-run-source-deploy/rideshareplus" \
+      "gs://code-${var.storage_bucket}/cloud-run/rideshare-plus-website/rideshare-plus-website.zip"
+    EOF
+  }
+  depends_on = [
+    google_artifact_registry_repository.artifact_registry_cloud_run_deploy,
+    google_storage_bucket.code_bucket,
+    google_storage_bucket_object.rideshare_plus_function_zip_upload,
+  ]
+}
+
+
+resource "google_cloud_run_service" "cloud_run_service_rideshare_plus_website" {
+  project  = var.project_id
+  name     = "demo-rideshare-plus-website"
+  location = var.cloud_function_region
+
+  template {
+    spec {
+      timeout_seconds = 120
+      service_account_name = google_service_account.cloud_run_rideshare_plus_service_account.email
+      containers { 
+        image = "${var.cloud_function_region}-docker.pkg.dev/${var.project_id}/cloud-run-source-deploy/rideshareplus"
+        env {
+            name  = "ENV_PROJECT_ID"
+            value = var.project_id
+          }
+        env {
+            name  = "ENV_CODE_BUCKET"
+            value = "code-${var.storage_bucket}"
+          }
+        env {
+            name  = "ENV_RIDESHARE_LAKEHOUSE_CURATED_DATASET"
+            value = var.bigquery_rideshare_lakehouse_curated_dataset
+          }
+        env {
+            name  = "ENV_RIDESHARE_LLM_CURATED_DATASET"
+            value = var.bigquery_rideshare_llm_curated_dataset
+          }
+      }
+    }
+  }
+
+  traffic {
+    percent         = 100
+    latest_revision = true
+  }
+
+  depends_on = [
+    null_resource.cloudbuild_buildpack_rideshare_plus_image,
+    google_service_account.cloud_run_rideshare_plus_service_account,
+    google_artifact_registry_repository.artifact_registry_cloud_run_deploy,
+    google_storage_bucket.code_bucket,
+    google_storage_bucket_object.rideshare_plus_function_zip_upload,
+  ]
+}
+
+output "cloud_run_service_rideshare_plus_website_url" {
+  value = "${google_cloud_run_service.cloud_run_service_rideshare_plus_website.status[0].url}"
+}
+
+data "google_iam_policy" "cloud_run_service_rideshare_plus_website_noauth" {
+  binding {
+    role = "roles/run.invoker"
+    members = [
+      "allUsers",
+    ]
+  }
+}
+
+# Set the cloud run to allow anonymous access
+resource "google_cloud_run_service_iam_policy" "google_cloud_run_service_iam_policy_noauth" {
+  location = google_cloud_run_service.cloud_run_service_rideshare_plus_website.location
+  project  = google_cloud_run_service.cloud_run_service_rideshare_plus_website.project
+  service  = google_cloud_run_service.cloud_run_service_rideshare_plus_website.name
+
+  policy_data = data.google_iam_policy.cloud_run_service_rideshare_plus_website_noauth.policy_data
+
+  depends_on = [
+    google_cloud_run_service.cloud_run_service_rideshare_plus_website
+  ]  
+}
 
 
 ####################################################################################
@@ -2423,7 +2713,7 @@ output "gcs_rideshare_lakehouse_curated_bucket" {
   value = google_storage_bucket.rideshare_lakehouse_curated.name
 }
 
-output "demo_rest_api_service_uri" { 
+output "demo_rest_api_service_uri" {
   value = google_cloudfunctions2_function.rideshare_plus_function.service_config[0].uri
 }
 

@@ -324,3 +324,19 @@ resource "google_project_service" "service-servicenetworking" {
   project = var.project_id
   service = "servicenetworking.googleapis.com"
 }
+
+# For Cloud Run Deploy
+resource "google_project_service" "service-cloudbuild" {
+  project = var.project_id
+  service = "cloudbuild.googleapis.com"
+}
+
+resource "google_project_service" "service-clouddeploy" {
+  project = var.project_id
+  service = "clouddeploy.googleapis.com"
+}
+
+resource "google_project_service" "service-artifactregistry" {
+  project = var.project_id
+  service = "artifactregistry.googleapis.com"
+}
