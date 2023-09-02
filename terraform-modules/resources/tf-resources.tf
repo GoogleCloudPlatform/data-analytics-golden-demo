@@ -2483,6 +2483,7 @@ gcloud_deploy = f"gcloud run deploy demo-rideshare-plus-website " + \
         f"--set-env-vars \"ENV_CODE_BUCKET={code_bucket_name}\" " + \
         f"--set-env-vars \"ENV_RIDESHARE_LLM_CURATED_DATASET={rideshare_llm_curated_dataset}\""
 */
+/*
 resource "null_resource" "cloudbuild_buildpack_rideshare_plus_image" {
   provisioner "local-exec" {
     when    = create
@@ -2492,6 +2493,61 @@ gcloud builds submit \
       --pack image="${var.cloud_function_region}-docker.pkg.dev/${var.project_id}/cloud-run-source-deploy/rideshareplus" \
       "gs://code-${var.storage_bucket}/cloud-run/rideshare-plus-website/rideshare-plus-website.zip"
     EOF
+  }
+  depends_on = [
+    google_artifact_registry_repository.artifact_registry_cloud_run_deploy,
+    google_storage_bucket.code_bucket,
+    google_storage_bucket_object.rideshare_plus_function_zip_upload,
+  ]
+}
+*/
+
+
+# This will execute a cloud build job (there does not seem to be a terraform command)
+# The cloud build will build a docker image from the .net core code
+# The image will be checked into our Artifact Repo
+# The source code is from GCS
+# Logic (requires "jq")
+# 1. Kick off build
+# 2. Wait for build to complete in loop
+resource "null_resource" "cloudbuild_rideshareplus_docker_image" {
+  provisioner "local-exec" {
+    when    = create
+    command = <<EOF
+json=$(curl --request POST \
+  "https://cloudbuild.googleapis.com/v1/projects/${var.project_id}/builds" \
+  --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
+  --header "Accept: application/json" \
+  --header "Content-Type: application/json" \
+  --data '{"source":{"storageSource":{"bucket":"${google_storage_bucket.code_bucket.name}","object":"cloud-run/rideshare-plus-website/rideshare-plus-website.zip"}},"steps":[{"name":"gcr.io/cloud-builders/docker","args":["build","-t","${var.cloud_function_region}-docker.pkg.dev/${var.project_id}/cloud-run-source-deploy/rideshareplus","."]},{"name":"gcr.io/cloud-builders/docker","args":["push","${var.cloud_function_region}-docker.pkg.dev/${var.project_id}/cloud-run-source-deploy/rideshareplus"]}]}' \
+  --compressed)
+
+build_id=$(echo $${json} | jq .metadata.build.id --raw-output)
+echo "build_id: $${build_id}"
+
+# Loop while it creates
+build_status_id="PENDING"
+while [[ "$${build_status_id}" == *"PENDING"* || "$${build_status_id}" == *"QUEUED"* || "$${build_status_id}" == *"WORKING"* ]]
+    do
+    sleep 5
+    build_status_json=$(curl \
+    "https://cloudbuild.googleapis.com/v1/projects/${var.project_id}/builds/$${build_id}" \
+    --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
+    --header "Accept: application/json" \
+    --compressed)
+
+    build_status_id=$(echo $${build_status_json} | jq .status --raw-output)
+    echo "build_status_id: $${build_status_id}"
+    done
+
+if [[ "$${build_status_id}" != "SUCCESS" ]]; 
+then
+    echo "Could not build the RidesharePlus Docker image with Cloud Build"
+    exit 1;
+else
+    echo "Cloud Build Successful"
+fi
+EOF
   }
   depends_on = [
     google_artifact_registry_repository.artifact_registry_cloud_run_deploy,
@@ -2538,7 +2594,8 @@ resource "google_cloud_run_service" "cloud_run_service_rideshare_plus_website" {
   }
 
   depends_on = [
-    null_resource.cloudbuild_buildpack_rideshare_plus_image,
+    #null_resource.cloudbuild_buildpack_rideshare_plus_image,
+    null_resource.cloudbuild_rideshareplus_docker_image,
     google_service_account.cloud_run_rideshare_plus_service_account,
     google_artifact_registry_repository.artifact_registry_cloud_run_deploy,
     google_storage_bucket.code_bucket,
