@@ -1,0 +1,108 @@
+﻿@model RidesharePlus.Models.PredictViewModel
+@{
+    ViewData["Title"] = "Predict High Value Pickup Locations";
+}
+
+
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">@ViewData["Title"]</h1>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Overview</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div>
+                        <ul>
+                            <li>As a driver you can select your desired trip distance and the AI Lakehouse will predict
+                                the highest value pickup locations.
+                            </li>
+                            <li>For the demo environment, we can simulate different weather conditions for generating
+                                recommendations.
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">&nbsp;</div>
+
+@using (Html.BeginForm("PredictSet", "Predict", FormMethod.Post))
+{
+    <div class="row">
+    <div class="col-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Simulation</h6>
+            </div>
+            <div class="card-body">
+
+                <div class="row">
+
+                    <div class="col-3">
+                        Select Distance:
+                    </div>
+
+                    <div class="col-9">
+                        @Html.RadioButtonFor(m => m.RideDistance, "short", new { @class="btn-check", @id="btn-check-1"})
+                        <label class="btn btn-outline-primary" for="btn-check-1">Short</label>
+
+                        @Html.RadioButtonFor(m => m.RideDistance, "medium", new { @class="btn-check", @id="btn-check-2"})
+                        <label class="btn btn-outline-primary" for="btn-check-2">Medium</label>
+
+                        @Html.RadioButtonFor(m => m.RideDistance, "long", new { @class="btn-check", @id="btn-check-3"})
+                        <label class="btn btn-outline-primary" for="btn-check-3">Long</label>
+                    </div>
+                </div>
+
+                <br/>
+
+                <div class="row">
+
+                    <div class="col-3">
+                        Select Weather Conditions:
+                    </div>
+
+                    <div class="col-9">
+                        
+                        @Html.RadioButtonFor(m => m.SimulateWeather, "snow", new { @class="btn-check", @id="btn-check-4"})
+                        <label class="btn btn-outline-primary" for="btn-check-4">Snowing</label>
+
+                        @Html.RadioButtonFor(m => m.SimulateWeather, "rain", new { @class="btn-check", @id="btn-check-5"})
+                        <label class="btn btn-outline-primary" for="btn-check-5">Raining</label>
+                    </div>
+                </div>
+                <br/>
+            </div>
+
+            <div class="row">
+                <div class="col-3">
+                    &nbsp;
+                </div>
+                <div class="col-9" style="text-align:left">
+                    <button type="submit" class="btn btn-primary mx-auto">Predict</button>
+                </div>
+            </div>
+            <br/>
+        </div>
+    </div>
+</div>
+}
+
+
+
+<script lang="javascript">
+
+    $(document).ready(function () {
+        submenuPredict = $("#submenuPredict");
+        submenuPredict.addClass("show");
+    }); //$(document).ready
+
+</script>

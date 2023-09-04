@@ -1,0 +1,248 @@
+﻿@{
+    ViewData["Title"] = "Streaming";
+}
+
+ 
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">@ViewData["Title"]</h1>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Overview</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div>
+                        <ul>
+                            <li>The below data is real time data based upon actual rides throughout the city.
+                            </li>
+                            <li>The data is refreshed every 5 seconds and shows the events from the prior hour.
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">&nbsp;</div>
+
+<div class="row">
+    <!-- Current Rides Card -->
+    <div class="col-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Current Rides</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="div_ride_count">0</div>
+                        <br />
+                        <small>past hour (count)</small>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Avg Ride Duration</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800"
+                            id="div_average_ride_duration_minutes">0</div>
+                        <br />
+                        <small>past hour (minutes)</small>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Avg Total Fare</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="div_average_total_amount">0
+                        </div>
+                        <br />
+                        <small>past hour (dollars)</small>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<br />
+
+<div class="row">
+    <!-- Current Rides Card -->
+    <div class="col-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Avg Ride Distance</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="div_average_ride_distance">0
+                        </div>
+                        <br />
+                        <small>past hour (miles)</small>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Most Pickup Zone</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="div_max_pickup_location_zone">
+                            N/A</div>
+                        <br />
+                        <small>past hour</small>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Most Dropoff Zone</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800" id="div_max_dropoff_location_zone">
+                            N/A</div>
+                        <br />
+                        <small>past hour</small>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<script lang="javascript">
+    var getStreamingDataCount = 0;
+    var showedAlert = false;
+
+    var div_ride_count = null;
+    var div_average_ride_duration_minutes = null;
+    var div_average_total_amount = null;
+    var div_average_ride_distance = null;
+    var div_max_pickup_location_zone = null;
+    var div_max_dropoff_location_zone = null;
+
+    function getStreamingData() {
+        try {
+            if (getStreamingDataCount < 50) {
+                getStreamingDataCount = getStreamingDataCount + 1;
+                var serviceURL = "/api/rideshare-streaming";
+
+                $.ajax({
+                    type: "GET",
+                    url: serviceURL,
+                    success: successFunc,
+                    error: errorFunc
+                });
+            }
+            else {
+                // do nothing (do not waste resouces)
+                if (showedAlert == false) {
+                    showedAlert = true;
+                    alert("The streaming has been stopped automatically to save on resources.");
+                }
+            }
+
+        } catch (exception) {
+            console.log("getStreamingData: exception: " + exception.toString());
+        }
+    } // getStreamingData
+
+
+    function successFunc(data, status) {
+        try {
+            if (status == "success") {
+                div_ride_count.text(data.rideCount);
+                div_average_ride_duration_minutes.text(data.averageRideDurationMinutes);
+                div_average_total_amount.text(data.averageTotalAmount);
+                div_average_ride_distance.text(data.averageRideDistance);
+                div_max_pickup_location_zone.text(data.maxPickupLocationZone);
+                div_max_dropoff_location_zone.text(data.maxDropoffLocationZone);
+            }
+            else {
+                console.log("Could set the realtime values");
+            }
+        } catch (exception) {
+            console.log("successFunc: exception: " + exception.toString());
+        }
+    } // successFunc
+
+
+    function errorFunc() {
+        try {
+            console.log("Could not call the REST API.  Please reload the page and try again.");
+        } catch (exception) {
+            console.log("errorFunc: exception: " + exception.toString());
+        }
+    } // errorFunc
+
+
+    $(document).ready(function () {
+        submenuStreaming = $("#submenuStreaming");
+        submenuStreaming.addClass("show");
+
+        div_ride_count = $("#div_ride_count");
+        div_average_ride_duration_minutes = $("#div_average_ride_duration_minutes");
+        div_average_total_amount = $("#div_average_total_amount");
+        div_average_ride_distance = $("#div_average_ride_distance");
+        div_max_pickup_location_zone = $("#div_max_pickup_location_zone");
+        div_max_dropoff_location_zone = $("#div_max_dropoff_location_zone");
+
+        getStreamingData();
+
+
+        var timer = 0;
+        const interval = setInterval(function () {
+            getStreamingData();
+        }, 5000);
+        // clearInterval(interval);
+
+
+    }); //$(document).ready
+
+</script>

@@ -1,0 +1,41 @@
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 60px;
+}
+
+.body-container {
+  /*remove the container default padding attribute*/
+  padding-left: 0px !important;
+  padding-right: 0px !important;
+  /*increase width as per your need*/
+  max-width: 100%;
+} 
+
+.text-gray-800 {
+  color: #5a5c69 !important;
+}
+
+/*
+.navbar {
+  background-color:#f9f9f9 !important;
+}
+*/
+
+.btn-primary {
+  color: #1a73e8;
+  font-size: 16;
+}

@@ -1,0 +1,58 @@
+﻿@{
+    ViewData["Title"] = "Demo Overview";
+}
+
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">@ViewData["Title"]</h1>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">AI Lakehouse Demo</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div>
+                        <ul>
+                            <li>This demo is a complete working end to end demo with all source code on <a href="https://goo.gle/dagd">GitHub</a>.  All code is fully scripted with 
+                            Terraform, Airflow and processes tens of millions to hundred millions of rows of data.
+                            </li>
+                            <li>The demo shows how to build an AI Lakehouse which combines large amounts of unstructured, semi-structured and structured data.
+                            </li>
+                            <li>The Predict demo uses big data, AI/ML, image detection, shared data assets and many other technogolies to show how you can create 
+                                a real world application using an AI Lakehouse.
+                            </li>
+                            <li>The Streaming demo realtime data from Pub/Sub which is processed by Dataflow and then landed in BigQuery.  BigQuery then processes the data 
+                                through its raw, enriched and curated zones.  The data is then displayed in realtime in this application.  We receive thousands of events per second.
+                            </li>
+                            <li>The LLM demo will use the power of LLMs and AI/ML to understand the state of our business.  We will extract knowledge from customer
+                                reviews and perform both qualitative and quantitative analysis.  We will then roll this data into an employee and customer profile.
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">&nbsp;</div>
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">AI Lakehouse</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div>
+                        <img src="/images/ai-lakehouse.png" width="1000px" alt="AI Lakehouse">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
