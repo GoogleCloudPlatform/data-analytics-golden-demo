@@ -11,18 +11,12 @@
     <div class="col-12">
         <div class="card shadow mb-4">
             <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Overview</h6>
+                <h6 class="m-0 font-weight-bold text-primary">Streaming Demo</h6>
             </div>
             <div class="card-body">
                 <div class="row">
                     <div>
-                        <ul>
-                            <li>The below data is real time data based upon actual rides throughout the city.
-                            </li>
-                            <li>The data is refreshed every 5 seconds and shows the events from the prior hour.
-                            </li>
-                            <li>Please ensure the streaming job in Airflow "sample-dataflow-start-streaming-job" has been started.</li>
-                        </ul>
+This demo requires that you have the Airflow job sample-dataflow-start-streaming-job running.  The demo will showcase how we can ingest thousands of events per second from Pub/Sub, process the data with Dataflow and land the data in BigQuery.  BigQuery will perform analytical queries on the data and finally display it on the web page.  The web page will refresh every five seconds summarizing the past one hour of streaming data.  The streaming data lands in our raw zone, is processed and summarized in our enriched zone and finally queried from our curated zone.  The streaming data is a series of events of latitude and longitude that are continuously transmitted throughout the trip.  BigQuery must determine the first event and the corresponding last event in this data for each trip in real time.  All this is done in our AI Lakehouse using our streaming technologies.
                     </div>
                 </div>
             </div>
