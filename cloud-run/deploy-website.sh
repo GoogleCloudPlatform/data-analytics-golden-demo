@@ -3,12 +3,16 @@ google_storage_bucket="code-data-analytics-demo-u0i2dr3u3j"
 curl_impersonation=""
 region="us-central1"
 
+rm rideshare-plus-website.zip
+zip -r rideshare-plus-website.zip ./rideshare-plus-website/*
+gcloud storage cp rideshare-plus-website.zip "gs://${google_storage_bucket}/cloud-run/rideshare-plus-website/rideshare-plus-website.zip"
+
 json=$(curl --request POST \
   "https://cloudbuild.googleapis.com/v1/projects/${project_id}/builds" \
   --header "Authorization: Bearer $(gcloud auth print-access-token ${curl_impersonation})" \
   --header "Accept: application/json" \
   --header "Content-Type: application/json" \
-  --data "{\"source\":{\"storageSource\":{\"bucket\":\"${google_storage_bucket}\",\"object\":\"cloud-run/rideshare-plus-website/rideshare-plus-website.zip\"}},\"steps\":[{\"name\":\"gcr.io/cloud-builders/docker\",\"args\":[\"build\",\"-t\",\"${region}-docker.pkg.dev/${project_id}/cloud-run-source-deploy/rideshareplus\",\".\"]},{\"name\":\"gcr.io/cloud-builders/docker\",\"args\":[\"push\",\"${region}-docker.pkg.dev/${project_id}/cloud-run-source-deploy/rideshareplus\"]}]}" \
+  --data "{\"source\":{\"storageSource\":{\"bucket\":\"${google_storage_bucket}\",\"object\":\"cloud-run/rideshare-plus-website/rideshare-plus-website.zip\"}},\"steps\":[{\"name\":\"gcr.io/cloud-builders/docker\",\"args\":[\"build\",\"-t\",\"${region}-docker.pkg.dev/${project_id}/cloud-run-source-deploy/rideshareplus\",\"./rideshare-plus-website\"]},{\"name\":\"gcr.io/cloud-builders/docker\",\"args\":[\"push\",\"${region}-docker.pkg.dev/${project_id}/cloud-run-source-deploy/rideshareplus\"]}]}" \
   --compressed)
 
 build_id=$(echo ${json} | jq .metadata.build.id --raw-output)
