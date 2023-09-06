@@ -1,5 +1,5 @@
 /*##################################################################################
-# Copyright 2022 Google LLC
+# Copyright 2023 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@
 
 -- RAW
 CALL `${project_id}.${bigquery_rideshare_llm_raw_dataset}.sp_step_00_initialize`();
+CALL `${project_id}.${bigquery_rideshare_llm_raw_dataset}.sp_step_01_deploy_udf`();
 
 -- ENRICHED
 CALL `${project_id}.${bigquery_rideshare_llm_enriched_dataset}.sp_step_00_initialize`();

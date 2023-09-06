@@ -1,5 +1,5 @@
 ####################################################################################
-# Copyright 2022 Google LLC
+# Copyright 2023 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -48,8 +48,8 @@ env_rideshare_llm_curated_dataset  = os.environ['ENV_RIDESHARE_LLM_CURATED_DATAS
 env_rideshare_lakehouse_raw_bucket = os.environ['ENV_RIDESHARE_LAKEHOUSE_RAW_BUCKET'] 
 
 sp_reset_demo="CALL `{}.{}.sp_reset_demo`();".format(project_id,env_rideshare_llm_curated_dataset)
-gcloud_copy="gcloud storage cp -r gs://data-analytics-golden-demo/rideshare-lakehouse-raw-bucket/rideshare_llm_export/v1/* gs://{}/rideshare_llm_export/".format(env_rideshare_lakehouse_raw_bucket)
-
+gcloud_copy_data="gcloud storage cp -r gs://data-analytics-golden-demo/rideshare-lakehouse-raw-bucket/rideshare_llm_export/v1/* gs://{}/rideshare_llm_export/".format(env_rideshare_lakehouse_raw_bucket)
+gcloud_copy_audios="gcloud storage cp -r gs://data-analytics-golden-demo/rideshare-lakehouse-raw-bucket/rideshare_audios/v1/*.mp3 gs://{}/rideshare_audios/".format(env_rideshare_lakehouse_raw_bucket)
 
 with airflow.DAG('sample-rideshare-llm-hydrate-data',
                  default_args=default_args,
@@ -60,7 +60,12 @@ with airflow.DAG('sample-rideshare-llm-hydrate-data',
     # Copy data
     copy_rideshare_llm_data = bash_operator.BashOperator(
         task_id="copy_rideshare_llm_data",
-        bash_command=gcloud_copy,
+        bash_command=gcloud_copy_data,
+    )
+    # Copy audios
+    copy_rideshare_audios = bash_operator.BashOperator(
+        task_id="copy_rideshare_audios",
+        bash_command=gcloud_copy_audios,
     )
 
     # Initialize Raw, Enriched and Curated Zones
@@ -74,7 +79,7 @@ with airflow.DAG('sample-rideshare-llm-hydrate-data',
             }
         })
   
-    copy_rideshare_llm_data >> sp_initialize_all_data
+    copy_rideshare_llm_data >> copy_rideshare_audios >> sp_initialize_all_data
 
 
 # [END dag]

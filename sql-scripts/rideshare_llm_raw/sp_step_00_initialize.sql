@@ -1,5 +1,5 @@
 /*##################################################################################
-# Copyright 2022 Google LLC
+# Copyright 2023 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -102,3 +102,34 @@ FROM FILES (
   format = 'PARQUET',
   uris = ['gs://${gcs_rideshare_lakehouse_raw_bucket}/rideshare_llm_export/raw_zone/customer_review/*.parquet']
 );
+
+------------------------------------------------------------------------------------------------------------
+-- Audios (Object Table)
+------------------------------------------------------------------------------------------------------------
+IF NOT EXISTS (SELECT  1
+             FROM `${project_id}.${bigquery_rideshare_llm_raw_dataset}`.INFORMATION_SCHEMA.TABLES
+            WHERE table_name = 'biglake_rideshare_audios' 
+              AND table_type = 'EXTERNAL')
+    THEN
+    CREATE OR REPLACE EXTERNAL TABLE `${project_id}.${bigquery_rideshare_llm_raw_dataset}.biglake_rideshare_audios`
+    WITH CONNECTION `${project_id}.${bigquery_region}.biglake-connection`
+    OPTIONS (
+        object_metadata="DIRECTORY",
+        uris = ['gs://${gcs_rideshare_lakehouse_raw_bucket}/rideshare_audios/*.mp3'],
+        max_staleness=INTERVAL 30 MINUTE, 
+        --metadata_cache_mode="AUTOMATIC"
+        -- set to Manual for demo
+        metadata_cache_mode="MANUAL"
+        ); 
+END IF;
+
+-- For the demo, refresh the table (so we do not need to wait)
+-- Refresh can only be done for "manual" cache mode
+CALL BQ.REFRESH_EXTERNAL_METADATA_CACHE('${project_id}.${bigquery_rideshare_lakehouse_raw_dataset}.biglake_rideshare_audios');
+
+
+-- Show our objects in GCS / Data Lake
+-- Metadata values are recorded as to where the image was taken
+SELECT * 
+  FROM `${project_id}.${bigquery_rideshare_lakehouse_raw_dataset}.biglake_rideshare_audios`;  
+

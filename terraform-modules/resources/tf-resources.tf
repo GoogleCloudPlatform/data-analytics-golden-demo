@@ -1,5 +1,5 @@
 ####################################################################################
-# Copyright 2022 Google LLC
+# Copyright 2023 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -1229,6 +1229,10 @@ resource "google_cloudfunctions_function" "bigquery_external_function" {
   ingress_settings             = "ALLOW_ALL"
   https_trigger_security_level = "SECURE_ALWAYS"
   entry_point                  = "bigquery_external_function"
+  environment_variables        =  {
+      PROJECT_ID      = var.project_id,
+      ENV_CLOUD_FUNCTION_REGION = var.cloud_function_region
+    }
   # no-allow-unauthenticated ???
   depends_on = [
     google_storage_bucket.code_bucket,
