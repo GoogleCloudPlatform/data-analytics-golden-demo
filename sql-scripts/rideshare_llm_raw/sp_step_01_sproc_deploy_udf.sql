@@ -30,10 +30,6 @@
     
   */
 
--- Show our objects in GCS / Data Lake
--- Metadata values are recorded as to where the image was taken
-SELECT * FROM `${project_id}.${bigquery_rideshare_llm_raw_dataset}.biglake_rideshare_images`;
-
 -- Create the Function Link between BQ and the Cloud Function
 CREATE OR REPLACE FUNCTION `${project_id}.${bigquery_rideshare_llm_raw_dataset}.ext_udf_ai_extract_text` (uri STRING) RETURNS STRING 
     REMOTE WITH CONNECTION `${project_id}.${bigquery_region}.cloud-function` 
