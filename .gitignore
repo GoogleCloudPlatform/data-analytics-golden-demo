@@ -51,3 +51,5 @@ gcloud-storage-copy.sh
 cloud-run/rideshare-plus-website.zip
 cloud-run/rideshare-plus-website/RidesharePlus/obj/*
 cloud-run/rideshare-plus-website/RidesharePlus/bin/*
+.vscode/launch.json
+.vscode/tasks.json

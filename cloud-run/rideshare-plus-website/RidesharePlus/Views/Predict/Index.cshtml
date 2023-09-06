@@ -84,7 +84,7 @@ In order to see the real time streaming data please ensure that the sample-dataf
                     &nbsp;
                 </div>
                 <div class="col-9" style="text-align:left">
-                    <button type="submit" class="btn btn-primary mx-auto">Predict</button>
+                    <button id="submitButton" type="submit" class="btn btn-primary mx-auto">Predict</button>
                 </div>
             </div>
             <br/>
@@ -101,5 +101,15 @@ In order to see the real time streaming data please ensure that the sample-dataf
         submenuPredict = $("#submenuPredict");
         submenuPredict.addClass("show");
     }); //$(document).ready
+
+    $("form").submit(function(){
+        button = $("#submitButton");
+        button.prop("disabled",true);
+        button.removeClass("btn-primary");
+        button.addClass("btn-secondary");
+        button.html("Calculating best pickup locations...");
+        $("body").css("cursor", "progress");
+    });
+
 
 </script>
