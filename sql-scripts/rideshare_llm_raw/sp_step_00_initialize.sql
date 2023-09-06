@@ -125,11 +125,11 @@ END IF;
 
 -- For the demo, refresh the table (so we do not need to wait)
 -- Refresh can only be done for "manual" cache mode
-CALL BQ.REFRESH_EXTERNAL_METADATA_CACHE('${project_id}.${bigquery_rideshare_lakehouse_raw_dataset}.biglake_rideshare_audios');
+CALL BQ.REFRESH_EXTERNAL_METADATA_CACHE('${project_id}.${bigquery_rideshare_llm_raw_dataset}.biglake_rideshare_audios');
 
 
 -- Show our objects in GCS / Data Lake
 -- Metadata values are recorded as to where the image was taken
 SELECT * 
-  FROM `${project_id}.${bigquery_rideshare_lakehouse_raw_dataset}.biglake_rideshare_audios`;  
+  FROM `${project_id}.${bigquery_rideshare_llm_raw_dataset}.biglake_rideshare_audios`;  
 

@@ -1536,7 +1536,7 @@ resource "google_storage_bucket_object" "deploy_rideshare_website_www_reports" {
 
 
 ####################################################################################
-# Deploy Cobal notebooks
+# Deploy Colab notebooks
 ####################################################################################
 resource "google_storage_bucket_object" "deploy_notebook_rideshare_llm_ai_lakehouse_demo" {
   name   = "colab-enterprise/rideshare-llm/rideshare_llm_ai_lakehouse_demo.ipynb"
