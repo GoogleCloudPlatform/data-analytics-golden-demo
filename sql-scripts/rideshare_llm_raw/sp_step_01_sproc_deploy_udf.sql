@@ -35,6 +35,6 @@ CREATE OR REPLACE FUNCTION `${project_id}.${bigquery_rideshare_llm_raw_dataset}.
     REMOTE WITH CONNECTION `${project_id}.${bigquery_region}.cloud-function` 
     OPTIONS 
     (endpoint = 'https://${cloud_function_region}-${project_id}.cloudfunctions.net/bigquery_external_function', 
-    user_defined_context = [("mode","localize_objects_uri")],
+    user_defined_context = [("mode","extract_text_uri")],
     max_batching_rows = 10
     );
