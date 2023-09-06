@@ -1,5 +1,5 @@
 ####################################################################################
-# Copyright 2022 Google LLC
+# Copyright 2023 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -1165,7 +1165,7 @@ resource "time_sleep" "wait_for_airflow_dag_sync" {
     google_storage_bucket_object.deploy_airflow_dag_sample-rideshare-iceberg-serverless,
     google_storage_bucket_object.deploy_airflow_dag_sample-rideshare-download-images,
     google_storage_bucket_object.deploy_airflow_dag_sample-rideshare-website,
-    google_storage_bucket_object.deploy_airflow_dag_sample-ridshare-llm-hydrate-data,
+    google_storage_bucket_object.deploy_airflow_dag_sample-rideshare-llm-hydrate-data,
     google_storage_bucket_object.deploy_airflow_dag_sample-rideshare-hydrate-data,
 
   ]
@@ -1454,10 +1454,10 @@ resource "google_storage_bucket_object" "deploy_airflow_dag_sample-rideshare-web
 }
 
 # Upload DAG
-resource "google_storage_bucket_object" "deploy_airflow_dag_sample-ridshare-llm-hydrate-data" {
-  name   = "${local.local_composer_dag_path}/sample-ridshare-llm-hydrate-data.py"
+resource "google_storage_bucket_object" "deploy_airflow_dag_sample-rideshare-llm-hydrate-data" {
+  name   = "${local.local_composer_dag_path}/sample-rideshare-llm-hydrate-data.py"
   bucket = local.local_composer_bucket_name
-  source = "../cloud-composer/dags/sample-ridshare-llm-hydrate-data.py"
+  source = "../cloud-composer/dags/sample-rideshare-llm-hydrate-data.py"
 
   depends_on = [ 
     ]  
@@ -1536,7 +1536,7 @@ resource "google_storage_bucket_object" "deploy_rideshare_website_www_reports" {
 
 
 ####################################################################################
-# Deploy Cobal notebooks
+# Deploy Colab notebooks
 ####################################################################################
 resource "google_storage_bucket_object" "deploy_notebook_rideshare_llm_ai_lakehouse_demo" {
   name   = "colab-enterprise/rideshare-llm/rideshare_llm_ai_lakehouse_demo.ipynb"

@@ -1,5 +1,5 @@
 ####################################################################################
-# Copyright 2022 Google LLC
+# Copyright 2023 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -1229,6 +1229,10 @@ resource "google_cloudfunctions_function" "bigquery_external_function" {
   ingress_settings             = "ALLOW_ALL"
   https_trigger_security_level = "SECURE_ALWAYS"
   entry_point                  = "bigquery_external_function"
+  environment_variables        =  {
+      PROJECT_ID      = var.project_id,
+      ENV_CLOUD_FUNCTION_REGION = var.cloud_function_region
+    }
   # no-allow-unauthenticated ???
   depends_on = [
     google_storage_bucket.code_bucket,
@@ -1436,6 +1440,23 @@ resource "google_project_iam_member" "bq_connection_iam_cloud_invoker" {
     google_bigquery_connection.cloud_function_connection
   ]
 }
+
+# Allow cloud function service account to call the STT API
+resource "google_project_iam_member" "stt_iam_cloud_invoker" {
+  project = var.project_id
+  role    = "roles/speech.client"
+  member  = "serviceAccount:${var.project_id}@appspot.gserviceaccount.com"
+
+  depends_on = [
+    google_storage_bucket.code_bucket,
+    data.archive_file.bigquery_external_function_zip,
+    google_storage_bucket_object.bigquery_external_function_zip_upload,
+    google_cloudfunctions_function.bigquery_external_function,
+    google_bigquery_connection.cloud_function_connection
+  ]
+}
+
+
 
 # Allow cloud function service account to read storage [V2 Function]
 resource "google_project_iam_member" "cloudfunction_rest_api_iam" {
