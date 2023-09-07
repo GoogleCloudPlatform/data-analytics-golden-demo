@@ -48,8 +48,8 @@ env_rideshare_llm_curated_dataset  = os.environ['ENV_RIDESHARE_LLM_CURATED_DATAS
 env_rideshare_lakehouse_raw_bucket = os.environ['ENV_RIDESHARE_LAKEHOUSE_RAW_BUCKET'] 
 
 sp_reset_demo="CALL `{}.{}.sp_reset_demo`();".format(project_id,env_rideshare_llm_curated_dataset)
-gcloud_copy_data="gcloud storage cp -r gs://data-analytics-golden-demo/rideshare-lakehouse-raw-bucket/rideshare_llm_export/v1/* gs://{}/rideshare_llm_export/".format(env_rideshare_lakehouse_raw_bucket)
-gcloud_copy_audios="gcloud storage cp -r gs://data-analytics-golden-demo/rideshare-lakehouse-raw-bucket/rideshare_audios/v1/*.mp3 gs://{}/rideshare_audios/".format(env_rideshare_lakehouse_raw_bucket)
+gcloud_copy_data="gsutil -m -q cp -r gs://data-analytics-golden-demo/rideshare-lakehouse-raw-bucket/rideshare_llm_export/v1/* gs://{}/rideshare_llm_export/".format(env_rideshare_lakehouse_raw_bucket)
+gcloud_copy_audios="gsutil -m -q cp -r gs://data-analytics-golden-demo/rideshare-lakehouse-raw-bucket/rideshare_audios/v1/*.mp3 gs://{}/rideshare_audios/".format(env_rideshare_lakehouse_raw_bucket)
 
 with airflow.DAG('sample-rideshare-llm-hydrate-data',
                  default_args=default_args,
