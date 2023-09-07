@@ -48,7 +48,7 @@ variable "bigquery_rideshare_llm_raw_dataset" {}
 variable "bigquery_rideshare_llm_enriched_dataset" {}
 variable "bigquery_rideshare_llm_curated_dataset" {}
 variable "gcs_rideshare_lakehouse_raw_bucket" {}
-
+variable "cloud_run_service_rideshare_plus_website_url" {}
 
 variable "bigquery_taxi_dataset" {
   type        = string
@@ -1511,7 +1511,7 @@ resource "google_storage_bucket_object" "deploy_rideshare_website_www_configurat
 resource "google_storage_bucket_object" "deploy_rideshare_website_www_index" {
   name    = "${local.local_composer_data_path}/rideshare-website/www/index.html"
   bucket  = local.local_composer_bucket_name
-  content = templatefile("../rideshare-website/www/index.html", { project_id =var.project_id, demo_rest_api_service_uri=var.demo_rest_api_service_uri })
+  content = templatefile("../rideshare-website/www/index.html", { project_id =var.project_id, demo_rest_api_service_uri=var.demo_rest_api_service_uri,cloud_run_service_rideshare_plus_website_url=var.cloud_run_service_rideshare_plus_website_url })
 }
 
 resource "google_storage_bucket_object" "deploy_rideshare_website_www_predict" {

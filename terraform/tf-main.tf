@@ -312,6 +312,7 @@ module "deploy-files-module" {
   bigquery_rideshare_llm_enriched_dataset       = module.resources.bigquery_rideshare_llm_enriched_dataset
   bigquery_rideshare_llm_curated_dataset        = module.resources.bigquery_rideshare_llm_curated_dataset 
   gcs_rideshare_lakehouse_raw_bucket            = module.resources.gcs_rideshare_lakehouse_raw_bucket
+  cloud_run_service_rideshare_plus_website_url  = module.resources.cloud_run_service_rideshare_plus_website_url
 
   depends_on = [
     module.project,
