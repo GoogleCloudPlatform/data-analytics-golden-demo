@@ -1,0 +1,114 @@
+﻿@{
+    ViewData["Title"] = "Demo Overview";
+}
+
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">@ViewData["Title"]</h1>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Summary</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div>
+Rideshare Plus is a fictitious company that we've created to showcase Google's AI Lakehouse technology.  
+The demo is broken apart into several different areas that can be showcased individually.  
+The Predict portion of the demo shows how we can use BigQuery, AI/ML, image detection, shared data assets and many other technologies to predict the 
+highest value pickup locations for rideshare drivers.  The Streaming portion of the demo shows how we can ingest thousands 
+of events per second, process the data and then display a streaming dashboard.  The LLM portion of the demo
+highlights how we can use LLMs to process qualitative data.  Our qualitative data will be combined with quantitative data in order to 
+create a complete customer and employee profile.  All of the solutions are powered by our AI Lakehouse along with BigQuery Studio which enabled 
+data engineers and data scientists to work collaboratively.<br/>&nbsp;<br/>
+The full working source code is available on <a href="https://goo.gle/dagd" target="_blank">GitHub</a>.                       
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Predict Demo</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div>
+To run the Predict demo, first click the Predict menu item and then the Demo menu item.  This demo will allow you to select the distance a rideshare driver is willing to drive along with the ability to simulate different weather conditions.  Once you click the Predict button, BigQuery will take the parameters and pass them to our ML model which will score each of our 265 pickup locations to determine the highest potential fares.  The ML model utilizes image recognition to count the number of people at each pickup location and identifies people within the image that have luggage who might be traveling.  The model also uses historical weather data from a public data source and historical trip data. Finally, the model uses the current time of day and time of year to score the results.
+<br/>&nbsp;<br/>
+When the data is scored, you will be navigated to the Configure menu item to configure Looker.  After entering the Embed URL you will then be navigated to the Visualize screen.  The configuration only needs to be set up when running the demo for the first time.  After the initial setup, you will be navigated directly to the Visualize screen. The Visualize screen will show the top pick-up locations along with the recent number of pickups (streaming data).  This would allow the drivers to quickly see the best location along with their current active number of trips.
+<br/>&nbsp;<br/>
+In order to see the real time streaming data please ensure that the sample-dataflow-start-streaming-job Airflow job is running.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Streaming Demo</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div>
+To run the streaming data demo, first click the Streaming menu item and then the Demo menu item.  This demo requires that you have the Airflow job sample-dataflow-start-streaming-job running.  The demo will showcase how we can ingest thousands of events per second from Pub/Sub, process the data with Dataflow and land the data in BigQuery.  BigQuery will perform analytical queries on the data and finally display it on the web page.  The web page will refresh every five seconds summarizing the past one hour of streaming data.  The streaming data lands in our raw zone, is processed and summarized in our enriched zone and finally queried from our curated zone.  The streaming data is a series of events of latitude and longitude that are continuously transmitted throughout the trip.  BigQuery must determine the first event and the corresponding last event in this data for each trip in real time.  All this is done in our AI Lakehouse using our streaming technologies.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">LLM Demo</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div>
+To run the LLM demo, first click the Large Learning Model Menu and select one of the following areas:
+<ul>
+    <li><span class="text-primary">Employee Profile</span> - Explore how we can extract attributes from qualitative data.  Customers leave reviews about our rideshare drivers and by using this information we can glean insights into our drivers work habits.  We can also see a complete summary of all of a driver's reviews to understand the all up performance.  In addition, we can extract knowledge from our trip data as to how much value a driver produces as well as understanding additional work habits.</li>
+    <li><span class="text-primary">Employee Reviews</span> - Explore the reviews customers have left for an individual driver.</li>
+    <li><span class="text-primary">Customer Profile</span> - Explore how we can extract customer preferences based upon their review.  We can build up a list of preferences as well as summarize their reviews across all of our drivers.  We can then present this information to a driver before the customer is picked up so the driver can taylor their experience.  In addition, the quantitative data based upon the customer trips has been summarized by a LLM so we understand how and when the customer uses our service.</li>
+    <li><span class="text-primary">Customer Reviews</span> - Explore the customer reviews.</li>
+    <li>If you have not configured the<span class="text-primary">Looker Studio</span> report you will be directed to configure the report regardless of which menu item you select. Please configure the report and then proceed to select one of the below items.</li>
+</ul>
+Also, within BigQuery run through the rideshare_llm_ai_lakehouse_demo notebook.  The notebook is in the "code" bucket and will need to be downloaded and then uploaded into Colab Enterprise under Vertex AI.  The notebook will then appear within BigQuery Studio.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">&nbsp;</div>
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">AI Lakehouse</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div>
+                        <img src="/images/ai-lakehouse.png" width="1000px" alt="AI Lakehouse">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

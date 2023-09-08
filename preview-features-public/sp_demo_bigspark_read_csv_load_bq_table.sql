@@ -1,6 +1,6 @@
 CREATE OR REPLACE PROCEDURE
 	`bigquery_preview_features.sp_demo_bigspark_read_csv_load_bq_table`(test_parameter STRING)
-WITH CONNECTION `us.bigspark-connection` OPTIONS (engine='SPARK',
+WITH CONNECTION `us.bigspark-connection` OPTIONS (engine='SPARK', runtime_version='1.0',
 		jar_uris=["gs://sample-shared-data/bigspark/spark-bigquery-with-dependencies_2.12-0.26.0.jar"])
 	LANGUAGE python AS R"""
 ####################################################################################

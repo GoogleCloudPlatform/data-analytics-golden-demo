@@ -195,6 +195,7 @@ module "resources" {
   cloud_sql_region                  = var.cloud_sql_region
   cloud_sql_zone                    = var.cloud_sql_zone
   datastream_region                 = var.datastream_region
+  colab_enterprise_region           = var.colab_enterprise_region
 
   storage_bucket                    = local.local_storage_bucket
   spanner_config                    = var.spanner_config
@@ -250,6 +251,9 @@ module "sql-scripts" {
   gcs_rideshare_lakehouse_enriched_bucket       = module.resources.gcs_rideshare_lakehouse_enriched_bucket
   bigquery_rideshare_lakehouse_curated_dataset  = module.resources.bigquery_rideshare_lakehouse_curated_dataset
   gcs_rideshare_lakehouse_curated_bucket        = module.resources.gcs_rideshare_lakehouse_curated_bucket
+  bigquery_rideshare_llm_raw_dataset            = module.resources.bigquery_rideshare_llm_raw_dataset
+  bigquery_rideshare_llm_enriched_dataset       = module.resources.bigquery_rideshare_llm_enriched_dataset
+  bigquery_rideshare_llm_curated_dataset        = module.resources.bigquery_rideshare_llm_curated_dataset
 
   depends_on = [
     module.project,
@@ -303,6 +307,12 @@ module "deploy-files-module" {
   composer_dag_bucket             = module.resources.composer_env_dag_bucket
   demo_rest_api_service_uri       = module.resources.demo_rest_api_service_uri
   code_bucket_name                = module.resources.gcs_code_bucket
+
+  bigquery_rideshare_llm_raw_dataset            = module.resources.bigquery_rideshare_llm_raw_dataset
+  bigquery_rideshare_llm_enriched_dataset       = module.resources.bigquery_rideshare_llm_enriched_dataset
+  bigquery_rideshare_llm_curated_dataset        = module.resources.bigquery_rideshare_llm_curated_dataset 
+  gcs_rideshare_lakehouse_raw_bucket            = module.resources.gcs_rideshare_lakehouse_raw_bucket
+  cloud_run_service_rideshare_plus_website_url  = module.resources.cloud_run_service_rideshare_plus_website_url
 
   depends_on = [
     module.project,
@@ -603,6 +613,18 @@ output "bigquery_rideshare_lakehouse_enriched_dataset" {
 
 output "bigquery_rideshare_lakehouse_curated_dataset" {
   value = module.resources.bigquery_rideshare_lakehouse_curated_dataset
+}
+
+output "bigquery_rideshare_llm_raw_dataset" {
+  value = module.resources.bigquery_rideshare_llm_raw_dataset
+}
+
+output "bigquery_rideshare_llm_enriched_dataset" {
+  value = module.resources.bigquery_rideshare_llm_enriched_dataset
+}
+
+output "bigquery_rideshare_llm_curated_dataset" {
+  value = module.resources.bigquery_rideshare_llm_curated_dataset
 }
 
 output "gcs_rideshare_lakehouse_raw_bucket" {

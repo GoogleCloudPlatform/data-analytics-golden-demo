@@ -1,4 +1,4 @@
-# Copyright 2022 Google LLC
+# Copyright 2023 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,11 +13,16 @@
 # limitations under the License.
 
 # https://cloud.google.com/bigquery/docs/remote-function-tutorial
-# import urllib.request
+
 
 import flask
+import os
+import urllib.request
 import functions_framework
 from google.cloud import vision
+from google.api_core.client_options import ClientOptions
+from google.cloud.speech_v2 import SpeechClient
+from google.cloud.speech_v2.types import cloud_speech
 
 # Entry point (we recevice an element named "userDefinedContext").  The userDefinedContext 
 # tells us which method to call
@@ -41,6 +46,8 @@ def bigquery_external_function(request: flask.Request) -> flask.Response:
         return detect_logos_uri(request)
     elif mode == "taxi_zone_lookup":
         return taxi_zone_lookup(request)
+    elif mode == "extract_text_uri":
+        return extract_text_uri(request)
 
 # https://cloud.google.com/vision/docs/object-localizer#vision_localize_objects-python
 @functions_framework.http
@@ -417,3 +424,34 @@ def load_lookups():
         print ("Exception (load_lookups): ", str(ex))
     print("END: load_lookups")
     return lookup_dict
+
+
+@functions_framework.http
+def extract_text_uri(request: flask.Request) -> flask.Response:
+    try:
+        project_id = os.environ['PROJECT_ID']
+        region = os.environ['ENV_CLOUD_FUNCTION_REGION']
+        client = SpeechClient(client_options=ClientOptions(api_endpoint=f"{region}-speech.googleapis.com"))
+        config = cloud_speech.RecognitionConfig(
+            auto_decoding_config=cloud_speech.AutoDetectDecodingConfig(),
+            language_codes=["en-US"],
+            model="chirp"
+        )
+        calls = request.get_json()['calls']
+        replies = []
+        for call in calls:
+            uri=call[0]
+            print("uri: ", uri)
+            content = urllib.request.urlopen(uri).read()
+            request = cloud_speech.RecognizeRequest(
+                recognizer=f"projects/{project_id}/locations/{region}/recognizers/_",
+                config=config,
+                content=content)
+            response = client.recognize(request=request)
+            partial_result = ""
+            for result in response.results:
+                partial_result = partial_result + result.alternatives[0].transcript
+            replies.append(partial_result)    
+        return flask.make_response(flask.jsonify({'replies': replies}))
+    except Exception as e:
+        return flask.make_response(flask.jsonify({'errorMessage': str(e)}), 400)

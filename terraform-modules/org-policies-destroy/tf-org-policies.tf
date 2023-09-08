@@ -84,9 +84,7 @@ resource "google_org_policy_policy" "org_policy_require_os_login" {
 # }
 
 
-# Error: Error waiting for creating Dataproc cluster: Error code 9, message: Constraint constraints/compute.requireShieldedVm violated for project projects/big-query-demo-09. Secure Boot is not enabled in the 'shielded_instance_config' field. 
-# See https://cloud.google.com/resource-manager/docs/organization-policy/org-policy-constraints for more information.
-/*
+# Needed for Colab Enterprise notebooks
 resource "google_org_policy_policy" "org_policy_require_shielded_vm" {
   name     = "projects/${var.project_id}/policies/compute.requireShieldedVm"
   parent   = "projects/${var.project_id}"
@@ -97,7 +95,7 @@ resource "google_org_policy_policy" "org_policy_require_shielded_vm" {
     }
   }
 }
-*/
+
 
 # To deploy the cloud function
 /*

@@ -1,7 +1,7 @@
 CREATE OR REPLACE PROCEDURE
 	`bigquery_preview_features.sp_demo_bigspark_read_bq_save_hive_on_data_lake`(test_parameter STRING)
-WITH CONNECTION `us.bigspark-connection` OPTIONS (engine='SPARK',
-		jar_uris=["gs://sample-shared-data/bigspark/spark-bigquery-with-dependencies_2.12-0.26.0.jar"])
+WITH CONNECTION `us.bigspark-connection` OPTIONS (engine='SPARK', runtime_version='2.0',
+		jar_uris=["gs://spark-lib/bigquery/spark-3.3-bigquery-0.32.0.jar"])
 	LANGUAGE python AS R"""
 ####################################################################################
 # Copyright 2022 Google LLC
@@ -55,15 +55,6 @@ WITH CONNECTION `us.bigspark-connection` OPTIONS (engine='SPARK',
 #       e.g. bqcx-312090430116-oi5j@gcp-sa-bigquery-consp.iam.gserviceaccount.com 
 #       This account was granted Editor role at the Project level due to Preview Requirements
 
-# NOTE: You cannot edit a Spark SP at this point (seems like parameters are not codegening correctly)
-# Proper CREATE OR REPLACE STATMENT (there is no BEGIN/END for this):
-#   CREATE OR REPLACE PROCEDURE bigquery_preview_features.sp_demo_bigspark_read_bq_save_hive_on_data_lake (test_parameter STRING)
-#     WITH CONNECTION `us.bigspark-connection`
-#     OPTIONS(engine="SPARK", jar_uris=["gs://sample-shared-data/bigspark/spark-bigquery-with-dependencies_2.12-0.26.0.jar"]) 
-#     LANGUAGE python AS r{{3 double quotes}}
-
-# NOTE: To see the orginal SQL, View the Saved Queries | Project Queries | sp_demo_bigspark_read_bq_save_hive_on_data_lake
-
 from pyspark.sql.dataframe import DataFrame
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, year, month, dayofmonth, hour, minute
@@ -84,15 +75,18 @@ taxi_dataset_id = "bigquery_preview_features"
 destination = "gs://sample-shared-data/customer-extract/taxi-data/"
 
 print("Create session")
-spark = SparkSession.builder \
-    .config("spark.jars.packages","com.google.cloud.spark:spark-bigquery-with-dependencies_2.12-0.26.0") \
-    .appName('bq_spark_sp_demo_bigspark_read_bq_save_hive_on_data_lake') \
-    .getOrCreate()
+spark = SparkSession \
+     .builder \
+     .appName("read_bq_save_hive_on_data_lake") \
+     .config("spark.network.timeout", 50000) \
+     .getOrCreate()
+     
 
 spark.conf.set("temporaryGcsBucket",temporaryGcsBucket)
 spark.conf.set("viewsEnabled","true")
 spark.conf.set("materializationProject",project_id)
 spark.conf.set("materializationDataset",taxi_dataset_id)
+spark.conf.set("readDataFormat", "AVRO")
 
 
 print ("BEGIN: Querying Table")

@@ -55,6 +55,10 @@ rideshare_raw_dataset       = os.environ['ENV_RIDESHARE_LAKEHOUSE_RAW_DATASET']
 rideshare_enriched_dataset  = os.environ['ENV_RIDESHARE_LAKEHOUSE_ENRICHED_DATASET']
 rideshare_curated_dataset   = os.environ['ENV_RIDESHARE_LAKEHOUSE_CURATED_DATASET']
 
+rideshare_llm_raw_dataset       = os.environ['ENV_RIDESHARE_LLM_RAW_DATASET']
+rideshare_llm_enriched_dataset  = os.environ['ENV_RIDESHARE_LLM_ENRICHED_DATASET']
+rideshare_llm_curated_dataset   = os.environ['ENV_RIDESHARE_LLM_CURATED_DATASET']
+
 
 ####################################################################################
 # Set if we are deploy or a destroy script based on the Python file name (suffix)
@@ -102,6 +106,9 @@ params_list = {
     'rideshare_raw_dataset'          : rideshare_raw_dataset,
     'rideshare_enriched_dataset'     : rideshare_enriched_dataset,
     'rideshare_curated_dataset'      : rideshare_curated_dataset,
+    'rideshare_llm_raw_dataset'      : rideshare_llm_raw_dataset,
+    'rideshare_llm_enriched_dataset' : rideshare_llm_enriched_dataset,
+    'rideshare_llm_curated_dataset'  : rideshare_llm_curated_dataset
     }
 
 

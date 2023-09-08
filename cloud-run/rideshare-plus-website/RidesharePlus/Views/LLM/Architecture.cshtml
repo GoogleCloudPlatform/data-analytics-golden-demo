@@ -1,0 +1,70 @@
+@{
+    ViewData["Title"] = "Architecture";
+}
+
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">@ViewData["Title"]</h1>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">LMM Architecture</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div>
+                        <ul>
+                            <li>The architecture consists of three zones: raw, enriched and curated.</li>
+                            <li>The goal is the extract knowledge about our drivers and customers by reading and understanding the customer reviews.</li>
+                            <li>The Colab Notebook (rideshare_llm_ai_lakehouse_demo) does a step by step walkthrough.</li>
+                            <li>The following steps are used for processing</li>
+                            <ol>
+                                <li>Each customer review is run through the LMM (Qualitative Analysis)</li>
+                                <li>The customer sentiment is extracted</li>
+                                <li>The theme of the customer is extracted (e.g. Car was too cold)</li>
+                                <li>The theme of the driver is extracted (e.g. Driver played music too loud)</li>
+                                <li>The theme are then grouped, categorized and ranked for each customer and each driver.</li>
+                                <li>A summary is created based upon the customer themes. We now know the customer preferences.  We can use this to present to a driver when picking up a customer to improve our customer's experience.</li>
+                                <li>A summary is created based upon the driver themes. We now know performace of our drivers.  We can used this for employee reviews and training.</li>
+                                <li>Each trip is then processed (Quantitative Analysis)</li>
+                                <li>We detect customer patterns (e.g. ride on weekends or a rush hour customer)</li>
+                                <li>We detect drivers patterns (e.g. drive at night or target a certain pay)</li>
+                                <li>The LLM is invoked to create a summary for each customer and driver</li>
+                                <li>The LLM is finally used to correct grammer, spelling and other issues with the generated summaries.  This corrects our generated responses so they are grammatically correct.</li>
+                            </ol>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">&nbsp;</div>
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">AI Lakehouse</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div>
+                        <img src="/images/llm-architecture.png" width="1000px" alt="AI Lakehouse">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script lang="javascript">
+
+    $(document).ready(function () {
+        submenuLLM = $("#submenuLLM");
+        submenuLLM.addClass("show");
+    }); //$(document).ready
+
+</script>
