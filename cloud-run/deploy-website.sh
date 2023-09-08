@@ -20,7 +20,7 @@ echo "build_id: ${build_id}"
 
 # Loop while it creates
 build_status_id="PENDING"
-while [[ "${build_status_id}" == *"PENDING"* || "${build_status_id}" == *"QUEUED"* || "${build_status_id}" == *"WORKING"* ]]
+while [[ "${build_status_id}" == "PENDING" || "${build_status_id}" == "QUEUED" || "${build_status_id}" == "WORKING" ]]
     do
     sleep 5
     build_status_json=$(curl \
