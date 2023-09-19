@@ -1986,6 +1986,33 @@ resource "google_bigquery_routine" "sproc_sp_rideshare_llm_enriched_sp_step_03_e
 #===================================================================================
 
 ####################################################################################
+# sp_demo_duet_ai
+####################################################################################
+resource "google_bigquery_routine" "sproc_sp_rideshare_llm_curated_sp_demo_duet_ai" {
+  dataset_id      = var.bigquery_rideshare_llm_curated_dataset
+  routine_id      = "sp_demo_duet_ai"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = templatefile("../sql-scripts/rideshare_llm_curated/sp_demo_duet_ai.sql", 
+  { 
+    project_id = var.project_id
+    project_number = var.project_number
+    
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+    bigquery_region = var.bigquery_region
+    gcp_account_name = var.gcp_account_name
+
+    bigquery_rideshare_llm_raw_dataset = var.bigquery_rideshare_llm_raw_dataset
+    bigquery_rideshare_llm_enriched_dataset = var.bigquery_rideshare_llm_enriched_dataset
+    bigquery_rideshare_llm_curated_dataset = var.bigquery_rideshare_llm_curated_dataset
+
+    gcs_rideshare_lakehouse_raw_bucket = var.gcs_rideshare_lakehouse_raw_bucket
+  })
+}
+
+
+
+####################################################################################
 # sp_reset_demo
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_rideshare_llm_curated_sp_reset_demo" {
