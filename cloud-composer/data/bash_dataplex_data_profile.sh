@@ -32,236 +32,164 @@ RIDESHARE_LLM_RAW_DATASET="{{ params.rideshare_llm_raw_dataset }}"
 RIDESHARE_LLM_ENRICHED_DATASET="{{ params.rideshare_llm_enriched_dataset }}"
 RIDESHARE_LLM_CURATED_DATASET="{{ params.rideshare_llm_curated_dataset }}"
 
-
 #DATAPLEX_REGION="us-central1"
 #PROJECT_ID="data-analytics-demo-jahkfjsl89"
 #RIDESHARE_LLM_CURATED_DATASET="rideshare_llm_curated"
 
-# Install the latest version of gCloud (This is NOT a best practice)
-wget https://packages.cloud.google.com/apt/doc/apt-key.gpg && sudo apt-key add apt-key.gpg
-sudo apt-get update && sudo apt-get --only-upgrade install google-cloud-sdk 
+# Install JQ for parsing REST API return status
+echo "BEGIN: jq Install"
+STR=$(which jq)
+SUB='jq'
+echo "STR=$STR"
+if [[ "$STR" == *"$SUB"* ]]; then
+  echo "jq is installed, skipping..."
+else
+  sudo apt update -y
+  sudo apt install jq -y
+fi
+echo "END: jq Install"
+
+# Get a token to pass to the REST API
+token=$(gcloud auth print-access-token)
+
+dataplex_create_data_profile () {
+    local_project_id=$1
+    local_dataplex_region=$2
+    local_scan_name=$3
+    local_dataset_name=$4
+    local_table_name=$5
+
+    curl --request POST \
+    "https://dataplex.googleapis.com/v1/projects/${local_project_id}/locations/${local_dataplex_region}/dataScans?dataScanId=${local_scan_name}" \
+    --header "Authorization: Bearer $token" \
+    --header "Accept: application/json" \
+    --header "Content-Type: application/json" \
+    --data "{\"dataProfileSpec\":{\"samplingPercent\":10},\"data\":{\"resource\":\"//bigquery.googleapis.com/projects/${local_project_id}/datasets/${local_dataset_name}/tables/${local_table_name}\"},\"description\":\"${local_scan_name}\",\"displayName\":\"${local_scan_name}\"}" \
+    --compressed
+
+    state="STATE_UNSPECIFIED"
+    while [[ "${state}" == "STATE_UNSPECIFIED" || "${state}" == "CREATING" ]]
+        do
+        sleep 2
+        json=$(curl "https://dataplex.googleapis.com/v1/projects/${local_project_id}/locations/${local_dataplex_region}/dataScans/${local_scan_name}?view=BASIC" \
+            --header "Authorization: Bearer $(gcloud auth print-access-token)" \
+            --header "Accept: application/json" \
+            --compressed)
+
+        state=$(echo $json | jq .state --raw-output)
+        echo "items: $state"
+        done
+
+    curl --request POST "https://dataplex.googleapis.com/v1/projects/${local_project_id}/locations/${local_dataplex_region}/dataScans/${local_scan_name}:run" \
+    --header "Authorization: Bearer $token" \
+    --header "Accept: application/json" \
+    --header "Content-Type: application/json" \
+    --data '{}' \
+    --compressed
+}
 
 
 #############################################
 SCAN_NAME="rideshare-llm-curated-customer"
 TABLE_NAME="customer"
-
-gcloud dataplex datascans create data-profile "${SCAN_NAME}" \
-    --project=${PROJECT_ID} \
-    --location=${DATAPLEX_REGION} \
-    --data-source-resource="//bigquery.googleapis.com/projects/${PROJECT_ID}/datasets/${RIDESHARE_LLM_CURATED_DATASET}/tables/${TABLE_NAME}"
-
-gcloud dataplex datascans run "${SCAN_NAME}" \
-    --project=${PROJECT_ID} \
-    --location=${DATAPLEX_REGION}
+dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}" "${RIDESHARE_LLM_CURATED_DATASET}" "${TABLE_NAME}"
 #############################################
+
 
 #############################################
 SCAN_NAME="rideshare-llm-curated-customer-preference"
 TABLE_NAME="customer_preference"
-
-gcloud dataplex datascans create data-profile "${SCAN_NAME}" \
-    --project=${PROJECT_ID} \
-    --location=${DATAPLEX_REGION} \
-    --data-source-resource="//bigquery.googleapis.com/projects/${PROJECT_ID}/datasets/${RIDESHARE_LLM_CURATED_DATASET}/tables/${TABLE_NAME}"
-
-gcloud dataplex datascans run "${SCAN_NAME}" \
-    --project=${PROJECT_ID} \
-    --location=${DATAPLEX_REGION}
+dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}" "${RIDESHARE_LLM_CURATED_DATASET}" "${TABLE_NAME}"
 #############################################
 
 
 #############################################
 SCAN_NAME="rideshare-llm-curated-customer-review"
 TABLE_NAME="customer_review"
-
-gcloud dataplex datascans create data-profile "${SCAN_NAME}" \
-    --project=${PROJECT_ID} \
-    --location=${DATAPLEX_REGION} \
-    --data-source-resource="//bigquery.googleapis.com/projects/${PROJECT_ID}/datasets/${RIDESHARE_LLM_CURATED_DATASET}/tables/${TABLE_NAME}"
-
-gcloud dataplex datascans run "${SCAN_NAME}" \
-    --project=${PROJECT_ID} \
-    --location=${DATAPLEX_REGION}
+dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}" "${RIDESHARE_LLM_CURATED_DATASET}" "${TABLE_NAME}"
 #############################################
 
 
 ############################################# View
 SCAN_NAME="rideshare-llm-curated-customer-review-summary"
 TABLE_NAME="customer_review_summary"
-
-gcloud dataplex datascans create data-profile "${SCAN_NAME}" \
-    --project=${PROJECT_ID} \
-    --location=${DATAPLEX_REGION} \
-    --data-source-resource="//bigquery.googleapis.com/projects/${PROJECT_ID}/datasets/${RIDESHARE_LLM_CURATED_DATASET}/tables/${TABLE_NAME}"
-
-gcloud dataplex datascans run "${SCAN_NAME}" \
-    --project=${PROJECT_ID} \
-    --location=${DATAPLEX_REGION}
+dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}" "${RIDESHARE_LLM_CURATED_DATASET}" "${TABLE_NAME}"
 #############################################
 
 
 #############################################
 SCAN_NAME="rideshare-llm-curated-driver"
 TABLE_NAME="driver"
-
-gcloud dataplex datascans create data-profile "${SCAN_NAME}" \
-    --project=${PROJECT_ID} \
-    --location=${DATAPLEX_REGION} \
-    --data-source-resource="//bigquery.googleapis.com/projects/${PROJECT_ID}/datasets/${RIDESHARE_LLM_CURATED_DATASET}/tables/${TABLE_NAME}"
-
-gcloud dataplex datascans run "${SCAN_NAME}" \
-    --project=${PROJECT_ID} \
-    --location=${DATAPLEX_REGION}
+dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}" "${RIDESHARE_LLM_CURATED_DATASET}" "${TABLE_NAME}"
 #############################################
 
 
 #############################################
 SCAN_NAME="rideshare-llm-curated-driver-preference"
 TABLE_NAME="driver_preference"
-
-gcloud dataplex datascans create data-profile "${SCAN_NAME}" \
-    --project=${PROJECT_ID} \
-    --location=${DATAPLEX_REGION} \
-    --data-source-resource="//bigquery.googleapis.com/projects/${PROJECT_ID}/datasets/${RIDESHARE_LLM_CURATED_DATASET}/tables/${TABLE_NAME}"
-
-gcloud dataplex datascans run "${SCAN_NAME}" \
-    --project=${PROJECT_ID} \
-    --location=${DATAPLEX_REGION}
+dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}" "${RIDESHARE_LLM_CURATED_DATASET}" "${TABLE_NAME}"
 #############################################
 
 
 ############################################# materialized view
 SCAN_NAME="rideshare-llm-curated-driver-review-summary"
 TABLE_NAME="driver_review_summary"
-
-gcloud dataplex datascans create data-profile "${SCAN_NAME}" \
-    --project=${PROJECT_ID} \
-    --location=${DATAPLEX_REGION} \
-    --data-source-resource="//bigquery.googleapis.com/projects/${PROJECT_ID}/datasets/${RIDESHARE_LLM_CURATED_DATASET}/tables/${TABLE_NAME}"
-
-gcloud dataplex datascans run "${SCAN_NAME}" \
-    --project=${PROJECT_ID} \
-    --location=${DATAPLEX_REGION}
+dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}" "${RIDESHARE_LLM_CURATED_DATASET}" "${TABLE_NAME}"
 #############################################
 
 
 #############################################
 SCAN_NAME="rideshare-llm-curated-location"
 TABLE_NAME="location"
+dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}" "${RIDESHARE_LLM_CURATED_DATASET}" "${TABLE_NAME}"
 
-gcloud dataplex datascans create data-profile "${SCAN_NAME}" \
-    --project=${PROJECT_ID} \
-    --location=${DATAPLEX_REGION} \
-    --data-source-resource="//bigquery.googleapis.com/projects/${PROJECT_ID}/datasets/${RIDESHARE_LLM_CURATED_DATASET}/tables/${TABLE_NAME}"
-
-gcloud dataplex datascans run "${SCAN_NAME}" \
-    --project=${PROJECT_ID} \
-    --location=${DATAPLEX_REGION}
 #############################################
 
 
 ############################################# View
 SCAN_NAME="rideshare-llm-curated-looker-customer"
 TABLE_NAME="looker_customer"
-
-gcloud dataplex datascans create data-profile "${SCAN_NAME}" \
-    --project=${PROJECT_ID} \
-    --location=${DATAPLEX_REGION} \
-    --data-source-resource="//bigquery.googleapis.com/projects/${PROJECT_ID}/datasets/${RIDESHARE_LLM_CURATED_DATASET}/tables/${TABLE_NAME}"
-
-gcloud dataplex datascans run "${SCAN_NAME}" \
-    --project=${PROJECT_ID} \
-    --location=${DATAPLEX_REGION}
+dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}" "${RIDESHARE_LLM_CURATED_DATASET}" "${TABLE_NAME}"
 #############################################
 
 
 ############################################# View
 SCAN_NAME="rideshare-llm-curated-looker-customer-preference"
 TABLE_NAME="looker_customer_preference"
-
-gcloud dataplex datascans create data-profile "${SCAN_NAME}" \
-    --project=${PROJECT_ID} \
-    --location=${DATAPLEX_REGION} \
-    --data-source-resource="//bigquery.googleapis.com/projects/${PROJECT_ID}/datasets/${RIDESHARE_LLM_CURATED_DATASET}/tables/${TABLE_NAME}"
-
-gcloud dataplex datascans run "${SCAN_NAME}" \
-    --project=${PROJECT_ID} \
-    --location=${DATAPLEX_REGION}
+dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}" "${RIDESHARE_LLM_CURATED_DATASET}" "${TABLE_NAME}"
 #############################################
 
 
 ############################################# View
 SCAN_NAME="rideshare-llm-curated-looker-customer-review"
 TABLE_NAME="looker_customer_review"
-
-gcloud dataplex datascans create data-profile "${SCAN_NAME}" \
-    --project=${PROJECT_ID} \
-    --location=${DATAPLEX_REGION} \
-    --data-source-resource="//bigquery.googleapis.com/projects/${PROJECT_ID}/datasets/${RIDESHARE_LLM_CURATED_DATASET}/tables/${TABLE_NAME}"
-
-gcloud dataplex datascans run "${SCAN_NAME}" \
-    --project=${PROJECT_ID} \
-    --location=${DATAPLEX_REGION}
+dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}" "${RIDESHARE_LLM_CURATED_DATASET}" "${TABLE_NAME}"
 #############################################
 
 
 ############################################# View
 SCAN_NAME="rideshare-llm-curated-looker-driver"
 TABLE_NAME="looker_driver"
-
-gcloud dataplex datascans create data-profile "${SCAN_NAME}" \
-    --project=${PROJECT_ID} \
-    --location=${DATAPLEX_REGION} \
-    --data-source-resource="//bigquery.googleapis.com/projects/${PROJECT_ID}/datasets/${RIDESHARE_LLM_CURATED_DATASET}/tables/${TABLE_NAME}"
-
-gcloud dataplex datascans run "${SCAN_NAME}" \
-    --project=${PROJECT_ID} \
-    --location=${DATAPLEX_REGION}
+dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}" "${RIDESHARE_LLM_CURATED_DATASET}" "${TABLE_NAME}"
 #############################################
 
 
 ############################################# View
 SCAN_NAME="rideshare-llm-curated-looker-driver-preference"
 TABLE_NAME="looker_driver_preference"
-
-gcloud dataplex datascans create data-profile "${SCAN_NAME}" \
-    --project=${PROJECT_ID} \
-    --location=${DATAPLEX_REGION} \
-    --data-source-resource="//bigquery.googleapis.com/projects/${PROJECT_ID}/datasets/${RIDESHARE_LLM_CURATED_DATASET}/tables/${TABLE_NAME}"
-
-gcloud dataplex datascans run "${SCAN_NAME}" \
-    --project=${PROJECT_ID} \
-    --location=${DATAPLEX_REGION}
+dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}" "${RIDESHARE_LLM_CURATED_DATASET}" "${TABLE_NAME}"
 #############################################
 
 
 #############################################
 SCAN_NAME="rideshare-llm-curated-payment-type"
 TABLE_NAME="payment_type"
-
-gcloud dataplex datascans create data-profile "${SCAN_NAME}" \
-    --project=${PROJECT_ID} \
-    --location=${DATAPLEX_REGION} \
-    --data-source-resource="//bigquery.googleapis.com/projects/${PROJECT_ID}/datasets/${RIDESHARE_LLM_CURATED_DATASET}/tables/${TABLE_NAME}"
-
-gcloud dataplex datascans run "${SCAN_NAME}" \
-    --project=${PROJECT_ID} \
-    --location=${DATAPLEX_REGION}
+dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}" "${RIDESHARE_LLM_CURATED_DATASET}" "${TABLE_NAME}"
 #############################################
 
 
 #############################################
 SCAN_NAME="rideshare-llm-curated-trip"
 TABLE_NAME="trip"
-
-gcloud dataplex datascans create data-profile "${SCAN_NAME}" \
-    --project=${PROJECT_ID} \
-    --location=${DATAPLEX_REGION} \
-    --data-source-resource="//bigquery.googleapis.com/projects/${PROJECT_ID}/datasets/${RIDESHARE_LLM_CURATED_DATASET}/tables/${TABLE_NAME}"
-
-gcloud dataplex datascans run "${SCAN_NAME}" \
-    --project=${PROJECT_ID} \
-    --location=${DATAPLEX_REGION}
+dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}" "${RIDESHARE_LLM_CURATED_DATASET}" "${TABLE_NAME}"
 #############################################
-
