@@ -26,7 +26,7 @@ Running this demo:
     - Start the Datastream Airflow DAG: sample-datastream-private-ip-deploy (takes about 10 minutes to deploy)
         - Start the Change Data Capture (generate data) DAG: sample-datastream-private-ip-generate-data (starts immedately)
     - Start the Dataflow Airflow DAG: sample-dataflow-start-streaming-job (takes about 10 minutes to deploy and shuts down after 4 hours)
-    - Run the managed notebook DAG: sample-create-managed-notebook (takes about 5 minutes to deploy)
+    - Upload the notebook from the code bucket to colab enterprise
     -   You should run the notebook: BigQuery-Create-TensorFlow-Model.ipynb 
     - Run the Iceberg table DAG: sample-iceberg-create-tables-update-data (takes about 15 minutes to deploy)
     - Start the Data Quality DAG: sample-rideshare-run-data-quality (takes about 10 minutes to complete)

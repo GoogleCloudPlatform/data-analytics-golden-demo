@@ -309,5 +309,20 @@ SELECT payment_type.payment_type_description
 
 */
 
--- The last line cannot be a comment when using Terraform.
-SELECT 1;
+-- Data Processing
+SELECT JSON_VALUE(ml_generate_text_result, '$.predictions[0].content') AS result, 
+       ml_generate_text_result
+  FROM ML.GENERATE_TEXT(MODEL`${project_id}.${bigquery_rideshare_llm_curated_dataset}.cloud_ai_llm_v1`,
+       (SELECT
+"""
+For the following address extract the fields "address line", "city", "state" and "zip code" and return the below JSON format. Avoid using newlines in the output.
+JSON format: { "address_line": "value","city": "value","state": "value", "zip_code": "value" }
+
+Address: 1600 Pennsylvania Avenue, N.W. Washington, DC 20500
+""" AS prompt),
+STRUCT(
+  .0    AS temperature,
+  1024 AS max_output_tokens,
+  0    AS top_p,
+  1   AS top_k
+  ));

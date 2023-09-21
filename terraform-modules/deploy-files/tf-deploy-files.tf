@@ -63,7 +63,6 @@ locals {
   local_composer_data_path = "data"
   local_dataproc_pyspark_path = "pyspark-code"
   local_dataflow_source_path = "dataflow"
-  local_notebooks_path = "notebooks"
   local_bigspark_path = "bigspark"
 }
 
@@ -129,6 +128,26 @@ resource "google_storage_bucket_object" "deploy_airflow_dag_sample-dataflow-star
   name   = "${local.local_composer_dag_path}/sample-dataflow-start-streaming-job.py"
   bucket = local.local_composer_bucket_name
   source = "../cloud-composer/dags/sample-dataflow-start-streaming-job.py"
+
+  depends_on = [ 
+    ]  
+}
+
+# Upload DAG
+resource "google_storage_bucket_object" "deploy_airflow_dag_sample-dataplex-data-profile-scans" {
+  name   = "${local.local_composer_dag_path}/sample-dataplex-data-profile-scans.py"
+  bucket = local.local_composer_bucket_name
+  source = "../cloud-composer/dags/sample-dataplex-data-profile-scans.py"
+
+  depends_on = [ 
+    ]  
+}
+
+# Upload the Airflow "data/template" files
+resource "google_storage_bucket_object" "deploy_airflow_data_bash_dataplex_data_profile" {
+  name   = "${local.local_composer_data_path}/bash_dataplex_data_profile.sh"
+  bucket = local.local_composer_bucket_name
+  source = "../cloud-composer/data/bash_dataplex_data_profile.sh"
 
   depends_on = [ 
     ]  
@@ -200,16 +219,6 @@ resource "google_storage_bucket_object" "deploy_airflow_data_sample_datastream_p
     ]  
 }
 
-
-# Upload the Airflow "data/template" files
-resource "google_storage_bucket_object" "deploy_airflow_data_bash_create_managed_notebook" {
-  name   = "${local.local_composer_data_path}/bash_create_managed_notebook.sh"
-  bucket = local.local_composer_bucket_name
-  source = "../cloud-composer/data/bash_create_managed_notebook.sh"
-
-  depends_on = [ 
-    ]  
-}
 
 
 # Upload the Airflow "data/template" files
@@ -707,37 +716,6 @@ resource "google_storage_bucket_object" "dataplex_data-explore-dataplex-explore-
   bucket      = "code-${var.storage_bucket}"
 }
 
-####################################################################################
-# Deploy Jupyter notebooks
-####################################################################################
-resource "google_storage_bucket_object" "deploy_notebook_BigQuery-Create-TensorFlow-Model" {
-  name   = "${local.local_notebooks_path}/BigQuery-Create-TensorFlow-Model.ipynb"
-  bucket = "processed-${var.storage_bucket}"
-  content = templatefile("../notebooks/BigQuery-Create-TensorFlow-Model.ipynb", 
-  { 
-    project_id = var.project_id
-    bucket_name = "processed-${var.storage_bucket}"
-  })
-
-  depends_on = [ 
-    ]  
-}
-
-
-# Upload "Notebook"
-resource "google_storage_bucket_object" "deploy_notebook_BigQuery-Demo-Notebook" {
-  name   = "${local.local_notebooks_path}/BigQuery-Demo-Notebook.ipynb"
-  bucket = "processed-${var.storage_bucket}"
-  content = templatefile("../notebooks/BigQuery-Demo-Notebook.ipynb", 
-  { 
-    project_id = var.project_id
-    bucket_name = "processed-${var.storage_bucket}"
-  })
-
-
-  depends_on = [ 
-    ]  
-}
 
 
 
@@ -1238,17 +1216,6 @@ resource "google_storage_bucket_object" "deploy_airflow_dag_sample-create-data-f
 }
 
 
-# Upload DAG
-resource "google_storage_bucket_object" "deploy_airflow_dag_sample-create-managed-notebook" {
-  name   = "${local.local_composer_dag_path}/sample-create-managed-notebook.py"
-  bucket = local.local_composer_bucket_name
-  source = "../cloud-composer/dags/sample-create-managed-notebook.py"
-
-  depends_on = [ 
-    time_sleep.wait_for_airflow_dag_sync
-    ]  
-}
-
 
 # Upload DAG
 resource "google_storage_bucket_object" "deploy_airflow_dag_sample-dataflow-stop-streaming-job" {
@@ -1680,4 +1647,38 @@ resource "google_storage_bucket_object" "deploy_notebook_rideshare_llm_ai_lakeho
     gcs_rideshare_lakehouse_raw_bucket = var.gcs_rideshare_lakehouse_raw_bucket    
   })
   depends_on = []  
+}
+
+
+####################################################################################
+# Deploy Jupyter notebooks - Now for Colab
+####################################################################################
+resource "google_storage_bucket_object" "deploy_notebook_BigQuery-Create-TensorFlow-Model" {
+  name   = "colab-enterprise/taxi-dataset-demo/BigQuery-Create-TensorFlow-Model.ipynb"
+  bucket = "code-${var.storage_bucket}"
+
+  content = templatefile("../colab-enterprise/taxi-dataset-demo/BigQuery-Create-TensorFlow-Model.ipynb", 
+  { 
+    project_id = var.project_id
+    bucket_name = "processed-${var.storage_bucket}"
+  })
+
+  depends_on = [ 
+    ]  
+}
+
+
+resource "google_storage_bucket_object" "deploy_notebook_BigQuery-Demo-Notebook" {
+  name   = "colab-enterprise/taxi-dataset-demo/BigQuery-Demo-Notebook.ipynb"
+  bucket = "code-${var.storage_bucket}"
+
+  content = templatefile("../colab-enterprise/taxi-dataset-demo/BigQuery-Demo-Notebook.ipynb", 
+  { 
+    project_id = var.project_id
+    bucket_name = "processed-${var.storage_bucket}"
+  })
+
+
+  depends_on = [ 
+    ]  
 }

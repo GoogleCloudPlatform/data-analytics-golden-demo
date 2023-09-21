@@ -15,11 +15,8 @@
 ####################################################################################
 
 # Author:  Adam Paternostro
-# Summary: 
-# Setup DataPlex in this project
-# Create a Data Lake for Taxi data and for eCommerce data
-# Create the zones (raw and curated) for each lake
-# Add the assetes to each zone (buckets, BigQuery datasets)
+# Summary: Cretes a Managed notebook within your project
+#          Currently, there are no gcloud commands for this; therefore, the REST API is used.
 
 
 # [START dag]
@@ -50,32 +47,32 @@ default_args = {
     'dagrun_timeout' : timedelta(minutes=60),
 }
 
-project_id                = os.environ['ENV_PROJECT_ID'] 
-raw_bucket_name           = os.environ['ENV_RAW_BUCKET'] 
-processed_bucket_name     = os.environ['ENV_PROCESSED_BUCKET'] 
-dataplex_region           = os.environ['ENV_DATAPLEX_REGION'] 
-taxi_dataset_id           = os.environ['ENV_TAXI_DATASET_ID']
-thelook_dataset_id        = os.environ['ENV_THELOOK_DATASET_ID']
-random_extension          = os.environ['ENV_RANDOM_EXTENSION']
-rideshare_raw_bucket      = os.environ['ENV_RIDESHARE_LAKEHOUSE_RAW_BUCKET']
-rideshare_enriched_bucket = os.environ['ENV_RIDESHARE_LAKEHOUSE_ENRICHED_BUCKET']
-rideshare_curated_bucket  = os.environ['ENV_RIDESHARE_LAKEHOUSE_CURATED_BUCKET']
+dataplex_region                      = os.environ['ENV_DATAPLEX_REGION'] 
+project_id                           = os.environ['ENV_PROJECT_ID'] 
+taxi_dataset                         = os.environ['ENV_TAXI_DATASET_ID'] 
+thelook_dataset                      = os.environ['ENV_THELOOK_DATASET_ID']
+rideshare_lakehouse_raw_dataset      = os.environ['ENV_RIDESHARE_LAKEHOUSE_RAW_DATASET'] 
+rideshare_lakehouse_enriched_dataset = os.environ['ENV_RIDESHARE_LAKEHOUSE_ENRICHED_DATASET'] 
+rideshare_lakehouse_curated_dataset  = os.environ['ENV_RIDESHARE_LAKEHOUSE_CURATED_DATASET'] 
+rideshare_llm_raw_dataset            = os.environ['ENV_RIDESHARE_LLM_RAW_DATASET'] 
+rideshare_llm_enriched_dataset       = os.environ['ENV_RIDESHARE_LLM_ENRICHED_DATASET'] 
+rideshare_llm_curated_dataset        = os.environ['ENV_RIDESHARE_LLM_CURATED_DATASET'] 
 
 params_list = { 
     "project_id" : project_id,
     "dataplex_region": dataplex_region,
-    "raw_bucket": raw_bucket_name,
-    "processed_bucket": processed_bucket_name,
-    "taxi_dataset": taxi_dataset_id,
-    "thelook_dataset": thelook_dataset_id,
-    "random_extension": random_extension,
-    "rideshare_raw_bucket": rideshare_raw_bucket,
-    "rideshare_enriched_bucket": rideshare_enriched_bucket,
-    "rideshare_curated_bucket": rideshare_curated_bucket,
+    "taxi_dataset": taxi_dataset,
+    "thelook_dataset" : thelook_dataset,
+    "rideshare_lakehouse_raw_dataset" : rideshare_lakehouse_raw_dataset,
+    "rideshare_lakehouse_enriched_dataset" : rideshare_lakehouse_enriched_dataset,
+    "rideshare_lakehouse_curated_dataset" : rideshare_lakehouse_curated_dataset,
+    "rideshare_llm_raw_dataset" : rideshare_llm_raw_dataset,
+    "rideshare_llm_enriched_dataset" : rideshare_llm_enriched_dataset,
+    "rideshare_llm_curated_dataset" : rideshare_llm_curated_dataset,
     }
 
 
-with airflow.DAG('sample-dataplex-deploy',
+with airflow.DAG('sample-dataplex-data-profile-scans',
                  default_args=default_args,
                  start_date=datetime(2021, 1, 1),
                  # Add the Composer "Data" directory which will hold the SQL/Bash scripts for deployment
@@ -85,19 +82,16 @@ with airflow.DAG('sample-dataplex-deploy',
 
     # NOTE: The service account of the Composer worker node must have access to run these commands
 
-    # Setup DataPlex in this project
-    # Create a Data Lake for Taxi data and for eCommerce data
-    # Create the zones (raw and curated) for each lake
-    # Add the assetes to each zone (buckets, BigQuery datasets)
-    deploy_dataplex = bash_operator.BashOperator(
-          task_id='deploy_dataplex',
-          bash_command='bash_deploy_dataplex.sh',
+    # Setup a BigQuery federated query connection so we can query BQ and Spanner using a single SQL command
+    dataplex_data_profile = bash_operator.BashOperator(
+          task_id='bash_dataplex_data_profile',
+          bash_command='bash_dataplex_data_profile.sh',
           params=params_list,
           dag=dag
       )
 
 
     # DAG Graph
-    deploy_dataplex
+    dataplex_data_profile
 
 # [END dag]

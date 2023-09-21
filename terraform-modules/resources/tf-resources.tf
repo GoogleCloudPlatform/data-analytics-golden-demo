@@ -734,6 +734,7 @@ resource "google_composer_environment" "composer_env" {
         ENV_DATAPROC_SERVICE_ACCOUNT             = "dataproc-service-account@${var.project_id}.iam.gserviceaccount.com",
         ENV_GCP_ACCOUNT_NAME                     = "${var.gcp_account_name}",
         ENV_TAXI_DATASET_ID                      = google_bigquery_dataset.taxi_dataset.dataset_id,
+        ENV_THELOOK_DATASET_ID                   = google_bigquery_dataset.thelook_ecommerce_dataset.dataset_id,
         ENV_SPANNER_INSTANCE_ID                  = "spanner-${var.random_extension}" //google_spanner_instance.spanner_instance.name,
         ENV_DATAFLOW_SUBNET                      = "regions/${var.dataflow_region}/subnetworks/dataflow-subnet",
         ENV_DATAFLOW_SERVICE_ACCOUNT             = "dataflow-service-account@${var.project_id}.iam.gserviceaccount.com",
