@@ -152,7 +152,7 @@ with airflow.DAG('run-all-dags',
  
     sample_dataplex_dataprofile_rideshare_lakehouse = TriggerDagRunOperator(
         task_id="sample_dataplex_dataprofile_rideshare_lakehouse",
-        trigger_dag_id="sample-dataplex-dataprofile-rideshare_lakehouse",
+        trigger_dag_id="sample-dataplex-dataprofile-rideshare-lakehouse",
         wait_for_completion=True
     ) 
 

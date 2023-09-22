@@ -220,8 +220,8 @@ dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}"
 
 
 #############################################
-SCAN_NAME="taxi-dataset-ext-yellow-trips-csv"
-TABLE_NAME="ext_yellow_trips_csv"
+SCAN_NAME="taxi-dataset-ext-yellow-trips-json"
+TABLE_NAME="ext_yellow_trips_json"
 dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}" "${TAXI_DATASET}" "${TABLE_NAME}"
 #############################################
 
