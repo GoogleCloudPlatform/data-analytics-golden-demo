@@ -46,6 +46,8 @@ FROM `${project_id}.${bigquery_rideshare_llm_curated_dataset}.driver`;
 
 /* We can even use LLMs to generate field names for our database tables.  In this case we want the field to have the business term */
 /* This will return " Customer Since Date - The inception date of the customer relationship" */
+
+/* Uncomment this out.  The model cloud_ai_llm_v1 does not exist at deployment time
 SELECT JSON_VALUE(ml_generate_text_result, '$.predictions[0].content') AS result, 
      ml_generate_text_result
 FROM ML.GENERATE_TEXT(MODEL`${project_id}.${bigquery_rideshare_llm_curated_dataset}.cloud_ai_llm_v1`,
@@ -65,7 +67,7 @@ STRUCT(
      0    AS top_p,
      1   AS top_k
 ));
-
+*/
 
 -- In project:${project_id}, dataset:${bigquery_rideshare_llm_curated_dataset}, table:trip find the most highly used pickup_location
 SELECT PICKUP_LOCATION_ID, CAST(count(*) as BIGNUMERIC) 
@@ -339,6 +341,7 @@ SELECT payment_type.payment_type_description
 */
 
 -- Data Processing
+/* Uncomment this out.  The model cloud_ai_llm_v1 does not exist at deployment time
 SELECT JSON_VALUE(ml_generate_text_result, '$.predictions[0].content') AS result, 
        ml_generate_text_result
   FROM ML.GENERATE_TEXT(MODEL`${project_id}.${bigquery_rideshare_llm_curated_dataset}.cloud_ai_llm_v1`,
@@ -355,3 +358,6 @@ STRUCT(
   0    AS top_p,
   1   AS top_k
   ));
+*/  
+
+SELECT 1;

@@ -72,7 +72,7 @@ params_list = {
     }
 
 
-with airflow.DAG('sample-dataplex-dataprofile-ridehshare-llm',
+with airflow.DAG('sample-dataplex-dataprofile-thelook',
                  default_args=default_args,
                  start_date=datetime(2021, 1, 1),
                  # Add the Composer "Data" directory which will hold the SQL/Bash scripts for deployment

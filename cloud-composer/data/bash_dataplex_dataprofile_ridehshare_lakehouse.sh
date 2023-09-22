@@ -33,11 +33,11 @@ RIDESHARE_LLM_RAW_DATASET="{{ params.rideshare_llm_raw_dataset }}"
 RIDESHARE_LLM_ENRICHED_DATASET="{{ params.rideshare_llm_enriched_dataset }}"
 RIDESHARE_LLM_CURATED_DATASET="{{ params.rideshare_llm_curated_dataset }}"
 
-DATAPLEX_REGION="us-central1"
-PROJECT_ID="data-analytics-demo-jahkfjsl89"
-RIDESHARE_LAKEHOUSE_RAW_DATASET="rideshare_lakehouse_raw"
-RIDESHARE_LAKEHOUSE_ENRICHED_DATASET="rideshare_lakehouse_enriched"
-RIDESHARE_LAKEHOUSE_CURATED_DATASET="rideshare_lakehouse_curated"
+#DATAPLEX_REGION="us-central1"
+#PROJECT_ID="data-analytics-demo-jahkfjsl89"
+#RIDESHARE_LAKEHOUSE_RAW_DATASET="rideshare_lakehouse_raw"
+#RIDESHARE_LAKEHOUSE_ENRICHED_DATASET="rideshare_lakehouse_enriched"
+#RIDESHARE_LAKEHOUSE_CURATED_DATASET="rideshare_lakehouse_curated"
 
 
 # Install JQ for parsing REST API return status
