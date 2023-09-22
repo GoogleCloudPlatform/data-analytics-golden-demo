@@ -33,9 +33,10 @@ RIDESHARE_LLM_RAW_DATASET="{{ params.rideshare_llm_raw_dataset }}"
 RIDESHARE_LLM_ENRICHED_DATASET="{{ params.rideshare_llm_enriched_dataset }}"
 RIDESHARE_LLM_CURATED_DATASET="{{ params.rideshare_llm_curated_dataset }}"
 
-DATAPLEX_REGION="us-central1"
-PROJECT_ID="data-analytics-demo-jahkfjsl89"
-RIDESHARE_LLM_CURATED_DATASET="rideshare_llm_curated"
+#DATAPLEX_REGION="us-central1"
+#PROJECT_ID="data-analytics-demo-jahkfjsl89"
+#THELOOK_DATASET="thelook_ecommerce"
+
 
 # Install JQ for parsing REST API return status
 echo "BEGIN: jq Install"
@@ -100,106 +101,91 @@ dataplex_create_data_profile () {
 
 
 #############################################
-SCAN_NAME="rideshare-llm-curated-customer"
-TABLE_NAME="customer"
-dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}" "${RIDESHARE_LLM_CURATED_DATASET}" "${TABLE_NAME}"
+SCAN_NAME="thelook-ecommerce-distribution-centers"
+TABLE_NAME="distribution_centers"
+dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}" "${THELOOK_DATASET}" "${TABLE_NAME}"
 #############################################
 
 
 #############################################
-SCAN_NAME="rideshare-llm-curated-customer-preference"
-TABLE_NAME="customer_preference"
-dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}" "${RIDESHARE_LLM_CURATED_DATASET}" "${TABLE_NAME}"
+SCAN_NAME="thelook-ecommerce-events"
+TABLE_NAME="events"
+dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}" "${THELOOK_DATASET}" "${TABLE_NAME}"
 #############################################
 
 
 #############################################
-SCAN_NAME="rideshare-llm-curated-customer-review"
-TABLE_NAME="customer_review"
-dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}" "${RIDESHARE_LLM_CURATED_DATASET}" "${TABLE_NAME}"
-#############################################
-
-
-############################################# View
-SCAN_NAME="rideshare-llm-curated-customer-review-summary"
-TABLE_NAME="customer_review_summary"
-dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}" "${RIDESHARE_LLM_CURATED_DATASET}" "${TABLE_NAME}"
+SCAN_NAME="thelook-ecommerce-inventory-items"
+TABLE_NAME="inventory_items"
+dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}" "${THELOOK_DATASET}" "${TABLE_NAME}"
 #############################################
 
 
 #############################################
-SCAN_NAME="rideshare-llm-curated-driver"
-TABLE_NAME="driver"
-dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}" "${RIDESHARE_LLM_CURATED_DATASET}" "${TABLE_NAME}"
+SCAN_NAME="thelook-ecommerce-inventory-items"
+TABLE_NAME="inventory_items"
+dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}" "${THELOOK_DATASET}" "${TABLE_NAME}"
 #############################################
 
 
 #############################################
-SCAN_NAME="rideshare-llm-curated-driver-preference"
-TABLE_NAME="driver_preference"
-dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}" "${RIDESHARE_LLM_CURATED_DATASET}" "${TABLE_NAME}"
-#############################################
-
-
-############################################# materialized view
-SCAN_NAME="rideshare-llm-curated-driver-review-summary"
-TABLE_NAME="driver_review_summary"
-dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}" "${RIDESHARE_LLM_CURATED_DATASET}" "${TABLE_NAME}"
+SCAN_NAME="thelook-ecommerce-orders"
+TABLE_NAME="orders"
+dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}" "${THELOOK_DATASET}" "${TABLE_NAME}"
 #############################################
 
 
 #############################################
-SCAN_NAME="rideshare-llm-curated-location"
-TABLE_NAME="location"
-dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}" "${RIDESHARE_LLM_CURATED_DATASET}" "${TABLE_NAME}"
-
-#############################################
-
-
-############################################# View
-SCAN_NAME="rideshare-llm-curated-looker-customer"
-TABLE_NAME="looker_customer"
-dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}" "${RIDESHARE_LLM_CURATED_DATASET}" "${TABLE_NAME}"
-#############################################
-
-
-############################################# View
-SCAN_NAME="rideshare-llm-curated-looker-customer-preference"
-TABLE_NAME="looker_customer_preference"
-dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}" "${RIDESHARE_LLM_CURATED_DATASET}" "${TABLE_NAME}"
-#############################################
-
-
-############################################# View
-SCAN_NAME="rideshare-llm-curated-looker-customer-review"
-TABLE_NAME="looker_customer_review"
-dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}" "${RIDESHARE_LLM_CURATED_DATASET}" "${TABLE_NAME}"
-#############################################
-
-
-############################################# View
-SCAN_NAME="rideshare-llm-curated-looker-driver"
-TABLE_NAME="looker_driver"
-dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}" "${RIDESHARE_LLM_CURATED_DATASET}" "${TABLE_NAME}"
-#############################################
-
-
-############################################# View
-SCAN_NAME="rideshare-llm-curated-looker-driver-preference"
-TABLE_NAME="looker_driver_preference"
-dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}" "${RIDESHARE_LLM_CURATED_DATASET}" "${TABLE_NAME}"
+SCAN_NAME="thelook-ecommerce-product-deliveries"
+TABLE_NAME="product_deliveries"
+dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}" "${THELOOK_DATASET}" "${TABLE_NAME}"
 #############################################
 
 
 #############################################
-SCAN_NAME="rideshare-llm-curated-payment-type"
-TABLE_NAME="payment_type"
-dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}" "${RIDESHARE_LLM_CURATED_DATASET}" "${TABLE_NAME}"
+SCAN_NAME="thelook-ecommerce-product-deliveries-streaming"
+TABLE_NAME="product_deliveries_streaming"
+dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}" "${THELOOK_DATASET}" "${TABLE_NAME}"
 #############################################
 
 
 #############################################
-SCAN_NAME="rideshare-llm-curated-trip"
-TABLE_NAME="trip"
-dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}" "${RIDESHARE_LLM_CURATED_DATASET}" "${TABLE_NAME}"
+SCAN_NAME="thelook-ecommerce-products"
+TABLE_NAME="products"
+dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}" "${THELOOK_DATASET}" "${TABLE_NAME}"
+#############################################
+
+
+#############################################
+SCAN_NAME="thelook-ecommerce-returningusers"
+TABLE_NAME="returningusers"
+dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}" "${THELOOK_DATASET}" "${TABLE_NAME}"
+#############################################
+
+
+#############################################
+SCAN_NAME="thelook-ecommerce-training_data"
+TABLE_NAME="training_data"
+dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}" "${THELOOK_DATASET}" "${TABLE_NAME}"
+#############################################
+
+
+#############################################
+SCAN_NAME="thelook-ecommerce-user-aggregate-behavior"
+TABLE_NAME="user_aggregate_behavior"
+dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}" "${THELOOK_DATASET}" "${TABLE_NAME}"
+#############################################
+
+
+#############################################
+SCAN_NAME="thelook-ecommerce-user-demographics"
+TABLE_NAME="user_demographics"
+dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}" "${THELOOK_DATASET}" "${TABLE_NAME}"
+#############################################
+
+
+#############################################
+SCAN_NAME="thelook-ecommerce-users"
+TABLE_NAME="users"
+dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}" "${THELOOK_DATASET}" "${TABLE_NAME}"
 #############################################

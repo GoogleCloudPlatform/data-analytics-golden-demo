@@ -132,16 +132,35 @@ with airflow.DAG('run-all-dags',
         wait_for_completion=True
     )             
  
-    sample_dataplex_data_profile_scans = TriggerDagRunOperator(
-        task_id="sample_dataplex_data_profile_scans",
-        trigger_dag_id="sample-dataplex-data-profile-scans",
+    sample_dataplex_dataprofile_ridehshare_llm = TriggerDagRunOperator(
+        task_id="sample_dataplex_dataprofile_ridehshare_llm",
+        trigger_dag_id="sample-dataplex-dataprofile-ridehshare-llm",
         wait_for_completion=True
     )  
+ 
+    sample_dataplex_dataprofile_taxi = TriggerDagRunOperator(
+        task_id="sample_dataplex_dataprofile_taxi",
+        trigger_dag_id="sample-dataplex-dataprofile-taxi",
+        wait_for_completion=True
+    )  
+ 
+    sample_dataplex_dataprofile_thelook = TriggerDagRunOperator(
+        task_id="sample_dataplex_dataprofile_thelook",
+        trigger_dag_id="sample-dataplex-dataprofile-thelook",
+        wait_for_completion=True
+    ) 
+ 
+    sample_dataplex_dataprofile_rideshare_lakehouse = TriggerDagRunOperator(
+        task_id="sample_dataplex_dataprofile_rideshare_lakehouse",
+        trigger_dag_id="sample-dataplex-dataprofile-rideshare_lakehouse",
+        wait_for_completion=True
+    ) 
 
     # DAG Graph
     step_01_taxi_data_download >> [step_02_taxi_data_processing, sample_seed_unstructured_data, sample_rideshare_download_images]
     step_02_taxi_data_processing >> [step_03_hydrate_tables, sample_rideshare_website]
-    step_03_hydrate_tables >> [sample_dataflow_start_streaming_job, sp_datastream_cdc_data, sample_rideshare_hydrate_data]
-    sample_rideshare_llm_hydrate_data >> sample_dataplex_data_profile_scans
+    step_03_hydrate_tables >> [sample_dataplex_dataprofile_taxi, sample_dataplex_dataprofile_thelook, sample_dataflow_start_streaming_job, sp_datastream_cdc_data, sample_rideshare_hydrate_data]
+    sample_rideshare_hydrate_data >> sample_dataplex_dataprofile_rideshare_lakehouse
+    sample_rideshare_llm_hydrate_data >> sample_dataplex_dataprofile_ridehshare_llm
 
 # [END dag]

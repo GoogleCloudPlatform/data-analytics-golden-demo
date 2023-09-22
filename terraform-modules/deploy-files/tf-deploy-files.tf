@@ -134,25 +134,84 @@ resource "google_storage_bucket_object" "deploy_airflow_dag_sample-dataflow-star
 }
 
 # Upload DAG
-resource "google_storage_bucket_object" "deploy_airflow_dag_sample-dataplex-data-profile-scans" {
-  name   = "${local.local_composer_dag_path}/sample-dataplex-data-profile-scans.py"
+resource "google_storage_bucket_object" "deploy_airflow_dag_sample-dataplex-dataprofile-ridehshare-llm" {
+  name   = "${local.local_composer_dag_path}/sample-dataplex-dataprofile-ridehshare-llm.py"
   bucket = local.local_composer_bucket_name
-  source = "../cloud-composer/dags/sample-dataplex-data-profile-scans.py"
+  source = "../cloud-composer/dags/sample-dataplex-dataprofile-ridehshare-llm.py"
 
   depends_on = [ 
     ]  
 }
 
 # Upload the Airflow "data/template" files
-resource "google_storage_bucket_object" "deploy_airflow_data_bash_dataplex_data_profile" {
-  name   = "${local.local_composer_data_path}/bash_dataplex_data_profile.sh"
+resource "google_storage_bucket_object" "deploy_airflow_data_bash_dataplex_dataprofile_ridehshare_llm" {
+  name   = "${local.local_composer_data_path}/bash_dataplex_dataprofile_ridehshare_llm.sh"
   bucket = local.local_composer_bucket_name
-  source = "../cloud-composer/data/bash_dataplex_data_profile.sh"
+  source = "../cloud-composer/data/bash_dataplex_dataprofile_ridehshare_llm.sh"
 
   depends_on = [ 
     ]  
 }
 
+# Upload DAG
+resource "google_storage_bucket_object" "deploy_airflow_dag_sample-dataplex-dataprofile-taxi" {
+  name   = "${local.local_composer_dag_path}/sample-dataplex-dataprofile-taxi.py"
+  bucket = local.local_composer_bucket_name
+  source = "../cloud-composer/dags/sample-dataplex-dataprofile-taxi.py"
+
+  depends_on = [ 
+    ]  
+}
+
+# Upload the Airflow "data/template" files
+resource "google_storage_bucket_object" "deploy_airflow_data_bash_dataplex_dataprofile_taxi" {
+  name   = "${local.local_composer_data_path}/bash_dataplex_dataprofile_taxi.sh"
+  bucket = local.local_composer_bucket_name
+  source = "../cloud-composer/data/bash_dataplex_dataprofile_taxi.sh"
+
+  depends_on = [ 
+    ]  
+}
+
+# Upload DAG
+resource "google_storage_bucket_object" "deploy_airflow_dag_sample-dataplex-dataprofile-thelook" {
+  name   = "${local.local_composer_dag_path}/sample-dataplex-dataprofile-thelook.py"
+  bucket = local.local_composer_bucket_name
+  source = "../cloud-composer/dags/sample-dataplex-dataprofile-thelook.py"
+
+  depends_on = [ 
+    ]  
+}
+
+# Upload the Airflow "data/template" files
+resource "google_storage_bucket_object" "deploy_airflow_data_bash_dataplex_dataprofile_thelook" {
+  name   = "${local.local_composer_data_path}/bash_dataplex_dataprofile_thelook.sh"
+  bucket = local.local_composer_bucket_name
+  source = "../cloud-composer/data/bash_dataplex_dataprofile_thelook.sh"
+
+  depends_on = [ 
+    ]  
+}
+
+# Upload DAG
+resource "google_storage_bucket_object" "deploy_airflow_dag_sample-dataplex-dataprofile-ridehshare-lakehouse" {
+  name   = "${local.local_composer_dag_path}/sample-dataplex-dataprofile-ridehshare-lakehouse.py"
+  bucket = local.local_composer_bucket_name
+  source = "../cloud-composer/dags/sample-dataplex-dataprofile-ridehshare-lakehouse.py"
+
+  depends_on = [ 
+    ]  
+}
+
+# Upload the Airflow "data/template" files
+resource "google_storage_bucket_object" "deploy_airflow_data_bash_dataplex_dataprofile_ridehshare_lakehouse" {
+  name   = "${local.local_composer_data_path}/bash_dataplex_dataprofile_ridehshare_lakehouse.sh"
+  bucket = local.local_composer_bucket_name
+  source = "../cloud-composer/data/bash_dataplex_dataprofile_ridehshare_lakehouse.sh"
+
+  depends_on = [ 
+    ]  
+}
 
 # Upload the Airflow "data/template" files
 resource "google_storage_bucket_object" "deploy_airflow_data_sample_datastream_public_ip_deploy_postgres" {

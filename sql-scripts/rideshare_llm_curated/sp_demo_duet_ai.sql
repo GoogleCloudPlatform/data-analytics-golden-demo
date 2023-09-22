@@ -38,6 +38,35 @@ SELECT max(TRIP_DISTANCE)
   FROM `${project_id}.${bigquery_rideshare_llm_curated_dataset}.trip`;
 
 
+/* Since we have descriptions for each column lets write the prompt using business terms */
+-- In project:${project_id}, dataset:${bigquery_rideshare_llm_curated_dataset}, table:trip find the first inception date.
+SELECT min(DRIVER_SINCE_DATE)
+FROM `${project_id}.${bigquery_rideshare_llm_curated_dataset}.driver`;
+
+
+/* We can even use LLMs to generate field names for our database tables.  In this case we want the field to have the business term */
+/* This will return " Customer Since Date - The inception date of the customer relationship" */
+SELECT JSON_VALUE(ml_generate_text_result, '$.predictions[0].content') AS result, 
+     ml_generate_text_result
+FROM ML.GENERATE_TEXT(MODEL`${project_id}.${bigquery_rideshare_llm_curated_dataset}.cloud_ai_llm_v1`,
+     (SELECT
+"""
+For the following field name:
+1. Replace underscores with spaces
+2. Apply proper capitalization to the output
+3. After the field also include a hyphen and a suitiable description
+4. Include in the description the word "inception date" since this is the busines term 
+
+Field: customer_since_date
+""" AS prompt),
+STRUCT(
+     .2    AS temperature,
+     1024 AS max_output_tokens,
+     0    AS top_p,
+     1   AS top_k
+));
+
+
 -- In project:${project_id}, dataset:${bigquery_rideshare_llm_curated_dataset}, table:trip find the most highly used pickup_location
 SELECT PICKUP_LOCATION_ID, CAST(count(*) as BIGNUMERIC) 
   FROM `${project_id}.${bigquery_rideshare_llm_curated_dataset}.trip`

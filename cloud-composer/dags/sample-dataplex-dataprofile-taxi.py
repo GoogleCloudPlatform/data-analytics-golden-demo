@@ -72,7 +72,7 @@ params_list = {
     }
 
 
-with airflow.DAG('sample-dataplex-data-profile-scans',
+with airflow.DAG('sample-dataplex-dataprofile-ridehshare-llm',
                  default_args=default_args,
                  start_date=datetime(2021, 1, 1),
                  # Add the Composer "Data" directory which will hold the SQL/Bash scripts for deployment
@@ -84,8 +84,8 @@ with airflow.DAG('sample-dataplex-data-profile-scans',
 
     # Setup a BigQuery federated query connection so we can query BQ and Spanner using a single SQL command
     dataplex_data_profile = bash_operator.BashOperator(
-          task_id='bash_dataplex_data_profile',
-          bash_command='bash_dataplex_data_profile.sh',
+          task_id='bash_dataplex_dataprofile_taxi',
+          bash_command='bash_dataplex_dataprofile_taxi.sh',
           params=params_list,
           dag=dag
       )
