@@ -17,6 +17,7 @@
 ####################################################################################
 
 # Runs a dataplex, data profile scan on many tables
+# https://cloud.google.com/dataplex/docs/reference/rest/v1/projects.locations.dataScans/create
 
 DATAPLEX_REGION="{{ params.dataplex_region }}"
 PROJECT_ID="{{ params.project_id }}"
@@ -32,9 +33,9 @@ RIDESHARE_LLM_RAW_DATASET="{{ params.rideshare_llm_raw_dataset }}"
 RIDESHARE_LLM_ENRICHED_DATASET="{{ params.rideshare_llm_enriched_dataset }}"
 RIDESHARE_LLM_CURATED_DATASET="{{ params.rideshare_llm_curated_dataset }}"
 
-#DATAPLEX_REGION="us-central1"
-#PROJECT_ID="data-analytics-demo-jahkfjsl89"
-#RIDESHARE_LLM_CURATED_DATASET="rideshare_llm_curated"
+DATAPLEX_REGION="us-central1"
+PROJECT_ID="data-analytics-demo-jahkfjsl89"
+RIDESHARE_LLM_CURATED_DATASET="rideshare_llm_curated"
 
 # Install JQ for parsing REST API return status
 echo "BEGIN: jq Install"
@@ -60,12 +61,12 @@ dataplex_create_data_profile () {
     local_table_name=$5
 
     curl --request POST \
-    "https://dataplex.googleapis.com/v1/projects/${local_project_id}/locations/${local_dataplex_region}/dataScans?dataScanId=${local_scan_name}" \
-    --header "Authorization: Bearer $token" \
-    --header "Accept: application/json" \
-    --header "Content-Type: application/json" \
-    --data "{\"dataProfileSpec\":{\"samplingPercent\":10},\"data\":{\"resource\":\"//bigquery.googleapis.com/projects/${local_project_id}/datasets/${local_dataset_name}/tables/${local_table_name}\"},\"description\":\"${local_scan_name}\",\"displayName\":\"${local_scan_name}\"}" \
-    --compressed
+        "https://dataplex.googleapis.com/v1/projects/${local_project_id}/locations/${local_dataplex_region}/dataScans?dataScanId=${local_scan_name}" \
+        --header "Authorization: Bearer $token" \
+        --header "Accept: application/json" \
+        --header "Content-Type: application/json" \
+        --data "{\"dataProfileSpec\":{\"samplingPercent\":10},\"data\":{\"resource\":\"//bigquery.googleapis.com/projects/${local_project_id}/datasets/${local_dataset_name}/tables/${local_table_name}\"},\"description\":\"${local_scan_name}\",\"displayName\":\"${local_scan_name}\"}" \
+        --compressed
 
     state="STATE_UNSPECIFIED"
     while [[ "${state}" == "STATE_UNSPECIFIED" || "${state}" == "CREATING" ]]
@@ -80,12 +81,21 @@ dataplex_create_data_profile () {
         echo "items: $state"
         done
 
+    # Update BQ fields so we can get the data scan results published in the BQ UI
+    curl --request PATCH \
+        "https://bigquery.googleapis.com/bigquery/v2/projects/${local_project_id}/datasets/${local_dataset_name}/tables/${local_table_name}" \
+        --header "Authorization: Bearer $token" \
+        --header "Accept: application/json" \
+        --header "Content-Type: application/json" \
+        --data "{\"labels\":{\"dataplex-dp-published-location\":\"${local_dataplex_region}\",\"dataplex-dp-published-project\":\"${local_project_id}\",\"dataplex-dp-published-scan\":\"${local_scan_name}\"}}" \
+        --compressed
+
     curl --request POST "https://dataplex.googleapis.com/v1/projects/${local_project_id}/locations/${local_dataplex_region}/dataScans/${local_scan_name}:run" \
-    --header "Authorization: Bearer $token" \
-    --header "Accept: application/json" \
-    --header "Content-Type: application/json" \
-    --data '{}' \
-    --compressed
+        --header "Authorization: Bearer $token" \
+        --header "Accept: application/json" \
+        --header "Content-Type: application/json" \
+        --data '{}' \
+        --compressed
 }
 
 
