@@ -194,10 +194,10 @@ resource "google_storage_bucket_object" "deploy_airflow_data_bash_dataplex_datap
 }
 
 # Upload DAG
-resource "google_storage_bucket_object" "deploy_airflow_dag_sample-dataplex-dataprofile-ridehshare-lakehouse" {
-  name   = "${local.local_composer_dag_path}/sample-dataplex-dataprofile-ridehshare-lakehouse.py"
+resource "google_storage_bucket_object" "deploy_airflow_dag_sample-dataplex-dataprofile-rideshare-lakehouse" {
+  name   = "${local.local_composer_dag_path}/sample-dataplex-dataprofile-rideshare-lakehouse.py"
   bucket = local.local_composer_bucket_name
-  source = "../cloud-composer/dags/sample-dataplex-dataprofile-ridehshare-lakehouse.py"
+  source = "../cloud-composer/dags/sample-dataplex-dataprofile-rideshare-lakehouse.py"
 
   depends_on = [ 
     ]  
