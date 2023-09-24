@@ -276,8 +276,8 @@ dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}"
 
 
 #############################################
-SCAN_NAME="taxi-dataset-taxi-trips-streaming"
-TABLE_NAME="taxi_trips_streaming"
+SCAN_NAME="taxi-dataset-taxi-trips-with-col-sec"
+TABLE_NAME="taxi_trips_with_col_sec"
 dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}" "${TAXI_DATASET}" "${TABLE_NAME}"
 #############################################
 

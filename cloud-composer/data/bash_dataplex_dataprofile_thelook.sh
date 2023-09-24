@@ -122,8 +122,8 @@ dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}"
 
 
 #############################################
-SCAN_NAME="thelook-ecommerce-inventory-items"
-TABLE_NAME="inventory_items"
+SCAN_NAME="thelook-ecommerce-order-items"
+TABLE_NAME="order_items"
 dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}" "${THELOOK_DATASET}" "${TABLE_NAME}"
 #############################################
 
@@ -164,7 +164,7 @@ dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}"
 
 
 #############################################
-SCAN_NAME="thelook-ecommerce-training_data"
+SCAN_NAME="thelook-ecommerce-training-data"
 TABLE_NAME="training_data"
 dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}" "${THELOOK_DATASET}" "${TABLE_NAME}"
 #############################################

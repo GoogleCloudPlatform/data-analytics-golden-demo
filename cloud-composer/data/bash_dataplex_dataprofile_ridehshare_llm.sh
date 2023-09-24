@@ -328,8 +328,8 @@ dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}"
 
 
 #============================================
-SCAN_NAME="rideshare-llm-raw-driver"
-TABLE_NAME="driver"
+SCAN_NAME="rideshare-llm-raw-location"
+TABLE_NAME="location"
 dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}" "${RIDESHARE_LLM_RAW_DATASET}" "${TABLE_NAME}"
 #============================================
 

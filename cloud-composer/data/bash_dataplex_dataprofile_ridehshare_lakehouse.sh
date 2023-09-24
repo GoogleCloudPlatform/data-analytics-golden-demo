@@ -243,8 +243,8 @@ dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}"
 
 
 #============================================
-SCAN_NAME="rideshare-lakehouse-raw-rideshare-trip-parquet"
-TABLE_NAME="biglake_rideshare_trip_parquet"
+SCAN_NAME="rideshare-lakehouse-raw-rideshare-zone-csv"
+TABLE_NAME="biglake_rideshare_zone_csv"
 dataplex_create_data_profile "${PROJECT_ID}" "${DATAPLEX_REGION}" "${SCAN_NAME}" "${RIDESHARE_LAKEHOUSE_RAW_DATASET}" "${TABLE_NAME}"
 #============================================
 
