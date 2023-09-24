@@ -340,7 +340,7 @@ SELECT payment_type.payment_type_description
 
 */
 
--- Data Processing
+-- Data Processing (JSON output of an unstructured address)
 /* Uncomment this out.  The model cloud_ai_llm_v1 does not exist at deployment time
 SELECT JSON_VALUE(ml_generate_text_result, '$.predictions[0].content') AS result, 
        ml_generate_text_result
@@ -358,6 +358,31 @@ STRUCT(
   0    AS top_p,
   1   AS top_k
   ));
+
+
+  -- Data Processing (JSON Array of many address with a "line 2")
+  SELECT JSON_VALUE(ml_generate_text_result, '$.predictions[0].content') AS result, 
+         ml_generate_text_result
+    FROM ML.GENERATE_TEXT(MODEL`${project_id}.${bigquery_rideshare_llm_curated_dataset}.cloud_ai_llm_v1`,
+         (SELECT
+  """
+  For the following addresses extract the fields "address line", "city", "state" and "zip code" and return the below JSON array. 
+  Avoid using newlines in the output.
+  For address_line2 use this field for suite, apartment number or attention to data.
+  JSON format: [{ "address_line1": "value","address_line2": "value","city": "value","state": "value", "zip_code": "value" }]
+  
+  Address: 1600 Pennsylvania Avenue, N.W. Washington, DC 20500
+  Address: 4501 Elm St Orlando FL 32804
+  Address: 1000 5th Ave Suite 514 New York, NY 10028
+  Address: 1000 5th Ave Apartment 10A New York, NY 10028
+  """ AS prompt),
+  STRUCT(
+    .0    AS temperature,
+    1024 AS max_output_tokens,
+    0    AS top_p,
+    1   AS top_k
+    ));
+
 */  
 
 SELECT 1;
