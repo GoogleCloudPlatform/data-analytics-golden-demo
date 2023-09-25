@@ -1,27 +1,48 @@
-# https://codelabs.developers.google.com/codelabs/cloud-app-engine-aspnetcore
-# https://cloud.google.com/run/docs/quickstarts/build-and-deploy/deploy-dotnet-service
-
-gcloud auth list
-gcloud config set project data-analytics-preview
-
-# Install .net core 6.0.413
-
-dotnet --list-sdks
-
-dotnet new mvc -o RidesharePlus -lang "C#" -f net6.0
-
+# Steps to run website
+```
+Make sure you have .NET 7 (dotnet core) installed
+cd cloud-run
 cd RidesharePlus
-
 dotnet run --urls=http://localhost:8080
+```
 
-dotnet publish -c Release
+# To updatet the website on an existing deployment
+```
+cd cloud-run
+Open deploy-website.sh and change the project ids and items (I probably could grab these from the state files...)
+source deploy-website.sh
+```
 
-cp ../app.yaml ./bin/Release/net6.0/publish/app.yaml
+# Install NuGet Packages
+```
+dotnet add package Newtonsoft.Json --version 13.0.3
+dotnet add package Google.Cloud.Storage.V1 --version 4.6.0
+dotnet add package Google.Cloud.BigQuery.V2 --version 3.4.0
+dotnet add package System.ComponentModel.Annotations --version 5.0.0
+```
 
-cd ./bin/Release/net6.0/publish
+# .Net Core References
+- https://codelabs.developers.google.com/codelabs/cloud-app-engine-aspnetcore
+- https://cloud.google.com/run/docs/quickstarts/build-and-deploy/deploy-dotnet-service
 
-PROJECT_ID="data-analytics-preview"
+```
+PROJECT_ID="data-analytics-preview-001"
+gcloud auth list
+gcloud config set project ${PROJECT_ID}
+```
 
+# Original setup 
+- Install .net core 7
+- dotnet --list-sdks
+- dotnet new mvc -o RidesharePlus -lang "C#" -f net7.0
+- cd RidesharePlus
+- dotnet run --urls=http://localhost:8080
+- dotnet publish -c Release
+- cp ../app.yaml ./bin/Release/net7.0/publish/app.yaml
+- cd ./bin/Release/net7.0/publish
+
+# To use cloud run and cloud build to deploy (already done in Terraform)
+```
 gcloud services enable \
 --project ${PROJECT_ID} \
 run.googleapis.com \
@@ -43,14 +64,4 @@ gcloud run deploy demo-rideshare-plus-website \
 --set-env-vars "KEY1=${PROJECT_ID}" \
 --set-env-vars "KEY2=VALUE2" \
 --set-env-vars "KEY3=VALUE3"
-
-
--- Install NuGet
-dotnet add package Newtonsoft.Json --version 13.0.3
-dotnet add package Google.Cloud.Storage.V1 --version 4.6.0
-dotnet add package Google.Cloud.BigQuery.V2 --version 3.4.0
-dotnet add package System.ComponentModel.Annotations --version 5.0.0
-
---Steps to run website
-cd RidesharePlus
-dotnet run --urls=http://localhost:8080
+```

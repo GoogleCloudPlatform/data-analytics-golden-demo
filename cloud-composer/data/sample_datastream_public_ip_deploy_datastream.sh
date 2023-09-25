@@ -28,8 +28,7 @@ echo "PROJECT_ID: ${PROJECT_ID}"
 echo "DATASTREAM_REGION: ${DATASTREAM_REGION}"
 
 
-# Since the current version of gCloud 
-# This is NOT a best practice
+# Install the latest version of gCloud (This is NOT a best practice)
 wget https://packages.cloud.google.com/apt/doc/apt-key.gpg && sudo apt-key add apt-key.gpg
 sudo apt-get update && sudo apt-get --only-upgrade install google-cloud-sdk 
 
