@@ -366,9 +366,9 @@ STRUCT(
     FROM ML.GENERATE_TEXT(MODEL`${project_id}.${bigquery_rideshare_llm_curated_dataset}.cloud_ai_llm_v1`,
          (SELECT
   """
-  For the following addresses extract the fields "address line", "city", "state" and "zip code" and return the below JSON array. 
+  For the following addresses extract the fields "address line1", "address line2", "city", "state" and "zip code" and return the below JSON array. 
   Avoid using newlines in the output.
-  For address_line2 use this field for suite, apartment number or attention to data.
+  For address line2 use this field for suite, apartment number or attention to data.
   JSON format: [{ "address_line1": "value","address_line2": "value","city": "value","state": "value", "zip_code": "value" }]
   
   Address: 1600 Pennsylvania Avenue, N.W. Washington, DC 20500
