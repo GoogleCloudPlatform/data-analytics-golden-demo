@@ -349,6 +349,8 @@ SELECT JSON_VALUE(ml_generate_text_result, '$.predictions[0].content') AS result
 """
 For the following address extract the fields "address line", "city", "state" and "zip code" and return the below JSON format. Avoid using newlines in the output.
 JSON format: { "address_line": "value","city": "value","state": "value", "zip_code": "value" }
+Example: 123 Anywhere St Philadelphia, PA 00000
+Answer: { "address_line": "123 Anywhere St","city": "Philadelphia","state": "PA", "zip_code": "00000" }
 
 Address: 1600 Pennsylvania Avenue, N.W. Washington, DC 20500
 """ AS prompt),
