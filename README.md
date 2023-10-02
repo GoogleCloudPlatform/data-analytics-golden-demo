@@ -10,6 +10,7 @@ Prior Months
 - [May 2023](https://youtu.be/VAIBgDPC-w8)
 
 
+
 ## Demo Artifacts
 ![alt tag](./images/Architecture-Diagram.png)
 
@@ -105,6 +106,11 @@ Prior Months
 
 
 ## Deploy
+
+[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://shell.cloud.google.com/cloudshell/?terminal=true&show=terminal&cloudshell_git_repo=https%3A%2F%2Fgithub.com%2FGoogleCloudPlatform%2Fdata-analytics-golden-demo)
+
+After the repo is cloned you would type ```source deploy.sh``` to deploy.
+
 ### To deploy to New Project (Requires Elevated Privileges)
 - Deployment [Video](https://youtu.be/QvCCo35qgys)
 - Post Deployment Verification [Video](https://youtu.be/r1mp4Yve0VY)
@@ -149,12 +155,10 @@ Prior Months
 
 
 
-
 ### To deploy the project to a different region
 1. By default the solution deploys to us-west{x} region and US (multi-region)
 2. To deploy to another region review the code in [deploy-europe-region.sh](deploy-europe-region.sh)
 3. You can run either of the above deployment methods.  Copy the Terraform  "region" parameters to either of the above scripts.
-
 
 
 
@@ -166,11 +170,9 @@ Prior Months
    - Once the DAG is complete, you can run the solution
 
 
-
-
 ### Possible  Deployment Errors:
 1. If the script fails to enable a service or timeouts, you can rerun and if that does not work, run ```source clean-up.sh``` and start over
-2. If the script has a security type message (unauthorized), then double check the configure roles/IAM security.
+2. If the script has a security type message (unauthorized), then double check the configure roles/IAM security.  Your user account is probably not an Owner of the project or Org Admin if creating the project.
 3. When using Cloud Shell: If you get a "networking error" with some dial tcp message [2607:f8b0:4001:c1a::5f], then your cloud shell has a networking glitch, not the Terraform network.  Restart the deployment "source deploy.sh". (e.g. Error creating Network: Post ```https://compute.googleapis.com/compute/beta/projects/bigquery-demo-xvz1143xu9/global/networks?alt=json```: dial tcp [2607:f8b0:4001:c1a::5f]:443: connect: cannot assign requested address).  This typically happens on WiFi.
 
 
@@ -178,24 +180,26 @@ Prior Months
 
 ## Folders
 - cloud-composer
- - dags - all the DAGs for Airflow which run the system and seed the data
- - data - all the bash and SQL scripts to deploy
-- dataflow
- - Dataflow job that connects to the public Pub/Sub sample streaming taxi data.  You start this using composer.
+   - dags - all the DAGs for Airflow which run the system and seed the data
+   - data - all the bash and SQL scripts to deploy
+   - dataflow
+ - dataflow 
+   - Dataflow job that connects to the public Pub/Sub sample streaming taxi data.  You start this using composer.
 - dataproc
- - Spark code to that is used to process the initial downloaded data
-- notebooks
- - Sample notebooks that can be run in Vertex AI.  To create the managed notebook, use the DAG in composer.
-- sql-scripts
- - The BigQuery SQL sample scripts. These are currently deployed as stored procedures.  You can edit each stored procedure and run the sample code query by query.
+   - Spark code to that is used to process the initial downloaded data
+- colab-enterprise
+   - Sample notebooks that can be run in Vertex AI.  To create the managed notebook, use the DAG in composer.
+   - sql-scripts
+ - sql-scripts
+   - The BigQuery SQL sample scripts. These are currently deployed as stored procedures.  You can edit each stored procedure and run the sample code query by query.
 - terraform
- - the entry point for when deploying via cloud shell or your local machine.  This uses service account impersonation
+   - The entry point for when deploying via cloud shell or your local machine.  This uses service account impersonation.
 - terraform-modules
- - api - enables the GCP apis
- - org-policies - sets organization policies at the project level that have to be "disabled" to deploy the resources.
- - org-policies-deprecated - an older approach for org policies and is needed when your cloud build account is in a different domain
- - project - creates the cloud project if a project number is not provided
- - resources - the main set of resources to deploy
- - service-account - creates a service account if a project numnber is not provided.  The service account will be impersonated during the deployment.
- - service-usage - enables the service usage API as the main user (non-impersonated)
- - sql-scripts - deploys the sql scripts
+   - api - enables the GCP apis
+   - org-policies - sets organization policies at the project level that have to be "disabled" to deploy the resources.
+   - org-policies-destroy - commented out org policies so we can revert the org policies back to their original state.
+   - project - creates the cloud project if a project number is not provided
+   - resources - the main set of resources to deploy
+   - service-account - creates a service account if a project numnber is not provided.  The service account will be impersonated during the deployment.
+   - service-usage - enables the service usage API as the main user (non-impersonated)
+   - sql-scripts - deploys the sql scripts
