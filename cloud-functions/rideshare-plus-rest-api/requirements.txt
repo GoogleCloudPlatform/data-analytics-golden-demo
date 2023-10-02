@@ -1,5 +1,5 @@
 Werkzeug==2.3.7
-Flask==2.2.2
+Flask==2.2.5
 functions-framework==3.3.0
 google-cloud-bigquery==3.5.0
 google-cloud-storage==2.7.0
