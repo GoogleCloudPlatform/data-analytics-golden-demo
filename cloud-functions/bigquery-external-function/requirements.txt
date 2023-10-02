@@ -1,5 +1,5 @@
 Werkzeug==2.3.7
-Flask==2.2.2
+Flask==2.2.5
 functions-framework==3.3.0
 google-cloud-vision==3.2.0
 google-cloud-speech==2.21.0
