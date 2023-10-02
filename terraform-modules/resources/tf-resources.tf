@@ -2568,6 +2568,8 @@ then
     exit 1;
 else
     echo "Cloud Build Successful"
+    # delay since sometimes cloud run cannot find the image immediately
+    sleep 60
 fi
 EOF
   }
