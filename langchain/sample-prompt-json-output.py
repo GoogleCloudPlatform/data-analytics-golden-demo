@@ -15,7 +15,7 @@
 ####################################################################################
 
 # Author:  Adam Paternostro
-# Summary: Samples for langchain with vertex ai
+# Summary: Ask a LLM to find categories in a customer review text and out the results in JSON.
 
 # To setup your environemtn
 # python3 -m venv .venv
@@ -26,6 +26,7 @@
 # run it: python sample-prompt-json-output.py
 # deactivate
 
+import json
 import langchain
 from langchain.llms import VertexAI
 from langchain.embeddings import VertexAIEmbeddings
@@ -40,28 +41,32 @@ llm = VertexAI(
 )
 
 prompt="""For the below review peform the following:
-1. Determine the sentitment of the review using the values of "Positive", "Neutral" or "Negative"
-2. Classify the review as one or more of the below classifications.
-3. Output the results in the below JSON format.
+1. Classify the review as one or more of the below classifications.
+2. Output the results in the below JSON format.
 
 Classifications:
 - "driver likes music"
 - "driver has a dirty car"
-- "driver has a clear car"
+- "driver has a clean car"
 - "driver drives fast"
 - "driver drives slow"
 
-JSON format: { "sentiment" : null, [{ "classification" : null}] }
-Sample JSON Response: { "sentiment" : "Positive", [{ "classification" : "driver likes music", "classification" : "driver drives slow" }] }
+JSON format: [ "value" ] 
+Sample JSON Response: [ "driver likes music", "driver drives slow" ] 
 
 Review: I was taking a rideshare ride and the drivers car was spotless.  Not a spec of dirt could be found.  I could eat off the seats.  
 I cannot believe how quickly he got me to my destination.  It was like taking a rocketship.  I was so scared!
 """
 result = llm(prompt)
-print (result)
+print()
+print(result)
+print()
+print()
 
 
-#embeddings = VertexAIEmbeddings()
-#text = "Embeddings are a way of data representation."
-#text_embedding = embeddings.embed_query(text)
-#print(text_embedding)
+# Hopefully it is valid JSON
+json_data = str(result)
+json_object = json.loads(json_data)
+json_formatted_str = json.dumps(json_object, indent=2)
+print(json_formatted_str)
+

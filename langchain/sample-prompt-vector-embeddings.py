@@ -15,7 +15,7 @@
 ####################################################################################
 
 # Author:  Adam Paternostro
-# Summary: Samples for langchain with vertex ai
+# Summary: Create vector embeddings using Vertex AI
 
 # To setup your environemtn
 # python3 -m venv .venv
