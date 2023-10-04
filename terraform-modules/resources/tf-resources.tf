@@ -2568,8 +2568,9 @@ then
     exit 1;
 else
     echo "Cloud Build Successful"
-    # delay since sometimes cloud run cannot find the image immediately
-    sleep 60
+    # For new projects you need to wait up to 240 seconds after your cloud build.
+    # The Cloud Run Terraform task is placed after the deployment of Composer which takes 15+ minutes to deploy.
+    # sleep 240
 fi
 EOF
   }
@@ -2624,6 +2625,7 @@ resource "google_cloud_run_service" "cloud_run_service_rideshare_plus_website" {
     google_artifact_registry_repository.artifact_registry_cloud_run_deploy,
     google_storage_bucket.code_bucket,
     google_storage_bucket_object.rideshare_plus_function_zip_upload,
+    google_composer_environment.composer_env,
   ]
 }
 
