@@ -53,3 +53,4 @@ cloud-run/rideshare-plus-website/RidesharePlus/obj/*
 cloud-run/rideshare-plus-website/RidesharePlus/bin/*
 .vscode/*
 temp.md
+langchain/.venv/*
