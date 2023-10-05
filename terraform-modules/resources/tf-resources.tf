@@ -176,6 +176,15 @@ resource "google_storage_bucket" "iceberg_catalog_source_data_bucket" {
   uniform_bucket_level_access = true
 }
 
+
+resource "google_storage_bucket" "biglake_managed_table_bucket" {
+  project                     = var.project_id
+  name                        = "mt-${var.storage_bucket}"
+  location                    = var.bigquery_region
+  force_destroy               = true
+  uniform_bucket_level_access = true
+}
+
 ####################################################################################
 # Custom Roles
 ####################################################################################
@@ -1570,6 +1579,18 @@ resource "google_project_iam_member" "bq_connection_iam_object_viewer" {
   project = var.project_id
   role    = "roles/storage.objectViewer"
   member  = "serviceAccount:${google_bigquery_connection.biglake_connection.cloud_resource[0].service_account_id}"
+
+  depends_on = [
+    google_bigquery_connection.biglake_connection
+  ]
+}
+
+
+# BigLake Managed Tables
+resource "google_storage_bucket_iam_member" "bq_connection_mt_iam_object_owner" {
+  bucket = google_storage_bucket.biglake_managed_table_bucket.name
+  role   = "roles/storage.objectAdmin"
+  member = "serviceAccount:${google_bigquery_connection.biglake_connection.cloud_resource[0].service_account_id}"
 
   depends_on = [
     google_bigquery_connection.biglake_connection

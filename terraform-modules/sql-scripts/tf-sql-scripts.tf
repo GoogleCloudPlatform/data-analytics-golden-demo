@@ -212,6 +212,26 @@ resource "google_bigquery_routine" "sproc_sp_demo_biglake_iceberg" {
 
 
 ####################################################################################
+# sp_demo_biglake_managed_tables
+####################################################################################
+resource "google_bigquery_routine" "sproc_sp_demo_biglake_managed_tables" {
+  dataset_id      = var.bigquery_taxi_dataset
+  routine_id      = "sp_demo_biglake_managed_tables"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = templatefile("../sql-scripts/taxi_dataset/sp_demo_biglake_managed_tables.sql", 
+  { 
+    project_id = var.project_id
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+    biglake_managed_tables_bucket_name = "mt-${var.storage_bucket}"
+    raw_bucket_name = "raw-${var.storage_bucket}"
+    bigquery_region = var.bigquery_region
+    gcp_account_name = var.gcp_account_name
+  })
+}
+
+
+####################################################################################
 # sp_demo_biglake_metastore_security
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_biglake_metastore_security" {

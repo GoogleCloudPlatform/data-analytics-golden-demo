@@ -15,10 +15,18 @@
 ###################################################################################*/
 /*
 Use Cases:
-    - TBD
+    - For when customers want to have full control of their BigLake tables and want support for full CRUD operations
 
 Description: 
-    - TBD
+    - Full CRUD support for BigLake managed tables.
+    - The underlying table is fully managed by BigQuery.
+    - The table uses Iceberg for its file format
+    - The table is fully managed: 
+      - Auto-tuned File Sizing
+      - Clustering Partition Pruning
+      - Automatic Reclustering
+      - Automatic File Compaction
+      - Automatic Garbage Collection
 
 Show:
     - Managed tables: Apache Iceberg
@@ -27,11 +35,14 @@ Show:
     - Insert, Update, Delete
     - Alter schema
 
+YouTube:
+    - https://youtu.be/D4BhIraXP-I
+
 References:
     - TBD
 
 Clean up / Reset script:
-    -- NOTE: You must manually go to the bucket: gs://${biglake_managed_tables_bucket_name}/managed-iceberg/ and DELETE all the folders.
+    -- NOTE: You must manually go to the bucket: gs://${biglake_managed_tables_bucket_name}/biglake-managed-tables/ and DELETE all the folders.
     DROP TABLE IF EXISTS `${project_id}.biglake_managed_tables.iceberg_mt_location`;
     DROP TABLE IF EXISTS `${project_id}.biglake_managed_tables.iceberg_mt_payment_type`;
     DROP TABLE IF EXISTS `${project_id}.biglake_managed_tables.iceberg_mt_random_name`;
@@ -40,6 +51,7 @@ Clean up / Reset script:
     DROP SCHEMA IF EXISTS `${project_id}.biglake_managed_tables`;
 */
 
+/*
 CREATE SCHEMA `${project_id}.biglake_managed_tables`
     OPTIONS (
     location = "US"
@@ -60,7 +72,7 @@ WITH CONNECTION `${project_id}.us.biglake-connection`
 OPTIONS (
   file_format = 'PARQUET',
   table_format = 'ICEBERG',
-  storage_uri = 'gs://${biglake_managed_tables_bucket_name}/managed-iceberg/iceberg_mt_random_name');
+  storage_uri = 'gs://${biglake_managed_tables_bucket_name}/biglake-managed-tables/iceberg_mt_random_name');
 
 
 -- Load the data (batch) into the table
@@ -94,7 +106,7 @@ WITH CONNECTION `${project_id}.us.biglake-connection`
 OPTIONS (
   file_format = 'PARQUET',
   table_format = 'ICEBERG',
-  storage_uri = 'gs://${biglake_managed_tables_bucket_name}/managed-iceberg/iceberg_mt_location');
+  storage_uri = 'gs://${biglake_managed_tables_bucket_name}/biglake-managed-tables/iceberg_mt_location');
 
 INSERT INTO `${project_id}.biglake_managed_tables.iceberg_mt_location`
 (
@@ -126,7 +138,7 @@ SELECT *
 -- Open: https://console.cloud.google.com/cloudpubsub/subscription/list?project=${project_id}
 -- Enter Topic Manually: projects/pubsub-public-data/topics/taxirides-realtime
 -- Click off: Write metadata
--- grant service account: service-31541164526@gcp-sa-pubsub.iam.gserviceaccount.com 
+-- grant service account: service-xxxxxxxxxxx@gcp-sa-pubsub.iam.gserviceaccount.com BigQuery Data Owner role to table
 ------------------------------------------------------------------------------------------------
 CREATE OR REPLACE TABLE `${project_id}.biglake_managed_tables.iceberg_mt_taxi_trips_streaming` 
 (
@@ -141,7 +153,7 @@ WITH CONNECTION `${project_id}.us.biglake-connection`
 OPTIONS (
   file_format = 'PARQUET',
   table_format = 'ICEBERG',
-  storage_uri = 'gs://${biglake_managed_tables_bucket_name}/managed-iceberg/iceberg_mt_taxi_trips_streaming');
+  storage_uri = 'gs://${biglake_managed_tables_bucket_name}/biglake-managed-tables/iceberg_mt_taxi_trips_streaming');
 
 SELECT * 
   FROM `${project_id}.biglake_managed_tables.iceberg_mt_taxi_trips_streaming`
@@ -181,7 +193,7 @@ WITH CONNECTION `${project_id}.us.biglake-connection`
 OPTIONS (
   file_format = 'PARQUET',
   table_format = 'ICEBERG',
-  storage_uri = 'gs://${biglake_managed_tables_bucket_name}/managed-iceberg/iceberg_mt_taxi_trips');
+  storage_uri = 'gs://${biglake_managed_tables_bucket_name}/biglake-managed-tables/iceberg_mt_taxi_trips');
 
 
 ------------------------------------------------------------------------------------------------
@@ -281,7 +293,7 @@ WITH CONNECTION `${project_id}.us.biglake-connection`
 OPTIONS (
   file_format = 'PARQUET',
   table_format = 'ICEBERG',
-  storage_uri = 'gs://${biglake_managed_tables_bucket_name}/managed-iceberg/iceberg_mt_payment_type');
+  storage_uri = 'gs://${biglake_managed_tables_bucket_name}/biglake-managed-tables/iceberg_mt_payment_type');
 
 INSERT INTO `${project_id}.biglake_managed_tables.iceberg_mt_payment_type`
 (
@@ -340,3 +352,7 @@ ALTER TABLE `${project_id}.biglake_managed_tables.iceberg_mt_payment_type`
 
 SELECT * 
   FROM `${project_id}.biglake_managed_tables.iceberg_mt_payment_type`;
+*/
+
+-- Remove this an uncomment the above, this is a preview feature.
+SELECT 1;
