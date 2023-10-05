@@ -1,10 +1,12 @@
 # Data-Analytics-Golden-Demo
 Deploys an end-to-end Data Analytics technical walkthrough on Google Cloud.  All the services are connected, configured and ready to run.  The deployed artifacts can be run in any order letting you set your own path through the system.  The system has 70 to 700+ million rows of data so that you can show "true life" performance, scale and integration of various services.  The system orchestates itself using Airflow, communicates over private IP addresses and has working code to demonstrate how to build an end to end system.
 
-## Monthly Video Update (August 2023)
-[![Monthly Update](./images/MonthlyUpdate.png)](https://youtu.be/QGJYd_6NslU)
+## Monthly Video Update (September 2023)
+
+[![Monthly Update](./images/MonthlyUpdate.png)](https://youtu.be/7I3jw-nNMC8)
 
 Prior Months
+- [August 2023](https://youtu.be/QGJYd_6NslU)
 - [July 2023](https://youtu.be/Ljbvpg-tZEM)
 - [June 2023](https://youtu.be/nTJAxm8oiF4)
 - [May 2023](https://youtu.be/VAIBgDPC-w8)
