@@ -1,5 +1,5 @@
-project_id="data-analytics-demo-jahkfjsl89"
-google_storage_bucket="code-data-analytics-demo-jahkfjsl89"
+project_id="data-analytics-demo-3npnp3v78u"
+google_storage_bucket="code-data-analytics-demo-3npnp3v78u"
 curl_impersonation=""
 region="us-central1"
 
