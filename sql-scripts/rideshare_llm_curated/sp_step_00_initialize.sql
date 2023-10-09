@@ -39,6 +39,14 @@ CREATE OR REPLACE MODEL `${project_id}.${bigquery_rideshare_llm_curated_dataset}
 
 
 ------------------------------------------------------------------------------------------------------------
+-- Create link to the LLM (embeddings)
+------------------------------------------------------------------------------------------------------------
+
+CREATE OR REPLACE MODEL `${project_id}.${bigquery_rideshare_llm_curated_dataset}.llm_embedding_model`
+REMOTE WITH CONNECTION `${project_id}.us.vertex-ai`
+OPTIONS(remote_service_type = 'CLOUD_AI_TEXT_EMBEDDING_MODEL_V1');
+
+------------------------------------------------------------------------------------------------------------
 -- Location Table
 ------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE TABLE `${project_id}.${bigquery_rideshare_llm_curated_dataset}.location`
@@ -129,6 +137,13 @@ SELECT customer.customer_id,
 GROUP BY 1,2,3,4,5,6,7;
 
 
+ALTER TABLE  `${project_id}.${bigquery_rideshare_llm_curated_dataset}.customer`
+--Quantitive analysys embeddings
+ADD COLUMN IF NOT EXISTS llm_customer_quantitative_analysis_embedding ARRAY<FLOAT64>,
+--List of prefered drivers based on semantic matching
+ADD COLUMN IF NOT EXISTS prefered_drivers ARRAY<INT64>;
+
+
 ALTER TABLE `${project_id}.${bigquery_rideshare_llm_curated_dataset}.customer`
   ALTER COLUMN customer_id SET OPTIONS (description='Customer Id - Primary Key'),
   ALTER COLUMN customer_name SET OPTIONS (description='Customer Name - The name of the customer.'),
@@ -143,9 +158,13 @@ ALTER TABLE `${project_id}.${bigquery_rideshare_llm_curated_dataset}.customer`
   ALTER COLUMN avg_fare_amount SET OPTIONS (description='Avg Fare Amount - The average fare amount for all the customer trips.'),
   ALTER COLUMN avg_tip_amount SET OPTIONS (description='Avg Tip Amount - The average tip amount for all the customer trips.'),
   ALTER COLUMN avg_total_amount SET OPTIONS (description='Avg Total Amount - The average total amount for all the customer trips.'),
-  ALTER COLUMN sum_total_amount SET OPTIONS (description='Sum Total Amount - The total amount the customer has spent using our service.');
+  ALTER COLUMN sum_total_amount SET OPTIONS (description='Sum Total Amount - The total amount the customer has spent using our service.'),
+  ALTER COLUMN llm_customer_quantitative_analysis_embedding SET OPTIONS (description='Embeddings of the customer quantitative analysis.'),
+  ALTER COLUMN prefered_drivers SET OPTIONS (description='List of prefered drivers based on semantic matching.');
 
 
+------------------------------------------------------------------------------------------------------------
+-- Driver.');
 ------------------------------------------------------------------------------------------------------------
 -- Customer Reviews
 ------------------------------------------------------------------------------------------------------------
@@ -386,6 +405,10 @@ GROUP BY 1,2,3,4,5,6,7;
 
 
 ALTER TABLE `${project_id}.${bigquery_rideshare_llm_curated_dataset}.driver`
+ADD COLUMN IF NOT EXISTS llm_driver_quantitative_analysis_embedding ARRAY<FLOAT64>;
+
+
+ALTER TABLE `${project_id}.${bigquery_rideshare_llm_curated_dataset}.driver`
   ALTER COLUMN driver_id SET OPTIONS (description='Driver Id - Primary Key'),
   ALTER COLUMN driver_name SET OPTIONS (description='Driver Name - The name of the driver.'),
   ALTER COLUMN driver_since_date SET OPTIONS (description='Driver Since Date - The first time the driver made a trip.  The inception date.'),
@@ -399,7 +422,12 @@ ALTER TABLE `${project_id}.${bigquery_rideshare_llm_curated_dataset}.driver`
   ALTER COLUMN avg_fare_amount SET OPTIONS (description='Avg Fare Amount - The average fare amount for all the customer trips.'),
   ALTER COLUMN avg_tip_amount SET OPTIONS (description='Avg Tip Amount - The average tip amount for all the customer trips.'),
   ALTER COLUMN avg_total_amount SET OPTIONS (description='Avg Total Amount - The average total amount for all the customer trips.'),
-  ALTER COLUMN sum_total_amount SET OPTIONS (description='Sum Total Amount - The total amount the customer has spent using our service.');
+  ALTER COLUMN sum_total_amount SET OPTIONS (description='Sum Total Amount - The total amount the customer has spent using our service.'),
+  ALTER COLUMN llm_driver_quantitative_analysis_embedding SET OPTIONS (description='Embeddings of the driver quantitative analysis.');
+
+
+------------------------------------------------------------------------------------------------------------
+-- Driver Attributes (some data cleaning from LLM)'),
 
 
 ------------------------------------------------------------------------------------------------------------
