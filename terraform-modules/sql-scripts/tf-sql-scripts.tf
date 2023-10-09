@@ -500,14 +500,38 @@ resource "google_bigquery_routine" "sproc_sp_demo_datastudio_report" {
 
 
 ####################################################################################
-# sp_demo_delta_lake
+# sp_demo_delta_lake_using_manifests
 ####################################################################################
-resource "google_bigquery_routine" "sproc_sp_demo_delta_lake" {
+resource "google_bigquery_routine" "sproc_sp_demo_delta_lake_using_manifests" {
   dataset_id      = var.bigquery_taxi_dataset
-  routine_id      = "sp_demo_delta_lake"
+  routine_id      = "sp_demo_delta_lake_using_manifests"
   routine_type    = "PROCEDURE"
   language        = "SQL"
-  definition_body = templatefile("../sql-scripts/taxi_dataset/sp_demo_delta_lake.sql", 
+  definition_body = templatefile("../sql-scripts/taxi_dataset/sp_demo_delta_lake_using_manifests.sql", 
+  { 
+    project_id = var.project_id
+    
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+    bigquery_thelook_ecommerce_dataset = var.bigquery_thelook_ecommerce_dataset
+    bucket_name = "processed-${var.storage_bucket}"
+    bigquery_region = var.bigquery_region
+    gcp_account_name = var.gcp_account_name
+  })
+
+}
+
+
+
+
+####################################################################################
+# sp_demo_delta_lake_using_workaround
+####################################################################################
+resource "google_bigquery_routine" "sproc_sp_demo_delta_lake_using_workaround" {
+  dataset_id      = var.bigquery_taxi_dataset
+  routine_id      = "sp_demo_delta_lake_using_workaround"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = templatefile("../sql-scripts/taxi_dataset/sp_demo_delta_lake_using_workaround.sql", 
   { 
     project_id = var.project_id
     
