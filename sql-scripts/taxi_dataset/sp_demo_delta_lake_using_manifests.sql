@@ -104,13 +104,6 @@ SELECT *
   FROM  `${project_id}.${bigquery_taxi_dataset}.delta_io_trips_cached`;
 
 
--- Query the table using time travel
--- You can only do this before the row level security portion of this script.
-SELECT *
-  FROM  `${project_id}.${bigquery_taxi_dataset}.delta_io_trips_cached`
-   FOR SYSTEM_TIME AS OF TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 15 SECOND);
-
-
 -- Understanding how to keep your data in sync
 -- 1. Your process updates a delta.io table
 -- 2. You need to trigger the manifest update from Databricks to GCS (the manifest directory)
