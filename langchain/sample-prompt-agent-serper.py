@@ -28,10 +28,12 @@
 # pip install google-api-python-client==2.100.0
 # pip install numexpr==2.8.6
 # pip install youtube_search==2.1.2
-# run it: python sample-prompt-agent.py
-# run in browers: streamlit run sample-prompt-agent.py
+# run it: python sample-prompt-agent-serper.py
 # deactivate
+# update or install the necessary libraries
 
+ 
+# import libraries
 import json
 import langchain
 from langchain.llms import VertexAI
@@ -40,6 +42,7 @@ from langchain.callbacks import StreamlitCallbackHandler
 from langchain.tools import Tool
 from langchain.tools import YouTubeSearchTool
 from langchain.utilities import GoogleSearchAPIWrapper
+from langchain.utilities import GoogleSerperAPIWrapper
 from langchain.chains import LLMMathChain
 from dotenv import load_dotenv
 import streamlit as st
@@ -47,8 +50,6 @@ import os
 
 load_dotenv()
 
-st.set_page_config(page_title="Google Cloud - LLMs w/Langchain", page_icon="⭐")
-st.title = "Langchain Demo"
 
 llm = VertexAI(
     model_name="text-bison@001",
@@ -59,30 +60,8 @@ llm = VertexAI(
     verbose=True,
 )
 
-llm_math_chain = LLMMathChain.from_llm(llm)
+tools = load_tools(["google-serper", "llm-math"], llm=llm)
 
-# https://python.langchain.com/docs/integrations/tools/google_search
-# Create 2 keys
-# Enable search in the console: https://console.cloud.google.com/apis/library/customsearch.googleapis.com
-#search = GoogleSearchAPIWrapper(google_api_key=google_api_key,google_cse_id=google_cse_id)
-search = GoogleSearchAPIWrapper()
+agent = initialize_agent(tools, llm, agent="zero-shot-react-description", verbose=True)
 
-google_search_tool = Tool(
-    name="Google Search",
-    description="Search Google for recent results.",
-    func=search.run,
-)
-#tools = load_tools(["google-search"])
-
-youtube_search_tool = YouTubeSearchTool()
-
-tools = [google_search_tool, youtube_search_tool]
-agent = initialize_agent (tools=tools, llm=llm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION)
-
-if prompt := st.chat_input():
-    st.chat_message("user").write(prompt)
-    with st.chat_message("assistant"):
-        st.write("Thinking...")
-        st_callback = StreamlitCallbackHandler(st.container())
-        response = agent.run(prompt, callbacks=[st_callback])
-        st.write(response)
+agent.run("Who is the current presidents wfie? What is their current age raised multiplied by 5?")
