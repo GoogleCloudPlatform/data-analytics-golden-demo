@@ -1187,6 +1187,33 @@ resource "google_bigquery_routine" "sproc_sp_demo_aws_omni_delta_lake" {
   })
 }
 
+####################################################################################
+# sp_demo_aws_omni_queries_cross_cloud
+####################################################################################
+resource "google_bigquery_routine" "sproc_sp_demo_aws_omni_queries_cross_cloud" {
+  dataset_id      = var.aws_omni_biglake_dataset_name
+  routine_id      = "sp_demo_aws_omni_queries_cross_cloud"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = templatefile("../sql-scripts/aws_omni_biglake/sp_demo_aws_omni_queries_cross_cloud.sql", 
+  { 
+    project_id = var.project_id
+    
+    shared_demo_project_id          = var.shared_demo_project_id
+    aws_omni_biglake_dataset_region = var.aws_omni_biglake_dataset_region
+    aws_omni_biglake_dataset_name   = var.aws_omni_biglake_dataset_name
+    aws_omni_biglake_connection     = var.aws_omni_biglake_connection
+    aws_omni_biglake_s3_bucket      = var.aws_omni_biglake_s3_bucket
+
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+
+    # Azure for cross cloud
+    azure_omni_biglake_dataset_name = var.azure_omni_biglake_dataset_name
+    azure_omni_biglake_adls_name    = var.azure_omni_biglake_adls_name
+    azure_omni_biglake_connection   = var.azure_omni_biglake_connection    
+  })
+}
+
 
 ####################################################################################
 # sp_demo_aws_omni_queries
@@ -1300,6 +1327,33 @@ resource "google_bigquery_routine" "sproc_sp_demo_azure_omni_delta_lake" {
   })
 }
 
+
+####################################################################################
+# sp_demo_azure_omni_queries_cross_cloud
+####################################################################################
+resource "google_bigquery_routine" "sproc_sp_demo_azure_omni_queries_cross_cloud" {
+  dataset_id      = var.azure_omni_biglake_dataset_name
+  routine_id      = "sp_demo_azure_omni_queries_cross_cloud"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = templatefile("../sql-scripts/azure_omni_biglake/sp_demo_azure_omni_queries_cross_cloud.sql", 
+  { 
+    project_id = var.project_id
+    
+    shared_demo_project_id          = var.shared_demo_project_id
+    azure_omni_biglake_dataset_name = var.azure_omni_biglake_dataset_name
+    azure_omni_biglake_adls_name    = var.azure_omni_biglake_adls_name
+    azure_omni_biglake_connection   = var.azure_omni_biglake_connection
+
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+
+    # For cross cloud
+    aws_omni_biglake_dataset_region = var.aws_omni_biglake_dataset_region
+    aws_omni_biglake_dataset_name   = var.aws_omni_biglake_dataset_name
+    aws_omni_biglake_connection     = var.aws_omni_biglake_connection
+    aws_omni_biglake_s3_bucket      = var.aws_omni_biglake_s3_bucket    
+  })
+}
 
 ####################################################################################
 # sp_demo_azure_omni_queries
