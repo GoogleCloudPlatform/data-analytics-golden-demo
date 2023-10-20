@@ -91,12 +91,18 @@ SELECT *
 
 
   -- Create the model that references Vertex AI PaLM APIs (text-bison)
+/*
 CREATE OR REPLACE MODEL `${project_id}.${bigquery_taxi_dataset}.cloud_ai_llm_v1`
   REMOTE WITH CONNECTION `${project_id}.${bigquery_region}.vertex-ai`
   OPTIONS (REMOTE_SERVICE_TYPE = 'CLOUD_AI_LARGE_LANGUAGE_MODEL_V1');
+*/
 
+-- New Syntax for specifying a model version text-bison@001 or text-bison@latest for latest
+CREATE OR REPLACE MODEL `${project_id}.${bigquery_taxi_dataset}.cloud_ai_llm_v1`
+  REMOTE WITH CONNECTION `${project_id}.${bigquery_region}.vertex-ai`
+  OPTIONS (endpoint = 'text-bison@latest');
 
-
+  
 CREATE OR REPLACE TABLE `${project_id}.${bigquery_taxi_dataset}.taxi_trips_cloud_ai_llm_result`
 (
   key STRING,
