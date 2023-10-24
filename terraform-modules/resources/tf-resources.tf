@@ -2255,7 +2255,7 @@ resource "google_bigquery_dataset_access" "pubsub_access_bq_taxi_dataset" {
 ####################################################################################
 # Colab Enterprise
 ####################################################################################
-# Subnet for dataproc cluster
+# Subnet for colab enterprise
 resource "google_compute_subnetwork" "colab_subnet" {
   project                  = var.project_id
   name                     = "colab-subnet"
@@ -2270,6 +2270,8 @@ resource "google_compute_subnetwork" "colab_subnet" {
 }
 
 # https://cloud.google.com/vertex-ai/docs/reference/rest/v1beta1/projects.locations.notebookRuntimeTemplates
+# NOTE: If you want a "when = destroy" example TF please see: 
+#       https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/cloud-composer/data/terraform/dataplex/terraform.tf#L147
 resource "null_resource" "colab_runtime_template" {
   provisioner "local-exec" {
     when    = create
