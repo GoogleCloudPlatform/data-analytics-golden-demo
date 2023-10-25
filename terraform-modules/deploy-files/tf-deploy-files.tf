@@ -1708,6 +1708,22 @@ resource "google_storage_bucket_object" "deploy_notebook_rideshare_llm_ai_lakeho
   depends_on = []  
 }
 
+resource "google_storage_bucket_object" "deploy_notebook_rideshare_llm_ai_lakehouse_embeddings" {
+  name   = "colab-enterprise/rideshare-llm/rideshare_llm_ai_lakehouse_embeddings.ipynb"
+  bucket = "code-${var.storage_bucket}"
+  content = templatefile("../colab-enterprise/rideshare-llm/rideshare_llm_ai_lakehouse_embeddings.ipynb", 
+  { 
+    project_id = var.project_id
+
+    bigquery_rideshare_llm_raw_dataset = var.bigquery_rideshare_llm_raw_dataset
+    bigquery_rideshare_llm_enriched_dataset = var.bigquery_rideshare_llm_enriched_dataset
+    bigquery_rideshare_llm_curated_dataset = var.bigquery_rideshare_llm_curated_dataset
+
+    gcs_rideshare_lakehouse_raw_bucket = var.gcs_rideshare_lakehouse_raw_bucket    
+  })
+  depends_on = []  
+}
+
 
 ####################################################################################
 # Deploy Jupyter notebooks - Now for Colab
