@@ -44,7 +44,6 @@ CREATE OR REPLACE MODEL `${project_id}.${bigquery_rideshare_llm_curated_dataset}
   REMOTE WITH CONNECTION `${project_id}.us.vertex-ai`
   OPTIONS (endpoint = 'text-bison@latest');
 
-
 ------------------------------------------------------------------------------------------------------------
 -- Create link to the LLM (embeddings)
 ------------------------------------------------------------------------------------------------------------
