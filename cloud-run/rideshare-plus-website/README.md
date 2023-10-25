@@ -2,7 +2,7 @@
 ```
 Make sure you have .NET 7 (dotnet core) installed
 cd cloud-run
-cd RidesharePlus
+cd rideshare-plus-website
 dotnet run --urls=http://localhost:8080
 ```
 

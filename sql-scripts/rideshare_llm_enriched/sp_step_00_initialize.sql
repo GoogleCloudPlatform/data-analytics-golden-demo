@@ -34,9 +34,16 @@
 ------------------------------------------------------------------------------------------------------------
 -- Create link to the LLM
 ------------------------------------------------------------------------------------------------------------
+/*
 CREATE OR REPLACE MODEL `${project_id}.${bigquery_rideshare_llm_enriched_dataset}.cloud_ai_llm_v1`
   REMOTE WITH CONNECTION `${project_id}.us.vertex-ai`
   OPTIONS (REMOTE_SERVICE_TYPE = 'CLOUD_AI_LARGE_LANGUAGE_MODEL_V1');
+*/
+
+-- New Syntax for specifying a model version text-bison@001 or text-bison@latest for latest or text-bison-32k@latest
+CREATE OR REPLACE MODEL `${project_id}.${bigquery_rideshare_llm_enriched_dataset}.cloud_ai_llm_v1`
+  REMOTE WITH CONNECTION `${project_id}.us.vertex-ai`
+  OPTIONS (endpoint = 'text-bison@latest');
 
 
 ------------------------------------------------------------------------------------------------------------
