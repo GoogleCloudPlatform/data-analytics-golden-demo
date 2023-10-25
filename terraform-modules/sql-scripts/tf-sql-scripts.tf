@@ -212,6 +212,26 @@ resource "google_bigquery_routine" "sproc_sp_demo_biglake_iceberg" {
 
 
 ####################################################################################
+# sp_demo_biglake_managed_tables
+####################################################################################
+resource "google_bigquery_routine" "sproc_sp_demo_biglake_managed_tables" {
+  dataset_id      = var.bigquery_taxi_dataset
+  routine_id      = "sp_demo_biglake_managed_tables"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = templatefile("../sql-scripts/taxi_dataset/sp_demo_biglake_managed_tables.sql", 
+  { 
+    project_id = var.project_id
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+    biglake_managed_tables_bucket_name = "mt-${var.storage_bucket}"
+    raw_bucket_name = "raw-${var.storage_bucket}"
+    bigquery_region = var.bigquery_region
+    gcp_account_name = var.gcp_account_name
+  })
+}
+
+
+####################################################################################
 # sp_demo_biglake_metastore_security
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_biglake_metastore_security" {
@@ -480,14 +500,38 @@ resource "google_bigquery_routine" "sproc_sp_demo_datastudio_report" {
 
 
 ####################################################################################
-# sp_demo_delta_lake
+# sp_demo_delta_lake_using_manifests
 ####################################################################################
-resource "google_bigquery_routine" "sproc_sp_demo_delta_lake" {
+resource "google_bigquery_routine" "sproc_sp_demo_delta_lake_using_manifests" {
   dataset_id      = var.bigquery_taxi_dataset
-  routine_id      = "sp_demo_delta_lake"
+  routine_id      = "sp_demo_delta_lake_using_manifests"
   routine_type    = "PROCEDURE"
   language        = "SQL"
-  definition_body = templatefile("../sql-scripts/taxi_dataset/sp_demo_delta_lake.sql", 
+  definition_body = templatefile("../sql-scripts/taxi_dataset/sp_demo_delta_lake_using_manifests.sql", 
+  { 
+    project_id = var.project_id
+    
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+    bigquery_thelook_ecommerce_dataset = var.bigquery_thelook_ecommerce_dataset
+    bucket_name = "processed-${var.storage_bucket}"
+    bigquery_region = var.bigquery_region
+    gcp_account_name = var.gcp_account_name
+  })
+
+}
+
+
+
+
+####################################################################################
+# sp_demo_delta_lake_using_workaround
+####################################################################################
+resource "google_bigquery_routine" "sproc_sp_demo_delta_lake_using_workaround" {
+  dataset_id      = var.bigquery_taxi_dataset
+  routine_id      = "sp_demo_delta_lake_using_workaround"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = templatefile("../sql-scripts/taxi_dataset/sp_demo_delta_lake_using_workaround.sql", 
   { 
     project_id = var.project_id
     
@@ -1143,6 +1187,33 @@ resource "google_bigquery_routine" "sproc_sp_demo_aws_omni_delta_lake" {
   })
 }
 
+####################################################################################
+# sp_demo_aws_omni_queries_cross_cloud
+####################################################################################
+resource "google_bigquery_routine" "sproc_sp_demo_aws_omni_queries_cross_cloud" {
+  dataset_id      = var.aws_omni_biglake_dataset_name
+  routine_id      = "sp_demo_aws_omni_queries_cross_cloud"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = templatefile("../sql-scripts/aws_omni_biglake/sp_demo_aws_omni_queries_cross_cloud.sql", 
+  { 
+    project_id = var.project_id
+    
+    shared_demo_project_id          = var.shared_demo_project_id
+    aws_omni_biglake_dataset_region = var.aws_omni_biglake_dataset_region
+    aws_omni_biglake_dataset_name   = var.aws_omni_biglake_dataset_name
+    aws_omni_biglake_connection     = var.aws_omni_biglake_connection
+    aws_omni_biglake_s3_bucket      = var.aws_omni_biglake_s3_bucket
+
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+
+    # Azure for cross cloud
+    azure_omni_biglake_dataset_name = var.azure_omni_biglake_dataset_name
+    azure_omni_biglake_adls_name    = var.azure_omni_biglake_adls_name
+    azure_omni_biglake_connection   = var.azure_omni_biglake_connection    
+  })
+}
+
 
 ####################################################################################
 # sp_demo_aws_omni_queries
@@ -1256,6 +1327,33 @@ resource "google_bigquery_routine" "sproc_sp_demo_azure_omni_delta_lake" {
   })
 }
 
+
+####################################################################################
+# sp_demo_azure_omni_queries_cross_cloud
+####################################################################################
+resource "google_bigquery_routine" "sproc_sp_demo_azure_omni_queries_cross_cloud" {
+  dataset_id      = var.azure_omni_biglake_dataset_name
+  routine_id      = "sp_demo_azure_omni_queries_cross_cloud"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = templatefile("../sql-scripts/azure_omni_biglake/sp_demo_azure_omni_queries_cross_cloud.sql", 
+  { 
+    project_id = var.project_id
+    
+    shared_demo_project_id          = var.shared_demo_project_id
+    azure_omni_biglake_dataset_name = var.azure_omni_biglake_dataset_name
+    azure_omni_biglake_adls_name    = var.azure_omni_biglake_adls_name
+    azure_omni_biglake_connection   = var.azure_omni_biglake_connection
+
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+
+    # For cross cloud
+    aws_omni_biglake_dataset_region = var.aws_omni_biglake_dataset_region
+    aws_omni_biglake_dataset_name   = var.aws_omni_biglake_dataset_name
+    aws_omni_biglake_connection     = var.aws_omni_biglake_connection
+    aws_omni_biglake_s3_bucket      = var.aws_omni_biglake_s3_bucket    
+  })
+}
 
 ####################################################################################
 # sp_demo_azure_omni_queries

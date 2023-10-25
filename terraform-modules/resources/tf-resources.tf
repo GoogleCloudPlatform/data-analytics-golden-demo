@@ -176,6 +176,15 @@ resource "google_storage_bucket" "iceberg_catalog_source_data_bucket" {
   uniform_bucket_level_access = true
 }
 
+
+resource "google_storage_bucket" "biglake_managed_table_bucket" {
+  project                     = var.project_id
+  name                        = "mt-${var.storage_bucket}"
+  location                    = var.bigquery_region
+  force_destroy               = true
+  uniform_bucket_level_access = true
+}
+
 ####################################################################################
 # Custom Roles
 ####################################################################################
@@ -1577,6 +1586,18 @@ resource "google_project_iam_member" "bq_connection_iam_object_viewer" {
 }
 
 
+# BigLake Managed Tables
+resource "google_storage_bucket_iam_member" "bq_connection_mt_iam_object_owner" {
+  bucket = google_storage_bucket.biglake_managed_table_bucket.name
+  role   = "roles/storage.objectAdmin"
+  member = "serviceAccount:${google_bigquery_connection.biglake_connection.cloud_resource[0].service_account_id}"
+
+  depends_on = [
+    google_bigquery_connection.biglake_connection
+  ]
+}
+
+
 # Allow BigLake to custom role
 resource "google_project_iam_member" "biglake_customconnectiondelegate" {
   project = var.project_id
@@ -2234,7 +2255,7 @@ resource "google_bigquery_dataset_access" "pubsub_access_bq_taxi_dataset" {
 ####################################################################################
 # Colab Enterprise
 ####################################################################################
-# Subnet for dataproc cluster
+# Subnet for colab enterprise
 resource "google_compute_subnetwork" "colab_subnet" {
   project                  = var.project_id
   name                     = "colab-subnet"
@@ -2249,6 +2270,8 @@ resource "google_compute_subnetwork" "colab_subnet" {
 }
 
 # https://cloud.google.com/vertex-ai/docs/reference/rest/v1beta1/projects.locations.notebookRuntimeTemplates
+# NOTE: If you want a "when = destroy" example TF please see: 
+#       https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/cloud-composer/data/terraform/dataplex/terraform.tf#L147
 resource "null_resource" "colab_runtime_template" {
   provisioner "local-exec" {
     when    = create
@@ -2568,8 +2591,9 @@ then
     exit 1;
 else
     echo "Cloud Build Successful"
-    # delay since sometimes cloud run cannot find the image immediately
-    sleep 60
+    # For new projects you need to wait up to 240 seconds after your cloud build.
+    # The Cloud Run Terraform task is placed after the deployment of Composer which takes 15+ minutes to deploy.
+    # sleep 240
 fi
 EOF
   }
@@ -2624,6 +2648,7 @@ resource "google_cloud_run_service" "cloud_run_service_rideshare_plus_website" {
     google_artifact_registry_repository.artifact_registry_cloud_run_deploy,
     google_storage_bucket.code_bucket,
     google_storage_bucket_object.rideshare_plus_function_zip_upload,
+    google_composer_environment.composer_env,
   ]
 }
 
