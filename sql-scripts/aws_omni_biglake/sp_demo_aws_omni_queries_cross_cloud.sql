@@ -70,39 +70,30 @@ SELECT *
  
 
 -- Summarize data in AWS and then join in GCP for lookup tables
--- Show EXECUTION GRAPH when done.  We query 84 million rows and return 29 thousand rows from AWS.
+-- Show EXECUTION GRAPH when done.  We query 84 million rows and return ~3650 rows from AWS.
 WITH aws_data AS
 (
   SELECT Vendor_Id, 
          Rate_Code_Id, 
          Payment_Type_Id, 
-         Total_Amount,
-         RANK() OVER (PARTITION BY Vendor_Id, Rate_Code_Id, Payment_Type_Id ORDER BY Total_Amount DESC) AS Ranking
+         SUM(Total_Amount) AS Total_Amount
     FROM `${project_id}.${aws_omni_biglake_dataset_name}.taxi_s3_yellow_trips_parquet` AS Trips
    WHERE Trips.year = 2019
-)
-, aws_ranking AS
-(
-  SELECT Vendor_Id, 
-         Rate_Code_Id, 
-         Payment_Type_Id, 
-         Total_Amount
-    FROM aws_data
-   WHERE Ranking = 1
+   GROUP BY 1, 2, 3   
 )
 , gcp_and_aws_data AS
 (
   SELECT Vendor.Vendor_Description,
          RateCode.Rate_Code_Description,
          PaymentType.Payment_Type_Description,
-         aws_ranking.Total_Amount
-    FROM aws_ranking
+         aws_data.Total_Amount
+    FROM aws_data
          INNER JOIN `${project_id}.${bigquery_taxi_dataset}.vendor` AS Vendor
-                 ON aws_ranking.Vendor_Id = Vendor.Vendor_Id
+                 ON aws_data.Vendor_Id = Vendor.Vendor_Id
          INNER JOIN `${project_id}.${bigquery_taxi_dataset}.rate_code` AS RateCode
-                 ON aws_ranking.Rate_Code_Id = RateCode.Rate_Code_Id
+                 ON aws_data.Rate_Code_Id = RateCode.Rate_Code_Id
          INNER JOIN `${project_id}.${bigquery_taxi_dataset}.payment_type` AS PaymentType
-                 ON aws_ranking.Payment_Type_Id = PaymentType.Payment_Type_Id 
+                 ON aws_data.Payment_Type_Id = PaymentType.Payment_Type_Id 
 )
 SELECT *
   FROM gcp_and_aws_data;
