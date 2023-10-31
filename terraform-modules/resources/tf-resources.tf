@@ -696,6 +696,11 @@ resource "google_project_iam_member" "cloudcomposer_act_as" {
   ]
 }
 
+#fetching latest available Cloud Composer versions in a region for a given project.
+data "google_composer_image_versions" "latest_image" {
+    region = var.composer_region
+}
+
 resource "google_composer_environment" "composer_env" {
   project = var.project_id
   name    = "data-analytics-demo-composer-2"
@@ -704,7 +709,8 @@ resource "google_composer_environment" "composer_env" {
   config {
 
     software_config {
-      image_version = "composer-2.2.0-airflow-2.5.1" # "composer-2.0.31-airflow-2.3.3"
+      #image_version = "composer-2.2.0-airflow-2.5.1" # "composer-2.0.31-airflow-2.3.3"
+      image_version = data.google_composer_image_versions.latest_image.image_versions[0].image_version_id
 
       pypi_packages = {
         psycopg2-binary = "==2.9.6"

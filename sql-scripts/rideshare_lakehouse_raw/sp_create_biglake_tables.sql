@@ -116,11 +116,12 @@
   WHERE partition_date = '2022-01-01'
   LIMIT 100;
  
+ /* This might change to a date in the future.
  SELECT * 
    FROM `${project_id}.${bigquery_rideshare_lakehouse_raw_dataset}.biglake_rideshare_trip_avro`
   WHERE partition_date = 18718
   LIMIT 100;
-
+ */
 
  SELECT * 
    FROM `${project_id}.${bigquery_rideshare_lakehouse_raw_dataset}.biglake_rideshare_trip_json`
