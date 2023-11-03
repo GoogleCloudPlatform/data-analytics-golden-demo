@@ -16,6 +16,9 @@
   
   
   /*
+  YouTube:
+      - https://youtu.be/wLKlR211FUc
+      
   Use Cases:
       - Customers that use Databricks typically use Delta.io (aka Delta Lake format)
       - This shows how BigQuery can read Delta.io using Manifest Support (Hive partitioning is supported for both the data and manifest files)
