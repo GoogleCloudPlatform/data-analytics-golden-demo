@@ -19,7 +19,10 @@ Author: Adam Paternostro
   
 Use Cases:
     - Join data between Azure and GCP and/or Azure and/or GCP.
-  
+
+YouTube:
+    - https://youtu.be/tHjG8tmDoWk
+      
 Description: 
     - Query the data in the remote cloud and then join to data directly in GCP
   

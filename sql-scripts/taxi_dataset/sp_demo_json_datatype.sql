@@ -77,6 +77,38 @@ AS
 SELECT SAFE.PARSE_JSON(taxi_json)
   FROM `${project_id}.${bigquery_taxi_dataset}.ext_taxi_trips_json`;
 
+/* Or use the LOAD command to read the CSV directly into a JSON field
+-- Step 1
+LOAD DATA OVERWRITE `${project_id}.${bigquery_taxi_dataset}.taxi_trips_json`  -- you can remove the OVERWRITE
+(taxi_json JSON)
+FROM FILES (
+    format = 'CSV',  -- you have to load the json datatype using the CSV loader
+    field_delimiter = '\u00fe',  -- this character does not exist in the file, we do not want to break the file apart by commas since json contains commas
+    skip_leading_rows = 0,  -- there is no header row
+    hive_partition_uri_prefix = "gs://${processed_bucket_name}/processed/taxi-data/yellow/trips_table/json/",
+    uris = ['gs://${processed_bucket_name}/processed/taxi-data/yellow/trips_table/json/*.json']
+    )
+WITH PARTITION COLUMNS (
+    -- column order must match the external path
+    year INTEGER, 
+    month INTEGER
+);    
+
+-- Optional Step 2
+-- Copy the data to an existing table
+-- This is done to partition the data when you have many different JSON schemas in a single JSON field
+-- We want 1 schema per cluster so BigQuery can optomize.  
+-- For example: If your json has cats, cars and houses and each has a different schema we want to cluster
+--              by "type" (e.g. { "type" : "cat" ...}).  This will group all the cats in the same cluster.
+INSERT INTO `${project_id}.${bigquery_taxi_dataset}.taxi_trips_json_loaded`
+(cluster_field STRING, taxi_json JSON)
+SELECT CAST(JSON_VALUE(taxi_json.Vendor_Id) AS STRING) AS cluster_field,
+       year,
+       month,
+       taxi_json
+  FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips_json`;
+*/
+
 
 -- Check results
 SELECT COUNT(*)
