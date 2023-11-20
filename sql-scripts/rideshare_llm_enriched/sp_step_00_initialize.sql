@@ -45,6 +45,14 @@ CREATE OR REPLACE MODEL `${project_id}.${bigquery_rideshare_llm_enriched_dataset
   REMOTE WITH CONNECTION `${project_id}.us.vertex-ai`
   OPTIONS (endpoint = 'text-bison@latest');
 
+------------------------------------------------------------------------------------------------------------
+-- Create link to the STT model
+------------------------------------------------------------------------------------------------------------
+CREATE OR REPLACE MODEL `${project_id}.${bigquery_rideshare_llm_raw_dataset}.cloud_ai_stt_v2`
+REMOTE WITH CONNECTION `${project_id}.us.biglake-connection`
+OPTIONS (
+  REMOTE_SERVICE_TYPE = 'CLOUD_AI_SPEECH_TO_TEXT_V2'
+);
 
 ------------------------------------------------------------------------------------------------------------
 -- Location Table
