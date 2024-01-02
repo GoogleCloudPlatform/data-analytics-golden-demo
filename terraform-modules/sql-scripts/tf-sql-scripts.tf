@@ -62,6 +62,7 @@ variable "gcs_rideshare_lakehouse_curated_bucket" {}
 variable "bigquery_rideshare_llm_raw_dataset" {}
 variable "bigquery_rideshare_llm_enriched_dataset" {}
 variable "bigquery_rideshare_llm_curated_dataset" {}
+variable "bigquery_cleanroom_dataset" {}
 
 # Hardcoded
 variable "bigquery_taxi_dataset" {
@@ -2160,3 +2161,20 @@ resource "google_bigquery_routine" "sproc_sp_rideshare_llm_curated_sp_step_00_in
     gcs_rideshare_lakehouse_raw_bucket = var.gcs_rideshare_lakehouse_raw_bucket
   })
 }
+
+####################################################################################
+# cleanroom_demo_queries
+####################################################################################
+resource "google_bigquery_routine" "sproc_sp_demo_cleanroom_queries" {
+  dataset_id      = var.bigquery_taxi_dataset
+  routine_id      = "sp_demo_cleanroom_queries"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = templatefile("../sql-scripts/taxi_dataset/sp_demo_cleanroom_queries.sql", 
+  { 
+    project_id = var.project_id
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+    bigquery_cleanroom_dataset = var.bigquery_cleanroom_dataset
+  })
+}
+
