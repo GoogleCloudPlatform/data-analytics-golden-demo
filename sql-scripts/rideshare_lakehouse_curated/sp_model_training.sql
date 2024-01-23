@@ -95,8 +95,8 @@ SELECT rideshare_trip_id,
   FROM `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.bigquery_rideshare_trip` AS bigquery_rideshare_trip
        INNER JOIN `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.bigquery_rideshare_zone` AS bigquery_rideshare_zone
                ON bigquery_rideshare_trip.pickup_location_id = bigquery_rideshare_zone.location_id
-              AND pickup_datetime BETWEEN CAST(DATETIME_SUB(CURRENT_DATETIME('America/New_York'),INTERVAL 12 MONTH) AS TIMESTAMP)
-                  AND CAST(DATETIME_SUB(CURRENT_DATETIME('America/New_York'),INTERVAL 11 MONTH) AS TIMESTAMP)
+              AND pickup_datetime BETWEEN CAST(DATETIME_SUB(CURRENT_DATETIME('America/New_York'),INTERVAL 24 MONTH) AS TIMESTAMP)
+                  AND CAST(DATETIME_SUB(CURRENT_DATETIME('America/New_York'),INTERVAL 23 MONTH) AS TIMESTAMP)
               AND ride_distance < 100
 )
 , WeatherRainData AS 
@@ -112,8 +112,8 @@ SELECT rideshare_trip_id,
          element, 
          MAX(value) AS value
     FROM `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.analytics_hub_weather_data` 
-   WHERE date BETWEEN CAST(DATETIME_SUB(CURRENT_DATETIME('America/New_York'),INTERVAL 12 MONTH) AS DATE)
-                  AND CAST(DATETIME_SUB(CURRENT_DATETIME('America/New_York'),INTERVAL 11 MONTH) AS DATE)  
+   WHERE date BETWEEN CAST(DATETIME_SUB(CURRENT_DATETIME('America/New_York'),INTERVAL 24 MONTH) AS DATE)
+                  AND CAST(DATETIME_SUB(CURRENT_DATETIME('America/New_York'),INTERVAL 23 MONTH) AS DATE)  
      AND element = 'PRCP'
      AND id IN ('USC00305679','USW00094728','US1NYQN0029','USC00300961','USC00300958','US1NYRC0016')
    GROUP BY 1, 2, 3
@@ -131,8 +131,8 @@ SELECT rideshare_trip_id,
          element, 
          MAX(value) AS value
     FROM `${project_id}.${bigquery_rideshare_lakehouse_curated_dataset}.analytics_hub_weather_data`
-   WHERE date BETWEEN CAST(DATETIME_SUB(CURRENT_DATETIME('America/New_York'),INTERVAL 12 MONTH) AS DATE)
-                  AND CAST(DATETIME_SUB(CURRENT_DATETIME('America/New_York'),INTERVAL 11 MONTH) AS DATE)  
+   WHERE date BETWEEN CAST(DATETIME_SUB(CURRENT_DATETIME('America/New_York'),INTERVAL 24 MONTH) AS DATE)
+                  AND CAST(DATETIME_SUB(CURRENT_DATETIME('America/New_York'),INTERVAL 23 MONTH) AS DATE)  
      AND element = 'SNOW'
      AND id IN ('USC00305679','USW00094728','US1NYQN0029','USC00300961','USC00300958','US1NYRC0016')
    GROUP BY 1, 2, 3
