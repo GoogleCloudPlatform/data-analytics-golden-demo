@@ -2325,6 +2325,9 @@ resource "null_resource" "colab_runtime_template" {
           enableInternetAccess: false,
           network: "projects/${var.project_id}/global/networks/vpc-main", 
           subnetwork: "projects/${var.project_id}/regions/${var.colab_enterprise_region}/subnetworks/colab-subnet"
+        },
+        shieldedVmConfig: {
+          enableSecureBoot: true
         }
   }'
 EOF
