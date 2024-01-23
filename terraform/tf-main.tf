@@ -347,6 +347,7 @@ module "deploy-notebooks-module" {
   random_extension                        = random_string.project_random.result
   gcp_account_name                        = var.gcp_account_name
   curl_impersonation                      = local.local_curl_impersonation
+  bigquery_region                         = var.bigquery_region
 
   depends_on = [
     module.project,

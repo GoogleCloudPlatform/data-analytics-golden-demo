@@ -40,6 +40,7 @@ variable "workflow_region" {}
 variable "random_extension" {}
 variable "gcp_account_name" {}
 variable "curl_impersonation" {}
+variable "bigquery_region" {}
 
 
 # Define the list of notebook files to be created
@@ -67,6 +68,8 @@ resource "local_file" "notebooks_rideshare_llm" {
     bigquery_rideshare_llm_raw_dataset = var.bigquery_rideshare_llm_raw_dataset
     bigquery_rideshare_llm_enriched_dataset = var.bigquery_rideshare_llm_enriched_dataset
     bigquery_rideshare_llm_curated_dataset = var.bigquery_rideshare_llm_curated_dataset
+
+    bigquery_region = var.bigquery_region
 
     gcs_rideshare_lakehouse_raw_bucket = var.gcs_rideshare_lakehouse_raw_bucket    
     }
