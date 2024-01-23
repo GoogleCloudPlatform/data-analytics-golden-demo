@@ -31,7 +31,7 @@ terraform {
   required_providers {
     google = {
       source  = "hashicorp/google-beta"
-      version = "4.42.0"
+      version = ">= 4.52, < 6"
     }
   }
 }
@@ -72,11 +72,12 @@ resource "google_sourcerepo_repository" "git_repository" {
 
 # Create a secret manager
 resource "google_secret_manager_secret" "secret" {
+  project = var.project_id
   provider = google
   secret_id = "dataform"
 
   replication {
-    automatic = true
+    auto {}
   }
 }
 
@@ -152,6 +153,7 @@ resource "google_secret_manager_secret_iam_member" "member" {
 
 # Required since we are setting BigLake permissions
 resource "google_project_iam_custom_role" "dataformrole" {
+  project     = var.project_id
   role_id     = "DataformRole"
   title       = "Dataform Role"
   description = "Used for Dataform automation"

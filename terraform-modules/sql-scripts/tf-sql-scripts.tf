@@ -25,7 +25,7 @@ terraform {
   required_providers {
     google = {
       source  = "hashicorp/google-beta"
-      version = "4.42.0"
+      version = ">= 4.52, < 6"
     }
   }
 }
@@ -85,6 +85,7 @@ variable "bigquery_thelook_ecommerce_dataset" {
 # sp_create_demo_dataform
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_create_demo_dataform" {
+  project         = var.project_id
   dataset_id      = var.bigquery_taxi_dataset
   routine_id      = "sp_create_demo_dataform"
   routine_type    = "PROCEDURE"
@@ -107,6 +108,7 @@ resource "google_bigquery_routine" "sproc_sp_create_demo_dataform" {
 # sp_create_datastream_cdc_data
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_create_datastream_cdc_data" {
+  project         = var.project_id
   dataset_id      = var.bigquery_taxi_dataset
   routine_id      = "sp_create_datastream_cdc_data"
   routine_type    = "PROCEDURE"
@@ -129,6 +131,7 @@ resource "google_bigquery_routine" "sproc_sp_create_datastream_cdc_data" {
 # sp_create_taxi_biglake_tables
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_create_taxi_biglake_tables" {
+  project         = var.project_id
   dataset_id      = var.bigquery_taxi_dataset
   routine_id      = "sp_create_taxi_biglake_tables"
   routine_type    = "PROCEDURE"
@@ -151,6 +154,7 @@ resource "google_bigquery_routine" "sproc_sp_create_taxi_biglake_tables" {
 # sp_create_taxi_external_tables
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_create_taxi_external_tables" {
+  project         = var.project_id
   dataset_id      = var.bigquery_taxi_dataset
   routine_id      = "sp_create_taxi_external_tables"
   routine_type    = "PROCEDURE"
@@ -173,6 +177,7 @@ resource "google_bigquery_routine" "sproc_sp_create_taxi_external_tables" {
 # sp_create_taxi_internal_tables
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_create_taxi_internal_tables" {
+  project         = var.project_id
   dataset_id      = var.bigquery_taxi_dataset
   routine_id      = "sp_create_taxi_internal_tables"
   routine_type    = "PROCEDURE"
@@ -195,6 +200,7 @@ resource "google_bigquery_routine" "sproc_sp_create_taxi_internal_tables" {
 # sp_demo_biglake_iceberg
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_biglake_iceberg" {
+  project         = var.project_id
   dataset_id      = var.bigquery_taxi_dataset
   routine_id      = "sp_demo_biglake_iceberg"
   routine_type    = "PROCEDURE"
@@ -215,6 +221,7 @@ resource "google_bigquery_routine" "sproc_sp_demo_biglake_iceberg" {
 # sp_demo_biglake_managed_tables
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_biglake_managed_tables" {
+  project         = var.project_id
   dataset_id      = var.bigquery_taxi_dataset
   routine_id      = "sp_demo_biglake_managed_tables"
   routine_type    = "PROCEDURE"
@@ -235,6 +242,7 @@ resource "google_bigquery_routine" "sproc_sp_demo_biglake_managed_tables" {
 # sp_demo_biglake_metastore_security
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_biglake_metastore_security" {
+  project         = var.project_id
   dataset_id      = var.bigquery_taxi_dataset
   routine_id      = "sp_demo_biglake_metastore_security"
   routine_type    = "PROCEDURE"
@@ -253,6 +261,7 @@ resource "google_bigquery_routine" "sproc_sp_demo_biglake_metastore_security" {
 # sp_demo_biglake_unstructured_data
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_biglake_unstructured_data" {
+  project         = var.project_id
   dataset_id      = var.bigquery_taxi_dataset
   routine_id      = "sp_demo_biglake_unstructured_data"
   routine_type    = "PROCEDURE"
@@ -275,6 +284,7 @@ resource "google_bigquery_routine" "sproc_sp_demo_biglake_unstructured_data" {
 # sp_demo_biglake_query_acceleration
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_biglake_query_acceleration" {
+  project         = var.project_id
   dataset_id      = var.bigquery_taxi_dataset
   routine_id      = "sp_demo_biglake_query_acceleration"
   routine_type    = "PROCEDURE"
@@ -300,6 +310,7 @@ resource "google_bigquery_routine" "sproc_sp_demo_biglake_query_acceleration" {
 # sp_demo_biglake
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_biglake" {
+  project         = var.project_id
   dataset_id      = var.bigquery_taxi_dataset
   routine_id      = "sp_demo_biglake"
   routine_type    = "PROCEDURE"
@@ -327,6 +338,7 @@ resource "google_bigquery_routine" "sproc_sp_demo_biglake" {
 # sp_demo_bigquery_queries
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_bigquery_queries" {
+  project         = var.project_id
   dataset_id      = var.bigquery_taxi_dataset
   routine_id      = "sp_demo_bigquery_queries"
   routine_type    = "PROCEDURE"
@@ -349,6 +361,7 @@ resource "google_bigquery_routine" "sproc_sp_demo_bigquery_queries" {
 # sp_demo_bigsearch
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_bigsearch" {
+  project         = var.project_id
   dataset_id      = var.bigquery_taxi_dataset
   routine_id      = "sp_demo_bigsearch"
   routine_type    = "PROCEDURE"
@@ -372,6 +385,7 @@ resource "google_bigquery_routine" "sproc_sp_demo_bigsearch" {
 # sp_demo_data_quality_columns
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_data_quality_columns" {
+  project         = var.project_id
   dataset_id      = var.bigquery_taxi_dataset
   routine_id      = "sp_demo_data_quality_columns"
   routine_type    = "PROCEDURE"
@@ -394,6 +408,7 @@ resource "google_bigquery_routine" "sproc_sp_demo_data_quality_columns" {
 # sp_demo_data_quality_table
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_data_quality_table" {
+  project         = var.project_id
   dataset_id      = var.bigquery_taxi_dataset
   routine_id      = "sp_demo_data_quality_table"
   routine_type    = "PROCEDURE"
@@ -416,6 +431,7 @@ resource "google_bigquery_routine" "sproc_sp_demo_data_quality_table" {
 # sp_demo_data_transfer_service
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_data_transfer_service" {
+  project         = var.project_id
   dataset_id      = var.bigquery_taxi_dataset
   routine_id      = "sp_demo_data_transfer_service"
   routine_type    = "PROCEDURE"
@@ -438,6 +454,7 @@ resource "google_bigquery_routine" "sproc_sp_demo_data_transfer_service" {
 # sp_demo_datastream_private_ip
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_datastream_private_ip" {
+  project         = var.project_id
   dataset_id      = var.bigquery_taxi_dataset
   routine_id      = "sp_demo_datastream_private_ip"
   routine_type    = "PROCEDURE"
@@ -460,6 +477,7 @@ resource "google_bigquery_routine" "sproc_sp_demo_datastream_private_ip" {
 # sp_demo_datastream_public_ip
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_datastream_public_ip" {
+  project         = var.project_id
   dataset_id      = var.bigquery_taxi_dataset
   routine_id      = "sp_demo_datastream_public_ip"
   routine_type    = "PROCEDURE"
@@ -482,6 +500,7 @@ resource "google_bigquery_routine" "sproc_sp_demo_datastream_public_ip" {
 # sp_demo_datastudio_report
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_datastudio_report" {
+  project         = var.project_id
   dataset_id      = var.bigquery_taxi_dataset
   routine_id      = "sp_demo_datastudio_report"
   routine_type    = "PROCEDURE"
@@ -503,6 +522,7 @@ resource "google_bigquery_routine" "sproc_sp_demo_datastudio_report" {
 # sp_demo_delta_lake_using_manifests
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_delta_lake_using_manifests" {
+  project         = var.project_id
   dataset_id      = var.bigquery_taxi_dataset
   routine_id      = "sp_demo_delta_lake_using_manifests"
   routine_type    = "PROCEDURE"
@@ -527,6 +547,7 @@ resource "google_bigquery_routine" "sproc_sp_demo_delta_lake_using_manifests" {
 # sp_demo_delta_lake_using_workaround
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_delta_lake_using_workaround" {
+  project         = var.project_id
   dataset_id      = var.bigquery_taxi_dataset
   routine_id      = "sp_demo_delta_lake_using_workaround"
   routine_type    = "PROCEDURE"
@@ -549,6 +570,7 @@ resource "google_bigquery_routine" "sproc_sp_demo_delta_lake_using_workaround" {
 # sp_demo_export_weather_data
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_export_weather_data" {
+  project         = var.project_id
   dataset_id      = var.bigquery_taxi_dataset
   routine_id      = "sp_demo_export_weather_data"
   routine_type    = "PROCEDURE"
@@ -570,6 +592,7 @@ resource "google_bigquery_routine" "sproc_sp_demo_export_weather_data" {
 # sp_demo_external_function
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_external_function" {
+  project         = var.project_id
   dataset_id      = var.bigquery_taxi_dataset
   routine_id      = "sp_demo_external_function"
   routine_type    = "PROCEDURE"
@@ -592,6 +615,7 @@ resource "google_bigquery_routine" "sproc_sp_demo_external_function" {
 # sp_demo_federated_query
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_federated_query" {
+  project         = var.project_id
   dataset_id      = var.bigquery_taxi_dataset
   routine_id      = "sp_demo_federated_query"
   routine_type    = "PROCEDURE"
@@ -613,6 +637,7 @@ resource "google_bigquery_routine" "sproc_sp_demo_federated_query" {
 # sp_demo_ingest_data
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_ingest_data" {
+  project         = var.project_id
   dataset_id      = var.bigquery_taxi_dataset
   routine_id      = "sp_demo_ingest_data"
   routine_type    = "PROCEDURE"
@@ -635,6 +660,7 @@ resource "google_bigquery_routine" "sproc_sp_demo_ingest_data" {
 # sp_demo_internal_external_table_join
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_internal_external_table_join" {
+  project         = var.project_id
   dataset_id      = var.bigquery_taxi_dataset
   routine_id      = "sp_demo_internal_external_table_join"
   routine_type    = "PROCEDURE"
@@ -656,6 +682,7 @@ resource "google_bigquery_routine" "sproc_sp_demo_internal_external_table_join" 
 # sp_demo_json_datatype
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_json_datatype" {
+  project         = var.project_id
   dataset_id      = var.bigquery_taxi_dataset
   routine_id      = "sp_demo_json_datatype"
   routine_type    = "PROCEDURE"
@@ -677,6 +704,7 @@ resource "google_bigquery_routine" "sproc_sp_demo_json_datatype" {
 # sp_demo_machine_learning_anomaly_fee_amount
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_machine_learning_anomaly_fee_amount" {
+  project         = var.project_id
   dataset_id      = var.bigquery_taxi_dataset
   routine_id      = "sp_demo_machine_learning_anomaly_fee_amount"
   routine_type    = "PROCEDURE"
@@ -698,6 +726,7 @@ resource "google_bigquery_routine" "sproc_sp_demo_machine_learning_anomaly_fee_a
 # sp_demo_machine_learning_import_tensorflow
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_machine_learning_import_tensorflow" {
+  project         = var.project_id
   dataset_id      = var.bigquery_taxi_dataset
   routine_id      = "sp_demo_machine_learning_import_tensorflow"
   routine_type    = "PROCEDURE"
@@ -719,6 +748,7 @@ resource "google_bigquery_routine" "sproc_sp_demo_machine_learning_import_tensor
 # sp_demo_machine_learning_tip_amounts
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_machine_learning_tip_amounts" {
+  project         = var.project_id
   dataset_id      = var.bigquery_taxi_dataset
   routine_id      = "sp_demo_machine_learning_tip_amounts"
   routine_type    = "PROCEDURE"
@@ -740,6 +770,7 @@ resource "google_bigquery_routine" "sproc_sp_demo_machine_learning_tip_amounts" 
 # sp_demo_materialized_views_joins
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_materialized_views_joins" {
+  project         = var.project_id
   dataset_id      = var.bigquery_taxi_dataset
   routine_id      = "sp_demo_materialized_views_joins"
   routine_type    = "PROCEDURE"
@@ -761,6 +792,7 @@ resource "google_bigquery_routine" "sproc_sp_demo_materialized_views_joins" {
 # sp_demo_pricing
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_pricing" {
+  project         = var.project_id
   dataset_id      = var.bigquery_taxi_dataset
   routine_id      = "sp_demo_pricing"
   routine_type    = "PROCEDURE"
@@ -783,6 +815,7 @@ resource "google_bigquery_routine" "sproc_sp_demo_pricing" {
 # sp_demo_pricing_ondemand_usage
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_pricing_ondemand_usage" {
+  project         = var.project_id
   dataset_id      = var.bigquery_taxi_dataset
   routine_id      = "sp_demo_pricing_ondemand_usage"
   routine_type    = "PROCEDURE"
@@ -804,6 +837,7 @@ resource "google_bigquery_routine" "sproc_sp_demo_pricing_ondemand_usage" {
 # sp_demo_security_col_encryption_shredding
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_security_col_encryption_shredding" {
+  project         = var.project_id
   dataset_id      = var.bigquery_taxi_dataset
   routine_id      = "sp_demo_security_col_encryption_shredding"
   routine_type    = "PROCEDURE"
@@ -825,6 +859,7 @@ resource "google_bigquery_routine" "sproc_sp_demo_security_col_encryption_shredd
 # sp_demo_security
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_security" {
+  project         = var.project_id
   dataset_id      = var.bigquery_taxi_dataset
   routine_id      = "sp_demo_security"
   routine_type    = "PROCEDURE"
@@ -846,6 +881,7 @@ resource "google_bigquery_routine" "sproc_sp_demo_security" {
 # sp_demo_taxi_streaming_data
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_taxi_streaming_data" {
+  project         = var.project_id
   dataset_id      = var.bigquery_taxi_dataset
   routine_id      = "sp_demo_taxi_streaming_data"
   routine_type    = "PROCEDURE"
@@ -867,6 +903,7 @@ resource "google_bigquery_routine" "sproc_sp_demo_taxi_streaming_data" {
 # sp_demo_technical_overview
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_technical_overview" {
+  project         = var.project_id
   dataset_id      = var.bigquery_taxi_dataset
   routine_id      = "sp_demo_technical_overview"
   routine_type    = "PROCEDURE"
@@ -900,6 +937,7 @@ resource "google_bigquery_routine" "sproc_sp_demo_technical_overview" {
 # sp_demo_time_travel_snapshots
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_time_travel_snapshots" {
+  project         = var.project_id
   dataset_id      = var.bigquery_taxi_dataset
   routine_id      = "sp_demo_time_travel_snapshots"
   routine_type    = "PROCEDURE"
@@ -921,6 +959,7 @@ resource "google_bigquery_routine" "sproc_sp_demo_time_travel_snapshots" {
 # sp_demo_transactions
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_transactions" {
+  project         = var.project_id
   dataset_id      = var.bigquery_taxi_dataset
   routine_id      = "sp_demo_transactions"
   routine_type    = "PROCEDURE"
@@ -942,6 +981,7 @@ resource "google_bigquery_routine" "sproc_sp_demo_transactions" {
 # sp_demo_vertex_ai_generate_text
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_vertex_ai_generate_text" {
+  project         = var.project_id
   dataset_id      = var.bigquery_taxi_dataset
   routine_id      = "sp_demo_vertex_ai_generate_text"
   routine_type    = "PROCEDURE"
@@ -967,6 +1007,7 @@ resource "google_bigquery_routine" "sproc_sp_demo_vertex_ai_generate_text" {
 # churn_demo_step_0_create_artifacts
 ####################################################################################
 resource "google_bigquery_routine" "sproc_churn_demo_step_0_create_artifacts" {
+  project         = var.project_id
   dataset_id      = var.bigquery_thelook_ecommerce_dataset
   routine_id      = "churn_demo_step_0_create_artifacts"
   routine_type    = "PROCEDURE"
@@ -988,6 +1029,7 @@ resource "google_bigquery_routine" "sproc_churn_demo_step_0_create_artifacts" {
 # churn_demo_step_1_train_classifier
 ####################################################################################
 resource "google_bigquery_routine" "sproc_churn_demo_step_1_train_classifier" {
+  project         = var.project_id
   dataset_id      = var.bigquery_thelook_ecommerce_dataset
   routine_id      = "churn_demo_step_1_train_classifier"
   routine_type    = "PROCEDURE"
@@ -1010,6 +1052,7 @@ resource "google_bigquery_routine" "sproc_churn_demo_step_1_train_classifier" {
 # churn_demo_step_2_evaluate
 ####################################################################################
 resource "google_bigquery_routine" "sproc_churn_demo_step_2_evaluate" {
+  project         = var.project_id
   dataset_id      = var.bigquery_thelook_ecommerce_dataset
   routine_id      = "churn_demo_step_2_evaluate"
   routine_type    = "PROCEDURE"
@@ -1031,6 +1074,7 @@ resource "google_bigquery_routine" "sproc_churn_demo_step_2_evaluate" {
 # churn_demo_step_3_predict
 ####################################################################################
 resource "google_bigquery_routine" "sproc_churn_demo_step_3_predict" {
+  project         = var.project_id
   dataset_id      = var.bigquery_thelook_ecommerce_dataset
   routine_id      = "churn_demo_step_3_predict"
   routine_type    = "PROCEDURE"
@@ -1052,6 +1096,7 @@ resource "google_bigquery_routine" "sproc_churn_demo_step_3_predict" {
 # demo_queries
 ####################################################################################
 resource "google_bigquery_routine" "sproc_demo_queries" {
+  project         = var.project_id
   dataset_id      = var.bigquery_thelook_ecommerce_dataset
   routine_id      = "demo_queries"
   routine_type    = "PROCEDURE"
@@ -1077,6 +1122,7 @@ resource "google_bigquery_routine" "sproc_demo_queries" {
 # create_product_deliveries
 ####################################################################################
 resource "google_bigquery_routine" "sproc_create_product_deliveries" {
+  project         = var.project_id
   dataset_id      = var.bigquery_thelook_ecommerce_dataset
   routine_id      = "create_product_deliveries"
   routine_type    = "PROCEDURE"
@@ -1097,6 +1143,7 @@ resource "google_bigquery_routine" "sproc_create_product_deliveries" {
 # create_thelook_tables
 ####################################################################################
 resource "google_bigquery_routine" "sproc_create_thelook_tables" {
+  project         = var.project_id
   dataset_id      = var.bigquery_thelook_ecommerce_dataset
   routine_id      = "create_thelook_tables"
   routine_type    = "PROCEDURE"
@@ -1122,6 +1169,7 @@ resource "google_bigquery_routine" "sproc_create_thelook_tables" {
 # create_product_deliveries_streaming
 ####################################################################################
 resource "google_bigquery_routine" "sproc_create_product_deliveries_streaming" {
+  project         = var.project_id
   dataset_id      = var.bigquery_thelook_ecommerce_dataset
   routine_id      = "create_product_deliveries_streaming"
   routine_type    = "PROCEDURE"
@@ -1150,6 +1198,7 @@ resource "google_bigquery_routine" "sproc_create_product_deliveries_streaming" {
 # sp_demo_aws_omni_create_tables
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_aws_omni_create_tables" {
+  project         = var.project_id
   dataset_id      = var.aws_omni_biglake_dataset_name
   routine_id      = "sp_demo_aws_omni_create_tables"
   routine_type    = "PROCEDURE"
@@ -1171,6 +1220,7 @@ resource "google_bigquery_routine" "sproc_sp_demo_aws_omni_create_tables" {
 # sp_demo_aws_omni_delta_lake
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_aws_omni_delta_lake" {
+  project         = var.project_id
   dataset_id      = var.aws_omni_biglake_dataset_name
   routine_id      = "sp_demo_aws_omni_delta_lake"
   routine_type    = "PROCEDURE"
@@ -1191,6 +1241,7 @@ resource "google_bigquery_routine" "sproc_sp_demo_aws_omni_delta_lake" {
 # sp_demo_aws_omni_queries_cross_cloud
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_aws_omni_queries_cross_cloud" {
+  project         = var.project_id
   dataset_id      = var.aws_omni_biglake_dataset_name
   routine_id      = "sp_demo_aws_omni_queries_cross_cloud"
   routine_type    = "PROCEDURE"
@@ -1219,6 +1270,7 @@ resource "google_bigquery_routine" "sproc_sp_demo_aws_omni_queries_cross_cloud" 
 # sp_demo_aws_omni_queries
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_aws_omni_queries" {
+  project         = var.project_id
   dataset_id      = var.aws_omni_biglake_dataset_name
   routine_id      = "sp_demo_aws_omni_queries"
   routine_type    = "PROCEDURE"
@@ -1241,6 +1293,7 @@ resource "google_bigquery_routine" "sproc_sp_demo_aws_omni_queries" {
 # sp_demo_aws_omni_security_cls
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_aws_omni_security_cls" {
+  project         = var.project_id
   dataset_id      = var.aws_omni_biglake_dataset_name
   routine_id      = "sp_demo_aws_omni_security_cls"
   routine_type    = "PROCEDURE"
@@ -1263,6 +1316,7 @@ resource "google_bigquery_routine" "sproc_sp_demo_aws_omni_security_cls" {
 # sp_demo_aws_omni_security_rls
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_aws_omni_security_rls" {
+  project         = var.project_id
   dataset_id      = var.aws_omni_biglake_dataset_name
   routine_id      = "sp_demo_aws_omni_security_rls"
   routine_type    = "PROCEDURE"
@@ -1292,6 +1346,7 @@ resource "google_bigquery_routine" "sproc_sp_demo_aws_omni_security_rls" {
 # sp_demo_azure_omni_create_tables
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_azure_omni_create_tables" {
+  project         = var.project_id
   dataset_id      = var.azure_omni_biglake_dataset_name
   routine_id      = "sp_demo_azure_omni_create_tables"
   routine_type    = "PROCEDURE"
@@ -1312,6 +1367,7 @@ resource "google_bigquery_routine" "sproc_sp_demo_azure_omni_create_tables" {
 # sp_demo_azure_omni_delta_lake
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_azure_omni_delta_lake" {
+  project         = var.project_id
   dataset_id      = var.azure_omni_biglake_dataset_name
   routine_id      = "sp_demo_azure_omni_delta_lake"
   routine_type    = "PROCEDURE"
@@ -1332,6 +1388,7 @@ resource "google_bigquery_routine" "sproc_sp_demo_azure_omni_delta_lake" {
 # sp_demo_azure_omni_queries_cross_cloud
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_azure_omni_queries_cross_cloud" {
+  project         = var.project_id
   dataset_id      = var.azure_omni_biglake_dataset_name
   routine_id      = "sp_demo_azure_omni_queries_cross_cloud"
   routine_type    = "PROCEDURE"
@@ -1359,6 +1416,7 @@ resource "google_bigquery_routine" "sproc_sp_demo_azure_omni_queries_cross_cloud
 # sp_demo_azure_omni_queries
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_azure_omni_queries" {
+  project         = var.project_id
   dataset_id      = var.azure_omni_biglake_dataset_name
   routine_id      = "sp_demo_azure_omni_queries"
   routine_type    = "PROCEDURE"
@@ -1380,6 +1438,7 @@ resource "google_bigquery_routine" "sproc_sp_demo_azure_omni_queries" {
 # sp_demo_azure_omni_security_cls
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_azure_omni_security_cls" {
+  project         = var.project_id
   dataset_id      = var.azure_omni_biglake_dataset_name
   routine_id      = "sp_demo_azure_omni_security_cls"
   routine_type    = "PROCEDURE"
@@ -1401,6 +1460,7 @@ resource "google_bigquery_routine" "sproc_sp_demo_azure_omni_security_cls" {
 # sp_demo_azure_omni_security_rls
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_azure_omni_security_rls" {
+  project         = var.project_id
   dataset_id      = var.azure_omni_biglake_dataset_name
   routine_id      = "sp_demo_azure_omni_security_rls"
   routine_type    = "PROCEDURE"
@@ -1429,6 +1489,7 @@ resource "google_bigquery_routine" "sproc_sp_demo_azure_omni_security_rls" {
 # sp_create_biglake_object_table
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_create_biglake_object_table" {
+  project         = var.project_id
   dataset_id      = var.bigquery_rideshare_lakehouse_raw_dataset
   routine_id      = "sp_create_biglake_object_table"
   routine_type    = "PROCEDURE"
@@ -1455,6 +1516,7 @@ resource "google_bigquery_routine" "sproc_sp_create_biglake_object_table" {
 # sp_create_biglake_tables
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sproc_sp_create_biglake_tables" {
+  project         = var.project_id
   dataset_id      = var.bigquery_rideshare_lakehouse_raw_dataset
   routine_id      = "sproc_sp_create_biglake_tables"
   routine_type    = "PROCEDURE"
@@ -1482,6 +1544,7 @@ resource "google_bigquery_routine" "sproc_sproc_sp_create_biglake_tables" {
 # sp_create_raw_data
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_create_raw_data" {
+  project         = var.project_id
   dataset_id      = var.bigquery_rideshare_lakehouse_raw_dataset
   routine_id      = "sp_create_raw_data"
   routine_type    = "PROCEDURE"
@@ -1509,6 +1572,7 @@ resource "google_bigquery_routine" "sproc_sp_create_raw_data" {
 # sp_create_streaming_view
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_create_streaming_view_raw" {
+  project         = var.project_id
   dataset_id      = var.bigquery_rideshare_lakehouse_raw_dataset
   routine_id      = "sp_create_streaming_view"
   routine_type    = "PROCEDURE"
@@ -1541,6 +1605,7 @@ resource "google_bigquery_routine" "sproc_sp_create_streaming_view_raw" {
 # sp_create_streaming_view
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_create_streaming_view_enriched" {
+  project         = var.project_id
   dataset_id      = var.bigquery_rideshare_lakehouse_enriched_dataset
   routine_id      = "sp_create_streaming_view"
   routine_type    = "PROCEDURE"
@@ -1571,6 +1636,7 @@ resource "google_bigquery_routine" "sproc_sp_create_streaming_view_enriched" {
 #       Also, currently BigSpark requires allow listing
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_iceberg_spark_transformation" {
+  project         = var.project_id
   dataset_id      = var.bigquery_rideshare_lakehouse_enriched_dataset
   routine_id      = "sp_iceberg_spark_transformation"
   routine_type    = "PROCEDURE"
@@ -1597,6 +1663,7 @@ resource "google_bigquery_routine" "sproc_sp_iceberg_spark_transformation" {
 # sp_process_data
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_process_data_enriched" {
+  project         = var.project_id
   dataset_id      = var.bigquery_rideshare_lakehouse_enriched_dataset
   routine_id      = "sp_process_data"
   routine_type    = "PROCEDURE"
@@ -1623,6 +1690,7 @@ resource "google_bigquery_routine" "sproc_sp_process_data_enriched" {
 # sp_unstructured_data_analysis
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_unstructured_data_analysis" {
+  project         = var.project_id
   dataset_id      = var.bigquery_rideshare_lakehouse_enriched_dataset
   routine_id      = "sp_unstructured_data_analysis"
   routine_type    = "PROCEDURE"
@@ -1657,6 +1725,7 @@ resource "google_bigquery_routine" "sproc_sp_unstructured_data_analysis" {
 # sp_create_looker_studio_view
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_create_looker_studio_view" {
+  project         = var.project_id
   dataset_id      = var.bigquery_rideshare_lakehouse_curated_dataset
   routine_id      = "sp_create_looker_studio_view"
   routine_type    = "PROCEDURE"
@@ -1683,6 +1752,7 @@ resource "google_bigquery_routine" "sproc_sp_create_looker_studio_view" {
 # sp_create_streaming_view
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_create_streaming_view" {
+  project         = var.project_id
   dataset_id      = var.bigquery_rideshare_lakehouse_curated_dataset
   routine_id      = "sp_create_streaming_view"
   routine_type    = "PROCEDURE"
@@ -1709,6 +1779,7 @@ resource "google_bigquery_routine" "sproc_sp_create_streaming_view" {
 # sp_create_website_realtime_dashboard
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_create_website_realtime_dashboard" {
+  project         = var.project_id
   dataset_id      = var.bigquery_rideshare_lakehouse_curated_dataset
   routine_id      = "sp_create_website_realtime_dashboard"
   routine_type    = "PROCEDURE"
@@ -1735,6 +1806,7 @@ resource "google_bigquery_routine" "sproc_sp_create_website_realtime_dashboard" 
 # sp_demo_data_quality_columns
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_data_quality_columns_rideshare" {
+  project         = var.project_id
   dataset_id      = var.bigquery_rideshare_lakehouse_curated_dataset
   routine_id      = "sp_demo_data_quality_columns"
   routine_type    = "PROCEDURE"
@@ -1761,6 +1833,7 @@ resource "google_bigquery_routine" "sproc_sp_demo_data_quality_columns_rideshare
 # sp_demo_data_quality_table
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_data_quality_table_curated" {
+  project         = var.project_id
   dataset_id      = var.bigquery_rideshare_lakehouse_curated_dataset
   routine_id      = "sp_demo_data_quality_table"
   routine_type    = "PROCEDURE"
@@ -1787,6 +1860,7 @@ resource "google_bigquery_routine" "sproc_sp_demo_data_quality_table_curated" {
 # sp_demo_script
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_script" {
+  project         = var.project_id
   dataset_id      = var.bigquery_rideshare_lakehouse_curated_dataset
   routine_id      = "sp_demo_script"
   routine_type    = "PROCEDURE"
@@ -1819,6 +1893,7 @@ resource "google_bigquery_routine" "sproc_sp_demo_script" {
 # sp_model_training
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_model_training" {
+  project         = var.project_id
   dataset_id      = var.bigquery_rideshare_lakehouse_curated_dataset
   routine_id      = "sp_model_training"
   routine_type    = "PROCEDURE"
@@ -1845,6 +1920,7 @@ resource "google_bigquery_routine" "sproc_sp_model_training" {
 # sp_process_data
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_process_data_curated" {
+  project         = var.project_id
   dataset_id      = var.bigquery_rideshare_lakehouse_curated_dataset
   routine_id      = "sp_process_data"
   routine_type    = "PROCEDURE"
@@ -1871,6 +1947,7 @@ resource "google_bigquery_routine" "sproc_sp_process_data_curated" {
 # sp_website_score_data
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_website_score_data" {
+  project         = var.project_id
   dataset_id      = var.bigquery_rideshare_lakehouse_curated_dataset
   routine_id      = "sp_website_score_data"
   routine_type    = "PROCEDURE"
@@ -1923,6 +2000,7 @@ resource "google_bigquery_routine" "sproc_sp_website_score_data" {
 # sp_step_00_initialize
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_rideshare_llm_raw_sp_step_00_initialize" {
+  project         = var.project_id
   dataset_id      = var.bigquery_rideshare_llm_raw_dataset
   routine_id      = "sp_step_00_initialize"
   routine_type    = "PROCEDURE"
@@ -1948,6 +2026,7 @@ resource "google_bigquery_routine" "sproc_sp_rideshare_llm_raw_sp_step_00_initia
 # sp_step_01_sproc_deploy_udf
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_rideshare_llm_raw_sp_step_01_deploy_udf" {
+  project         = var.project_id
   dataset_id      = var.bigquery_rideshare_llm_raw_dataset
   routine_id      = "sp_step_01_deploy_udf"
   routine_type    = "PROCEDURE"
@@ -1980,6 +2059,7 @@ resource "google_bigquery_routine" "sproc_sp_rideshare_llm_raw_sp_step_01_deploy
 # sp_step_00_initialize
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_rideshare_llm_enriched_sp_step_00_initialize" {
+  project         = var.project_id
   dataset_id      = var.bigquery_rideshare_llm_enriched_dataset
   routine_id      = "sp_step_00_initialize"
   routine_type    = "PROCEDURE"
@@ -2005,6 +2085,7 @@ resource "google_bigquery_routine" "sproc_sp_rideshare_llm_enriched_sp_step_00_i
 # sp_step_01_quantitative_analysis
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_rideshare_llm_enriched_sp_step_01_quantitative_analysis" {
+  project         = var.project_id
   dataset_id      = var.bigquery_rideshare_llm_enriched_dataset
   routine_id      = "sp_step_01_quantitative_analysis"
   routine_type    = "PROCEDURE"
@@ -2030,6 +2111,7 @@ resource "google_bigquery_routine" "sproc_sp_rideshare_llm_enriched_sp_step_01_q
 # sp_step_02_extract_driver_attributes
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_rideshare_llm_enriched_sp_step_02_extract_driver_attributes" {
+  project         = var.project_id
   dataset_id      = var.bigquery_rideshare_llm_enriched_dataset
   routine_id      = "sp_step_02_extract_driver_attributes"
   routine_type    = "PROCEDURE"
@@ -2055,6 +2137,7 @@ resource "google_bigquery_routine" "sproc_sp_rideshare_llm_enriched_sp_step_02_e
 # sp_step_03_extract_customer_attributes
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_rideshare_llm_enriched_sp_step_03_extract_customer_attributes" {
+  project         = var.project_id
   dataset_id      = var.bigquery_rideshare_llm_enriched_dataset
   routine_id      = "sp_step_03_extract_customer_attributes"
   routine_type    = "PROCEDURE"
@@ -2087,6 +2170,7 @@ resource "google_bigquery_routine" "sproc_sp_rideshare_llm_enriched_sp_step_03_e
 # sp_demo_duet_ai
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_rideshare_llm_curated_sp_demo_duet_ai" {
+  project         = var.project_id
   dataset_id      = var.bigquery_rideshare_llm_curated_dataset
   routine_id      = "sp_demo_duet_ai"
   routine_type    = "PROCEDURE"
@@ -2114,6 +2198,7 @@ resource "google_bigquery_routine" "sproc_sp_rideshare_llm_curated_sp_demo_duet_
 # sp_reset_demo
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_rideshare_llm_curated_sp_reset_demo" {
+  project         = var.project_id
   dataset_id      = var.bigquery_rideshare_llm_curated_dataset
   routine_id      = "sp_reset_demo"
   routine_type    = "PROCEDURE"
@@ -2140,6 +2225,7 @@ resource "google_bigquery_routine" "sproc_sp_rideshare_llm_curated_sp_reset_demo
 # sp_step_00_initialize
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_rideshare_llm_curated_sp_step_00_initialize" {
+  project         = var.project_id
   dataset_id      = var.bigquery_rideshare_llm_curated_dataset
   routine_id      = "sp_step_00_initialize"
   routine_type    = "PROCEDURE"
