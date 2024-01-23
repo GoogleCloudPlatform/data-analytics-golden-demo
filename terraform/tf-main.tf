@@ -310,7 +310,8 @@ module "deploy-files-module" {
 
   bigquery_rideshare_llm_raw_dataset            = module.resources.bigquery_rideshare_llm_raw_dataset
   bigquery_rideshare_llm_enriched_dataset       = module.resources.bigquery_rideshare_llm_enriched_dataset
-  bigquery_rideshare_llm_curated_dataset        = module.resources.bigquery_rideshare_llm_curated_dataset 
+  bigquery_rideshare_llm_curated_dataset        = module.resources.bigquery_rideshare_llm_curated_dataset
+  bigquery_region                               = var.bigquery_region
   gcs_rideshare_lakehouse_raw_bucket            = module.resources.gcs_rideshare_lakehouse_raw_bucket
   cloud_run_service_rideshare_plus_website_url  = module.resources.cloud_run_service_rideshare_plus_website_url
 
@@ -346,6 +347,7 @@ module "deploy-notebooks-module" {
   random_extension                        = random_string.project_random.result
   gcp_account_name                        = var.gcp_account_name
   curl_impersonation                      = local.local_curl_impersonation
+  bigquery_region                         = var.bigquery_region
 
   depends_on = [
     module.project,
