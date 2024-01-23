@@ -55,3 +55,4 @@ cloud-run/rideshare-plus-website/RidesharePlus/bin/*
 temp.md
 langchain/.venv/*
 langchain/.env
+temp-prompt.txt
