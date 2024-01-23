@@ -28,102 +28,88 @@ import time
 import sys
 
 
-def ConvertTaxiData(sourceYellow, sourceGreen, destination):
-    print("ConvertTaxiData: sourceYellow: ",sourceYellow)
-    print("ConvertTaxiData: sourceGreen:  ",sourceGreen)
-    print("ConvertTaxiData: destination:  ",destination)
+# All the data cannot be read at once since MergeSchema does not work for the NYC data
+def ProcessGreenFile(spark, filenameAndPath):
+    df_source = spark.read.option("mergeSchema", "true").parquet(filenameAndPath)
 
-    spark = SparkSession \
-        .builder \
-        .appName("ConvertTaxiData") \
-        .getOrCreate()
+    print("ProcessGreenFile: filenameAndPath: ",filenameAndPath)
+
+    df_TypeCast = df_source \
+        .withColumn("Vendor_ID",col("VendorID").cast(IntegerType())) \
+        .withColumn("Pickup_DateTime",col("lpep_pickup_datetime").cast(TimestampType())) \
+        .withColumn("Dropoff_DateTime",col("lpep_dropoff_datetime").cast(TimestampType())) \
+        .withColumn("Store_And_Forward",col("store_and_fwd_flag").cast(StringType())) \
+        .withColumn("Rate_Code_Id",col("RatecodeID").cast(IntegerType())) \
+        .withColumn("PULocationID",col("PULocationID").cast(IntegerType())) \
+        .withColumn("DOLocationID",col("DOLocationID").cast(IntegerType())) \
+        .withColumn("Passenger_Count",col("passenger_count").cast(IntegerType())) \
+        .withColumn("Trip_Distance",col("trip_distance").cast(DoubleType())) \
+        .withColumn("Fare_Amount",col("fare_amount").cast(DoubleType())) \
+        .withColumn("Surcharge",col("extra").cast(DoubleType())) \
+        .withColumn("MTA_Tax",col("mta_tax").cast(DoubleType())) \
+        .withColumn("Tip_Amount",col("tip_amount").cast(DoubleType())) \
+        .withColumn("Tolls_Amount",col("tolls_amount").cast(DoubleType())) \
+        .withColumn("Ehail_Fee",col("ehail_fee").cast(DoubleType())) \
+        .withColumn("Improvement_Surcharge",col("improvement_surcharge").cast(DoubleType())) \
+        .withColumn("Total_Amount",col("total_amount").cast(DoubleType())) \
+        .withColumn("Payment_Type_Id",col("payment_type").cast(IntegerType())) \
+        .withColumn("Trip_Type",col("trip_type").cast(IntegerType())) \
+        .withColumn("Congestion_Surcharge",col("congestion_surcharge").cast(DoubleType()))
+
+    df_result = df_TypeCast.select( \
+        'Vendor_Id', \
+        'Pickup_DateTime', \
+        'Dropoff_DateTime', \
+        'Store_And_Forward', \
+        'Rate_Code_Id', \
+        'PULocationID', \
+        'DOLocationID', \
+        'Passenger_Count', \
+        'Trip_Distance', \
+        'Fare_Amount', \
+        'Surcharge', \
+        'MTA_Tax', \
+        'Tip_Amount', \
+        'Tolls_Amount', \
+        'Ehail_Fee', \
+        'Improvement_Surcharge', \
+        'Total_Amount', \
+        'Payment_Type_Id', \
+        'Trip_Type', \
+        'Congestion_Surcharge' \
+    )
+   
+    return df_result
 
 
-    ################################################################################################
-    # Yellow
-    ################################################################################################
-    # Yellow Schema for 2019 / 2020 / 2021
-    # 2021 VendorID,tpep_pickup_datetime,tpep_dropoff_datetime,passenger_count,trip_distance,RatecodeID,store_and_fwd_flag,PULocationID,DOLocationID,payment_type,fare_amount,extra,mta_tax,tip_amount,tolls_amount,improvement_surcharge,total_amount,congestion_surcharge
-    # 2020 VendorID,tpep_pickup_datetime,tpep_dropoff_datetime,passenger_count,trip_distance,RatecodeID,store_and_fwd_flag,PULocationID,DOLocationID,payment_type,fare_amount,extra,mta_tax,tip_amount,tolls_amount,improvement_surcharge,total_amount,congestion_surcharge
-    # 2019 VendorID,tpep_pickup_datetime,tpep_dropoff_datetime,passenger_count,trip_distance,RatecodeID,store_and_fwd_flag,PULocationID,DOLocationID,payment_type,fare_amount,extra,mta_tax,tip_amount,tolls_amount,improvement_surcharge,total_amount,congestion_surcharge
+# All the data cannot be read at once since MergeSchema does not work for the NYC data
+def ProcessYellowFile(spark, filenameAndPath):
+    df_source = spark.read.parquet(filenameAndPath)
 
-    """
-    RENAME: VendorID	INTEGER	NULLABLE		
-    RENAME: tpep_pickup_datetime	TIMESTAMP	NULLABLE		
-    RENAME: tpep_dropoff_datetime	TIMESTAMP	NULLABLE		
-    RENAME: passenger_count	FLOAT	NULLABLE		
-    RENAME: trip_distance	FLOAT	NULLABLE		
-    RENAME: RatecodeID	FLOAT	NULLABLE		
-    RENAME: store_and_fwd_flag	STRING	NULLABLE		
-    PULocationID	INTEGER	NULLABLE		
-    DOLocationID	INTEGER	NULLABLE		
-    RENAME: payment_type	INTEGER	NULLABLE		
-    RENAME: fare_amount	FLOAT	NULLABLE		
-    RENAME: (Surcharge) extra	FLOAT	NULLABLE		
-    RENAME: mta_tax	FLOAT	NULLABLE		
-    RENAME: tip_amount	FLOAT	NULLABLE		
-    RENAME: tolls_amount	FLOAT	NULLABLE		
-    RENAME: improvement_surcharge	FLOAT	NULLABLE		
-    RENAME: total_amount	FLOAT	NULLABLE		
-    RENAME: congestion_surcharge	FLOAT	NULLABLE		
-    NEW: airport_fee	INTEGER	NULLABLE		
-    """
+    print("ProcessYellowFile: filenameAndPath: ",filenameAndPath)
 
-    """
-    yellowSchema = StructType([
-        StructField('Vendor_Id', IntegerType(), True),
-        StructField('Pickup_DateTime', TimestampType(), True),
-        StructField('Dropoff_DateTime', TimestampType(), True),
-        StructField('Passenger_Count', IntegerType(), True),
-        StructField('Trip_Distance', DoubleType(), True),
-        StructField('Rate_Code_Id', IntegerType(), True),
-        StructField('Store_And_Forward', StringType(), True),
-        StructField('PULocationID', IntegerType(), True),
-        StructField('DOLocationID', IntegerType(), True),
-        StructField('Payment_Type_Id', IntegerType(), True),
-        StructField('Fare_Amount', DoubleType(), True),
-        StructField('Surcharge', DoubleType(), True),
-        StructField('MTA_Tax', DoubleType(), True),
-        StructField('Tip_Amount', DoubleType(), True),
-        StructField('Tolls_Amount', DoubleType(), True),
-        StructField('Improvement_Surcharge', DoubleType(), True),
-        StructField('Total_Amount', DoubleType(), True),
-        StructField('Congestion_Surcharge', DoubleType(), True)
-        ])
-    """
+    df_TypeCast = df_source \
+        .withColumn("Vendor_ID",col("VendorID").cast(IntegerType())) \
+        .withColumn("Pickup_DateTime",col("tpep_pickup_datetime").cast(TimestampType())) \
+        .withColumn("Dropoff_DateTime",col("tpep_dropoff_datetime").cast(TimestampType())) \
+        .withColumn("Passenger_Count",col("passenger_count").cast(IntegerType())) \
+        .withColumn("Trip_Distance",col("trip_distance").cast(DoubleType())) \
+        .withColumn("Rate_Code_Id",col("RatecodeID").cast(IntegerType())) \
+        .withColumn("Store_And_Forward",col("store_and_fwd_flag").cast(StringType())) \
+        .withColumn("PULocationID",col("PULocationID").cast(IntegerType())) \
+        .withColumn("DOLocationID",col("DOLocationID").cast(IntegerType())) \
+        .withColumn("Payment_Type_Id",col("payment_type").cast(IntegerType())) \
+        .withColumn("Fare_Amount",col("fare_amount").cast(DoubleType())) \
+        .withColumn("Surcharge",col("extra").cast(DoubleType())) \
+        .withColumn("MTA_Tax",col("mta_tax").cast(DoubleType())) \
+        .withColumn("Tip_Amount",col("tip_amount").cast(DoubleType())) \
+        .withColumn("Tolls_Amount",col("tolls_amount").cast(DoubleType())) \
+        .withColumn("Improvement_Surcharge",col("improvement_surcharge").cast(DoubleType())) \
+        .withColumn("Total_Amount",col("total_amount").cast(DoubleType())) \
+        .withColumn("Congestion_Surcharge",col("congestion_surcharge").cast(DoubleType()))
+        #.withColumn("Airport_Fee",col("airport_fee").cast(DoubleType()))
 
-    df_source = spark.read.parquet(sourceYellow)
-
-    # Change datatypes (FLOAT to INT)
-    df_source = df_source \
-        .withColumn("NEW_Passenger_Count",col("passenger_count").cast(IntegerType())) \
-        .withColumn("NEW_Rate_Code_Id",col("RatecodeID").cast(IntegerType()))
-
-    # Drop columns
-    # airport_fee: causes issues since the datatype id INT for 2019 and FLOAT for 2020+
-    df_source = df_source \
-        .drop("airport_fee") \
-        .drop("passenger_count") \
-        .drop("RatecodeID")  
-
-    df_rename = df_source.withColumnRenamed("VendorID", "Vendor_Id") \
-        .withColumnRenamed("tpep_pickup_datetime", "Pickup_DateTime") \
-        .withColumnRenamed("tpep_dropoff_datetime", "Dropoff_DateTime") \
-        .withColumnRenamed("NEW_Passenger_Count", "Passenger_Count") \
-        .withColumnRenamed("trip_distance", "Trip_Distance") \
-        .withColumnRenamed("NEW_Rate_Code_Id", "Rate_Code_Id") \
-        .withColumnRenamed("store_and_fwd_flag", "Store_And_Forward") \
-        .withColumnRenamed("payment_type", "Payment_Type_Id") \
-        .withColumnRenamed("fare_amount", "Fare_Amount") \
-        .withColumnRenamed("extra", "Surcharge") \
-        .withColumnRenamed("mta_tax", "MTA_Tax") \
-        .withColumnRenamed("tip_amount", "Tip_Amount") \
-        .withColumnRenamed("tolls_amount", "Tolls_Amount") \
-        .withColumnRenamed("improvement_surcharge", "Improvement_Surcharge") \
-        .withColumnRenamed("total_amount", "Total_Amount") \
-        .withColumnRenamed("congestion_surcharge", "Congestion_Surcharge")
-
-    df_new_column_order = df_rename.select( \
+    df_result = df_TypeCast.select( \
         'Vendor_Id', \
         'Pickup_DateTime', \
         'Dropoff_DateTime', \
@@ -143,32 +129,157 @@ def ConvertTaxiData(sourceYellow, sourceGreen, destination):
         'Total_Amount', \
         'Congestion_Surcharge' \
         )
-    """
-    df_new_column_order = df_rename \
-        .withColumn("Vendor_Id",col("Vendor_Id")) \
-        .withColumn("Pickup_DateTime",col("Pickup_DateTime")) \
-        .withColumn("Dropoff_DateTime",col("Dropoff_DateTime")) \
-        .withColumn("Passenger_Count",col("Passenger_Count")) \
-        .withColumn("Trip_Distance",col("Trip_Distance")) \
-        .withColumn("Rate_Code_Id",col("Rate_Code_Id")) \
-        .withColumn("Store_And_Forward",col("Store_And_Forward")) \
-        .withColumn("PULocationID",col("PULocationID")) \
-        .withColumn("DOLocationID",col("DOLocationID")) \
-        .withColumn("Payment_Type_Id",col("Payment_Type_Id")) \
-        .withColumn("Fare_Amount",col("Fare_Amount")) \
-        .withColumn("Surcharge",col("Surcharge")) \
-        .withColumn("MTA_Tax",col("MTA_Tax")) \
-        .withColumn("Tip_Amount",col("Tip_Amount")) \
-        .withColumn("Tolls_Amount",col("Tolls_Amount")) \
-        .withColumn("Improvement_Surcharge",col("Improvement_Surcharge")) \
-        .withColumn("Total_Amount",col("Total_Amount")) \
-        .withColumn("Congestion_Surcharge",col("Congestion_Surcharge"))
-    """
+    
+    return df_result
 
-    df_with_partition_cols = df_new_column_order \
+
+def ConvertTaxiData(sourceYellow, sourceGreen, destination):
+    print("ConvertTaxiData: sourceYellow: ",sourceYellow)
+    print("ConvertTaxiData: sourceGreen:  ",sourceGreen)
+    print("ConvertTaxiData: destination:  ",destination)
+
+    spark = SparkSession \
+        .builder \
+        .appName("ConvertTaxiData") \
+        .getOrCreate()
+    
+
+    ################################################################################################
+    # Yellow
+    ################################################################################################    
+    yellow_path = sourceYellow.replace("/*/*.parquet","")
+
+    # The NYC taxi data has fields that change data types and some are incompatible with mergeScheme   
+    # 2019
+    yellow_tripdata_2019_01 = ProcessYellowFile(spark,f"{yellow_path}/2019/yellow_tripdata_2019-01.parquet")
+    yellow_tripdata_2019_02 = ProcessYellowFile(spark,f"{yellow_path}/2019/yellow_tripdata_2019-02.parquet")
+    yellow_tripdata_2019_03 = ProcessYellowFile(spark,f"{yellow_path}/2019/yellow_tripdata_2019-03.parquet")
+    yellow_tripdata_2019_04 = ProcessYellowFile(spark,f"{yellow_path}/2019/yellow_tripdata_2019-04.parquet")
+    yellow_tripdata_2019_05 = ProcessYellowFile(spark,f"{yellow_path}/2019/yellow_tripdata_2019-05.parquet")
+    yellow_tripdata_2019_06 = ProcessYellowFile(spark,f"{yellow_path}/2019/yellow_tripdata_2019-06.parquet")
+    yellow_tripdata_2019_07 = ProcessYellowFile(spark,f"{yellow_path}/2019/yellow_tripdata_2019-07.parquet")
+    yellow_tripdata_2019_08 = ProcessYellowFile(spark,f"{yellow_path}/2019/yellow_tripdata_2019-08.parquet")
+    yellow_tripdata_2019_09 = ProcessYellowFile(spark,f"{yellow_path}/2019/yellow_tripdata_2019-09.parquet")
+    yellow_tripdata_2019_10 = ProcessYellowFile(spark,f"{yellow_path}/2019/yellow_tripdata_2019-10.parquet")
+    yellow_tripdata_2019_11 = ProcessYellowFile(spark,f"{yellow_path}/2019/yellow_tripdata_2019-11.parquet")
+    yellow_tripdata_2019_12 = ProcessYellowFile(spark,f"{yellow_path}/2019/yellow_tripdata_2019-12.parquet")
+
+    # 2020
+    yellow_tripdata_2020_01 = ProcessYellowFile(spark,f"{yellow_path}/2020/yellow_tripdata_2020-01.parquet")
+    yellow_tripdata_2020_02 = ProcessYellowFile(spark,f"{yellow_path}/2020/yellow_tripdata_2020-02.parquet")
+    yellow_tripdata_2020_03 = ProcessYellowFile(spark,f"{yellow_path}/2020/yellow_tripdata_2020-03.parquet")
+    yellow_tripdata_2020_04 = ProcessYellowFile(spark,f"{yellow_path}/2020/yellow_tripdata_2020-04.parquet")
+    yellow_tripdata_2020_05 = ProcessYellowFile(spark,f"{yellow_path}/2020/yellow_tripdata_2020-05.parquet")
+    yellow_tripdata_2020_06 = ProcessYellowFile(spark,f"{yellow_path}/2020/yellow_tripdata_2020-06.parquet")
+    yellow_tripdata_2020_07 = ProcessYellowFile(spark,f"{yellow_path}/2020/yellow_tripdata_2020-07.parquet")
+    yellow_tripdata_2020_08 = ProcessYellowFile(spark,f"{yellow_path}/2020/yellow_tripdata_2020-08.parquet")
+    yellow_tripdata_2020_09 = ProcessYellowFile(spark,f"{yellow_path}/2020/yellow_tripdata_2020-09.parquet")
+    yellow_tripdata_2020_10 = ProcessYellowFile(spark,f"{yellow_path}/2020/yellow_tripdata_2020-10.parquet")
+    yellow_tripdata_2020_11 = ProcessYellowFile(spark,f"{yellow_path}/2020/yellow_tripdata_2020-11.parquet")
+    yellow_tripdata_2020_12 = ProcessYellowFile(spark,f"{yellow_path}/2020/yellow_tripdata_2020-12.parquet")
+
+    # 2021
+    yellow_tripdata_2021_01 = ProcessYellowFile(spark,f"{yellow_path}/2021/yellow_tripdata_2021-01.parquet")
+    yellow_tripdata_2021_02 = ProcessYellowFile(spark,f"{yellow_path}/2021/yellow_tripdata_2021-02.parquet")
+    yellow_tripdata_2021_03 = ProcessYellowFile(spark,f"{yellow_path}/2021/yellow_tripdata_2021-03.parquet")
+    yellow_tripdata_2021_04 = ProcessYellowFile(spark,f"{yellow_path}/2021/yellow_tripdata_2021-04.parquet")
+    yellow_tripdata_2021_05 = ProcessYellowFile(spark,f"{yellow_path}/2021/yellow_tripdata_2021-05.parquet")
+    yellow_tripdata_2021_06 = ProcessYellowFile(spark,f"{yellow_path}/2021/yellow_tripdata_2021-06.parquet")
+    yellow_tripdata_2021_07 = ProcessYellowFile(spark,f"{yellow_path}/2021/yellow_tripdata_2021-07.parquet")
+    yellow_tripdata_2021_08 = ProcessYellowFile(spark,f"{yellow_path}/2021/yellow_tripdata_2021-08.parquet")
+    yellow_tripdata_2021_09 = ProcessYellowFile(spark,f"{yellow_path}/2021/yellow_tripdata_2021-09.parquet")
+    yellow_tripdata_2021_10 = ProcessYellowFile(spark,f"{yellow_path}/2021/yellow_tripdata_2021-10.parquet")
+    yellow_tripdata_2021_11 = ProcessYellowFile(spark,f"{yellow_path}/2021/yellow_tripdata_2021-11.parquet")
+    yellow_tripdata_2021_12 = ProcessYellowFile(spark,f"{yellow_path}/2021/yellow_tripdata_2021-12.parquet")
+
+    # 2022
+    yellow_tripdata_2022_01 = ProcessYellowFile(spark,f"{yellow_path}/2022/yellow_tripdata_2022-01.parquet")
+    yellow_tripdata_2022_02 = ProcessYellowFile(spark,f"{yellow_path}/2022/yellow_tripdata_2022-02.parquet")
+    yellow_tripdata_2022_03 = ProcessYellowFile(spark,f"{yellow_path}/2022/yellow_tripdata_2022-03.parquet")
+    yellow_tripdata_2022_04 = ProcessYellowFile(spark,f"{yellow_path}/2022/yellow_tripdata_2022-04.parquet")
+    yellow_tripdata_2022_05 = ProcessYellowFile(spark,f"{yellow_path}/2022/yellow_tripdata_2022-05.parquet")
+    yellow_tripdata_2022_06 = ProcessYellowFile(spark,f"{yellow_path}/2022/yellow_tripdata_2022-06.parquet")
+    yellow_tripdata_2022_07 = ProcessYellowFile(spark,f"{yellow_path}/2022/yellow_tripdata_2022-07.parquet")
+    yellow_tripdata_2022_08 = ProcessYellowFile(spark,f"{yellow_path}/2022/yellow_tripdata_2022-08.parquet")
+    yellow_tripdata_2022_09 = ProcessYellowFile(spark,f"{yellow_path}/2022/yellow_tripdata_2022-09.parquet")
+    yellow_tripdata_2022_10 = ProcessYellowFile(spark,f"{yellow_path}/2022/yellow_tripdata_2022-10.parquet")
+    yellow_tripdata_2022_11 = ProcessYellowFile(spark,f"{yellow_path}/2022/yellow_tripdata_2022-11.parquet")
+    yellow_tripdata_2022_12 = ProcessYellowFile(spark,f"{yellow_path}/2022/yellow_tripdata_2022-12.parquet")
+
+    # 2023
+    yellow_tripdata_2023_01 = ProcessYellowFile(spark,f"{yellow_path}/2023/yellow_tripdata_2023-01.parquet")
+    yellow_tripdata_2023_02 = ProcessYellowFile(spark,f"{yellow_path}/2023/yellow_tripdata_2023-02.parquet")
+    yellow_tripdata_2023_03 = ProcessYellowFile(spark,f"{yellow_path}/2023/yellow_tripdata_2023-03.parquet")
+    yellow_tripdata_2023_04 = ProcessYellowFile(spark,f"{yellow_path}/2023/yellow_tripdata_2023-04.parquet")
+    yellow_tripdata_2023_05 = ProcessYellowFile(spark,f"{yellow_path}/2023/yellow_tripdata_2023-05.parquet")
+    yellow_tripdata_2023_06 = ProcessYellowFile(spark,f"{yellow_path}/2023/yellow_tripdata_2023-06.parquet")
+    yellow_tripdata_2023_07 = ProcessYellowFile(spark,f"{yellow_path}/2023/yellow_tripdata_2023-07.parquet")
+    yellow_tripdata_2023_08 = ProcessYellowFile(spark,f"{yellow_path}/2023/yellow_tripdata_2023-08.parquet")
+    yellow_tripdata_2023_09 = ProcessYellowFile(spark,f"{yellow_path}/2023/yellow_tripdata_2023-09.parquet")
+
+    # Merge everything together (we should have all the same schema now)
+    df_yellow_final = yellow_tripdata_2019_01 \
+        .union(yellow_tripdata_2019_02) \
+        .union(yellow_tripdata_2019_03) \
+        .union(yellow_tripdata_2019_04) \
+        .union(yellow_tripdata_2019_05) \
+        .union(yellow_tripdata_2019_06) \
+        .union(yellow_tripdata_2019_07) \
+        .union(yellow_tripdata_2019_08) \
+        .union(yellow_tripdata_2019_09) \
+        .union(yellow_tripdata_2019_10) \
+        .union(yellow_tripdata_2019_11) \
+        .union(yellow_tripdata_2019_12) \
+        .union(yellow_tripdata_2020_01) \
+        .union(yellow_tripdata_2020_02) \
+        .union(yellow_tripdata_2020_03) \
+        .union(yellow_tripdata_2020_04) \
+        .union(yellow_tripdata_2020_05) \
+        .union(yellow_tripdata_2020_06) \
+        .union(yellow_tripdata_2020_07) \
+        .union(yellow_tripdata_2020_08) \
+        .union(yellow_tripdata_2020_09) \
+        .union(yellow_tripdata_2020_10) \
+        .union(yellow_tripdata_2020_11) \
+        .union(yellow_tripdata_2020_12) \
+        .union(yellow_tripdata_2021_01) \
+        .union(yellow_tripdata_2021_02) \
+        .union(yellow_tripdata_2021_03) \
+        .union(yellow_tripdata_2021_04) \
+        .union(yellow_tripdata_2021_05) \
+        .union(yellow_tripdata_2021_06) \
+        .union(yellow_tripdata_2021_07) \
+        .union(yellow_tripdata_2021_08) \
+        .union(yellow_tripdata_2021_09) \
+        .union(yellow_tripdata_2021_10) \
+        .union(yellow_tripdata_2021_11) \
+        .union(yellow_tripdata_2021_12) \
+        .union(yellow_tripdata_2022_01) \
+        .union(yellow_tripdata_2022_02) \
+        .union(yellow_tripdata_2022_03) \
+        .union(yellow_tripdata_2022_04) \
+        .union(yellow_tripdata_2022_05) \
+        .union(yellow_tripdata_2022_06) \
+        .union(yellow_tripdata_2022_07) \
+        .union(yellow_tripdata_2022_08) \
+        .union(yellow_tripdata_2022_09) \
+        .union(yellow_tripdata_2022_10) \
+        .union(yellow_tripdata_2022_11) \
+        .union(yellow_tripdata_2022_12) \
+        .union(yellow_tripdata_2023_01) \
+        .union(yellow_tripdata_2023_02) \
+        .union(yellow_tripdata_2023_03) \
+        .union(yellow_tripdata_2023_04) \
+        .union(yellow_tripdata_2023_05) \
+        .union(yellow_tripdata_2023_06) \
+        .union(yellow_tripdata_2023_07) \
+        .union(yellow_tripdata_2023_08) \
+        .union(yellow_tripdata_2023_09)
+
+    df_with_partition_cols = df_yellow_final \
         .withColumn("year",  year      (col("Pickup_DateTime"))) \
         .withColumn("month", month     (col("Pickup_DateTime"))) \
-        .filter(year(col("Pickup_DateTime")).isin (2019,2020,2021,2022))
+        .filter("Pickup_DateTime >= '2019-01-01' AND Pickup_DateTime <= '2023-09-30'")
 
     # Write as Parquet
     df_with_partition_cols \
@@ -203,144 +314,140 @@ def ConvertTaxiData(sourceYellow, sourceGreen, destination):
 
     ################################################################################################
     # Green
-    ################################################################################################
-    # 2021 VendorID,lpep_pickup_datetime,lpep_dropoff_datetime,store_and_fwd_flag,RatecodeID,PULocationID,DOLocationID,passenger_count,trip_distance,fare_amount,extra,mta_tax,tip_amount,tolls_amount,ehail_fee,improvement_surcharge,total_amount,payment_type,trip_type,congestion_surcharge
-    # 2020 VendorID,lpep_pickup_datetime,lpep_dropoff_datetime,store_and_fwd_flag,RatecodeID,PULocationID,DOLocationID,passenger_count,trip_distance,fare_amount,extra,mta_tax,tip_amount,tolls_amount,ehail_fee,improvement_surcharge,total_amount,payment_type,trip_type,congestion_surcharge
-    # 2019 VendorID,lpep_pickup_datetime,lpep_dropoff_datetime,store_and_fwd_flag,RatecodeID,PULocationID,DOLocationID,passenger_count,trip_distance,fare_amount,extra,mta_tax,tip_amount,tolls_amount,ehail_fee,improvement_surcharge,total_amount,payment_type,trip_type,congestion_surcharge
+    ################################################################################################    
+    green_path = sourceGreen.replace("/*/*.parquet","")
     
-    """
-    VendorID	INTEGER	NULLABLE		
-    lpep_pickup_datetime	TIMESTAMP	NULLABLE		
-    lpep_dropoff_datetime	TIMESTAMP	NULLABLE		
-    store_and_fwd_flag	STRING	NULLABLE		
-    RatecodeID	FLOAT	NULLABLE		
-    PULocationID	INTEGER	NULLABLE		
-    DOLocationID	INTEGER	NULLABLE		
-    passenger_count	FLOAT	NULLABLE		
-    trip_distance	FLOAT	NULLABLE		
-    fare_amount	FLOAT	NULLABLE		
-    extra	FLOAT	NULLABLE		
-    mta_tax	FLOAT	NULLABLE		
-    tip_amount	FLOAT	NULLABLE		
-    tolls_amount	FLOAT	NULLABLE		
-    ehail_fee	FLOAT	NULLABLE		
-    improvement_surcharge	FLOAT	NULLABLE		
-    total_amount	FLOAT	NULLABLE		
-    payment_type	FLOAT	NULLABLE		
-    trip_type	FLOAT	NULLABLE		
-    congestion_surcharge	FLOAT	NULLABLE
-    """
+   # The NYC taxi data has fields that change data types and some are incompatible with mergeScheme   
+    # 2019
+    green_tripdata_2019_01 = ProcessGreenFile(spark,f"{green_path}/2019/green_tripdata_2019-01.parquet")
+    green_tripdata_2019_02 = ProcessGreenFile(spark,f"{green_path}/2019/green_tripdata_2019-02.parquet")
+    green_tripdata_2019_03 = ProcessGreenFile(spark,f"{green_path}/2019/green_tripdata_2019-03.parquet")
+    green_tripdata_2019_04 = ProcessGreenFile(spark,f"{green_path}/2019/green_tripdata_2019-04.parquet")
+    green_tripdata_2019_05 = ProcessGreenFile(spark,f"{green_path}/2019/green_tripdata_2019-05.parquet")
+    green_tripdata_2019_06 = ProcessGreenFile(spark,f"{green_path}/2019/green_tripdata_2019-06.parquet")
+    green_tripdata_2019_07 = ProcessGreenFile(spark,f"{green_path}/2019/green_tripdata_2019-07.parquet")
+    green_tripdata_2019_08 = ProcessGreenFile(spark,f"{green_path}/2019/green_tripdata_2019-08.parquet")
+    green_tripdata_2019_09 = ProcessGreenFile(spark,f"{green_path}/2019/green_tripdata_2019-09.parquet")
+    green_tripdata_2019_10 = ProcessGreenFile(spark,f"{green_path}/2019/green_tripdata_2019-10.parquet")
+    green_tripdata_2019_11 = ProcessGreenFile(spark,f"{green_path}/2019/green_tripdata_2019-11.parquet")
+    green_tripdata_2019_12 = ProcessGreenFile(spark,f"{green_path}/2019/green_tripdata_2019-12.parquet")
 
-    """
-    greenSchema = StructType([
-        StructField('Vendor_Id', IntegerType(), True),
-        StructField('Pickup_DateTime', TimestampType(), True),
-        StructField('Dropoff_DateTime', TimestampType(), True),
-        StructField('Store_And_Forward', StringType(), True),
-        StructField('Rate_Code_Id', IntegerType(), True),
-        StructField('PULocationID', IntegerType(), True),
-        StructField('DOLocationID', IntegerType(), True),
-        StructField('Passenger_Count', IntegerType(), True),
-        StructField('Trip_Distance', DoubleType(), True),
-        StructField('Fare_Amount', DoubleType(), True),
-        StructField('Surcharge', DoubleType(), True),
-        StructField('MTA_Tax', DoubleType(), True),
-        StructField('Tip_Amount', DoubleType(), True),
-        StructField('Tolls_Amount', DoubleType(), True),
-        StructField('Ehail_Fee', DoubleType(), True),
-        StructField('Improvement_Surcharge', DoubleType(), True),
-        StructField('Total_Amount', DoubleType(), True),
-        StructField('Payment_Type_Id', IntegerType(), True),
-        StructField('Trip_Type', StringType(), True),
-        StructField('Congestion_Surcharge', DoubleType(), True)
-        ])
-    """
+    # 2020
+    green_tripdata_2020_01 = ProcessGreenFile(spark,f"{green_path}/2020/green_tripdata_2020-01.parquet")
+    green_tripdata_2020_02 = ProcessGreenFile(spark,f"{green_path}/2020/green_tripdata_2020-02.parquet")
+    green_tripdata_2020_03 = ProcessGreenFile(spark,f"{green_path}/2020/green_tripdata_2020-03.parquet")
+    green_tripdata_2020_04 = ProcessGreenFile(spark,f"{green_path}/2020/green_tripdata_2020-04.parquet")
+    green_tripdata_2020_05 = ProcessGreenFile(spark,f"{green_path}/2020/green_tripdata_2020-05.parquet")
+    green_tripdata_2020_06 = ProcessGreenFile(spark,f"{green_path}/2020/green_tripdata_2020-06.parquet")
+    green_tripdata_2020_07 = ProcessGreenFile(spark,f"{green_path}/2020/green_tripdata_2020-07.parquet")
+    green_tripdata_2020_08 = ProcessGreenFile(spark,f"{green_path}/2020/green_tripdata_2020-08.parquet")
+    green_tripdata_2020_09 = ProcessGreenFile(spark,f"{green_path}/2020/green_tripdata_2020-09.parquet")
+    green_tripdata_2020_10 = ProcessGreenFile(spark,f"{green_path}/2020/green_tripdata_2020-10.parquet")
+    green_tripdata_2020_11 = ProcessGreenFile(spark,f"{green_path}/2020/green_tripdata_2020-11.parquet")
+    green_tripdata_2020_12 = ProcessGreenFile(spark,f"{green_path}/2020/green_tripdata_2020-12.parquet")
 
-    df_source = spark.read.parquet(sourceGreen)
-    
-    # Change datatypes (FLOAT to INT)
-    df_source = df_source \
-        .withColumn("NEW_Passenger_Count",col("passenger_count").cast(IntegerType())) \
-        .withColumn("NEW_Rate_Code_Id",col("RatecodeID").cast(IntegerType())) \
-        .withColumn("NEW_Payment_Type_Id",col("payment_type").cast(IntegerType()))
-            
+    # 2021
+    green_tripdata_2021_01 = ProcessGreenFile(spark,f"{green_path}/2021/green_tripdata_2021-01.parquet")
+    green_tripdata_2021_02 = ProcessGreenFile(spark,f"{green_path}/2021/green_tripdata_2021-02.parquet")
+    green_tripdata_2021_03 = ProcessGreenFile(spark,f"{green_path}/2021/green_tripdata_2021-03.parquet")
+    green_tripdata_2021_04 = ProcessGreenFile(spark,f"{green_path}/2021/green_tripdata_2021-04.parquet")
+    green_tripdata_2021_05 = ProcessGreenFile(spark,f"{green_path}/2021/green_tripdata_2021-05.parquet")
+    green_tripdata_2021_06 = ProcessGreenFile(spark,f"{green_path}/2021/green_tripdata_2021-06.parquet")
+    green_tripdata_2021_07 = ProcessGreenFile(spark,f"{green_path}/2021/green_tripdata_2021-07.parquet")
+    green_tripdata_2021_08 = ProcessGreenFile(spark,f"{green_path}/2021/green_tripdata_2021-08.parquet")
+    green_tripdata_2021_09 = ProcessGreenFile(spark,f"{green_path}/2021/green_tripdata_2021-09.parquet")
+    green_tripdata_2021_10 = ProcessGreenFile(spark,f"{green_path}/2021/green_tripdata_2021-10.parquet")
+    green_tripdata_2021_11 = ProcessGreenFile(spark,f"{green_path}/2021/green_tripdata_2021-11.parquet")
+    green_tripdata_2021_12 = ProcessGreenFile(spark,f"{green_path}/2021/green_tripdata_2021-12.parquet")
 
-    # Drop columns
-    df_source = df_source \
-        .drop("passenger_count") \
-        .drop("RatecodeID")
-     
-    df_rename = df_source.withColumnRenamed("VendorID", "Vendor_Id") \
-        .withColumnRenamed("lpep_pickup_datetime", "Pickup_DateTime") \
-        .withColumnRenamed("lpep_dropoff_datetime", "Dropoff_DateTime") \
-        .withColumnRenamed("store_and_fwd_flag", "Store_And_Forward") \
-        .withColumnRenamed("NEW_Passenger_Count", "Passenger_Count") \
-        .withColumnRenamed("trip_distance", "Trip_Distance") \
-        .withColumnRenamed("NEW_Rate_Code_Id", "Rate_Code_Id") \
-        .withColumnRenamed("fare_amount", "Fare_Amount") \
-        .withColumnRenamed("extra", "Surcharge") \
-        .withColumnRenamed( "mta_tax", "MTA_Tax") \
-        .withColumnRenamed("tip_amount", "Tip_Amount") \
-        .withColumnRenamed("tolls_amount", "Tolls_Amount") \
-        .withColumnRenamed("ehail_fee", "Ehail_Fee") \
-        .withColumnRenamed("improvement_surcharge", "Improvement_Surcharge") \
-        .withColumnRenamed("total_amount", "Total_Amount") \
-        .withColumnRenamed("NEW_Payment_Type_Id", "Payment_Type_Id") \
-        .withColumnRenamed("trip_type", "Trip_Type") \
-        .withColumnRenamed("congestion_surcharge", "Congestion_Surcharge")
+    # 2022
+    green_tripdata_2022_01 = ProcessGreenFile(spark,f"{green_path}/2022/green_tripdata_2022-01.parquet")
+    green_tripdata_2022_02 = ProcessGreenFile(spark,f"{green_path}/2022/green_tripdata_2022-02.parquet")
+    green_tripdata_2022_03 = ProcessGreenFile(spark,f"{green_path}/2022/green_tripdata_2022-03.parquet")
+    green_tripdata_2022_04 = ProcessGreenFile(spark,f"{green_path}/2022/green_tripdata_2022-04.parquet")
+    green_tripdata_2022_05 = ProcessGreenFile(spark,f"{green_path}/2022/green_tripdata_2022-05.parquet")
+    green_tripdata_2022_06 = ProcessGreenFile(spark,f"{green_path}/2022/green_tripdata_2022-06.parquet")
+    green_tripdata_2022_07 = ProcessGreenFile(spark,f"{green_path}/2022/green_tripdata_2022-07.parquet")
+    green_tripdata_2022_08 = ProcessGreenFile(spark,f"{green_path}/2022/green_tripdata_2022-08.parquet")
+    green_tripdata_2022_09 = ProcessGreenFile(spark,f"{green_path}/2022/green_tripdata_2022-09.parquet")
+    green_tripdata_2022_10 = ProcessGreenFile(spark,f"{green_path}/2022/green_tripdata_2022-10.parquet")
+    green_tripdata_2022_11 = ProcessGreenFile(spark,f"{green_path}/2022/green_tripdata_2022-11.parquet")
+    green_tripdata_2022_12 = ProcessGreenFile(spark,f"{green_path}/2022/green_tripdata_2022-12.parquet")
 
-    df_new_column_order = df_rename.select( \
-        'Vendor_Id', \
-        'Pickup_DateTime', \
-        'Dropoff_DateTime', \
-        'Store_And_Forward', \
-        'Rate_Code_Id', \
-        'PULocationID', \
-        'DOLocationID', \
-        'Passenger_Count', \
-        'Trip_Distance', \
-        'Fare_Amount', \
-        'Surcharge', \
-        'MTA_Tax', \
-        'Tip_Amount', \
-        'Tolls_Amount', \
-        'Ehail_Fee', \
-        'Improvement_Surcharge', \
-        'Total_Amount', \
-        'Payment_Type_Id', \
-        'Trip_Type', \
-        'Congestion_Surcharge' \
-    )
+    # 2023
+    green_tripdata_2023_01 = ProcessGreenFile(spark,f"{green_path}/2023/green_tripdata_2023-01.parquet")
+    green_tripdata_2023_02 = ProcessGreenFile(spark,f"{green_path}/2023/green_tripdata_2023-02.parquet")
+    green_tripdata_2023_03 = ProcessGreenFile(spark,f"{green_path}/2023/green_tripdata_2023-03.parquet")
+    green_tripdata_2023_04 = ProcessGreenFile(spark,f"{green_path}/2023/green_tripdata_2023-04.parquet")
+    green_tripdata_2023_05 = ProcessGreenFile(spark,f"{green_path}/2023/green_tripdata_2023-05.parquet")
+    green_tripdata_2023_06 = ProcessGreenFile(spark,f"{green_path}/2023/green_tripdata_2023-06.parquet")
+    green_tripdata_2023_07 = ProcessGreenFile(spark,f"{green_path}/2023/green_tripdata_2023-07.parquet")
+    green_tripdata_2023_08 = ProcessGreenFile(spark,f"{green_path}/2023/green_tripdata_2023-08.parquet")
+    green_tripdata_2023_09 = ProcessGreenFile(spark,f"{green_path}/2023/green_tripdata_2023-09.parquet")
 
-    """
-    df_new_column_order = df_rename \
-        .withColumn("Vendor_Id",col("Vendor_Id")) \
-        .withColumn("Pickup_DateTime",col("Pickup_DateTime")) \
-        .withColumn("Dropoff_DateTime",col("Dropoff_DateTime")) \
-        .withColumn("Store_And_Forward",col("Store_And_Forward")) \
-        .withColumn("Rate_Code_Id",col("Rate_Code_Id")) \
-        .withColumn("PULocationID",col("PULocationID")) \
-        .withColumn("DOLocationID",col("DOLocationID")) \
-        .withColumn("Passenger_Count",col("Passenger_Count")) \
-        .withColumn("Trip_Distance",col("Trip_Distance")) \
-        .withColumn("Fare_Amount",col("Fare_Amount")) \
-        .withColumn("Surcharge",col("Surcharge")) \
-        .withColumn("MTA_Tax",col("MTA_Tax")) \
-        .withColumn("Tip_Amount",col("Tip_Amount")) \
-        .withColumn("Tolls_Amount",col("Tolls_Amount")) \
-        .withColumn("Ehail_Fee",col("Ehail_Fee")) \
-        .withColumn("Improvement_Surcharge",col("Improvement_Surcharge")) \
-        .withColumn("Total_Amount",col("Total_Amount")) \
-        .withColumn("Payment_Type_Id",col("Payment_Type_Id")) \
-        .withColumn("Trip_Type",col("Trip_Type")) \
-        .withColumn("Congestion_Surcharge",col("Congestion_Surcharge")) 
-    """
+    # Merge everything together (we should have all the same schema now)
+    df_green_final = green_tripdata_2019_01 \
+        .union(green_tripdata_2019_02) \
+        .union(green_tripdata_2019_03) \
+        .union(green_tripdata_2019_04) \
+        .union(green_tripdata_2019_05) \
+        .union(green_tripdata_2019_06) \
+        .union(green_tripdata_2019_07) \
+        .union(green_tripdata_2019_08) \
+        .union(green_tripdata_2019_09) \
+        .union(green_tripdata_2019_10) \
+        .union(green_tripdata_2019_11) \
+        .union(green_tripdata_2019_12) \
+        .union(green_tripdata_2020_01) \
+        .union(green_tripdata_2020_02) \
+        .union(green_tripdata_2020_03) \
+        .union(green_tripdata_2020_04) \
+        .union(green_tripdata_2020_05) \
+        .union(green_tripdata_2020_06) \
+        .union(green_tripdata_2020_07) \
+        .union(green_tripdata_2020_08) \
+        .union(green_tripdata_2020_09) \
+        .union(green_tripdata_2020_10) \
+        .union(green_tripdata_2020_11) \
+        .union(green_tripdata_2020_12) \
+        .union(green_tripdata_2021_01) \
+        .union(green_tripdata_2021_02) \
+        .union(green_tripdata_2021_03) \
+        .union(green_tripdata_2021_04) \
+        .union(green_tripdata_2021_05) \
+        .union(green_tripdata_2021_06) \
+        .union(green_tripdata_2021_07) \
+        .union(green_tripdata_2021_08) \
+        .union(green_tripdata_2021_09) \
+        .union(green_tripdata_2021_10) \
+        .union(green_tripdata_2021_11) \
+        .union(green_tripdata_2021_12) \
+        .union(green_tripdata_2022_01) \
+        .union(green_tripdata_2022_02) \
+        .union(green_tripdata_2022_03) \
+        .union(green_tripdata_2022_04) \
+        .union(green_tripdata_2022_05) \
+        .union(green_tripdata_2022_06) \
+        .union(green_tripdata_2022_07) \
+        .union(green_tripdata_2022_08) \
+        .union(green_tripdata_2022_09) \
+        .union(green_tripdata_2022_10) \
+        .union(green_tripdata_2022_11) \
+        .union(green_tripdata_2022_12) \
+        .union(green_tripdata_2023_01) \
+        .union(green_tripdata_2023_02) \
+        .union(green_tripdata_2023_03) \
+        .union(green_tripdata_2023_04) \
+        .union(green_tripdata_2023_05) \
+        .union(green_tripdata_2023_06) \
+        .union(green_tripdata_2023_07) \
+        .union(green_tripdata_2023_08) \
+        .union(green_tripdata_2023_09)
 
-    # Note the IsIn is used since future dates can be in the files???
-    df_with_partition_cols = df_new_column_order \
+    df_with_partition_cols = df_green_final \
         .withColumn("year",  year      (col("Pickup_DateTime"))) \
         .withColumn("month", month     (col("Pickup_DateTime"))) \
-        .filter(year(col("Pickup_DateTime")).isin (2019,2020,2021,2022))
+        .filter("Pickup_DateTime >= '2019-01-01' AND Pickup_DateTime <= '2023-09-30'")
 
     # Write as Parquet
     df_with_partition_cols \
@@ -371,7 +478,7 @@ def ConvertTaxiData(sourceYellow, sourceGreen, destination):
         .partitionBy("year","month") \
         .format("json") \
         .save(destination + "green/trips_table/json")
-
+    
 
     ################################################################################################
     # Create Common Tables 

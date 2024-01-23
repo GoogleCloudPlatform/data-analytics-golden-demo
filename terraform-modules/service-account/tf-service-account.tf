@@ -27,7 +27,7 @@ terraform {
   required_providers {
     google = {
       source  = "hashicorp/google-beta"
-      version = "4.42.0"
+      version = ">= 4.52, < 6"
     }
   }
 }
@@ -73,6 +73,7 @@ resource "google_project_iam_member" "impersonation_account_owner" {
 ####################################################################################
 resource "google_service_account" "service_account" {
   account_id   = var.project_id
+  project      = var.project_id
   display_name = "Terraform Service Account"
 }
 

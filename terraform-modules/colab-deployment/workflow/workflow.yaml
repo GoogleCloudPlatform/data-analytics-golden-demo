@@ -1,0 +1,54 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Runs the setup steps for the data warehouse setup:
+# 1. Copies data from the public bucket into the staging buckets
+# 2. Executes a set of stored procedures to stage the remaining data needed
+
+main:
+    params: []
+    steps:
+    - sub_invoke_function:
+        call: invoke_function
+        result: output
+
+# Subworkflow to invoke Cloud Function
+invoke_function:
+    steps:
+        - init:
+            assign:
+                - function_url: ${function_url}
+                - function_name: ${function_name}
+        - run_function:
+            try:
+                call: http.get
+                args:
+                    url: $${function_url}
+                    auth:
+                        type: OIDC
+                result: function_result
+            retry:
+                max_retries: 2
+                backoff:
+                    initial_delay: 60
+                    max_delay: 120
+                    multiplier: 2
+            except:
+                as: e
+                raise:
+                    exception: $${e}
+                    functionName: $${function_name}
+        - finish:
+            return: $${function_result}
+
