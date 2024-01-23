@@ -27,7 +27,7 @@ terraform {
   required_providers {
     google = {
       source  = "hashicorp/google-beta"
-      version = "4.42.0"
+      version = ">= 4.52, < 6"
     }
   }
 }
@@ -344,4 +344,9 @@ resource "google_project_service" "service-artifactregistry" {
 resource "google_project_service" "service-speech" {
   project = var.project_id
   service = "speech.googleapis.com"
+}
+
+resource "google_project_service" "service-workflows" {
+  project = var.project_id
+  service = "workflows.googleapis.com"
 }

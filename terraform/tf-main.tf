@@ -46,7 +46,7 @@ terraform {
   required_providers {
     google = {
       source                = "hashicorp/google-beta"
-      version               = "4.42.0"
+      version               = ">= 4.52, < 6"
       configuration_aliases = [google.service_principal_impersonation]
     }
   }
@@ -313,6 +313,39 @@ module "deploy-files-module" {
   bigquery_rideshare_llm_curated_dataset        = module.resources.bigquery_rideshare_llm_curated_dataset 
   gcs_rideshare_lakehouse_raw_bucket            = module.resources.gcs_rideshare_lakehouse_raw_bucket
   cloud_run_service_rideshare_plus_website_url  = module.resources.cloud_run_service_rideshare_plus_website_url
+
+  depends_on = [
+    module.project,
+    module.service-account,
+    module.apis-batch-enable,
+    time_sleep.service_account_api_activation_time_delay,
+    module.org-policies,
+    module.resources
+  ]
+}
+
+
+####################################################################################
+# Deploy notebooks to Colab (Dataform)
+####################################################################################
+module "deploy-notebooks-module" {
+  source = "../terraform-modules/colab-deployment/terraform-module"
+
+  # Use Service Account Impersonation for this step. 
+  providers = { google = google.service_principal_impersonation }
+
+  project_id                              = local.local_project_id
+  bigquery_rideshare_llm_raw_dataset      = module.resources.bigquery_rideshare_llm_raw_dataset
+  bigquery_rideshare_llm_enriched_dataset = module.resources.bigquery_rideshare_llm_enriched_dataset
+  bigquery_rideshare_llm_curated_dataset  = module.resources.bigquery_rideshare_llm_curated_dataset
+  gcs_rideshare_lakehouse_raw_bucket      = module.resources.gcs_rideshare_lakehouse_raw_bucket
+  storage_bucket                          = local.local_storage_bucket
+  dataform_region                         = var.dataform_region
+  cloud_function_region                   = var.cloud_function_region
+  workflow_region                         = "us-central1"
+  random_extension                        = random_string.project_random.result
+  gcp_account_name                        = var.gcp_account_name
+  curl_impersonation                      = local.local_curl_impersonation
 
   depends_on = [
     module.project,
