@@ -1600,6 +1600,17 @@ resource "google_project_iam_member" "bq_connection_iam_object_viewer" {
   ]
 }
 
+# Allow BigLake connection to call STT
+resource "google_project_iam_member" "bq_connection_iam_stt_client" {
+  project = var.project_id
+  role    = "roles/speech.client"
+  member  = "serviceAccount:${google_bigquery_connection.biglake_connection.cloud_resource[0].service_account_id}"
+
+  depends_on = [
+    google_bigquery_connection.biglake_connection
+  ]
+}
+
 
 # BigLake Managed Tables
 resource "google_storage_bucket_iam_member" "bq_connection_mt_iam_object_owner" {
