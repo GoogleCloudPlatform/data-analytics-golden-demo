@@ -56,3 +56,5 @@ temp.md
 langchain/.venv/*
 langchain/.env
 temp-prompt.txt
+terraform-modules/colab-deployment/cloud-function/notebooks/*
+tmp/*
