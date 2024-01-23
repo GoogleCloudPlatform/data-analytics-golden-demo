@@ -41,3 +41,6 @@ rm ./terraform-modules/org-policies/tf-org-policies-original.txt
 rm ./cloud-functions/bigquery-external-function.zip
 
 #rm key-file-*.json
+
+rm -r ./terraform-modules/colab-deployment/cloud-function/notebooks
+rm -r ./tmp
