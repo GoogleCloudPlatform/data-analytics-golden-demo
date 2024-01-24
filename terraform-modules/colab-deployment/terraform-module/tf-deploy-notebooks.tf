@@ -102,7 +102,7 @@ data "archive_file" "create_notebook_function_zip" {
 
 ## Upload the zip file of the source code to GCS
 resource "google_storage_bucket_object" "function_source_upload" {
-  name   = "/cloud-function/notebooks_function_source.zip"
+  name   = "cloud-functions/notebooks_function_source.zip"
   bucket = "code-${var.storage_bucket}"
   source = data.archive_file.create_notebook_function_zip.output_path
 }
