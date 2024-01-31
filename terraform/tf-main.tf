@@ -254,6 +254,7 @@ module "sql-scripts" {
   bigquery_rideshare_llm_raw_dataset            = module.resources.bigquery_rideshare_llm_raw_dataset
   bigquery_rideshare_llm_enriched_dataset       = module.resources.bigquery_rideshare_llm_enriched_dataset
   bigquery_rideshare_llm_curated_dataset        = module.resources.bigquery_rideshare_llm_curated_dataset
+  bigquery_cleanroom_dataset                    = module.resources.bigquery_cleanroom_dataset
 
   depends_on = [
     module.project,
