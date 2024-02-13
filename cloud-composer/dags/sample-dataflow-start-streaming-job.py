@@ -113,7 +113,7 @@ with airflow.DAG('sample-dataflow-start-streaming-job',
                 'maxNumWorkers'     : 5
             },
             py_interpreter='python3',
-            py_requirements=['google-cloud-pubsub==2.1.0','google-cloud-bigquery-storage==2.13.2','apache-beam[gcp]==2.42.0'],
+            py_requirements=['google-cloud-pubsub==2.19.4','google-cloud-bigquery-storage==2.24.0','apache-beam[gcp]==2.53.0'],
             py_system_site_packages=False,
             dataflow_config=DataflowConfiguration(
                 job_name="taxi-dataflow-streaming-bigquery",
