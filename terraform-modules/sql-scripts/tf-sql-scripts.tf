@@ -2252,6 +2252,7 @@ resource "google_bigquery_routine" "sproc_sp_rideshare_llm_curated_sp_step_00_in
 # cleanroom_demo_queries
 ####################################################################################
 resource "google_bigquery_routine" "sproc_sp_demo_cleanroom_queries" {
+  project         = var.project_id
   dataset_id      = var.bigquery_taxi_dataset
   routine_id      = "sp_demo_cleanroom_queries"
   routine_type    = "PROCEDURE"
