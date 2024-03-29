@@ -104,6 +104,10 @@ variable "bigquery_rideshare_llm_curated_dataset" {
   type    = string
   default = "rideshare_llm_curated"
 }
+variable "bigquery_cleanroom_dataset" {
+  type = string
+  default = "nyc_rideshare_data_nyc_rideshare_tables"
+}
 
 ####################################################################################
 # Bucket for all data (BigQuery, Spark, etc...)
@@ -2873,4 +2877,8 @@ output "bigquery_rideshare_llm_enriched_dataset" {
 
 output "bigquery_rideshare_llm_curated_dataset" {
   value = var.bigquery_rideshare_llm_curated_dataset
+}
+
+output "bigquery_cleanroom_dataset" {
+  value = var.bigquery_cleanroom_dataset
 }
