@@ -25,7 +25,7 @@ terraform {
   required_providers {
     google = {
       source  = "hashicorp/google-beta"
-      version = "4.42.0"
+      version = ">= 4.52, < 6"
     }
   }
 }
@@ -194,6 +194,7 @@ resource "google_storage_bucket" "biglake_managed_table_bucket" {
 ####################################################################################
 # Required since we are setting BigLake permissions with BigSpark
 resource "google_project_iam_custom_role" "customconnectiondelegate" {
+  project     = var.project_id
   role_id     = "CustomConnectionDelegate"
   title       = "Custom Connection Delegate"
   description = "Used for BQ connections"
@@ -203,6 +204,7 @@ resource "google_project_iam_custom_role" "customconnectiondelegate" {
 }
 
 resource "google_project_iam_custom_role" "custom-role-custom-delegate" {
+  project     = var.project_id
   role_id     = "CustomDelegate"
   title       = "Custom Delegate"
   description = "Used for BLMS connections"
@@ -282,6 +284,7 @@ locals {
 }
 
 resource "google_compute_router" "nat-router-distinct-regions" {
+  project = var.project_id
   count   = length(local.distinctRegions)
   name    = "nat-router-${local.distinctRegions[count.index]}"
   region  = local.distinctRegions[count.index]
@@ -293,6 +296,7 @@ resource "google_compute_router" "nat-router-distinct-regions" {
 }
 
 resource "google_compute_router_nat" "nat-config-distinct-regions" {
+  project                            = var.project_id
   count                              = length(local.distinctRegions)
   name                               = "nat-config-${local.distinctRegions[count.index]}"
   router                             = google_compute_router.nat-router-distinct-regions[count.index].name
@@ -1416,6 +1420,7 @@ resource "google_cloudfunctions_function_iam_member" "rideshare_plus_function_in
 # Cloud Function connection
 # https://cloud.google.com/bigquery/docs/biglake-quickstart#terraform
 resource "google_bigquery_connection" "cloud_function_connection" {
+  project       = var.project_id
   connection_id = "cloud-function"
   location      = var.bigquery_region
   friendly_name = "cloud-function"
@@ -1529,6 +1534,7 @@ resource "google_project_iam_member" "cloud_function_bq_job_user" {
 
 # Allow cloud function to access Rideshare BQ Datasets
 resource "google_bigquery_dataset_access" "cloud_function_access_bq_rideshare_curated" {
+  project       = var.project_id
   dataset_id    = google_bigquery_dataset.rideshare_lakehouse_curated_dataset.dataset_id
   role          = "roles/bigquery.dataOwner"
   user_by_email = "${var.project_number}-compute@developer.gserviceaccount.com"
@@ -1543,6 +1549,7 @@ resource "google_bigquery_dataset_access" "cloud_function_access_bq_rideshare_cu
 
 # For streaming data / view
 resource "google_bigquery_dataset_access" "cloud_function_access_bq_rideshare_raw" {
+  project       = var.project_id
   dataset_id    = google_bigquery_dataset.rideshare_lakehouse_raw_dataset.dataset_id
   role          = "roles/bigquery.dataViewer"
   user_by_email = "${var.project_number}-compute@developer.gserviceaccount.com"
@@ -1557,6 +1564,7 @@ resource "google_bigquery_dataset_access" "cloud_function_access_bq_rideshare_ra
 
 # For streaming data / view [V2 function]
 resource "google_bigquery_dataset_access" "cloud_function_access_bq_taxi_dataset" {
+  project       = var.project_id
   dataset_id    = google_bigquery_dataset.taxi_dataset.dataset_id
   role          = "roles/bigquery.dataViewer"
   user_by_email = "${var.project_number}-compute@developer.gserviceaccount.com"
@@ -1573,6 +1581,7 @@ resource "google_bigquery_dataset_access" "cloud_function_access_bq_taxi_dataset
 
 # BigLake connection
 resource "google_bigquery_connection" "biglake_connection" {
+  project       = var.project_id
   connection_id = "biglake-connection"
   location      = var.bigquery_region
   friendly_name = "biglake-connection"
@@ -1588,6 +1597,17 @@ resource "google_bigquery_connection" "biglake_connection" {
 resource "google_project_iam_member" "bq_connection_iam_object_viewer" {
   project = var.project_id
   role    = "roles/storage.objectViewer"
+  member  = "serviceAccount:${google_bigquery_connection.biglake_connection.cloud_resource[0].service_account_id}"
+
+  depends_on = [
+    google_bigquery_connection.biglake_connection
+  ]
+}
+
+# Allow BigLake connection to call STT
+resource "google_project_iam_member" "bq_connection_iam_stt_client" {
+  project = var.project_id
+  role    = "roles/speech.client"
   member  = "serviceAccount:${google_bigquery_connection.biglake_connection.cloud_resource[0].service_account_id}"
 
   depends_on = [
@@ -1623,6 +1643,7 @@ resource "google_project_iam_member" "biglake_customconnectiondelegate" {
 
 # Vertex AI connection
 resource "google_bigquery_connection" "vertex_ai_connection" {
+  project       = var.project_id
   connection_id = "vertex-ai"
   location      = var.bigquery_region
   friendly_name = "vertex-ai"
@@ -2027,6 +2048,7 @@ resource "google_project_iam_member" "iam_member_bigquerydatatransfer_serviceAge
 
 # https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/data_catalog_tag_template
 resource "google_data_catalog_tag_template" "table_dq_tag_template" {
+  project         = var.project_id
   tag_template_id = "table_dq_tag_template"
   region          = var.data_catalog_region
   display_name    = "Data-Quality-Table"
@@ -2101,6 +2123,7 @@ resource "google_data_catalog_tag_template" "table_dq_tag_template" {
 
 
 resource "google_data_catalog_tag_template" "column_dq_tag_template" {
+  project         = var.project_id
   tag_template_id = "column_dq_tag_template"
   region          = var.data_catalog_region
   display_name    = "Data-Quality-Column"
@@ -2252,6 +2275,7 @@ resource "time_sleep" "create_pubsub_account_time_delay" {
 
 # Grant require worker role
 resource "google_bigquery_dataset_access" "pubsub_access_bq_taxi_dataset" {
+  project       = var.project_id
   dataset_id    = google_bigquery_dataset.taxi_dataset.dataset_id
   role          = "roles/bigquery.dataOwner"
   user_by_email = google_project_service_identity.service_identity_pub_sub.email
@@ -2305,6 +2329,9 @@ resource "null_resource" "colab_runtime_template" {
           enableInternetAccess: false,
           network: "projects/${var.project_id}/global/networks/vpc-main", 
           subnetwork: "projects/${var.project_id}/regions/${var.colab_enterprise_region}/subnetworks/colab-subnet"
+        },
+        shieldedVmConfig: {
+          enableSecureBoot: true
         }
   }'
 EOF
@@ -2396,6 +2423,7 @@ resource "google_storage_bucket_iam_member" "cloud_run_rideshare_plus_service_ac
 
 
 resource "google_bigquery_dataset_access" "cloud_run_rideshare_lakehouse_curated_dataset" {
+  project       = var.project_id
   dataset_id    = google_bigquery_dataset.rideshare_lakehouse_curated_dataset.dataset_id
   role          = "roles/bigquery.dataOwner"
   user_by_email = google_service_account.cloud_run_rideshare_plus_service_account.email
@@ -2409,6 +2437,7 @@ resource "google_bigquery_dataset_access" "cloud_run_rideshare_lakehouse_curated
 
 
 resource "google_bigquery_dataset_access" "cloud_run_rideshare_lakehouse_enriched_dataset" {
+  project       = var.project_id
   dataset_id    = google_bigquery_dataset.rideshare_lakehouse_enriched_dataset.dataset_id
   role          = "roles/bigquery.dataOwner"
   user_by_email = google_service_account.cloud_run_rideshare_plus_service_account.email
@@ -2421,6 +2450,7 @@ resource "google_bigquery_dataset_access" "cloud_run_rideshare_lakehouse_enriche
 }
 
 resource "google_bigquery_dataset_access" "cloud_run_rideshare_lakehouse_raw_dataset" {
+  project       = var.project_id
   dataset_id    = google_bigquery_dataset.rideshare_lakehouse_raw_dataset.dataset_id
   role          = "roles/bigquery.dataOwner"
   user_by_email = google_service_account.cloud_run_rideshare_plus_service_account.email
@@ -2434,6 +2464,7 @@ resource "google_bigquery_dataset_access" "cloud_run_rideshare_lakehouse_raw_dat
 
 
 resource "google_bigquery_dataset_access" "cloud_run_rideshare_llm_curated_dataset" {
+  project       = var.project_id
   dataset_id    = google_bigquery_dataset.ideshare_llm_curated_dataset.dataset_id
   role          = "roles/bigquery.dataOwner"
   user_by_email = google_service_account.cloud_run_rideshare_plus_service_account.email
@@ -2447,6 +2478,7 @@ resource "google_bigquery_dataset_access" "cloud_run_rideshare_llm_curated_datas
 
 
 resource "google_bigquery_dataset_access" "cloud_run_rideshare_llm_enriched_dataset" {
+  project       = var.project_id
   dataset_id    = google_bigquery_dataset.rideshare_llm_enriched_dataset.dataset_id
   role          = "roles/bigquery.dataOwner"
   user_by_email = google_service_account.cloud_run_rideshare_plus_service_account.email
@@ -2460,6 +2492,7 @@ resource "google_bigquery_dataset_access" "cloud_run_rideshare_llm_enriched_data
 
 
 resource "google_bigquery_dataset_access" "cloud_run_rideshare_llm_raw_dataset" {
+  project       = var.project_id
   dataset_id    = google_bigquery_dataset.rideshare_llm_raw_dataset.dataset_id
   role          = "roles/bigquery.dataOwner"
   user_by_email = google_service_account.cloud_run_rideshare_plus_service_account.email
@@ -2472,6 +2505,7 @@ resource "google_bigquery_dataset_access" "cloud_run_rideshare_llm_raw_dataset" 
 }
 
 resource "google_bigquery_dataset_access" "cloud_run_taxi_dataset" {
+  project       = var.project_id
   dataset_id    = google_bigquery_dataset.taxi_dataset.dataset_id
   role          = "roles/bigquery.dataOwner"
   user_by_email = google_service_account.cloud_run_rideshare_plus_service_account.email

@@ -25,7 +25,7 @@ terraform {
   required_providers {
     google = {
       source  = "hashicorp/google-beta"
-      version = "4.42.0"
+      version = ">= 4.52, < 6"
     }
   }
 }
@@ -47,6 +47,7 @@ variable "code_bucket_name" {}
 variable "bigquery_rideshare_llm_raw_dataset" {}
 variable "bigquery_rideshare_llm_enriched_dataset" {}
 variable "bigquery_rideshare_llm_curated_dataset" {}
+variable "bigquery_region" {}
 variable "gcs_rideshare_lakehouse_raw_bucket" {}
 variable "cloud_run_service_rideshare_plus_website_url" {}
 
@@ -1574,6 +1575,8 @@ resource "google_storage_bucket_object" "deploy_notebook_rideshare_llm_ai_lakeho
     bigquery_rideshare_llm_raw_dataset = var.bigquery_rideshare_llm_raw_dataset
     bigquery_rideshare_llm_enriched_dataset = var.bigquery_rideshare_llm_enriched_dataset
     bigquery_rideshare_llm_curated_dataset = var.bigquery_rideshare_llm_curated_dataset
+
+    bigquery_region = var.bigquery_region
 
     gcs_rideshare_lakehouse_raw_bucket = var.gcs_rideshare_lakehouse_raw_bucket    
   })

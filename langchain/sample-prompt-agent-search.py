@@ -28,7 +28,7 @@
 # pip install google-api-python-client==2.100.0
 # pip install numexpr==2.8.6
 # pip install youtube_search==2.1.2
-# run it: python sample-prompt-agent-serper.py
+# run it: python sample-prompt-agent-search.py
 # deactivate
 # update or install the necessary libraries
 
@@ -60,9 +60,19 @@ llm = VertexAI(
     verbose=True,
 )
 
-tools = load_tools(["google-serper", "llm-math"], llm=llm)
+search = GoogleSearchAPIWrapper()
+
+google_search_tool = Tool(
+    name="Google Search",
+    description="Search Google for recent results.",
+    func=search.run,
+)
+
+tools = load_tools(["llm-math"], llm=llm)
+
+tools.append(google_search_tool)
 
 agent = initialize_agent(tools, llm, agent="zero-shot-react-description", verbose=True)
 
 #agent.run("Who is the current presidents wfie? What is their current age raised multiplied by 5?")
-agent.run("""Get a list of NYC events for tonight and return the results in the following JSON format""")
+agent.run("""Get a list of NYC events for tonight and return the results in the following JSON format: [{ "event":"value", "address":""  }]""")

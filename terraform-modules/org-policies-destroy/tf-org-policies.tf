@@ -25,7 +25,7 @@ terraform {
   required_providers {
     google = {
       source  = "hashicorp/google-beta"
-      version = "4.42.0"
+      version = ">= 4.52, < 6"
     }
   }
 }
@@ -85,6 +85,7 @@ resource "google_org_policy_policy" "org_policy_require_os_login" {
 
 
 # Needed for Colab Enterprise notebooks
+/*
 resource "google_org_policy_policy" "org_policy_require_shielded_vm" {
   name     = "projects/${var.project_id}/policies/compute.requireShieldedVm"
   parent   = "projects/${var.project_id}"
@@ -95,7 +96,7 @@ resource "google_org_policy_policy" "org_policy_require_shielded_vm" {
     }
   }
 }
-
+*/
 
 # To deploy the cloud function
 /*

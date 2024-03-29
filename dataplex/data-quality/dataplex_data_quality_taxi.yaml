@@ -31,13 +31,13 @@
 row_filters:
   NONE:
     filter_sql_expr: |-
-      PartitionDate = '2022-06-01'
+      PartitionDate = '2023-09-01'
   YELLOW_TAXI:
     filter_sql_expr: |-
-      TaxiCompany = 'Yellow' and PartitionDate = '2022-06-01'
+      TaxiCompany = 'Yellow' and PartitionDate = '2023-09-01'
   GREEN_TAXI:
     filter_sql_expr: |-
-      TaxiCompany = 'Green' and PartitionDate = '2022-06-01'
+      TaxiCompany = 'Green' and PartitionDate = '2023-09-01'
 
 
 ############################################################

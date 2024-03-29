@@ -83,4 +83,10 @@ IF UPPER(bigquery_region) = 'US' THEN
 
     CALL `${project_id}.${bigquery_thelook_ecommerce_dataset}.churn_demo_step_0_create_artifacts`();
 
+    -- Need a better SQL (we should update it based upon today - find the current date and the max date and do an update)
+    -- We want 30 days in the future for the demo.
+    UPDATE `${project_id}.${bigquery_thelook_ecommerce_dataset}.product_deliveries` 
+       SET delivery_time =  TIMESTAMP_ADD(delivery_time, INTERVAL 60 DAY)
+     WHERE TRUE;    
+
 END IF;
