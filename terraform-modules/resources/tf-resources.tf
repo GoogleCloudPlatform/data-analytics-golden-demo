@@ -717,8 +717,8 @@ resource "google_composer_environment" "composer_env" {
   config {
 
     software_config {
-      #image_version = "composer-2.2.0-airflow-2.5.1" # "composer-2.0.31-airflow-2.3.3"
-      image_version = data.google_composer_image_versions.latest_image.image_versions[0].image_version_id
+      image_version = "composer-2.6.6-airflow-2.6.3" # the latest version is broke
+      #image_version = data.google_composer_image_versions.latest_image.image_versions[0].image_version_id
 
       pypi_packages = {
         psycopg2-binary = "==2.9.6"
