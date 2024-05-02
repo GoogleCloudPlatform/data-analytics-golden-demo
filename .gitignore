@@ -58,3 +58,4 @@ langchain/.env
 temp-prompt.txt
 terraform-modules/colab-deployment/cloud-function/notebooks/*
 tmp/*
+copy-public-storage.sh

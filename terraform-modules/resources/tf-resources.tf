@@ -257,6 +257,7 @@ resource "google_compute_firewall" "subnet_firewall_rule" {
   source_ranges = ["10.1.0.0/16", "10.2.0.0/16", "10.3.0.0/16", "10.4.0.0/16", "10.5.0.0/16"]
 
   depends_on = [
+    google_compute_subnetwork.compute_subnet,
     google_compute_subnetwork.composer_subnet,
     google_compute_subnetwork.dataproc_subnet,
     google_compute_subnetwork.dataproc_serverless_subnet,
@@ -1592,6 +1593,10 @@ resource "google_bigquery_connection" "biglake_connection" {
   ]
 }
 
+resource "time_sleep" "biglake_connection_time_delay" {
+  depends_on      = [google_bigquery_connection.biglake_connection]
+  create_duration = "30s"
+}
 
 # Allow BigLake to read storage
 resource "google_project_iam_member" "bq_connection_iam_object_viewer" {
@@ -1600,21 +1605,20 @@ resource "google_project_iam_member" "bq_connection_iam_object_viewer" {
   member  = "serviceAccount:${google_bigquery_connection.biglake_connection.cloud_resource[0].service_account_id}"
 
   depends_on = [
-    google_bigquery_connection.biglake_connection
+    time_sleep.biglake_connection_time_delay
   ]
 }
 
-# Allow BigLake connection to call STT
+# Allow BigLake connection to call STT 
 resource "google_project_iam_member" "bq_connection_iam_stt_client" {
   project = var.project_id
   role    = "roles/speech.client"
   member  = "serviceAccount:${google_bigquery_connection.biglake_connection.cloud_resource[0].service_account_id}"
 
   depends_on = [
-    google_bigquery_connection.biglake_connection
+    time_sleep.biglake_connection_time_delay
   ]
 }
-
 
 # BigLake Managed Tables
 resource "google_storage_bucket_iam_member" "bq_connection_mt_iam_object_owner" {
@@ -1623,10 +1627,9 @@ resource "google_storage_bucket_iam_member" "bq_connection_mt_iam_object_owner" 
   member = "serviceAccount:${google_bigquery_connection.biglake_connection.cloud_resource[0].service_account_id}"
 
   depends_on = [
-    google_bigquery_connection.biglake_connection
+    time_sleep.biglake_connection_time_delay
   ]
 }
-
 
 # Allow BigLake to custom role
 resource "google_project_iam_member" "biglake_customconnectiondelegate" {
@@ -1635,10 +1638,60 @@ resource "google_project_iam_member" "biglake_customconnectiondelegate" {
   member  = "serviceAccount:${google_bigquery_connection.biglake_connection.cloud_resource[0].service_account_id}"
 
   depends_on = [
-    google_bigquery_connection.biglake_connection,
+    time_sleep.biglake_connection_time_delay,
     google_project_iam_custom_role.customconnectiondelegate
   ]
 }
+
+# In IAM add roles/biglake.admin to the us.biglake-notebook-connection service account
+# To create the tables in BigQuery linked to BLMS
+resource "google_project_iam_member" "biglake_connection_biglake_admin" {
+  project = var.project_id
+  role    = "roles/biglake.admin"
+  member  = "serviceAccount:${google_bigquery_connection.biglake_connection.cloud_resource[0].service_account_id}"
+
+  depends_on = [
+    time_sleep.biglake_connection_time_delay
+  ]
+}
+
+
+resource "google_bigquery_dataset_access" "biglake_connection_taxi_dataset" {
+  project       = var.project_id
+  dataset_id    = google_bigquery_dataset.taxi_dataset.dataset_id
+  role          = "roles/bigquery.dataOwner"
+  user_by_email = google_bigquery_connection.biglake_connection.cloud_resource[0].service_account_id
+
+  depends_on = [
+    time_sleep.biglake_connection_time_delay,
+    google_bigquery_dataset.taxi_dataset
+  ]
+}
+
+resource "google_bigquery_dataset_access" "biglake_connection_rideshare_lakehouse_raw_dataset" {
+  project       = var.project_id
+  dataset_id    = google_bigquery_dataset.rideshare_lakehouse_raw_dataset.dataset_id
+  role          = "roles/bigquery.dataOwner"
+  user_by_email = google_bigquery_connection.biglake_connection.cloud_resource[0].service_account_id
+
+  depends_on = [
+    time_sleep.biglake_connection_time_delay,
+    google_bigquery_dataset.rideshare_lakehouse_raw_dataset
+  ]
+}
+
+resource "google_bigquery_dataset_access" "biglake_connection_rideshare_lakehouse_enriched_dataset" {
+  project       = var.project_id
+  dataset_id    = google_bigquery_dataset.rideshare_lakehouse_enriched_dataset.dataset_id
+  role          = "roles/bigquery.dataOwner"
+  user_by_email = google_bigquery_connection.biglake_connection.cloud_resource[0].service_account_id
+
+  depends_on = [
+    time_sleep.biglake_connection_time_delay,
+    google_bigquery_dataset.rideshare_lakehouse_enriched_dataset
+  ]
+}
+
 
 
 # Vertex AI connection
@@ -1654,6 +1707,10 @@ resource "google_bigquery_connection" "vertex_ai_connection" {
   ]
 }
 
+resource "time_sleep" "vertex_ai_connection_time_delay" {
+  depends_on      = [google_bigquery_connection.vertex_ai_connection]
+  create_duration = "30s"
+}
 
 # Allow Vertex AI connection to Vertex User
 resource "google_project_iam_member" "vertex_ai_connection_vertex_user_role" {
@@ -1662,9 +1719,146 @@ resource "google_project_iam_member" "vertex_ai_connection_vertex_user_role" {
   member  = "serviceAccount:${google_bigquery_connection.vertex_ai_connection.cloud_resource[0].service_account_id}"
 
   depends_on = [
+    time_sleep.vertex_ai_connection_time_delay
+  ]
+}
+
+
+# Spark connection
+resource "google_bigquery_connection" "spark_connection" {
+  project       = var.project_id
+  connection_id = "spark-connection"
+  location      = var.bigquery_region
+  friendly_name = "spark-connection"
+  description   = "spark-connection"
+  spark {}
+  depends_on = [
     google_bigquery_connection.vertex_ai_connection
   ]
 }
+
+resource "time_sleep" "spark_connection_time_delay" {
+  depends_on      = [google_bigquery_connection.spark_connection]
+  create_duration = "30s"
+}
+
+
+# Set bucket object admin on Dataproc temp bucket
+resource "google_storage_bucket_iam_member" "spark_connection_object_admin_dataproc_bucket" {
+  bucket = google_storage_bucket.dataproc_bucket.name
+  role   = "roles/storage.objectAdmin"
+  member = "serviceAccount:${google_bigquery_connection.spark_connection.spark[0].service_account_id}"
+
+  depends_on = [
+    time_sleep.spark_connection_time_delay,
+    google_storage_bucket.dataproc_bucket
+  ]
+}
+
+# Set bucket object admin on Raw
+resource "google_storage_bucket_iam_member" "spark_connection_object_admin_raw_bucket" {
+  bucket = google_storage_bucket.raw_bucket.name
+  role   = "roles/storage.objectAdmin"
+  member = "serviceAccount:${google_bigquery_connection.spark_connection.spark[0].service_account_id}"
+
+  depends_on = [
+    time_sleep.spark_connection_time_delay,
+    google_storage_bucket.raw_bucket
+  ]
+}
+
+resource "google_storage_bucket_iam_member" "spark_connection_object_admin_rideshare_lakehouse_enriched" {
+  bucket = google_storage_bucket.rideshare_lakehouse_enriched.name
+  role   = "roles/storage.objectAdmin"
+  member = "serviceAccount:${google_bigquery_connection.spark_connection.spark[0].service_account_id}"
+
+  depends_on = [
+    time_sleep.spark_connection_time_delay,
+    google_storage_bucket.rideshare_lakehouse_enriched
+  ]
+}
+
+resource "google_storage_bucket_iam_member" "spark_connection_object_admin_rideshare_lakehouse_raw" {
+  bucket = google_storage_bucket.rideshare_lakehouse_raw.name
+  role   = "roles/storage.objectAdmin"
+  member = "serviceAccount:${google_bigquery_connection.spark_connection.spark[0].service_account_id}"
+
+  depends_on = [
+    time_sleep.spark_connection_time_delay,
+    google_storage_bucket.rideshare_lakehouse_raw
+  ]
+}
+
+resource "google_project_iam_member" "spark_connection_connection_admin" {
+  project = var.project_id
+  role    = "roles/bigquery.connectionAdmin"
+  member  = "serviceAccount:${google_bigquery_connection.spark_connection.spark[0].service_account_id}"
+
+  depends_on = [
+    time_sleep.spark_connection_time_delay,
+  ]
+}
+
+# In IAM add roles/biglake.admin to the us.spark-notebook-connection service account
+# To create the Iceberg Catalog in BLMS
+resource "google_project_iam_member" "spark_connection_biglake_admin" {
+  project = var.project_id
+  role    = "roles/biglake.admin"
+  member  = "serviceAccount:${google_bigquery_connection.spark_connection.spark[0].service_account_id}"
+
+  depends_on = [
+    time_sleep.spark_connection_time_delay,
+  ]
+}
+
+# In IAM add roles/bigquery.user to the us.spark-notebook-connection service account
+# To create BigQuery jobs
+resource "google_project_iam_member" "spark_connection_bigquery_user" {
+  project = var.project_id
+  role    = "roles/bigquery.user"
+  member  = "serviceAccount:${google_bigquery_connection.spark_connection.spark[0].service_account_id}"
+
+  depends_on = [
+    time_sleep.spark_connection_time_delay,
+  ]
+}
+
+resource "google_bigquery_dataset_access" "spark_connection_taxi_dataset" {
+  project       = var.project_id
+  dataset_id    = google_bigquery_dataset.taxi_dataset.dataset_id
+  role          = "roles/bigquery.dataOwner"
+  user_by_email = google_bigquery_connection.spark_connection.spark[0].service_account_id
+
+  depends_on = [
+    time_sleep.spark_connection_time_delay,
+    google_bigquery_dataset.taxi_dataset
+  ]
+}
+
+resource "google_bigquery_dataset_access" "spark_connection_rideshare_lakehouse_raw_dataset" {
+  project       = var.project_id
+  dataset_id    = google_bigquery_dataset.rideshare_lakehouse_raw_dataset.dataset_id
+  role          = "roles/bigquery.dataOwner"
+  user_by_email = google_bigquery_connection.spark_connection.spark[0].service_account_id
+
+  depends_on = [
+    time_sleep.spark_connection_time_delay,
+    google_bigquery_dataset.rideshare_lakehouse_raw_dataset
+  ]
+}
+
+resource "google_bigquery_dataset_access" "spark_connection_rideshare_lakehouse_enriched_dataset" {
+  project       = var.project_id
+  dataset_id    = google_bigquery_dataset.rideshare_lakehouse_enriched_dataset.dataset_id
+  role          = "roles/bigquery.dataOwner"
+  user_by_email = google_bigquery_connection.spark_connection.spark[0].service_account_id
+
+  depends_on = [
+    time_sleep.spark_connection_time_delay,
+    google_bigquery_dataset.rideshare_lakehouse_enriched_dataset
+  ]
+}
+
 
 
 ####################################################################################

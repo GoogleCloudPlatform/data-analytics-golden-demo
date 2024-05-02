@@ -44,10 +44,12 @@ variable "spanner_region" {}
 variable "cloud_function_region" {}
 variable "bigquery_region" {}
 variable "shared_demo_project_id" {}
+
 variable "aws_omni_biglake_dataset_name" {}
 variable "aws_omni_biglake_dataset_region" {}
 variable "aws_omni_biglake_connection" {}
 variable "aws_omni_biglake_s3_bucket" {}
+
 variable "azure_omni_biglake_dataset_name" {}
 variable "azure_omni_biglake_connection" {}
 variable "azure_omni_biglake_adls_name" {}
@@ -1218,15 +1220,37 @@ resource "google_bigquery_routine" "sproc_sp_demo_aws_omni_create_tables" {
 
 
 ####################################################################################
-# sp_demo_aws_omni_delta_lake
+# sp_demo_aws_omni_delta_lake_native
 ####################################################################################
-resource "google_bigquery_routine" "sproc_sp_demo_aws_omni_delta_lake" {
+resource "google_bigquery_routine" "sproc_sp_demo_aws_omni_delta_lake_native" {
   project         = var.project_id
   dataset_id      = var.aws_omni_biglake_dataset_name
-  routine_id      = "sp_demo_aws_omni_delta_lake"
+  routine_id      = "sp_demo_aws_omni_delta_lake_native"
   routine_type    = "PROCEDURE"
   language        = "SQL"
-  definition_body = templatefile("../sql-scripts/aws_omni_biglake/sp_demo_aws_omni_delta_lake.sql", 
+  definition_body = templatefile("../sql-scripts/aws_omni_biglake/sp_demo_aws_omni_delta_lake_native.sql", 
+  { 
+    project_id = var.project_id
+    
+    shared_demo_project_id          = var.shared_demo_project_id
+    aws_omni_biglake_dataset_region = var.aws_omni_biglake_dataset_region
+    aws_omni_biglake_dataset_name   = var.aws_omni_biglake_dataset_name
+    aws_omni_biglake_connection     = var.aws_omni_biglake_connection
+    aws_omni_biglake_s3_bucket      = var.aws_omni_biglake_s3_bucket
+  })
+}
+
+
+####################################################################################
+# sp_demo_aws_omni_delta_lake_workaround
+####################################################################################
+resource "google_bigquery_routine" "sproc_sp_demo_aws_omni_delta_lake_workaround" {
+  project         = var.project_id
+  dataset_id      = var.aws_omni_biglake_dataset_name
+  routine_id      = "sp_demo_aws_omni_delta_lake_workaround"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = templatefile("../sql-scripts/aws_omni_biglake/sp_demo_aws_omni_delta_lake_workaround.sql", 
   { 
     project_id = var.project_id
     
@@ -1365,15 +1389,36 @@ resource "google_bigquery_routine" "sproc_sp_demo_azure_omni_create_tables" {
 
 
 ####################################################################################
-# sp_demo_azure_omni_delta_lake
+# sp_demo_azure_omni_delta_lake_native
 ####################################################################################
-resource "google_bigquery_routine" "sproc_sp_demo_azure_omni_delta_lake" {
+resource "google_bigquery_routine" "sproc_sp_demo_azure_omni_delta_lake_native" {
   project         = var.project_id
   dataset_id      = var.azure_omni_biglake_dataset_name
-  routine_id      = "sp_demo_azure_omni_delta_lake"
+  routine_id      = "sp_demo_azure_omni_delta_lake_native"
   routine_type    = "PROCEDURE"
   language        = "SQL"
-  definition_body = templatefile("../sql-scripts/azure_omni_biglake/sp_demo_azure_omni_delta_lake.sql", 
+  definition_body = templatefile("../sql-scripts/azure_omni_biglake/sp_demo_azure_omni_delta_lake_native.sql", 
+  { 
+    project_id = var.project_id
+    
+    shared_demo_project_id          = var.shared_demo_project_id
+    azure_omni_biglake_dataset_name = var.azure_omni_biglake_dataset_name
+    azure_omni_biglake_adls_name    = var.azure_omni_biglake_adls_name
+    azure_omni_biglake_connection   = var.azure_omni_biglake_connection
+  })
+}
+
+
+####################################################################################
+# sp_demo_azure_omni_delta_lake_workaround
+####################################################################################
+resource "google_bigquery_routine" "sproc_sp_demo_azure_omni_delta_lake_workaround" {
+  project         = var.project_id
+  dataset_id      = var.azure_omni_biglake_dataset_name
+  routine_id      = "sp_demo_azure_omni_delta_lake_workaround"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = templatefile("../sql-scripts/azure_omni_biglake/sp_demo_azure_omni_delta_lake_workaround.sql", 
   { 
     project_id = var.project_id
     
@@ -1627,36 +1672,6 @@ resource "google_bigquery_routine" "sproc_sp_create_streaming_view_enriched" {
     gcs_rideshare_lakehouse_curated_bucket = var.gcs_rideshare_lakehouse_curated_bucket  
   })
 
-}
-
-
-####################################################################################
-# sp_iceberg_spark_transformation
-# NOTE: This is a BigSpark stored procedure (which currently does not have t
-#       terraform support).  The Spark specific elements have been commented out.data "
-#       Also, currently BigSpark requires allow listing
-####################################################################################
-resource "google_bigquery_routine" "sproc_sp_iceberg_spark_transformation" {
-  project         = var.project_id
-  dataset_id      = var.bigquery_rideshare_lakehouse_enriched_dataset
-  routine_id      = "sp_iceberg_spark_transformation"
-  routine_type    = "PROCEDURE"
-  language        = "SQL"
-  definition_body = templatefile("../sql-scripts/rideshare_lakehouse_enriched/sp_iceberg_spark_transformation.sql", 
-  { 
-    project_id = var.project_id
-    project_number = var.project_number
-    
-    bigquery_taxi_dataset = var.bigquery_taxi_dataset
-    bigquery_region = var.bigquery_region
-    gcp_account_name = var.gcp_account_name
-    bigquery_rideshare_lakehouse_raw_dataset = var.bigquery_rideshare_lakehouse_raw_dataset
-    gcs_rideshare_lakehouse_raw_bucket = var.gcs_rideshare_lakehouse_raw_bucket
-    bigquery_rideshare_lakehouse_enriched_dataset = var.bigquery_rideshare_lakehouse_enriched_dataset
-    gcs_rideshare_lakehouse_enriched_bucket = var.gcs_rideshare_lakehouse_enriched_bucket
-    bigquery_rideshare_lakehouse_curated_dataset = var.bigquery_rideshare_lakehouse_curated_dataset
-    gcs_rideshare_lakehouse_curated_bucket = var.gcs_rideshare_lakehouse_curated_bucket   
-  })
 }
 
 
@@ -2264,4 +2279,129 @@ resource "google_bigquery_routine" "sproc_sp_demo_cleanroom_queries" {
     bigquery_cleanroom_dataset = var.bigquery_cleanroom_dataset
   })
 }
+
+
+
+####################################################################################
+# sp_iceberg_spark_transformation
+####################################################################################
+resource "google_bigquery_routine" "sproc_sp_iceberg_spark_transformation" {
+  project         = var.project_id  
+  dataset_id      = var.bigquery_rideshare_lakehouse_enriched_dataset
+  routine_id      = "sp_iceberg_spark_transformation"
+  routine_type    = "PROCEDURE"
+  language        = "PYTHON"
+  definition_body = templatefile("../sql-scripts/rideshare_lakehouse_enriched/sp_iceberg_spark_transformation.py", 
+  { 
+    project_id = var.project_id
+    project_number = var.project_number
+    
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+    bigquery_region = var.bigquery_region
+    gcp_account_name = var.gcp_account_name
+    bigquery_rideshare_lakehouse_raw_dataset = var.bigquery_rideshare_lakehouse_raw_dataset
+    gcs_rideshare_lakehouse_raw_bucket = var.gcs_rideshare_lakehouse_raw_bucket
+    bigquery_rideshare_lakehouse_enriched_dataset = var.bigquery_rideshare_lakehouse_enriched_dataset
+    gcs_rideshare_lakehouse_enriched_bucket = var.gcs_rideshare_lakehouse_enriched_bucket
+    bigquery_rideshare_lakehouse_curated_dataset = var.bigquery_rideshare_lakehouse_curated_dataset
+    gcs_rideshare_lakehouse_curated_bucket = var.gcs_rideshare_lakehouse_curated_bucket   
+  })
+  spark_options {
+    connection          = "projects/${var.project_id}/locations/${var.bigquery_region}/connections/spark-connection"
+    runtime_version     = "1.0"
+    jar_uris            = [ "gs://spark-lib/biglake/biglake-catalog-iceberg1.2.0-0.1.0-with-dependencies.jar" ]
+    properties          = {
+      "spark.sql.catalog.rideshare_iceberg_catalog.blms_catalog" : "rideshare_iceberg_catalog",
+      "spark.sql.catalog.rideshare_iceberg_catalog.gcp_project" : "${var.project_id}",
+      "spark.jars.packages" : "org.apache.iceberg:iceberg-spark-runtime-3.2_2.12:0.14.1,org.apache.spark:spark-avro_2.12:3.3.1",
+      "spark.sql.catalog.rideshare_iceberg_catalog.catalog-impl" : "org.apache.iceberg.gcp.biglake.BigLakeCatalog",
+      "spark.sql.catalog.rideshare_iceberg_catalog.gcp_location" : "${var.bigquery_region}",
+      "spark.sql.catalog.rideshare_iceberg_catalog" : "org.apache.iceberg.spark.SparkCatalog",
+      "spark.sql.catalog.rideshare_iceberg_catalog.warehouse" : "gs://${var.gcs_rideshare_lakehouse_enriched_bucket}/biglake-iceberg-warehouse"
+    }    
+  }
+}
+
+
+####################################################################################
+# sp_demo_bigspark_read_bq_save_hive_on_data_lake
+####################################################################################
+resource "google_bigquery_routine" "sproc_sp_sp_demo_bigspark_read_bq_save_hive_on_data_lake" {
+  project         = var.project_id  
+  dataset_id      = var.bigquery_taxi_dataset
+  routine_id      = "sp_demo_bigspark_read_bq_save_hive_on_data_lake"
+  routine_type    = "PROCEDURE"
+  language        = "PYTHON"
+  arguments {
+    name = "test_parameter"
+    data_type = "{\"typeKind\" :  \"STRING\"}"
+  }   
+  definition_body = templatefile("../sql-scripts/taxi_dataset/sp_demo_bigspark_read_bq_save_hive_on_data_lake.py", 
+  { 
+    project_id = var.project_id
+    project_number = var.project_number
+    
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+    bigquery_region = var.bigquery_region
+    gcp_account_name = var.gcp_account_name
+    storage_bucket = "raw-${var.storage_bucket}"  
+    random_extension = var.random_extension
+  })
+  spark_options {
+    connection          = "projects/${var.project_id}/locations/${var.bigquery_region}/connections/spark-connection"
+    runtime_version     = "2.0"
+    jar_uris            = [ "gs://spark-lib/bigquery/spark-3.3-bigquery-0.32.0.jar" ]  
+  }
+}
+
+####################################################################################
+# sp_demo_bigspark_read_csv_load_bq_table
+####################################################################################
+resource "google_bigquery_routine" "sproc_sp_sp_demo_bigspark_read_csv_load_bq_table" {
+  project         = var.project_id  
+  dataset_id      = var.bigquery_taxi_dataset
+  routine_id      = "sp_demo_bigspark_read_csv_load_bq_table"
+  routine_type    = "PROCEDURE"
+  language        = "PYTHON"
+  arguments {
+    name = "test_parameter"
+    data_type = "{\"typeKind\" :  \"STRING\"}"
+  }   
+  definition_body = templatefile("../sql-scripts/taxi_dataset/sp_demo_bigspark_read_csv_load_bq_table.py", 
+  { 
+    project_id = var.project_id
+    project_number = var.project_number
+    
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+    bigquery_region = var.bigquery_region
+    gcp_account_name = var.gcp_account_name
+    storage_bucket = "raw-${var.storage_bucket}"  
+    random_extension = var.random_extension
+  })
+  spark_options {
+    connection          = "projects/${var.project_id}/locations/${var.bigquery_region}/connections/spark-connection"
+    runtime_version     = "1.0"
+    jar_uris            = [ "gs://spark-lib/bigquery/spark-bigquery-with-dependencies_2.12-0.26.0.jar" ]  
+  }
+}
+
+
+####################################################################################
+# sp_demo_biglake_delta_lake_gcp_native
+####################################################################################
+resource "google_bigquery_routine" "sproc_sp_demo_delta_lake_native" {
+  project         = var.project_id
+  dataset_id      = var.bigquery_taxi_dataset
+  routine_id      = "sp_demo_delta_lake_native"
+  routine_type    = "PROCEDURE"
+  language        = "SQL"
+  definition_body = templatefile("../sql-scripts/taxi_dataset/sp_demo_delta_lake_native.sql", 
+  { 
+    project_id = var.project_id
+    bigquery_taxi_dataset = var.bigquery_taxi_dataset
+    storage_bucket = "processed-${var.storage_bucket}" 
+    bigquery_region = var.bigquery_region   
+  })
+}
+
 

@@ -1,10 +1,5 @@
-CREATE OR REPLACE PROCEDURE
-	`bigquery_preview_features.sp_demo_bigspark_read_bq_save_hive_on_data_lake`(test_parameter STRING)
-WITH CONNECTION `us.bigspark-connection` OPTIONS (engine='SPARK', runtime_version='2.0',
-		jar_uris=["gs://spark-lib/bigquery/spark-3.3-bigquery-0.32.0.jar"])
-	LANGUAGE python AS R"""
 ####################################################################################
-# Copyright 2022 Google LLC
+# Copyright 2024 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -33,22 +28,10 @@ WITH CONNECTION `us.bigspark-connection` OPTIONS (engine='SPARK', runtime_versio
 #     - Running spark directly in the interface
 # 
 # References:
-#     - pending
+#     - https://cloud.google.com/bigquery/docs/spark-procedures
 # 
 # Clean up / Reset script:
 #   n/a
-
-# To invoke:
-#   CALL `bigquery_preview_features.sp_demo_bigspark_read_bq_save_hive_on_data_lake`('testval');
-
-# To create the External Connection (you can use the BQ UI for this under "+ Add Data | External Data Source")
-# bq mk --connection \
-#       --connection_type='SPARK' \
-#       --project_id="REPLACE-ME" \
-#       --location="us" \
-#       "bigspark-connection"
-
-# NOTE: You must enable Dataproc API in the project for BigSpark (this has been done)
 
 # NOTE: The storage buckets must be accessible via the service account on the external connection
 #       View the connection to see the service account
@@ -69,10 +52,10 @@ import json
 test_parameter_value = str(json.loads(os.environ["BIGQUERY_PROC_PARAM.test_parameter"]))
 print("test_parameter_value", test_parameter_value)
 
-temporaryGcsBucket = "sample-shared-data-temp"
-project_id = "REPLACE-ME"
-taxi_dataset_id = "bigquery_preview_features"
-destination = "gs://sample-shared-data/customer-extract/taxi-data/"
+temporaryGcsBucket = "dataproc-data-analytics-demo-${random_extension}"
+project_id = "${project_id}"
+taxi_dataset_id = "${bigquery_taxi_dataset}"
+destination = "gs://${storage_bucket}/customer-extract/taxi-data/"
 
 print("Create session")
 spark = SparkSession \
@@ -108,7 +91,7 @@ print ("END: Adding partition columns to dataframe")
 
 
 # Write as Parquet
-# Open Cloud Storage and view the data at: gs://sample-shared-data/customer-extract/taxi-data/
+# Open Cloud Storage and view the data at: destination
 print ("BEGIN: Writing Data to GCS")
 df_taxi_trips_partitioned \
     .write \
@@ -116,4 +99,3 @@ df_taxi_trips_partitioned \
     .partitionBy("year","month","day") \
     .parquet(destination)
 print ("END: Writing Data to GCS")
-""";

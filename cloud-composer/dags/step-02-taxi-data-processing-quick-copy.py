@@ -40,6 +40,8 @@ default_args = {
 processed_bucket_name = os.environ['ENV_PROCESSED_BUCKET'] 
 gsutil_copy_command   = "gsutil -m cp -r gs://data-analytics-golden-demo/processed-bucket/processed gs://{}/".format(processed_bucket_name)
 
+# Delta Lake
+delta_io_gsutil_copy_command   = "gsutil -m cp -r gs://data-analytics-golden-demo/processed-bucket/delta_io gs://{}/".format(processed_bucket_name)
 
 with airflow.DAG('step-02-taxi-data-processing-quick-copy',
                  default_args=default_args,
@@ -52,6 +54,11 @@ with airflow.DAG('step-02-taxi-data-processing-quick-copy',
         bash_command=gsutil_copy_command,
     )
 
-    gsutil_copy_command_task
+    delta_io_gsutil_copy_command_task = bash_operator.BashOperator(
+        task_id="delta_io_gsutil_copy_command_task",
+        bash_command=delta_io_gsutil_copy_command,
+    )
+
+    gsutil_copy_command_task >> delta_io_gsutil_copy_command_task
 
 # [END dag]
