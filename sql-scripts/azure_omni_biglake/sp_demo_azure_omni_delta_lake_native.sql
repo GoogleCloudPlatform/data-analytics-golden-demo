@@ -17,8 +17,8 @@
 
 /*
 Use Cases:
-    Ability to read Delta.io data directly from BigQuery for BQML or analytics purposes.
-
+    Ability to read Delta.io data directly from BigQuery using BigQuery OMNI
+    
 Description: 
     Create a BigLake table over a Hive partitioned Delta.io table
 
@@ -30,14 +30,108 @@ Clean up / Reset script:
 
 */
 
--- Automatically detects partitions (Rideshare_Vendor_Id, Pickup_Date)
-CREATE OR REPLACE EXTERNAL TABLE `${project_id}.${azure_omni_biglake_dataset_name}.rideshare_trips_delta_lake`
+
+-- Create a new schema so we can easily see all the delta lake tables
+CREATE SCHEMA IF NOT EXISTS `${project_id}.${azure_omni_biglake_dataset_name}_delta_lake` OPTIONS(location = '${azure_omni_biglake_dataset_region}');
+
+
+-- Driver
+CREATE OR REPLACE EXTERNAL TABLE `${project_id}.${azure_omni_biglake_dataset_name}_delta_lake.driver`
 WITH CONNECTION `${azure_omni_biglake_connection}`
 OPTIONS (
     format = "DELTA_LAKE",
-    uris = ['azure://${azure_omni_biglake_adls_name}.blob.core.windows.net/datalake/delta_io/rideshare_trips']
+    uris = ['azure://${azure_omni_biglake_adls_name}.blob.core.windows.net/datalake/delta_io/driver']
 );
 
-SELECT *
-  FROM `${project_id}.${azure_omni_biglake_dataset_name}.rideshare_trips_delta_lake`;
+SELECT * FROM `${project_id}.${azure_omni_biglake_dataset_name}_delta_lake.driver`;
 
+
+-- Location
+CREATE OR REPLACE EXTERNAL TABLE `${project_id}.${azure_omni_biglake_dataset_name}_delta_lake.location`
+WITH CONNECTION `${azure_omni_biglake_connection}`
+OPTIONS (
+    format = "DELTA_LAKE",
+    uris = ['azure://${azure_omni_biglake_adls_name}.blob.core.windows.net/datalake/delta_io/location']
+);
+
+SELECT * FROM `${project_id}.${azure_omni_biglake_dataset_name}_delta_lake.location`;
+
+
+-- Payment Type
+CREATE OR REPLACE EXTERNAL TABLE `${project_id}.${azure_omni_biglake_dataset_name}_delta_lake.payment_type`
+WITH CONNECTION `${azure_omni_biglake_connection}`
+OPTIONS (
+    format = "DELTA_LAKE",
+    uris = ['azure://${azure_omni_biglake_adls_name}.blob.core.windows.net/datalake/delta_io/payment_type']
+);
+
+SELECT * FROM `${project_id}.${azure_omni_biglake_dataset_name}_delta_lake.payment_type`;
+
+
+-- Rate Code
+CREATE OR REPLACE EXTERNAL TABLE `${project_id}.${azure_omni_biglake_dataset_name}_delta_lake.rate_code`
+WITH CONNECTION `${azure_omni_biglake_connection}`
+OPTIONS (
+    format = "DELTA_LAKE",
+    uris = ['azure://${azure_omni_biglake_adls_name}.blob.core.windows.net/datalake/delta_io/rate_code']
+);
+
+SELECT * FROM `${project_id}.${azure_omni_biglake_dataset_name}_delta_lake.rate_code`;
+
+
+-- Taxi Trips (Automatically detects the Year | Month partitions)
+CREATE OR REPLACE EXTERNAL TABLE `${project_id}.${azure_omni_biglake_dataset_name}_delta_lake.taxi_trips`
+WITH CONNECTION `${azure_omni_biglake_connection}`
+OPTIONS (
+    format = "DELTA_LAKE",
+    uris = ['azure://${azure_omni_biglake_adls_name}.blob.core.windows.net/datalake/delta_io/taxi_trips']
+);
+
+SELECT * FROM `${project_id}.${azure_omni_biglake_dataset_name}_delta_lake.taxi_trips` WHERE year = 2024 AND month = 1 LIMIT 100;
+
+
+-- Trip Type
+CREATE OR REPLACE EXTERNAL TABLE `${project_id}.${azure_omni_biglake_dataset_name}_delta_lake.trip_type`
+WITH CONNECTION `${azure_omni_biglake_connection}`
+OPTIONS (
+    format = "DELTA_LAKE",
+    uris = ['azure://${azure_omni_biglake_adls_name}.blob.core.windows.net/datalake/delta_io/trip_type']
+);
+
+SELECT * FROM `${project_id}.${azure_omni_biglake_dataset_name}_delta_lake.trip_type`;
+
+
+-- Vendor
+CREATE OR REPLACE EXTERNAL TABLE `${project_id}.${azure_omni_biglake_dataset_name}_delta_lake.vendor`
+WITH CONNECTION `${azure_omni_biglake_connection}`
+OPTIONS (
+    format = "DELTA_LAKE",
+    uris = ['azure://${azure_omni_biglake_adls_name}.blob.core.windows.net/datalake/delta_io/vendor']
+);
+
+SELECT * FROM `${project_id}.${azure_omni_biglake_dataset_name}_delta_lake.vendor`;
+
+
+-- Query the table
+SELECT driver.driver_name,
+
+       pickup_location.borough AS pickup_location_borough,
+       pickup_location.zone AS pickup_location_zone,
+
+       dropoff_location.borough AS dropoff_location_borough,
+       dropoff_location.zone AS dropoff_location_zone,
+
+       FORMAT("%.*f",2,AVG(trips.passenger_count)) AS avg_passenger_count,
+       FORMAT("%.*f",2,AVG(trips.fare_amount)) AS avg_fare_amount
+
+  FROM `${azure_omni_biglake_dataset_name}_delta_lake.taxi_trips` AS trips
+       INNER JOIN `${azure_omni_biglake_dataset_name}_delta_lake.driver` AS driver
+               ON trips.driver_id = driver.driver_id
+              AND trips.year >= 2023
+       INNER JOIN `${azure_omni_biglake_dataset_name}_delta_lake.location` AS pickup_location
+               ON trips.pickup_location_id = pickup_location.location_id
+       INNER JOIN `${azure_omni_biglake_dataset_name}_delta_lake.location` AS dropoff_location
+               ON trips.dropoff_location_id = dropoff_location.location_id
+ GROUP BY ALL
+ ORDER BY 1,2,3,4,5
+ LIMIT 25;

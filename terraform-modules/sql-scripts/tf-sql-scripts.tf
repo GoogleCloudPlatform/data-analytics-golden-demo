@@ -53,6 +53,7 @@ variable "aws_omni_biglake_s3_bucket" {}
 variable "azure_omni_biglake_dataset_name" {}
 variable "azure_omni_biglake_connection" {}
 variable "azure_omni_biglake_adls_name" {}
+variable "azure_omni_biglake_dataset_region" {}
 
 variable "bigquery_rideshare_lakehouse_raw_dataset" {}
 variable "gcs_rideshare_lakehouse_raw_bucket" {}
@@ -1401,10 +1402,11 @@ resource "google_bigquery_routine" "sproc_sp_demo_azure_omni_delta_lake_native" 
   { 
     project_id = var.project_id
     
-    shared_demo_project_id          = var.shared_demo_project_id
-    azure_omni_biglake_dataset_name = var.azure_omni_biglake_dataset_name
-    azure_omni_biglake_adls_name    = var.azure_omni_biglake_adls_name
-    azure_omni_biglake_connection   = var.azure_omni_biglake_connection
+    shared_demo_project_id            = var.shared_demo_project_id
+    azure_omni_biglake_dataset_name   = var.azure_omni_biglake_dataset_name
+    azure_omni_biglake_adls_name      = var.azure_omni_biglake_adls_name
+    azure_omni_biglake_connection     = var.azure_omni_biglake_connection
+    azure_omni_biglake_dataset_region = var.azure_omni_biglake_dataset_region
   })
 }
 

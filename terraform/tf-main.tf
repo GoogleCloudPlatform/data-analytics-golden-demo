@@ -245,6 +245,7 @@ module "sql-scripts" {
   azure_omni_biglake_dataset_name               = var.azure_omni_biglake_dataset_name
   azure_omni_biglake_connection                 = local.local_azure_omni_biglake_connection
   azure_omni_biglake_adls_name                  = var.azure_omni_biglake_adls_name
+  azure_omni_biglake_dataset_region             = var.azure_omni_biglake_dataset_region
   bigquery_rideshare_lakehouse_raw_dataset      = module.resources.bigquery_rideshare_lakehouse_raw_dataset
   gcs_rideshare_lakehouse_raw_bucket            = module.resources.gcs_rideshare_lakehouse_raw_bucket
   bigquery_rideshare_lakehouse_enriched_dataset = module.resources.bigquery_rideshare_lakehouse_enriched_dataset

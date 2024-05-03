@@ -30,7 +30,6 @@ Clean up / Reset script:
 
 */
 
--- Automatically detects partitions (Rideshare_Vendor_Id, Pickup_Date)
 
 -- Create a new schema so we can easily see all the delta lake tables
 CREATE SCHEMA IF NOT EXISTS `${project_id}.delta_lake_dataset` OPTIONS(location = '${bigquery_region}');
@@ -38,6 +37,7 @@ CREATE SCHEMA IF NOT EXISTS `${project_id}.delta_lake_dataset` OPTIONS(location 
 
 -- Open Storge to view delta files:
 -- https://console.cloud.google.com/storage/browser/${storage_bucket}/delta_io
+
 
 -- Driver
 CREATE OR REPLACE EXTERNAL TABLE `${project_id}.delta_lake_dataset.driver`
@@ -91,7 +91,7 @@ OPTIONS (
     uris = ['gs://${storage_bucket}/delta_io/taxi_trips']
 );
 
-SELECT * FROM `${project_id}.delta_lake_dataset.taxi_trips`;
+SELECT * FROM `${project_id}.delta_lake_dataset.taxi_trips` WHERE year = 2024 AND month = 1 LIMIT 100;
 
 
 -- Trip Type
