@@ -1,10 +1,5 @@
-CREATE OR REPLACE PROCEDURE
-	`bigquery_preview_features.sp_demo_bigspark_read_csv_load_bq_table`(test_parameter STRING)
-WITH CONNECTION `us.bigspark-connection` OPTIONS (engine='SPARK', runtime_version='1.0',
-		jar_uris=["gs://sample-shared-data/bigspark/spark-bigquery-with-dependencies_2.12-0.26.0.jar"])
-	LANGUAGE python AS R"""
 ####################################################################################
-# Copyright 2022 Google LLC
+# Copyright 2024 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -32,36 +27,16 @@ WITH CONNECTION `us.bigspark-connection` OPTIONS (engine='SPARK', runtime_versio
 #     - Running spark directly in the interface
 # 
 # References:
-#     - pending
+#     - https://cloud.google.com/bigquery/docs/spark-procedures
 # 
 # Clean up / Reset script:
-#   DROP EXTERNAL TABLE IF EXISTS `bigquery_preview_features.product_discounts`;
+#   DROP EXTERNAL TABLE IF EXISTS `${project_id}.${bigquery_taxi_dataset}.product_discounts`;
 
-# To invoke:
-#   CALL `bigquery_preview_features.sp_demo_bigspark_read_csv_load_bq_table`('testval');
-
-# To create the External Connection (you can use the BQ UI for this under "+ Add Data | External Data Source")
-# bq mk --connection \
-#       --connection_type='SPARK' \
-#       --project_id="REPLACE-ME" \
-#       --location="us" \
-#       "bigspark-connection"
-
-# NOTE: You must enable Dataproc API in the project for BigSpark (this has been done)
 
 # NOTE: The storage buckets must be accessible via the service account on the external connection
 #       View the connection to see the service account
 #       e.g. bqcx-312090430116-oi5j@gcp-sa-bigquery-consp.iam.gserviceaccount.com 
 #       This account was granted Editor role at the Project level due to Preview Requirements
-
-# NOTE: You cannot edit a Spark SP at this point (seems like parameters are not codegening correctly)
-# Proper CREATE OR REPLACE STATMENT (there is no BEGIN/END for this):
-#   CREATE OR REPLACE PROCEDURE bigquery_preview_features.sp_demo_bigspark_read_csv_load_bq_table (test_parameter STRING)
-#     WITH CONNECTION `us.bigspark-connection`
-#     OPTIONS(engine="SPARK", jar_uris=["gs://sample-shared-data/bigspark/spark-bigquery-with-dependencies_2.12-0.26.0.jar"]) 
-#     LANGUAGE python AS r{{3 double quotes}}
-
-# NOTE: To see the orginal SQL, View the Saved Queries | Project Queries | sp_demo_bigspark_read_csv_load_bq_table
 
 from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
@@ -71,6 +46,10 @@ import json
 test_parameter_value = str(json.loads(os.environ["BIGQUERY_PROC_PARAM.test_parameter"]))
 print("test_parameter_value", test_parameter_value)
 
+temporaryGcsBucket = "dataproc-data-analytics-demo-${random_extension}"
+project_id = "${project_id}"
+taxi_dataset_id = "${bigquery_taxi_dataset}"
+source = "gs://${storage_bucket}/bigspark/sample-bigspark-discount-data.csv"
 
 print("Create session")
 spark = SparkSession.builder \
@@ -78,7 +57,7 @@ spark = SparkSession.builder \
     .appName('bq_spark_sp_demo_bigspark_read_csv_load_bq_table') \
     .getOrCreate()
 
-spark.conf.set("temporaryGcsBucket","sample-shared-data-temp")
+spark.conf.set("temporaryGcsBucket",temporaryGcsBucket)
 
 print("Declare schema of file to load")
 # SKU,brand,department,discount,discount_code
@@ -94,7 +73,7 @@ dfDiscount = spark.read.format("csv") \
     .option("header", True) \
     .option("delimiter", ",") \
     .schema(discountSchema) \
-    .load('gs://sample-shared-data/bigspark/sample-bigspark-discount-data.csv')
+    .load(source)
  
 print("Determine if discount is High, Medium or Low")
 dfDiscount = dfDiscount.withColumn("discount_rate", F.expr("CASE WHEN discount < 10 THEN 'Low' WHEN discount < 20 THEN 'Medium' ELSE 'High' END"))
@@ -104,7 +83,6 @@ dfDiscount.show(5)
 
 print("Saving results to BigQuery")
 dfDiscount.write.format("bigquery") \
-    .option("table", "bigquery_preview_features.product_discounts") \
+    .option("table", f"{taxi_dataset_id}.product_discounts") \
     .mode("overwrite") \
     .save()
-""";

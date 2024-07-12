@@ -53,7 +53,11 @@ locals {
     for s in fileset("../colab-enterprise/taxi-dataset-demo/", "*.ipynb") : trimsuffix(s, ".ipynb")
   ]
 
-  notebook_names = concat(local.notebook_names_rideshare_llm, local.notebook_names_taxi_dataset_demo)
+  notebook_names_biglake_demo = [ 
+    for s in fileset("../colab-enterprise/biglake/", "*.ipynb") : trimsuffix(s, ".ipynb")
+  ]
+
+  notebook_names = concat(local.notebook_names_rideshare_llm, local.notebook_names_taxi_dataset_demo, local.notebook_names_biglake_demo)
 }
 
 
@@ -89,6 +93,19 @@ resource "local_file" "notebooks_taxi" {
 }
 
 
+# Create the notebook files to be uploaded
+resource "local_file" "notebooks_biglake" {
+  count    = length(local.notebook_names_biglake_demo)
+  filename = "../terraform-modules/colab-deployment/cloud-function/notebooks/${local.notebook_names_biglake_demo[count.index]}.ipynb" 
+  content = templatefile("../colab-enterprise/biglake/${local.notebook_names_biglake_demo[count.index]}.ipynb",
+   {
+    project_id = var.project_id
+    bucket_name = "processed-${var.storage_bucket}"
+    }
+  )
+}
+
+
 # Upload the Cloud Function source code to a GCS bucket
 ## Define/create zip file for the Cloud Function source. This includes notebooks that will be uploaded
 data "archive_file" "create_notebook_function_zip" {
@@ -96,7 +113,7 @@ data "archive_file" "create_notebook_function_zip" {
   output_path = "../tmp/notebooks_function_source.zip"
   source_dir  = "../terraform-modules/colab-deployment/cloud-function/"
 
-  depends_on = [local_file.notebooks_rideshare_llm, local_file.notebooks_taxi]
+  depends_on = [local_file.notebooks_rideshare_llm, local_file.notebooks_taxi, local_file.notebooks_biglake]
 }
 
 

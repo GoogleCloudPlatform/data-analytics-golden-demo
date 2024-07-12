@@ -406,5 +406,5 @@ locals {
   local_curl_impersonation = var.environment == "GITHUB_ENVIRONMENT" ? "--impersonate-service-account=${var.deployment_service_account_name}" : ""
 
   # Make sure you use a Federated Identity: https://cloud.google.com/bigquery/docs/omni-azure-create-connection#federated-identity
-  local_azure_omni_biglake_connection = "projects/${var.shared_demo_project_id}/locations/${var.azure_omni_biglake_dataset_region}/connections/bq_omni_azure_adlsgen2 "
+  local_azure_omni_biglake_connection = "projects/${var.shared_demo_project_id}/locations/${var.azure_omni_biglake_dataset_region}/connections/bq_omni_azure_adlsgen2"
 }
