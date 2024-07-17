@@ -26,7 +26,7 @@ terraform {
   required_providers {
     google = {
       source                = "hashicorp/google-beta"
-      version               = ">= 4.52, < 6"
+      version               = "5.35.0"
       configuration_aliases = [google.service_principal_impersonation]
     }
   }
