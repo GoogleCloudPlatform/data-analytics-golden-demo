@@ -1482,38 +1482,22 @@ resource "google_project_iam_member" "stt_iam_cloud_invoker" {
   ]
 }
 
+# Needed per https://cloud.google.com/build/docs/cloud-build-service-account-updates
+resource "google_project_iam_member" "cloudfunction_builder" {
+  project = var.project_id
+  role    = "roles/cloudbuild.builds.builder"
+  member  = "serviceAccount:${var.project_number}-compute@developer.gserviceaccount.com"
+}
 
-
+# Needed per https://cloud.google.com/build/docs/cloud-build-service-account-updates
 # Allow cloud function service account to read storage [V2 Function]
-resource "google_project_iam_member" "cloudfunction_rest_api_iam" {
+resource "google_project_iam_member" "cloudfunction_objectViewer" {
   project = var.project_id
   role    = "roles/storage.objectViewer"
   member  = "serviceAccount:${var.project_number}-compute@developer.gserviceaccount.com"
 
   depends_on = [
-    google_storage_bucket.code_bucket,
-    data.archive_file.bigquery_external_function_zip,
-    google_storage_bucket_object.bigquery_external_function_zip_upload,
-    google_cloudfunctions_function.bigquery_external_function,
-    google_bigquery_connection.cloud_function_connection
-  ]
-}
-
-
-
-# The cloud function needs to read/write to this bucket (code bucket)
-resource "google_storage_bucket_iam_member" "function_code_bucket_storage_admin" {
-  bucket = google_storage_bucket.code_bucket.name
-  role   = "roles/storage.admin"
-  member = "serviceAccount:${var.project_number}-compute@developer.gserviceaccount.com"
-
-  depends_on = [
-    google_storage_bucket.code_bucket,
-    data.archive_file.bigquery_external_function_zip,
-    google_storage_bucket_object.bigquery_external_function_zip_upload,
-    google_cloudfunctions_function.bigquery_external_function,
-    google_bigquery_connection.cloud_function_connection,
-    google_project_iam_member.bq_connection_iam_cloud_invoker
+    google_project_iam_member.cloudfunction_builder
   ]
 }
 
@@ -1524,12 +1508,18 @@ resource "google_project_iam_member" "cloud_function_bq_job_user" {
   member  = "serviceAccount:${var.project_number}-compute@developer.gserviceaccount.com"
 
   depends_on = [
-    google_storage_bucket.code_bucket,
-    data.archive_file.bigquery_external_function_zip,
-    google_storage_bucket_object.bigquery_external_function_zip_upload,
-    google_cloudfunctions_function.bigquery_external_function,
-    google_bigquery_connection.cloud_function_connection,
-    google_storage_bucket_iam_member.function_code_bucket_storage_admin
+    google_project_iam_member.cloudfunction_objectViewer
+  ]
+}
+
+# The cloud function needs to read/write to this bucket (code bucket)
+resource "google_storage_bucket_iam_member" "function_code_bucket_storage_admin" {
+  bucket = google_storage_bucket.code_bucket.name
+  role   = "roles/storage.admin"
+  member = "serviceAccount:${var.project_number}-compute@developer.gserviceaccount.com"
+
+  depends_on = [
+    google_storage_bucket.code_bucket
   ]
 }
 
