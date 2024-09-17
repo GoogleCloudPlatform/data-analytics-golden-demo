@@ -13,15 +13,13 @@ bq mk --connection --location=US --project_id=my-project-id --connection_type=CL
 -- Grant the BigLake connection service account necessary IAM permissions to access the GCS bucket.
 -- The 'storage.admin' role grants full control over the bucket. Consider using a more restrictive role
 -- like 'storage.objectAdmin' if only object-level access is required.
-gcloud storage buckets add-iam-policy-binding gs://mybucket --member=serviceAccount:connection-1234-9u56h9@gcp-sa-bigquery-condel.iam.gserviceaccount.com \
-  --role=roles/storage.admin
-
+gcloud storage buckets add-iam-policy-binding gs://mybucket --member=serviceAccount:my-service-account --role=roles/storage.admin
 
 -- Create a BigLake managed table named "driver".
 -- This table uses the previously created Cloud Resource connection "biglake-notebook-connection".
 -- It's configured to store data in Parquet format using the Iceberg table format.
 -- Data will be stored in the specified GCS location.
-CREATE OR REPLACE TABLE `mbettan-477-20240819200355.biglake_mt_dataset.driver`
+CREATE OR REPLACE TABLE `my-project-id.biglake_mt_dataset.driver`
 (
   driver_id                 INT64,
   driver_name               STRING,
@@ -33,11 +31,11 @@ CREATE OR REPLACE TABLE `mbettan-477-20240819200355.biglake_mt_dataset.driver`
   driver_ach_account_number STRING
 )
 CLUSTER BY driver_id
-WITH CONNECTION `mbettan-477-20240819200355.us.biglake-notebook-connection`
+WITH CONNECTION `my-project-id.us.biglake-notebook-connection`
 OPTIONS (
   file_format = 'PARQUET',
   table_format = 'ICEBERG',
-  storage_uri = 'gs://biglake-mbettan-477-20240819200355/biglake-managed-tables/driver'
+  storage_uri = 'gs://data-analytics-preview-snowflake/biglake-managed-tables/driver'
 );
 
 
@@ -55,7 +53,6 @@ FROM FILES (
 EXPORT TABLE METADATA FROM biglake_mt_dataset.driver
 
 -- The Iceberg metadata is now located in the GCS location specified by the table's `storage_uri` within a "metadata" folder.
---  Example: gs://biglake-mbettan-477-20240819200355/biglake-managed-tables/driver/metadata/
 -- This path is important for any tools or systems that need to interact with the table using Iceberg.
 
 
@@ -70,6 +67,10 @@ USE ROLE accountadmin;
 -- https://docs.snowflake.com/en/sql-reference/sql/create-warehouse
 CREATE OR REPLACE WAREHOUSE ICEBERG_WAREHOUSE WITH WAREHOUSE_SIZE='XSMALL';
 
+-- Create schema if not exist
+CREATE SCHEMA IF NOT EXISTS ICEBERG_SCHEMA;
+USE SCHEMA ICEBERG_SCHEMA;
+  
 -- Drop existing storage integration and external volume to avoid conflicts
 USE SCHEMA INFORMATION_SCHEMA;
 USE DATABASE ICEBERG_LAB2;
@@ -84,7 +85,7 @@ CREATE STORAGE INTEGRATION gcs_storage_integration
   TYPE = EXTERNAL_STAGE
   STORAGE_PROVIDER = 'GCS'
   ENABLED = TRUE
-  STORAGE_ALLOWED_LOCATIONS = ('gcs://biglake-mbettan-477-20240819200355/');
+  STORAGE_ALLOWED_LOCATIONS = ('gcs://data-analytics-preview-snowflake/');
 
 -- Get the service principal that we will grant Storage Object Admin in our GCS bucket
 DESC STORAGE INTEGRATION gcs_storage_integration;
@@ -97,7 +98,7 @@ CREATE OR REPLACE EXTERNAL VOLUME iceberg_volume
          (
             NAME = 'youriceberglab'
             STORAGE_PROVIDER = 'GCS'
-            STORAGE_BASE_URL = 'gcs://biglake-mbettan-477-20240819200355/'
+            STORAGE_BASE_URL = 'gcs://data-analytics-preview-snowflake/'
             )
       );
 
@@ -119,7 +120,7 @@ CREATE OR REPLACE ICEBERG TABLE my_iceberg_table2
     CATALOG='gcs_catalog_integration'   -- The catalog where the table will reside
     EXTERNAL_VOLUME='iceberg_volume'      -- The external volume for table data
     BASE_LOCATION=''                      -- Optional: Subdirectory within the storage location
-    METADATA_FILE_PATH='biglake-managed-tables/driver/metadata/v1726539996.metadata.json'; -- Path to the existing metadata file
+    METADATA_FILE_PATH='biglake-managed-tables/driver/metadata/v1.metadata.json'; -- Path to the existing metadata file
 
 -- This will show the table just created
 SHOW TABLES
