@@ -1,7 +1,7 @@
 -----------------------------------------------------------------------------------------------
 -- Run this on BigQuery
 -----------------------------------------------------------------------------------------------
-- Create Cloud Resource Connection
+-- Create Cloud Resource Connection
 -- BigLake tables access Google Cloud Storage data using a Cloud Resource connection. 
 -- A connection can be associated with multiple tables within a project.
 -- This command creates a connection named "my-connection" in the "US" location.
@@ -54,7 +54,7 @@ EXPORT TABLE METADATA FROM biglake_mt_dataset.driver
 
 -- The Iceberg metadata is now located in the GCS location specified by the table's `storage_uri` within a "metadata" folder.
 -- This path is important for any tools or systems that need to interact with the table using Iceberg.
-
+-- EXPORT TABLE METADATA will update the version-hint.txt file that is understood by the Iceberg Hadoop catalog.
 
 -----------------------------------------------------------------------------------------------
 -- Run this on Snowflake
