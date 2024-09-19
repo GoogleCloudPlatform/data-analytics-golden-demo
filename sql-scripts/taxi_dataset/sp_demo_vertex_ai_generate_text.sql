@@ -94,7 +94,7 @@ SELECT *
 /*
 CREATE OR REPLACE MODEL `${project_id}.${bigquery_taxi_dataset}.cloud_ai_llm_v1`
   REMOTE WITH CONNECTION `${project_id}.${bigquery_region}.vertex-ai`
-  OPTIONS (REMOTE_SERVICE_TYPE = 'CLOUD_AI_LARGE_LANGUAGE_MODEL_V1');
+  OPTIONS (endpoint = 'gemini-1.5-pro');
 */
 
 -- New Syntax for specifying a model version text-bison@001 or text-bison@002 for latest or text-bison-32k@latest
@@ -273,6 +273,18 @@ FROM
       40 AS top_k));
 """;
 
+EXECUTE IMMEDIATE """
+SELECT *
+FROM
+  ML.GENERATE_TEXT(
+    MODEL`${project_id}.${bigquery_taxi_dataset}.cloud_ai_llm_v1`,
+    (SELECT 'Extract the following person, location and organization from this text "John Doe lives in New York and works for Acme Corp."' AS prompt),
+    STRUCT(
+      0.8 AS temperature,
+      1024 AS max_output_tokens,
+      0.95 AS top_p,
+      40 AS top_k));
+""";
 
 -- Sample from Docs
 EXECUTE IMMEDIATE """
