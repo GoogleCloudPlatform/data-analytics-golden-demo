@@ -253,11 +253,45 @@ WHERE ReviewSentiment IS NOT NULL
 GROUP BY DriverName;
 
 
--- Trip Reason
+-- Product demo with ai_classify
+CREATE OR REPLACE TABLE `${project_id}.${bigquery_taxi_dataset}.products` (
+    description STRING
+);
 
+INSERT INTO `${project_id}.${bigquery_taxi_dataset}.products` (description)
+VALUES
+    ('t-shirt'),  -- clothing
+    ('fridge'),   -- furniture
+    ('sneakers'), -- shoes
+    ('sofa'),     -- furniture
+    ('jeans'),    -- clothing
+    ('necklace'), -- accessories
+    ('boots'),    -- shoes
+    ('bracelet'), -- accessories
+    ('dresser'),  -- furniture
+    ('hat');      -- clothing
 
+CREATE OR REPLACE FUNCTION `${project_id}.${bigquery_taxi_dataset}.ai_classify`(description STRING, categories ARRAY<STRING>) AS (
+  (
+    SELECT
+        JSON_VALUE(ml_generate_text_result, '$.candidates[0].content.parts[0].text') as ml_generate_text_result,
+   --     ml_generate_text_result AS category  -- Alias the output column as 'category'
+      FROM
+        ML.GENERATE_TEXT(
+          MODEL`${project_id}.${bigquery_taxi_dataset}.cloud_ai_llm_v1`,
+          (
+            SELECT
+                CONCAT('Classify "', description, '" in one of the following categories: ', ARRAY_TO_STRING(categories, ', '), '. I only want the category as answer.') AS prompt
+          )
+        )
+  )
+);
 
-
+SELECT
+    description,
+    `${project_id}.${bigquery_taxi_dataset}.ai_classify`(description, ARRAY['clothing', 'shoes', 'accessories', 'furniture']) AS category
+  FROM
+    `${project_id}.${bigquery_taxi_dataset}.products`;
 
 -- Other Samples
 EXECUTE IMMEDIATE """
