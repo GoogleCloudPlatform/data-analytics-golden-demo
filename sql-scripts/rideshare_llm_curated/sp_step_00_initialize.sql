@@ -50,7 +50,7 @@ CREATE OR REPLACE MODEL `${project_id}.${bigquery_rideshare_llm_curated_dataset}
 
 CREATE OR REPLACE MODEL `${project_id}.${bigquery_rideshare_llm_curated_dataset}.llm_embedding_model`
 REMOTE WITH CONNECTION `${project_id}.us.vertex-ai`
-OPTIONS(remote_service_type = 'CLOUD_AI_TEXT_EMBEDDING_MODEL_V1');
+OPTIONS(remote_service_type = 'text-embedding-004');
 
 ------------------------------------------------------------------------------------------------------------
 -- Location Table
