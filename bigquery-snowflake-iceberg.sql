@@ -207,6 +207,12 @@ CREATE OR REPLACE CATALOG INTEGRATION catalog_integration
 -- Open your storage account and navigate to the driver/metadata folder
 -- Open the version-hint.text, there will be a number inside
 -- Replace the number below (in the value of v173076288, but leave the "v")
+
+-- NOTE: Due to some metadata optional parameters set/required by V1 of the Iceberg we need
+-- to ingore some metadata.  To due this, please ask Snowflake to perform this on your account.
+-- This should not be an issue when Iceberg V2 is used.
+-- JIRA for instructions to set the metadata flag on the Snowflake account - SNOW-1624657.
+
 CREATE OR REPLACE ICEBERG TABLE driver
    CATALOG='catalog_integration'   -- The catalog where the table will reside
    EXTERNAL_VOLUME='gcs_volume'    -- The external volume for table data
