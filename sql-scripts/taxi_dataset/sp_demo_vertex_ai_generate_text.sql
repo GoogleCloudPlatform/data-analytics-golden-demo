@@ -97,10 +97,10 @@ CREATE OR REPLACE MODEL `${project_id}.${bigquery_taxi_dataset}.cloud_ai_llm_v1`
   OPTIONS (endpoint = 'gemini-1.5-pro');
 */
 
--- New Syntax for specifying a model version text-bison@001 or text-bison@002 for latest or text-bison-32k@latest
+-- New Syntax for specifying a model version gemini-1.5.pro
 CREATE OR REPLACE MODEL `${project_id}.${bigquery_taxi_dataset}.cloud_ai_llm_v1`
   REMOTE WITH CONNECTION `${project_id}.${bigquery_region}.vertex-ai`
-  OPTIONS (endpoint = 'text-bison@002');
+  OPTIONS (endpoint = 'gemini-1.5-pro');
 
   
 CREATE OR REPLACE TABLE `${project_id}.${bigquery_taxi_dataset}.taxi_trips_cloud_ai_llm_result`
@@ -148,7 +148,7 @@ SELECT *
 -- Parse back into JSON (we have JSON in JSON)
 UPDATE `${project_id}.${bigquery_taxi_dataset}.taxi_trips_cloud_ai_llm_result`
   SET json_results = (
-                      SELECT PARSE_JSON(REPLACE(STRING(ml_generate_text_result.predictions[0].content),"\n",""))
+                      SELECT PARSE_JSON(REPLACE(STRING(ml_generate_text_result.candidates[0].content.parts[0].text),"\n",""))
                         FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips_cloud_ai_llm_result`
                       WHERE key = 'GENERATED-REVIEWS'
  )
@@ -189,7 +189,7 @@ ORDER BY RowNumber;
 
 -- Run a query to understand the passenger reviews
 EXECUTE IMMEDIATE """
-SELECT *, JSON_VALUE(ml_generate_text_result.predictions[0].content,'$') AS Sentiment
+SELECT *, JSON_VALUE(ml_generate_text_result.candidates[0].content.parts[0].text,'$') AS Sentiment
 FROM
   ML.GENERATE_TEXT(
     MODEL`${project_id}.${bigquery_taxi_dataset}.cloud_ai_llm_v1`,
@@ -216,7 +216,7 @@ EXECUTE IMMEDIATE """
 UPDATE `${project_id}.${bigquery_taxi_dataset}.taxi_trips_cloud_ai_llm`
    SET ReviewSentiment = ReviewData.Sentiment
   FROM (
-        SELECT *, JSON_VALUE(ml_generate_text_result.predictions[0].content,'$') AS Sentiment
+        SELECT *, JSON_VALUE(ml_generate_text_result.candidates[0].content.parts[0].text,'$') AS Sentiment
         FROM
           ML.GENERATE_TEXT(
             MODEL`${project_id}.${bigquery_taxi_dataset}.cloud_ai_llm_v1`,

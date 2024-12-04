@@ -39,10 +39,10 @@ CREATE OR REPLACE MODEL `${project_id}.${bigquery_rideshare_llm_curated_dataset}
   OPTIONS (REMOTE_SERVICE_TYPE = 'CLOUD_AI_LARGE_LANGUAGE_MODEL_V1');
 */
 
--- New Syntax for specifying a model version text-bison@001 or text-bison@002 for latest or text-bison-32k@latest
+-- New Syntax for specifying a gemini 1.5 pro model
 CREATE OR REPLACE MODEL `${project_id}.${bigquery_rideshare_llm_curated_dataset}.cloud_ai_llm_v1`
   REMOTE WITH CONNECTION `${project_id}.us.vertex-ai`
-  OPTIONS (endpoint = 'text-bison@002');
+  OPTIONS (endpoint = 'gemini-1.5-pro');
 
 ------------------------------------------------------------------------------------------------------------
 -- Create link to the LLM (embeddings)
@@ -50,7 +50,7 @@ CREATE OR REPLACE MODEL `${project_id}.${bigquery_rideshare_llm_curated_dataset}
 
 CREATE OR REPLACE MODEL `${project_id}.${bigquery_rideshare_llm_curated_dataset}.llm_embedding_model`
 REMOTE WITH CONNECTION `${project_id}.us.vertex-ai`
-OPTIONS(remote_service_type = 'CLOUD_AI_TEXT_EMBEDDING_MODEL_V1');
+OPTIONS(endpoint = 'text-embedding-005');
 
 ------------------------------------------------------------------------------------------------------------
 -- Location Table
