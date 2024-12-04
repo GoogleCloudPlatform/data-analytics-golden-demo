@@ -1,5 +1,5 @@
-project_id="data-analytics-demo-3npnp3v78u"
-google_storage_bucket="code-data-analytics-demo-3npnp3v78u"
+project_id="data-analytics-demo-6apnbz2xl3"
+google_storage_bucket="code-data-analytics-demo-6apnbz2xl3"
 curl_impersonation=""
 region="us-central1"
 
@@ -42,7 +42,8 @@ else
     gcloud run services update demo-rideshare-plus-website \
       --image="${region}-docker.pkg.dev/${project_id}/cloud-run-source-deploy/rideshareplus" \
       --project="${project_id}" \
-      --region="${region}"
+      --region="${region}" \
+      --port=8080
 fi
 
 

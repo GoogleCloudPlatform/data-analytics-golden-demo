@@ -26,16 +26,16 @@
 # https://github.com/dotnet/dotnet-docker/blob/main/samples/README.md
 #       https://github.com/dotnet/dotnet-docker/blob/main/samples/aspnetapp/README.md    
 ####################################################################################
-FROM mcr.microsoft.com/dotnet/sdk:7.0-jammy AS build
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /source
 
-# Copy source, restore NuGet and publis
+# Copy source, restore NuGet and publish
 COPY RidesharePlus/ /source/
 RUN dotnet restore --use-current-runtime
 RUN dotnet publish --use-current-runtime --self-contained false --no-restore -o /app
 
 # final stage/image
-FROM mcr.microsoft.com/dotnet/aspnet:7.0-jammy
+FROM mcr.microsoft.com/dotnet/aspnet:9.0
 WORKDIR /app
 COPY --from=build /app .
 ENTRYPOINT ["./RidesharePlus"]
