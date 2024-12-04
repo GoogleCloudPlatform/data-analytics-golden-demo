@@ -1,6 +1,6 @@
 # Steps to run website
 ```
-Make sure you have .NET 7 (dotnet core) installed
+Make sure you have .NET 9 (dotnet core) installed
 cd cloud-run
 cd rideshare-plus-website
 dotnet run --urls=http://localhost:8080
@@ -32,14 +32,14 @@ gcloud config set project ${PROJECT_ID}
 ```
 
 # Original setup 
-- Install .net core 7
+- Install .net core 9
 - dotnet --list-sdks
-- dotnet new mvc -o RidesharePlus -lang "C#" -f net7.0
+- dotnet new mvc -o RidesharePlus -lang "C#" -f net9.0
 - cd RidesharePlus
 - dotnet run --urls=http://localhost:8080
 - dotnet publish -c Release
-- cp ../app.yaml ./bin/Release/net7.0/publish/app.yaml
-- cd ./bin/Release/net7.0/publish
+- cp ../app.yaml ./bin/Release/net9.0/publish/app.yaml
+- cd ./bin/Release/net9.0/publish
 
 # To use cloud run and cloud build to deploy (already done in Terraform)
 ```
