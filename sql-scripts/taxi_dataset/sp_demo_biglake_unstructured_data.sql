@@ -39,6 +39,7 @@ Show:
 References:
     - https://cloud.google.com/bigquery/docs/object-table-introduction
     - https://cloud.google.com/blog/products/data-analytics/how-to-manage-and-process-unstructured-data-in-bigquery
+    - https://cloud.google.com/bigquery/docs/inference-tutorial-resnet
 
 Clean up / Reset script:
     DROP EXTERNAL TABLE IF EXISTS `${project_id}.${bigquery_taxi_dataset}.biglake_unstructured_data`;
@@ -93,6 +94,7 @@ SELECT * FROM `${project_id}.${bigquery_taxi_dataset}.biglake_unstructured_data`
 
 
 -- Import the model (https://tfhub.dev/tensorflow/resnet_50/classification/1)
+-- https://cloud.google.com/bigquery/docs/inference-tutorial-resnet
 CREATE OR REPLACE MODEL `${project_id}.${bigquery_taxi_dataset}.resnet_50_classification_1` 
 OPTIONS(
   model_type="TENSORFLOW", 
@@ -105,7 +107,7 @@ OPTIONS(
 EXECUTE IMMEDIATE """
 SELECT * 
   FROM ML.PREDICT(MODEL `${project_id}.${bigquery_taxi_dataset}.resnet_50_classification_1`, 
-                  (SELECT ML.DECODE_IMAGE(data) AS input_1
+                  (SELECT ML.RESIZE_IMAGE(ML.DECODE_IMAGE(data), 224, 224, FALSE) AS input_1
                      FROM `${project_id}.${bigquery_taxi_dataset}.biglake_unstructured_data`
                     WHERE content_type = 'image/jpeg'
                     LIMIT 10)
@@ -133,7 +135,7 @@ EXECUTE IMMEDIATE """
 WITH predictions AS (
   SELECT *
     FROM ML.PREDICT(MODEL `${project_id}.${bigquery_taxi_dataset}.resnet_50_classification_1`,
-         (SELECT ML.DECODE_IMAGE(data) AS input_1, uri
+         (SELECT ML.RESIZE_IMAGE(ML.DECODE_IMAGE(data), 224, 224, FALSE) AS input_1, uri
             FROM `${project_id}.${bigquery_taxi_dataset}.biglake_unstructured_data`
            WHERE content_type = 'image/jpeg'
            LIMIT 100)) -- you can change to a higher value if you'd like
@@ -169,7 +171,7 @@ OPTIONS(
 EXECUTE IMMEDIATE """
 SELECT * 
   FROM ML.PREDICT(MODEL `${project_id}.${bigquery_taxi_dataset}.imagenet_mobilenet_v3_small_075_224_feature_vector_5`, 
-                  (SELECT ML.DECODE_IMAGE(data) AS inputs
+                  (SELECT ML.RESIZE_IMAGE(ML.DECODE_IMAGE(data), 224, 224, FALSE) AS inputs
                      FROM `${project_id}.${bigquery_taxi_dataset}.biglake_unstructured_data`
                     WHERE content_type = 'image/jpeg'
                     LIMIT 10)
