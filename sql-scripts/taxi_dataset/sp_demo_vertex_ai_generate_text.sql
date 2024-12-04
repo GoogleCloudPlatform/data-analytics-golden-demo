@@ -94,13 +94,13 @@ SELECT *
 /*
 CREATE OR REPLACE MODEL `${project_id}.${bigquery_taxi_dataset}.cloud_ai_llm_v1`
   REMOTE WITH CONNECTION `${project_id}.${bigquery_region}.vertex-ai`
-  OPTIONS (REMOTE_SERVICE_TYPE = 'CLOUD_AI_LARGE_LANGUAGE_MODEL_V1');
+  OPTIONS (endpoint = 'gemini-1.5-pro');
 */
 
--- New Syntax for specifying a model version text-bison@001 or text-bison@002 for latest or text-bison-32k@latest
+-- New Syntax for specifying a model version gemini-1.5.pro
 CREATE OR REPLACE MODEL `${project_id}.${bigquery_taxi_dataset}.cloud_ai_llm_v1`
   REMOTE WITH CONNECTION `${project_id}.${bigquery_region}.vertex-ai`
-  OPTIONS (endpoint = 'text-bison@002');
+  OPTIONS (endpoint = 'gemini-1.5-pro');
 
   
 CREATE OR REPLACE TABLE `${project_id}.${bigquery_taxi_dataset}.taxi_trips_cloud_ai_llm_result`
@@ -148,7 +148,7 @@ SELECT *
 -- Parse back into JSON (we have JSON in JSON)
 UPDATE `${project_id}.${bigquery_taxi_dataset}.taxi_trips_cloud_ai_llm_result`
   SET json_results = (
-                      SELECT PARSE_JSON(REPLACE(STRING(ml_generate_text_result.predictions[0].content),"\n",""))
+                      SELECT PARSE_JSON(REPLACE(STRING(ml_generate_text_result.candidates[0].content.parts[0].text),"\n",""))
                         FROM `${project_id}.${bigquery_taxi_dataset}.taxi_trips_cloud_ai_llm_result`
                       WHERE key = 'GENERATED-REVIEWS'
  )
@@ -189,7 +189,7 @@ ORDER BY RowNumber;
 
 -- Run a query to understand the passenger reviews
 EXECUTE IMMEDIATE """
-SELECT *, JSON_VALUE(ml_generate_text_result.predictions[0].content,'$') AS Sentiment
+SELECT *, JSON_VALUE(ml_generate_text_result.candidates[0].content.parts[0].text,'$') AS Sentiment
 FROM
   ML.GENERATE_TEXT(
     MODEL`${project_id}.${bigquery_taxi_dataset}.cloud_ai_llm_v1`,
@@ -216,7 +216,7 @@ EXECUTE IMMEDIATE """
 UPDATE `${project_id}.${bigquery_taxi_dataset}.taxi_trips_cloud_ai_llm`
    SET ReviewSentiment = ReviewData.Sentiment
   FROM (
-        SELECT *, JSON_VALUE(ml_generate_text_result.predictions[0].content,'$') AS Sentiment
+        SELECT *, JSON_VALUE(ml_generate_text_result.candidates[0].content.parts[0].text,'$') AS Sentiment
         FROM
           ML.GENERATE_TEXT(
             MODEL`${project_id}.${bigquery_taxi_dataset}.cloud_ai_llm_v1`,
@@ -253,11 +253,45 @@ WHERE ReviewSentiment IS NOT NULL
 GROUP BY DriverName;
 
 
--- Trip Reason
+-- Product demo with ai_classify
+CREATE OR REPLACE TABLE `${project_id}.${bigquery_taxi_dataset}.products` (
+    description STRING
+);
 
+INSERT INTO `${project_id}.${bigquery_taxi_dataset}.products` (description)
+VALUES
+    ('t-shirt'),  -- clothing
+    ('fridge'),   -- furniture
+    ('sneakers'), -- shoes
+    ('sofa'),     -- furniture
+    ('jeans'),    -- clothing
+    ('necklace'), -- accessories
+    ('boots'),    -- shoes
+    ('bracelet'), -- accessories
+    ('dresser'),  -- furniture
+    ('hat');      -- clothing
 
+CREATE OR REPLACE FUNCTION `${project_id}.${bigquery_taxi_dataset}.ai_classify`(description STRING, categories ARRAY<STRING>) AS (
+  (
+    SELECT
+        JSON_VALUE(ml_generate_text_result, '$.candidates[0].content.parts[0].text') as ml_generate_text_result,
+   --     ml_generate_text_result AS category  -- Alias the output column as 'category'
+      FROM
+        ML.GENERATE_TEXT(
+          MODEL`${project_id}.${bigquery_taxi_dataset}.cloud_ai_llm_v1`,
+          (
+            SELECT
+                CONCAT('Classify "', description, '" in one of the following categories: ', ARRAY_TO_STRING(categories, ', '), '. I only want the category as answer.') AS prompt
+          )
+        )
+  )
+);
 
-
+SELECT
+    description,
+    `${project_id}.${bigquery_taxi_dataset}.ai_classify`(description, ARRAY['clothing', 'shoes', 'accessories', 'furniture']) AS category
+  FROM
+    `${project_id}.${bigquery_taxi_dataset}.products`;
 
 -- Other Samples
 EXECUTE IMMEDIATE """
@@ -273,6 +307,18 @@ FROM
       40 AS top_k));
 """;
 
+EXECUTE IMMEDIATE """
+SELECT *
+FROM
+  ML.GENERATE_TEXT(
+    MODEL`${project_id}.${bigquery_taxi_dataset}.cloud_ai_llm_v1`,
+    (SELECT 'Extract the following person, location and organization from this text "John Doe lives in New York and works for Acme Corp."' AS prompt),
+    STRUCT(
+      0.8 AS temperature,
+      1024 AS max_output_tokens,
+      0.95 AS top_p,
+      40 AS top_k));
+""";
 
 -- Sample from Docs
 EXECUTE IMMEDIATE """
