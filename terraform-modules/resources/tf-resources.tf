@@ -49,7 +49,6 @@ variable "datafusion_region" {}
 variable "vertex_ai_region" {}
 variable "cloud_function_region" {}
 variable "data_catalog_region" {}
-variable "appengine_region" {}
 variable "dataproc_serverless_region" {}
 variable "cloud_sql_region" {}
 variable "cloud_sql_zone" {}
@@ -745,7 +744,6 @@ resource "google_composer_environment" "composer_env" {
         ENV_VERTEX_AI_REGION                = var.vertex_ai_region
         ENV_CLOUD_FUNCTION_REGION           = var.cloud_function_region
         ENV_DATA_CATALOG_REGION             = var.data_catalog_region
-        ENV_APPENGINE_REGION                = var.appengine_region
         ENV_DATAPROC_SERVERLESS_REGION      = var.dataproc_serverless_region
         ENV_DATAPROC_SERVERLESS_SUBNET      = "projects/${var.project_id}/regions/${var.dataproc_serverless_region}/subnetworks/dataproc-serverless-subnet",
         ENV_DATAPROC_SERVERLESS_SUBNET_NAME = google_compute_subnetwork.dataproc_serverless_subnet.name,
@@ -2430,15 +2428,6 @@ resource "google_data_catalog_tag_template" "column_dq_tag_template" {
   force_delete = "false"
 
   depends_on = [google_data_catalog_tag_template.table_dq_tag_template]
-}
-
-
-####################################################################################
-# App Engine
-####################################################################################
-resource "google_app_engine_application" "rideshare_plus_app_engine" {
-  project     = var.project_id
-  location_id = var.appengine_region
 }
 
 

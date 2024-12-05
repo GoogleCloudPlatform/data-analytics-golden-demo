@@ -235,16 +235,6 @@ variable "data_catalog_region" {
   }
 }
 
-variable "appengine_region" {
-  type        = string
-  description = "The GCP region for the app engine."
-  default     = "us-central"
-  validation {
-    condition     = length(var.appengine_region) > 0
-    error_message = "The app engine region is required."
-  }
-}
-
 variable "dataproc_serverless_region" {
   type        = string
   description = "The GCP region for dataproc serverless (should match dataplex)."

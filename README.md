@@ -1,6 +1,9 @@
 # Data-Analytics-Golden-Demo
 Deploys an end-to-end Data Analytics technical walkthrough on Google Cloud.  All the services are connected, configured and ready to run.  The deployed artifacts can be run in any order letting you set your own path through the system.  The system has 70 to 700+ million rows of data so that you can show "true life" performance, scale and integration of various services.  The system orchestates itself using Airflow, communicates over private IP addresses and has working code to demonstrate how to build an end to end system.
 
+## Last updated Dec 2024
+- Fixed and upgraded many services such as text-bison to Gemini Pro, Flask versions, Notebooks deployments
+
 ## Monthly Video Update (October 2023)
 
 [![Monthly Update](./images/MonthlyUpdate.png)](https://youtu.be/asZhcFwiVnU)
@@ -109,64 +112,118 @@ Prior Months
 
 ![alt tag](./images/Rideshare-Analytics-Lakehouse-Summary.png)
 
+-------------------------------------------
+## How to deploy
+The are two options to deploy the demo depending on your access privilages to your cloud organization
+
+### Require Permissions to Deploy (2 Options)
+1. Elevated Privileges - Org Level
+   - Deployment [Video](https://youtu.be/QvCCo35qgys)
+   - Post Deployment Verification [Video](https://youtu.be/r1mp4Yve0VY)
+   - **The following IAM roles are required to deploy the solution**
+      - Prerequisite:  Billing Account User (to create the project with billing)
+      - Prerequisite:  Organization Administrator (to create all assets)
+      - Prerequisite:  Organization Policy Administrator (to change org policies)
+      - Optional:      Folder Editor (if you alter the script to place the project in a folder)
+   - To deploy the code you will:
+      - Run ```source deploy.sh```
+2. Owner Project Privileges - Typically Requires Assistance from IT
+   - Deployment [Video](https://youtu.be/SLzr737SHXM)
+   - Post Deployment Verification [Video](https://youtu.be/r1mp4Yve0VY)
+   - **The following items are required to deploy the solution**
+      - Prerequisite: You will need a project created for you (IT can do this for you)
+      - Prerequisite: You will need to be an Owner (IAM role) of the project to run the below script
+      - Prerequisite: You will need an Organization Policy Administrator to disable the following Org Policies (IT can do this for you)
+         - requireOsLogin = false
+         - requireShieldedVm = false
+         - allowedIngressSettings = allow all
+         - allowedPolicyMemberDomains = allow all
+         - restrictVpcPeering = allow all
+   - To deploy the code you will
+      - Update the hard coded values in ```deploy-use-existing-project-non-org-admin.sh```
+      - Run ```source deploy-use-existing-project-non-org-admin.sh```
+   - Your Organization Policy Administrator can then reenable the following Organization Policies
+      - (DO NOT RE-ENABLE) requireOsLogin = false
+      - (RE-ENABLE) requireShieldedVm = false
+      - (RE-ENABLE) allowedIngressSettings = allow all
+      - (RE-ENABLE) allowedPolicyMemberDomains = allow all
+      - (RE-ENABLE) restrictVpcPeering = allow all      
 
 
+### Using your Local machine (Assuming Linux based)
+1. Install Git (might already be installed)
+2. Install Curl (might already be installed)
+3. Install "jq" (might already be installed) - https://jqlang.github.io/jq/download/
+4. Install Google Cloud CLI (gcloud) - https://cloud.google.com/sdk/docs/install
+5. Install Terraform - https://developer.hashicorp.com/terraform/install
+6. Login:
+   ```
+   gcloud auth login
+   gcloud auth application-default login
+   ```
+7. Type: ```git clone https://github.com/GoogleCloudPlatform/data-analytics-golden-demo```
+8. Switch the prompt to the directory: ```cd data-analytics-golden-demo```
+9. Run the deployment script
+   - If using Elevated Privileges
+      - Run ```source deploy.sh```
+   - If using Owner Project Privileges
+      - Update the hard coded values in ```deploy-use-existing-project-non-org-admin.sh```
+      - Run ```source deploy-use-existing-project-non-org-admin.sh```
+10. Authorize the login (a popup will appear)
+11. Follow the prompts: Answer “Yes” for the Terraform approval.
 
-## Deploy
 
-[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://shell.cloud.google.com/cloudshell/?terminal=true&show=terminal&cloudshell_git_repo=https%3A%2F%2Fgithub.com%2FGoogleCloudPlatform%2Fdata-analytics-golden-demo)
+### To deploy through a Google Cloud Compute VM
+1. Create a new Compute VM with a Public IP address or Internet access on a Private IP
+   - The default VM is fine (e.g.)
+      - EC2 machine is fine for size
+      - OS: Debian GNU/Linux 12 (bookworm)
+2. SSH into the machine.  You might need to create a firewall rule (it will prompt you with the rule if it times out)   
+3. Run these commands on the machine one by one:
+   ```
+   sudo apt update
+   sudo apt upgrade -y
+   sudo apt install git
+   git config --global user.name "FirstName LastName"
+   git config --global user.email "your@email-address.com"
+   git clone https://github.com/GoogleCloudPlatform/data-analytics-golden-demo
+   cd data-analytics-golden-demo/
+   sudo apt-get install apt-transport-https ca-certificates gnupg curl
+   sudo apt-get install jq
+   gcloud auth login
+   gcloud auth application-default login
+   sudo apt-get update && sudo apt-get install -y gnupg software-properties-common
+   wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg > /dev/null
+   gpg --no-default-keyring --keyring /usr/share/keyrings/hashicorp-archive-keyring.gpg --fingerprint
+   echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] \
+   https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+   sudo apt update
+   sudo apt-get install terraform
 
-After the repo is cloned you would type ```source deploy.sh``` to deploy.
+   source deploy.sh 
+   # Or 
+   # Update the hard coded values in deploy-use-existing-project-non-org-admin.sh
+   # Run source deploy-use-existing-project-non-org-admin.sh
+   ```
 
-### To deploy to New Project (Requires Elevated Privileges)
-- Deployment [Video](https://youtu.be/QvCCo35qgys)
-- Post Deployment Verification [Video](https://youtu.be/r1mp4Yve0VY)
-- **The following IAM roles are required to deploy the solution**
-   - Prerequisite:  Billing Account User (to create the project with billing)
-   - Prerequisite:  Organization Administrator (to create all assets)
-   - Prerequisite:  Organization Policy Administrator (to change org policies)
-   - Optional:      Folder Editor (if you alter the script to place the project in a folder)
+### Cloud Shell (NOT WORKING) 
 1. Open a Google Cloud Shell: http://shell.cloud.google.com/
 2. Type: ```git clone https://github.com/GoogleCloudPlatform/data-analytics-golden-demo```
 3. Switch the prompt to the directory: ```cd data-analytics-golden-demo```
-4. Run the deployment script: ```source deploy.sh```
+4. Run the deployment script
+   - If using Elevated Privileges
+      - Run ```source deploy.sh```
+   - If using Owner Project Privileges
+      - Update the hard coded values in ```deploy-use-existing-project-non-org-admin.sh```
+      - Run ```source deploy-use-existing-project-non-org-admin.sh```
 5. Authorize the login (a popup will appear)
-6. Follow the prompts: Answer “Yes” for the Terraform approval.
-
-
-
-
-### To deploy to an Existing Project (Requires Assistance from IT and Owner Project Privileges)
-- Deployment [Video](https://youtu.be/SLzr737SHXM)
-- Post Deployment Verification [Video](https://youtu.be/r1mp4Yve0VY)
-- **The following items are required to deploy the solution**
-   - Prerequisite: You will need a project created for you (IT can do this for you)
-   - Prerequisite: You will need to be an Owner (IAM role) of the project to run the below script
-   - Prerequisite: You will need an Organization Policy Administrator to disable the following Org Policies (IT can do this for you)
-      - requireOsLogin = false
-      - requireShieldedVm = false
-      - allowedIngressSettings = allow all
-      - allowedPolicyMemberDomains = allow all
-      - restrictVpcPeering = allow all
-1. Open a Google Cloud Shell: http://shell.cloud.google.com/
-2. Type: ```git clone https://github.com/GoogleCloudPlatform/data-analytics-golden-demo```
-3. Switch the prompt to the directory: ```cd data-analytics-golden-demo```
-4. Update the hard coded values in ```deploy-use-existing-project-non-org-admin.sh```
-5. Run ```source deploy-use-existing-project-non-org-admin.sh```
-6. Your Organization Policy Administrator can then reenable the following Organization Policies
-   - (DO NOT RE-ENABLE) requireOsLogin = false
-   - (RE-ENABLE) requireShieldedVm = false
-   - (RE-ENABLE) allowedIngressSettings = allow all
-   - (RE-ENABLE) allowedPolicyMemberDomains = allow all
-   - (RE-ENABLE) restrictVpcPeering = allow all
-
+6. Follow the prompts: Answer “Yes” for the Terraform approval
 
 
 ### To deploy the project to a different region
 1. By default the solution deploys to us-west{x} region and US (multi-region)
 2. To deploy to another region review the code in [deploy-europe-region.sh](deploy-europe-region.sh)
 3. You can run either of the above deployment methods.  Copy the Terraform  "region" parameters to either of the above scripts.
-
 
 
 ### After the deployment
@@ -181,7 +238,6 @@ After the repo is cloned you would type ```source deploy.sh``` to deploy.
 1. If the script fails to enable a service or timeouts, you can rerun and if that does not work, run ```source clean-up.sh``` and start over
 2. If the script has a security type message (unauthorized), then double check the configure roles/IAM security.  Your user account is probably not an Owner of the project or Org Admin if creating the project.
 3. When using Cloud Shell: If you get a "networking error" with some dial tcp message [2607:f8b0:4001:c1a::5f], then your cloud shell has a networking glitch, not the Terraform network.  Restart the deployment "source deploy.sh". (e.g. Error creating Network: Post ```https://compute.googleapis.com/compute/beta/projects/bigquery-demo-xvz1143xu9/global/networks?alt=json```: dial tcp [2607:f8b0:4001:c1a::5f]:443: connect: cannot assign requested address).  This typically happens on WiFi.
-
 
 
 

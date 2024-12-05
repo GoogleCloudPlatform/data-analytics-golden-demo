@@ -190,7 +190,6 @@ module "resources" {
   vertex_ai_region                  = var.vertex_ai_region
   cloud_function_region             = var.cloud_function_region
   data_catalog_region               = var.data_catalog_region
-  appengine_region                  = var.appengine_region
   dataproc_serverless_region        = var.dataproc_serverless_region
   cloud_sql_region                  = var.cloud_sql_region
   cloud_sql_zone                    = var.cloud_sql_zone
@@ -485,10 +484,6 @@ output "cloud_function_region" {
 
 output "data_catalog_region" {
   value = var.data_catalog_region
-}
-
-output "appengine_region" {
-  value = var.appengine_region
 }
 
 output "dataproc_serverless_region" {
