@@ -290,11 +290,6 @@ resource "google_project_service" "service-secretmanager" {
   service = "secretmanager.googleapis.com"
 }
 
-resource "google_project_service" "service-appengine" {
-  project = var.project_id
-  service = "appengine.googleapis.com"
-}
-
 resource "google_project_service" "service-cloudrun" {
   project = var.project_id
   service = "run.googleapis.com"

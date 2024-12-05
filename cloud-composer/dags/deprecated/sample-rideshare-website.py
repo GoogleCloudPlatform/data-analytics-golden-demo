@@ -17,6 +17,7 @@
 # Author:  Adam Paternostro
 # Summary: Deploys the Rideshare Plus website that is hosted by App Engine
 
+# NOTE: This is no longer used, please see the Cloud Run website!
 
 # [START dag]
 import os

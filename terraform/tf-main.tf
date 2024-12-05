@@ -190,7 +190,6 @@ module "resources" {
   vertex_ai_region                  = var.vertex_ai_region
   cloud_function_region             = var.cloud_function_region
   data_catalog_region               = var.data_catalog_region
-  appengine_region                  = var.appengine_region
   dataproc_serverless_region        = var.dataproc_serverless_region
   cloud_sql_region                  = var.cloud_sql_region
   cloud_sql_zone                    = var.cloud_sql_zone
@@ -329,10 +328,10 @@ module "deploy-files-module" {
 
 
 ####################################################################################
-# Deploy notebooks to Colab (Dataform)
+# Deploy notebooks to Colab -> Create the Dataform repo and files (base64 encoded)
 ####################################################################################
-module "deploy-notebooks-module" {
-  source = "../terraform-modules/colab-deployment/terraform-module"
+module "deploy-notebooks-module-create-files" {
+  source = "../terraform-modules/colab-deployment-create-files"
 
   # Use Service Account Impersonation for this step. 
   providers = { google = google.service_principal_impersonation }
@@ -360,6 +359,43 @@ module "deploy-notebooks-module" {
     module.resources
   ]
 }
+
+
+####################################################################################
+# Deploy notebooks to Colab -> Push the notebooks
+# This is done since there is a race condition when the files are base64 encoded
+####################################################################################
+module "deploy-notebooks-module-deploy" {
+  source = "../terraform-modules/colab-deployment-deploy"
+
+  # Use Service Account Impersonation for this step. 
+  providers = { google = google.service_principal_impersonation }
+
+  project_id                              = local.local_project_id
+  bigquery_rideshare_llm_raw_dataset      = module.resources.bigquery_rideshare_llm_raw_dataset
+  bigquery_rideshare_llm_enriched_dataset = module.resources.bigquery_rideshare_llm_enriched_dataset
+  bigquery_rideshare_llm_curated_dataset  = module.resources.bigquery_rideshare_llm_curated_dataset
+  gcs_rideshare_lakehouse_raw_bucket      = module.resources.gcs_rideshare_lakehouse_raw_bucket
+  storage_bucket                          = local.local_storage_bucket
+  dataform_region                         = var.dataform_region
+  cloud_function_region                   = var.cloud_function_region
+  workflow_region                         = "us-central1"
+  random_extension                        = random_string.project_random.result
+  gcp_account_name                        = var.gcp_account_name
+  curl_impersonation                      = local.local_curl_impersonation
+  bigquery_region                         = var.bigquery_region
+
+  depends_on = [
+    module.project,
+    module.service-account,
+    module.apis-batch-enable,
+    time_sleep.service_account_api_activation_time_delay,
+    module.org-policies,
+    module.resources,
+    module.deploy-notebooks-module-create-files
+  ]
+}
+
 
 
 ####################################################################################
@@ -448,10 +484,6 @@ output "cloud_function_region" {
 
 output "data_catalog_region" {
   value = var.data_catalog_region
-}
-
-output "appengine_region" {
-  value = var.appengine_region
 }
 
 output "dataproc_serverless_region" {

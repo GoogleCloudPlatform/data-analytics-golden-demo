@@ -161,7 +161,6 @@ terraform apply \
 #      -var="vertex_ai_region=europe-west1" \
 #      -var="cloud_function_region=europe-west1" \
 #      -var="data_catalog_region=europe-west1" \
-#      -var="appengine_region=europe-west" \
 #      -var="dataproc_serverless_region=europe-west1" \
 #      -var="cloud_sql_region=europe-west1" \
 #      -var="cloud_sql_zone=europe-west1-b" \
@@ -232,7 +231,6 @@ then
     #      -var="vertex_ai_region=europe-west1" \
     #      -var="cloud_function_region=europe-west1" \
     #      -var="data_catalog_region=europe-west1" \
-    #      -var="appengine_region=europe-west" \
     #      -var="dataproc_serverless_region=europe-west1" \
     #      -var="cloud_sql_region=europe-west1" \
     #      -var="cloud_sql_zone=europe-west1-b" \

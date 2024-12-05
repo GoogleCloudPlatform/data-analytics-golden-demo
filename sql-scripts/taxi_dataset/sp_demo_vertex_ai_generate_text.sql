@@ -90,7 +90,7 @@ SELECT *
   FROM AssignNames;
 
 
-  -- Create the model that references Vertex AI PaLM APIs (text-bison)
+-- Create the model that references Vertex AI gemini-1.5-pro
 /*
 CREATE OR REPLACE MODEL `${project_id}.${bigquery_taxi_dataset}.cloud_ai_llm_v1`
   REMOTE WITH CONNECTION `${project_id}.${bigquery_region}.vertex-ai`
@@ -271,6 +271,7 @@ VALUES
     ('dresser'),  -- furniture
     ('hat');      -- clothing
 
+EXECUTE IMMEDIATE """
 CREATE OR REPLACE FUNCTION `${project_id}.${bigquery_taxi_dataset}.ai_classify`(description STRING, categories ARRAY<STRING>) AS (
   (
     SELECT
@@ -286,12 +287,15 @@ CREATE OR REPLACE FUNCTION `${project_id}.${bigquery_taxi_dataset}.ai_classify`(
         )
   )
 );
+""";
 
+EXECUTE IMMEDIATE """
 SELECT
     description,
     `${project_id}.${bigquery_taxi_dataset}.ai_classify`(description, ARRAY['clothing', 'shoes', 'accessories', 'furniture']) AS category
   FROM
     `${project_id}.${bigquery_taxi_dataset}.products`;
+""";
 
 -- Other Samples
 EXECUTE IMMEDIATE """

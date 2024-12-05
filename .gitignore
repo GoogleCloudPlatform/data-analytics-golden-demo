@@ -59,3 +59,6 @@ temp-prompt.txt
 terraform-modules/colab-deployment/cloud-function/notebooks/*
 tmp/*
 copy-public-storage.sh
+terraform-modules/colab-deployment-create-files/notebooks/*
+terraform-modules/colab-deployment-create-files/notebooks_base64/*
+

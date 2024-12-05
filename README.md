@@ -1,11 +1,20 @@
 # Data-Analytics-Golden-Demo
 Deploys an end-to-end Data Analytics technical walkthrough on Google Cloud.  All the services are connected, configured and ready to run.  The deployed artifacts can be run in any order letting you set your own path through the system.  The system has 70 to 700+ million rows of data so that you can show "true life" performance, scale and integration of various services.  The system orchestates itself using Airflow, communicates over private IP addresses and has working code to demonstrate how to build an end to end system.
 
-## Monthly Video Update (October 2023)
+## Last updated Dec 2024
+- Fixed and upgraded many services such as text-bison to Gemini Pro, Flask versions, .NET core update, Notebooks deployments, removed App Engine (use Cloud Run instead), updated Resnet model code and updated Taxi Data (Sept 2024)
 
-[![Monthly Update](./images/MonthlyUpdate.png)](https://youtu.be/asZhcFwiVnU)
+## Other demos for Google Data Cloud
+   - Chocolate AI: https://github.com/GoogleCloudPlatform/chocolate-ai
+      - Gemini using JSON, Managed Apache Kafka, Continuous Queries, Vector Indexes / Embeddings / Semantic Search, Data insights,  Spanner Graph, Imagen3, Text to video, and TimesFM predictions.
+      - Videos are in each notebook
+   - Data Beans: https://github.com/GoogleCloudPlatform/data-beans
+      - Gemini, Schema Generation, GenAI Text Reviews, Audio Review, GenAI Sentiment Analysis, Vision AI, Imagen 2, Gemini for BigQuery, BigQuery Studio
+
+## Monthly Video Update
 
 Prior Months
+- [October 2023](https://youtu.be/asZhcFwiVnU)
 - [September 2023](https://youtu.be/7I3jw-nNMC8)
 - [August 2023](https://youtu.be/QGJYd_6NslU)
 - [July 2023](https://youtu.be/Ljbvpg-tZEM)
@@ -19,9 +28,9 @@ Prior Months
 
 
 ## Table of Contents (All Links and Videos are coming soon)
-|Category|Title|Description|Link|Video||
-|---|---|---|---|---|---|
-| Ready-To-Go Demos | Rideshare Plus (AI Lakehouse - LLMs)| A new end to end demo where we use our Gemini LLM directly within BigQuery to read customer reviews and extract various pieces of data from each review.  The data will then be used to create a complete employee and customer profile form this data.  At the same time qualitative data analysis will be done and added to each profile.  The demo highlight how LLMs can work with text data and create valuable analytics from the context.  Please view the new Cloud Run website along with the following notebook to run the demo. | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/colab-enterprise/rideshare-llm/rideshare_llm_ai_lakehouse_demo.ipynb) | [Video](https://youtu.be/-ka9ya_KJAc)
+|Category|Title|Description|Link|Video|
+|---|---|---|---|---|
+| Ready-To-Go Demos | Rideshare Plus (AI Lakehouse - LLMs)| A new end to end demo where we use our Gemini LLM directly within BigQuery to read customer reviews and extract various pieces of data from each review.  The data will then be used to create a complete employee and customer profile form this data.  At the same time qualitative data analysis will be done and added to each profile.  The demo highlight how LLMs can work with text data and create valuable analytics from the context.  Please view the new Cloud Run website along with the following notebook to run the demo. | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/colab-enterprise/rideshare_llm_ai_lakehouse_demo.ipynb) | [Video](https://youtu.be/-ka9ya_KJAc)
 | | Rideshare Plus (AI Lakehouse - Predict and Streaming)|This is an end to end demo of an AI Lakehouse.  The demo goes through the creation of a fictitious company that wants to predict high value rides for rideshare drivers.  The demo takes you through the process from the raw zone to the curated zone and highlights our analytics stack.| [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/sql-scripts/rideshare_lakehouse_curated/sp_demo_script.sql) | [Video](https://youtu.be/Yru78Pk1jMM) |
 | | BigQuery Technical Overview | See some top features in BigQuery.  We will explore loading data into BigQuery, streaming data directly into BigQuery, using change data capture with BigQuery and even federated queries with Spanner.  We will then explore data governance, data quality, security and data lineage.  After we have clean and secure data we will build some machine learning models, search billions of rows and explore unstructured data analytics.  Finally, we will explore BigQuery’s serverless infrastructure which includes autoscaling along with various monitoring tools.  | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/sql-scripts/taxi_dataset/sp_demo_technical_overview.sql) | [Video](https://youtu.be/bMS4p2XHMpE) |
 | | High Level Overview Demo | The high level overview highlights some key features: Looker, BigQuery, Analytics Hub, OMNI, BQML. | Link | Video |
@@ -42,10 +51,10 @@ Prior Months
 | | PySpark Data Import | Show Spark loading/ETL data into BigQuery.  Read a CSV file, add a column and write to BigQuery. | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/sql-scripts/taxi_dataset/sp_demo_bigspark_read_csv_load_bq_table.py) | Video |
 | | BigSpark with Iceberg Metastore | Learn how to use Iceberg with BigLake Metastore.  This will process data and create Iceberg tables with BigSpark.  The tables will also be placed in BigQuery. | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/sql-scripts/rideshare_lakehouse_enriched/sp_iceberg_spark_transformation.py) | Video |
 | BigQuery Machine Learning (BQML) | Anomaly Detection | Want to run Anomaly Detection on Fares to see if things are not looking right? | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/sql-scripts/taxi_dataset/sp_demo_machine_learning_anomaly_fee_amount.sql) | Video |
-| | Jupyter Notebook Creating TensorFlow model | Use a Jupyter Notebook to create a TensorFlow that will then be imported into BigQuery. See "Importing TensorFlow model into BigQuery" to import the model. | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/colab-enterprise/taxi-dataset-demo/BigQuery-Create-TensorFlow-Model.ipynb) | Video |
+| | Jupyter Notebook Creating TensorFlow model | Use a Jupyter Notebook to create a TensorFlow that will then be imported into BigQuery. See "Importing TensorFlow model into BigQuery" to import the model. | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/colab-enterprise/BigQuery-Create-TensorFlow-Model.ipynb) | Video |
 | | Importing TensorFlow model into BigQuery | Import a model into BigQuery, score data, compare results to notebook.  This is a great way to score data without data movement. | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/sql-scripts/taxi_dataset/sp_demo_machine_learning_import_tensorflow.sql) | Video |
 | | Predicting Taxi Tip Amounts using Linear Regression | Predict tip amounts for each cab ride. Show how easy it is to build a quick model in BigQuery. | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/sql-scripts/taxi_dataset/sp_demo_machine_learning_tip_amounts.sql) | Video |
-| | Easily query BigQuery from Jupyter notebooks | Data scientists need to be able to query BigQuery quickly and easily.  This shows how they can access the data in BigQuery with ease. | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/colab-enterprise/taxi-dataset-demo/BigQuery-Demo-Notebook.ipynb) | Video |
+| | Easily query BigQuery from Jupyter notebooks | Data scientists need to be able to query BigQuery quickly and easily.  This shows how they can access the data in BigQuery with ease. | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/colab-enterprise/BigQuery-Demo-Notebook.ipynb) | Video |
 | BigSearch | 5 Billion Rows | Run BigSearch on 5 billion rows of log files (5 TB).  Compare to a non-indexed table. | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/sql-scripts/taxi_dataset/sp_demo_bigsearch.sql) | Video |
 | | 50 Billion Rows | Run on 50 billion rows of data (60 TB) to show our indexing performance at scale.  Currently internal since this is a lot of data. | Link | Video |
 | BigLake | BigLake tables with Security | See how to create a BigLake table and secure it with row and column level access. | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/sql-scripts/taxi_dataset/sp_demo_biglake.sql) | Video |
@@ -109,64 +118,118 @@ Prior Months
 
 ![alt tag](./images/Rideshare-Analytics-Lakehouse-Summary.png)
 
+-------------------------------------------
+## How to deploy
+The are two options to deploy the demo depending on your access privilages to your cloud organization
+
+### Require Permissions to Deploy (2 Options)
+1. Elevated Privileges - Org Level
+   - Deployment [Video](https://youtu.be/QvCCo35qgys)
+   - Post Deployment Verification [Video](https://youtu.be/r1mp4Yve0VY)
+   - **The following IAM roles are required to deploy the solution**
+      - Prerequisite:  Billing Account User (to create the project with billing)
+      - Prerequisite:  Organization Administrator (to create all assets)
+      - Prerequisite:  Organization Policy Administrator (to change org policies)
+      - Optional:      Folder Editor (if you alter the script to place the project in a folder)
+   - To deploy the code you will:
+      - Run ```source deploy.sh```
+2. Owner Project Privileges - Typically Requires Assistance from IT
+   - Deployment [Video](https://youtu.be/SLzr737SHXM)
+   - Post Deployment Verification [Video](https://youtu.be/r1mp4Yve0VY)
+   - **The following items are required to deploy the solution**
+      - Prerequisite: You will need a project created for you (IT can do this for you)
+      - Prerequisite: You will need to be an Owner (IAM role) of the project to run the below script
+      - Prerequisite: You will need an Organization Policy Administrator to disable the following Org Policies (IT can do this for you)
+         - requireOsLogin = false
+         - requireShieldedVm = false
+         - allowedIngressSettings = allow all
+         - allowedPolicyMemberDomains = allow all
+         - restrictVpcPeering = allow all
+   - To deploy the code you will
+      - Update the hard coded values in ```deploy-use-existing-project-non-org-admin.sh```
+      - Run ```source deploy-use-existing-project-non-org-admin.sh```
+   - Your Organization Policy Administrator can then reenable the following Organization Policies
+      - (DO NOT RE-ENABLE) requireOsLogin = false
+      - (RE-ENABLE) requireShieldedVm = false
+      - (RE-ENABLE) allowedIngressSettings = allow all
+      - (RE-ENABLE) allowedPolicyMemberDomains = allow all
+      - (RE-ENABLE) restrictVpcPeering = allow all      
 
 
+### Using your Local machine (Assuming Linux based)
+1. Install Git (might already be installed)
+2. Install Curl (might already be installed)
+3. Install "jq" (might already be installed) - https://jqlang.github.io/jq/download/
+4. Install Google Cloud CLI (gcloud) - https://cloud.google.com/sdk/docs/install
+5. Install Terraform - https://developer.hashicorp.com/terraform/install
+6. Login:
+   ```
+   gcloud auth login
+   gcloud auth application-default login
+   ```
+7. Type: ```git clone https://github.com/GoogleCloudPlatform/data-analytics-golden-demo```
+8. Switch the prompt to the directory: ```cd data-analytics-golden-demo```
+9. Run the deployment script
+   - If using Elevated Privileges
+      - Run ```source deploy.sh```
+   - If using Owner Project Privileges
+      - Update the hard coded values in ```deploy-use-existing-project-non-org-admin.sh```
+      - Run ```source deploy-use-existing-project-non-org-admin.sh```
+10. Authorize the login (a popup will appear)
+11. Follow the prompts: Answer “Yes” for the Terraform approval.
 
-## Deploy
 
-[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://shell.cloud.google.com/cloudshell/?terminal=true&show=terminal&cloudshell_git_repo=https%3A%2F%2Fgithub.com%2FGoogleCloudPlatform%2Fdata-analytics-golden-demo)
+### To deploy through a Google Cloud Compute VM
+1. Create a new Compute VM with a Public IP address or Internet access on a Private IP
+   - The default VM is fine (e.g.)
+      - EC2 machine is fine for size
+      - OS: Debian GNU/Linux 12 (bookworm)
+2. SSH into the machine.  You might need to create a firewall rule (it will prompt you with the rule if it times out)   
+3. Run these commands on the machine one by one:
+   ```
+   sudo apt update
+   sudo apt upgrade -y
+   sudo apt install git
+   git config --global user.name "FirstName LastName"
+   git config --global user.email "your@email-address.com"
+   git clone https://github.com/GoogleCloudPlatform/data-analytics-golden-demo
+   cd data-analytics-golden-demo/
+   sudo apt-get install apt-transport-https ca-certificates gnupg curl
+   sudo apt-get install jq
+   gcloud auth login
+   gcloud auth application-default login
+   sudo apt-get update && sudo apt-get install -y gnupg software-properties-common
+   wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg > /dev/null
+   gpg --no-default-keyring --keyring /usr/share/keyrings/hashicorp-archive-keyring.gpg --fingerprint
+   echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] \
+   https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+   sudo apt update
+   sudo apt-get install terraform
 
-After the repo is cloned you would type ```source deploy.sh``` to deploy.
+   source deploy.sh 
+   # Or 
+   # Update the hard coded values in deploy-use-existing-project-non-org-admin.sh
+   # Run source deploy-use-existing-project-non-org-admin.sh
+   ```
 
-### To deploy to New Project (Requires Elevated Privileges)
-- Deployment [Video](https://youtu.be/QvCCo35qgys)
-- Post Deployment Verification [Video](https://youtu.be/r1mp4Yve0VY)
-- **The following IAM roles are required to deploy the solution**
-   - Prerequisite:  Billing Account User (to create the project with billing)
-   - Prerequisite:  Organization Administrator (to create all assets)
-   - Prerequisite:  Organization Policy Administrator (to change org policies)
-   - Optional:      Folder Editor (if you alter the script to place the project in a folder)
+### Cloud Shell (NOT WORKING) 
 1. Open a Google Cloud Shell: http://shell.cloud.google.com/
 2. Type: ```git clone https://github.com/GoogleCloudPlatform/data-analytics-golden-demo```
 3. Switch the prompt to the directory: ```cd data-analytics-golden-demo```
-4. Run the deployment script: ```source deploy.sh```
+4. Run the deployment script
+   - If using Elevated Privileges
+      - Run ```source deploy.sh```
+   - If using Owner Project Privileges
+      - Update the hard coded values in ```deploy-use-existing-project-non-org-admin.sh```
+      - Run ```source deploy-use-existing-project-non-org-admin.sh```
 5. Authorize the login (a popup will appear)
-6. Follow the prompts: Answer “Yes” for the Terraform approval.
-
-
-
-
-### To deploy to an Existing Project (Requires Assistance from IT and Owner Project Privileges)
-- Deployment [Video](https://youtu.be/SLzr737SHXM)
-- Post Deployment Verification [Video](https://youtu.be/r1mp4Yve0VY)
-- **The following items are required to deploy the solution**
-   - Prerequisite: You will need a project created for you (IT can do this for you)
-   - Prerequisite: You will need to be an Owner (IAM role) of the project to run the below script
-   - Prerequisite: You will need an Organization Policy Administrator to disable the following Org Policies (IT can do this for you)
-      - requireOsLogin = false
-      - requireShieldedVm = false
-      - allowedIngressSettings = allow all
-      - allowedPolicyMemberDomains = allow all
-      - restrictVpcPeering = allow all
-1. Open a Google Cloud Shell: http://shell.cloud.google.com/
-2. Type: ```git clone https://github.com/GoogleCloudPlatform/data-analytics-golden-demo```
-3. Switch the prompt to the directory: ```cd data-analytics-golden-demo```
-4. Update the hard coded values in ```deploy-use-existing-project-non-org-admin.sh```
-5. Run ```source deploy-use-existing-project-non-org-admin.sh```
-6. Your Organization Policy Administrator can then reenable the following Organization Policies
-   - (DO NOT RE-ENABLE) requireOsLogin = false
-   - (RE-ENABLE) requireShieldedVm = false
-   - (RE-ENABLE) allowedIngressSettings = allow all
-   - (RE-ENABLE) allowedPolicyMemberDomains = allow all
-   - (RE-ENABLE) restrictVpcPeering = allow all
-
+6. Follow the prompts: Answer “Yes” for the Terraform approval
 
 
 ### To deploy the project to a different region
 1. By default the solution deploys to us-west{x} region and US (multi-region)
 2. To deploy to another region review the code in [deploy-europe-region.sh](deploy-europe-region.sh)
 3. You can run either of the above deployment methods.  Copy the Terraform  "region" parameters to either of the above scripts.
-
 
 
 ### After the deployment
@@ -181,7 +244,6 @@ After the repo is cloned you would type ```source deploy.sh``` to deploy.
 1. If the script fails to enable a service or timeouts, you can rerun and if that does not work, run ```source clean-up.sh``` and start over
 2. If the script has a security type message (unauthorized), then double check the configure roles/IAM security.  Your user account is probably not an Owner of the project or Org Admin if creating the project.
 3. When using Cloud Shell: If you get a "networking error" with some dial tcp message [2607:f8b0:4001:c1a::5f], then your cloud shell has a networking glitch, not the Terraform network.  Restart the deployment "source deploy.sh". (e.g. Error creating Network: Post ```https://compute.googleapis.com/compute/beta/projects/bigquery-demo-xvz1143xu9/global/networks?alt=json```: dial tcp [2607:f8b0:4001:c1a::5f]:443: connect: cannot assign requested address).  This typically happens on WiFi.
-
 
 
 
