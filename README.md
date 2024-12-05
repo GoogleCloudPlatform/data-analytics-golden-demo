@@ -2,13 +2,19 @@
 Deploys an end-to-end Data Analytics technical walkthrough on Google Cloud.  All the services are connected, configured and ready to run.  The deployed artifacts can be run in any order letting you set your own path through the system.  The system has 70 to 700+ million rows of data so that you can show "true life" performance, scale and integration of various services.  The system orchestates itself using Airflow, communicates over private IP addresses and has working code to demonstrate how to build an end to end system.
 
 ## Last updated Dec 2024
-- Fixed and upgraded many services such as text-bison to Gemini Pro, Flask versions, Notebooks deployments
+- Fixed and upgraded many services such as text-bison to Gemini Pro, Flask versions, .NET core update, Notebooks deployments, removed App Engine (use Cloud Run instead), updated Resnet model code and updated Taxi Data (Sept 2024)
 
-## Monthly Video Update (October 2023)
+## Other demos for Google Data Cloud
+   - Chocolate AI: https://github.com/GoogleCloudPlatform/chocolate-ai
+      - Gemini using JSON, Managed Apache Kafka, Continuous Queries, Vector Indexes / Embeddings / Semantic Search, Data insights,  Spanner Graph, Imagen3, Text to video, and TimesFM predictions.
+      - Videos are in each notebook
+   - Data Beans: https://github.com/GoogleCloudPlatform/data-beans
+      - Gemini, Schema Generation, GenAI Text Reviews, Audio Review, GenAI Sentiment Analysis, Vision AI, Imagen 2, Gemini for BigQuery, BigQuery Studio
 
-[![Monthly Update](./images/MonthlyUpdate.png)](https://youtu.be/asZhcFwiVnU)
+## Monthly Video Update
 
 Prior Months
+- [October 2023](https://youtu.be/asZhcFwiVnU)
 - [September 2023](https://youtu.be/7I3jw-nNMC8)
 - [August 2023](https://youtu.be/QGJYd_6NslU)
 - [July 2023](https://youtu.be/Ljbvpg-tZEM)
