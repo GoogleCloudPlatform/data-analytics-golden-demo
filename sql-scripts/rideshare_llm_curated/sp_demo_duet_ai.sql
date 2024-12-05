@@ -48,7 +48,7 @@ FROM `${project_id}.${bigquery_rideshare_llm_curated_dataset}.driver`;
 /* This will return " Customer Since Date - The inception date of the customer relationship" */
 
 /* Uncomment this out.  The model cloud_ai_llm_v1 does not exist at deployment time
-SELECT JSON_VALUE(ml_generate_text_result, '$.predictions[0].content') AS result, 
+SELECT JSON_VALUE(ml_generate_text_result, '$.candidates[0].content.parts[0].text') AS result, 
      ml_generate_text_result
 FROM ML.GENERATE_TEXT(MODEL`${project_id}.${bigquery_rideshare_llm_curated_dataset}.cloud_ai_llm_v1`,
      (SELECT
@@ -342,7 +342,7 @@ SELECT payment_type.payment_type_description
 
 -- Data Processing (JSON output of an unstructured address)
 /* Uncomment this out.  The model cloud_ai_llm_v1 does not exist at deployment time
-SELECT JSON_VALUE(ml_generate_text_result, '$.predictions[0].content') AS result, 
+SELECT JSON_VALUE(ml_generate_text_result, '$.candidates[0].content.parts[0].text') AS result, 
        ml_generate_text_result
   FROM ML.GENERATE_TEXT(MODEL`${project_id}.${bigquery_rideshare_llm_curated_dataset}.cloud_ai_llm_v1`,
        (SELECT
@@ -363,7 +363,7 @@ STRUCT(
 
 
   -- Data Processing (JSON Array of many address with a "line 2")
-  SELECT JSON_VALUE(ml_generate_text_result, '$.predictions[0].content') AS result, 
+  SELECT JSON_VALUE(ml_generate_text_result, '$.candidates[0].content.parts[0].text') AS result, 
          ml_generate_text_result
     FROM ML.GENERATE_TEXT(MODEL`${project_id}.${bigquery_rideshare_llm_curated_dataset}.cloud_ai_llm_v1`,
          (SELECT
