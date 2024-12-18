@@ -52,7 +52,7 @@ project_number="000000000000"
 #     - (RE-ENABLE) requireShieldedVm 
 #     - (RE-ENABLE) allowedIngressSettings 
 #     - (RE-ENABLE) allowedPolicyMemberDomains 
-#     - (RE-ENABLE) restrictVpcPeering  
+#     - (RE-ENABLE) restrictVpcPeering  [ You need this not enabled if you run the Datastream Private IP Airflow job]
 
 
 ####################################################################################

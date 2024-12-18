@@ -349,7 +349,8 @@ module "deploy-notebooks-module-create-files" {
   gcp_account_name                        = var.gcp_account_name
   curl_impersonation                      = local.local_curl_impersonation
   bigquery_region                         = var.bigquery_region
-
+  vertex_ai_region                        = var.vertex_ai_region
+  
   depends_on = [
     module.project,
     module.service-account,

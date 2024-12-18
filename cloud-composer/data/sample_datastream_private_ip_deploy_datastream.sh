@@ -70,6 +70,39 @@ sudo apt-get update && sudo apt-get --only-upgrade install google-cloud-sdk
 # Deleting it will set it back to "Inherit from parent"
 # gcloud resource-manager org-policies delete constraints/compute.restrictVpcPeering --project="${PROJECT_ID}"
 
+# Create the Datastream Private Connection (takes a while so it is done here and not created on the fly in Airflow)
+# resource "google_datastream_private_connection" "datastream_cloud-sql-private-connect" {
+#   project               = var.project_id
+#   display_name          = "cloud-sql-private-connect"
+#   location              = var.datastream_region
+#   private_connection_id = "cloud-sql-private-connect"
+# 
+#   vpc_peering_config {
+#     vpc    = google_compute_network.default_network.id
+#     subnet = "10.7.0.0/29"
+#   }
+# 
+#   depends_on = [
+#     google_compute_network.default_network
+#   ]
+# }
+
+# This can take a long time.
+gcloud datastream private-connections create cloud-sql-private-connect \
+  --location=${DATASTREAM_REGION} \
+  --vpc="vpc-main" \
+  --subnet="10.7.0.0/29" \
+  --display-name="cloud-sql-private-connect" \
+  --project="${PROJECT_ID}"
+
+# Loop while it creates
+stateDataStream="CREATING"
+while [ "$stateDataStream" = "CREATING" ]
+    do
+    sleep 5
+    stateDataStream=$(gcloud datastream private-connections list --location=${DATASTREAM_REGION} --project="${PROJECT_ID}" --filter="DISPLAY_NAME=cloud-sql-private-connect" --format="value(STATE)")
+    echo "stateDataStream: $stateDataStream"
+    done
 
 # Get ip address (of this node)
 reverse_proxy_vm_ip_address=$(gcloud compute instances list --filter="NAME=sql-reverse-proxy" --project="${PROJECT_ID}" --format="value(INTERNAL_IP)")
