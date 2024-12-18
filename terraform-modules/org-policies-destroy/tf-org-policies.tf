@@ -138,7 +138,7 @@ resource "google_org_policy_policy" "org_policy_allowed_policy_member_domains" {
 }
 */
 
-/*
+
 # For Datastream to create the peer network
 resource "google_org_policy_policy" "org_policy_allowed_vpc_peering" {
   name     = "projects/${var.project_id}/policies/compute.restrictVpcPeering"
@@ -150,7 +150,7 @@ resource "google_org_policy_policy" "org_policy_allowed_vpc_peering" {
     }
   }
 }
-*/
+
 
 ####################################################################################
 # Time Delay for Org Policies

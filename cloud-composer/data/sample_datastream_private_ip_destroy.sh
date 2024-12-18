@@ -52,6 +52,12 @@ gcloud datastream connection-profiles delete bigquery-private-ip-connection \
     --project="${PROJECT_ID}" \
     --quiet
 
+# Delete the private connectivity
+# This will fail due to nested resources.  You can re-run the deploy DAG and it works, so I leave the connection for now.
+gcloud datastream private-connections delete cloud-sql-private-connect \
+    --location=${DATASTREAM_REGION} \
+    --project="${PROJECT_ID}" \
+    --quiet
 
 # Delete the postgres database
 gcloud sql instances delete "${INSTANCE}" \

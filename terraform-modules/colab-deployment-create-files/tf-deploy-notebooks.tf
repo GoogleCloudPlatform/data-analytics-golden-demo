@@ -41,7 +41,7 @@ variable "random_extension" {}
 variable "gcp_account_name" {}
 variable "curl_impersonation" {}
 variable "bigquery_region" {}
-
+variable "vertex_ai_region" {}
 
 data "google_client_config" "current" {
 }
@@ -86,6 +86,7 @@ resource "local_file" "local_file_notebooks_to_deploy" {
     bigquery_region = var.bigquery_region
     gcs_rideshare_lakehouse_raw_bucket = var.gcs_rideshare_lakehouse_raw_bucket   
     bucket_name = "processed-${var.storage_bucket}"
+    vertex_ai_region = var.vertex_ai_region
     }
   )
 }

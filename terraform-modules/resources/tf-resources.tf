@@ -376,7 +376,7 @@ resource "google_compute_firewall" "datastream_egress_rule_firewall_rule" {
   ]
 }
 
-
+/*
 # Create the Datastream Private Connection (takes a while so it is done here and not created on the fly in Airflow)
 resource "google_datastream_private_connection" "datastream_cloud-sql-private-connect" {
   project               = var.project_id
@@ -393,7 +393,7 @@ resource "google_datastream_private_connection" "datastream_cloud-sql-private-co
     google_compute_network.default_network
   ]
 }
-
+*/
 
 # For Cloud SQL / Datastream demo 
 # Allocate an IP address range
