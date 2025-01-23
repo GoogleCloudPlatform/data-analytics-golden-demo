@@ -717,11 +717,12 @@ resource "google_composer_environment" "composer_env" {
   config {
 
     software_config {
-      image_version = "composer-2.6.6-airflow-2.6.3" # the latest version is broke
+      image_version = "composer-2.10.2-airflow-2.10.2" # the latest version is broke
       #image_version = data.google_composer_image_versions.latest_image.image_versions[0].image_version_id
 
+      # Upgrading this failed as well same unhealthy error
       pypi_packages = {
-        psycopg2-binary = "==2.9.6"
+        psycopg2-binary = "==2.9.10" # You need to upgrade this as you upgrade the composer version
       }
 
       env_variables = {
@@ -780,6 +781,7 @@ resource "google_composer_environment" "composer_env" {
     }
 
     # this is designed to be the smallest cheapest Composer for demo purposes
+    # In your TF Script, Increase Web Server Memory to at least 2 GB (4 GB per CPU core)
     workloads_config {
       scheduler {
         cpu        = 1
@@ -789,7 +791,7 @@ resource "google_composer_environment" "composer_env" {
       }
       web_server {
         cpu        = 0.5
-        memory_gb  = 1
+        memory_gb  = 2
         storage_gb = 1
       }
       worker {
