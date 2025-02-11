@@ -4,9 +4,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #     https://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -47,25 +47,25 @@ default_args = {
     'dagrun_timeout' : timedelta(minutes=600),
 }
 
-project_id               = os.environ['ENV_PROJECT_ID'] 
+project_id               = os.environ['ENV_PROJECT_ID']
 region                   = os.environ['ENV_DATAPROC_SERVERLESS_REGION']
-raw_bucket_name          = os.environ['ENV_RAW_BUCKET'] 
-processed_bucket_name    = "gs://" + os.environ['ENV_PROCESSED_BUCKET'] 
+raw_bucket_name          = os.environ['ENV_RAW_BUCKET']
+processed_bucket_name    = "gs://" + os.environ['ENV_PROCESSED_BUCKET']
 pyspark_code             = "gs://" + raw_bucket_name + "/pyspark-code/rideshare_iceberg_serverless.py"
-jar_file                 = "gs://spark-lib/biglake/biglake-catalog-iceberg1.2.0-0.1.0-with-dependencies.jar"
+jar_file                 = "gs://spark-lib/biglake/biglake-catalog-iceberg1.5.1-0.1.1-with-dependencies.jar"
 
 # hardcoded the subnet name
 dataproc_subnet          = os.environ['ENV_DATAPROC_SERVERLESS_SUBNET_NAME']
-dataproc_service_account = os.environ['ENV_DATAPROC_SERVICE_ACCOUNT'] 
-dataproc_bucket          = os.environ['ENV_DATAPROC_BUCKET'] 
-taxi_dataset_id          = os.environ['ENV_TAXI_DATASET_ID'] 
+dataproc_service_account = os.environ['ENV_DATAPROC_SERVICE_ACCOUNT']
+dataproc_bucket          = os.environ['ENV_DATAPROC_BUCKET']
+taxi_dataset_id          = os.environ['ENV_TAXI_DATASET_ID']
 
 iceberg_catalog                = "rideshare_iceberg_catalog"
 iceberg_warehouse              = "rideshare_lakehouse_enriched"
-bq_rideshare_enriched_dataset  = os.environ['ENV_RIDESHARE_LAKEHOUSE_ENRICHED_DATASET'] 
-bq_rideshare_raw_dataset       = os.environ['ENV_RIDESHARE_LAKEHOUSE_RAW_DATASET'] 
-rideshare_raw_bucket           = os.environ['ENV_RIDESHARE_LAKEHOUSE_RAW_BUCKET'] 
-rideshare_enriched_bucket      = os.environ['ENV_RIDESHARE_LAKEHOUSE_ENRICHED_BUCKET'] 
+bq_rideshare_enriched_dataset  = os.environ['ENV_RIDESHARE_LAKEHOUSE_ENRICHED_DATASET']
+bq_rideshare_raw_dataset       = os.environ['ENV_RIDESHARE_LAKEHOUSE_RAW_DATASET']
+rideshare_raw_bucket           = os.environ['ENV_RIDESHARE_LAKEHOUSE_RAW_BUCKET']
+rideshare_enriched_bucket      = os.environ['ENV_RIDESHARE_LAKEHOUSE_ENRICHED_BUCKET']
 
 bigquery_region                = os.environ['ENV_BIGQUERY_REGION']
 
@@ -87,12 +87,12 @@ BATCH_CONFIG = {
             },
     'runtime_config':
         {
-            'version' : '1.0',
+            'version' : '2.2',
             'properties':
                 {
                     "spark.sql.catalog.{}.blms_catalog".format(iceberg_catalog) : iceberg_catalog,
                     "spark.sql.catalog.{}.gcp_project".format(iceberg_catalog)  : project_id,
-                    "spark.jars.packages" : "org.apache.iceberg:iceberg-spark-runtime-3.2_2.12:0.14.1,org.apache.spark:spark-avro_2.12:3.3.1",
+                    "spark.jars.packages" : "org.apache.iceberg:iceberg-spark-runtime-3.5_2.13:1.4.3,org.apache.spark:spark-avro_2.13:3.5.1",
                     "spark.sql.catalog.{}.catalog-impl".format(iceberg_catalog) : "org.apache.iceberg.gcp.biglake.BigLakeCatalog",
                     "spark.sql.catalog.{}.gcp_location".format(iceberg_catalog) : bigquery_region, \
                     "spark.sql.catalog.{}".format(iceberg_catalog)              : "org.apache.iceberg.spark.SparkCatalog",
