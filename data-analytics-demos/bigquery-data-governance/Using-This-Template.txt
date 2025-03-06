@@ -1,0 +1,10 @@
+You need to search and replace these values (in this order):
+  1. governed_data_raw: (dataset and variable names with an underscore): e.g. my_demo
+  2. governed-data (project, directory name (folder) and GitHub name with a dash): e.g. my-demo
+  3. You must manually rename the sql-scripts/governed_data_raw folder
+
+Other:
+  - You need to search for REPLACE-ME
+  - You need to update the README, AUTHORS
+  - You need to update the initialize.sql
+  - You need to replace the Architecture.png
