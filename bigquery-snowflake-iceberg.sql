@@ -2,8 +2,8 @@
 -- Create a bucket to hold your BigLake Managed Table
 -- Open: https://console.cloud.google.com/storage/browser
 -- Click the Create Bucket button
--- Enter your bucket name: blmt-snowflake-sharing (you can choose a different name)
--- Click Next: Use Multi-region: us
+-- Enter your bucket name: iceberg-sharing-bigquery (you can choose a different name)
+-- Click Next: Use Region: us-central1
 -- Click Create at the bottom
 
 
@@ -13,20 +13,20 @@
 -- Click the Add button
 -- Select "Connections to external data sources"
    -- Select "Vertex AI remote models, remote functions and BigLake (Cloud Resource)"
-   -- Enter a name: blmt-connection (use the for friendly name and description)
+   -- Enter a name: iceberg-connection-bigquery (use the for friendly name and description)
 
 
 -- Step 3:
 -- Expand your project in the left hand panel
 -- Expand external connections
--- Double click on us.blmt-connection
+-- Double click on us-central1.iceberg-connection-bigquery
 -- Copy the service account id: e.g. bqcx-xxxxxxxxxxxx-s3rf@gcp-sa-bigquery-condel.iam.gserviceaccount.com
 
 
 -- Step 4:
 -- Open your storage account you created
 -- Open: https://console.cloud.google.com/storage/browser
--- Click on: blmt-snowflake-sharing (or whatever you named it)
+-- Click on: iceberg-sharing-bigquery (or whatever you named it)
 -- Click on Permissions
 -- Click Grant Access
 -- Paste in the service account name
@@ -39,12 +39,12 @@
 -- Open: https://console.cloud.google.com/bigquery
 -- Open a query window:
 -- Run this to create a dataset
-CREATE SCHEMA IF NOT EXISTS blmt_dataset OPTIONS(location = 'us');
+CREATE SCHEMA IF NOT EXISTS iceberg_dataset OPTIONS(location = 'us-central1');
 
 
 -- Step 6:
 -- Run this to create a BigLake Managed table (change the storage account name below)
-CREATE OR REPLACE TABLE `blmt_dataset.driver`
+CREATE OR REPLACE TABLE `iceberg_dataset.driver`
 (
  driver_id                 INT64,
  driver_name               STRING,
@@ -56,24 +56,24 @@ CREATE OR REPLACE TABLE `blmt_dataset.driver`
  driver_ach_account_number STRING
 )
 CLUSTER BY driver_id
-WITH CONNECTION `us.blmt-connection`
+WITH CONNECTION `us-central1.iceberg-connection-bigquery`
 OPTIONS (
  file_format = 'PARQUET',
  table_format = 'ICEBERG',
- storage_uri = 'gs://blmt-snowflake-sharing/driver'
+ storage_uri = 'gs://iceberg-sharing-bigquery/driver'
 );
 
 
 -- Step 7:
 -- Load the table with some data
-LOAD DATA INTO `blmt_dataset.driver`
+LOAD DATA INTO `iceberg_dataset.driver`
 FROM FILES (
  format = 'parquet',
  uris = ['gs://data-analytics-golden-demo/biglake/v1-source/managed-table-source/driver/*.parquet']);
 
 
 -- View the data
-SELECT * FROM `blmt_dataset.driver` LIMIT 1000;
+SELECT * FROM `iceberg_dataset.driver` LIMIT 1000;
 
 
 -- Step 8:
@@ -85,7 +85,7 @@ SELECT * FROM `blmt_dataset.driver` LIMIT 1000;
 
 
 -- To export the most recent metadata run this in BigQuery (a seperate window is preferred)
-EXPORT TABLE METADATA FROM blmt_dataset.driver;
+EXPORT TABLE METADATA FROM iceberg_dataset.driver;
 
 
 -- In your storage window
@@ -106,27 +106,27 @@ USE ROLE accountadmin;
 
 -- Step 10:
 -- Create a warehouse to hold the data
-CREATE OR REPLACE WAREHOUSE BLMT_WAREHOUSE WITH WAREHOUSE_SIZE='XSMALL';
+CREATE OR REPLACE WAREHOUSE BIGQUERY_WAREHOUSE WITH WAREHOUSE_SIZE='XSMALL';
 
 
 -- Step 11:
 -- Create a database in snowflake
-CREATE OR REPLACE DATABASE BLMT_DATABASE;
+CREATE OR REPLACE DATABASE BIGQUERY_DATABASE;
 
 
 -- Step 12:
 -- Select the database
-USE DATABASE BLMT_DATABASE;
+USE DATABASE BIGQUERY_DATABASE;
 
 
 -- Step 13:
 -- Create the schema to hold the table
-CREATE SCHEMA IF NOT EXISTS BLMT_SCHEMA;
+CREATE SCHEMA IF NOT EXISTS BIGQUERY_SCHEMA;
 
 
 -- Step 14:
 -- Select the schema
-USE SCHEMA BLMT_SCHEMA;
+USE SCHEMA BIGQUERY_SCHEMA;
 
 
 -- Step 15:
@@ -138,7 +138,7 @@ CREATE STORAGE INTEGRATION gcs_storage_integration
  TYPE = EXTERNAL_STAGE
  STORAGE_PROVIDER = 'GCS'
  ENABLED = TRUE
- STORAGE_ALLOWED_LOCATIONS = ('gcs://blmt-snowflake-sharing/');
+ STORAGE_ALLOWED_LOCATIONS = ('gcs://iceberg-sharing-bigquery/');
 
 
 -- Step 16:
@@ -171,7 +171,7 @@ DESC STORAGE INTEGRATION gcs_storage_integration;
 -- Step 18:
 -- Open your storage account you created
 -- Open: https://console.cloud.google.com/storage/browser
--- Click on: blmt-snowflake-sharing (or whatever you named it)
+-- Click on: iceberg-sharing-bigquery (or whatever you named it)
 -- Click on Permissions
 -- Click Grant Access
 -- Paste in the service account name (from Snowflake)
@@ -188,7 +188,7 @@ CREATE OR REPLACE EXTERNAL VOLUME gcs_volume
         (
            NAME = 'gcs_volume'
            STORAGE_PROVIDER = 'GCS'
-           STORAGE_BASE_URL = 'gcs://blmt-snowflake-sharing/'
+           STORAGE_BASE_URL = 'gcs://iceberg-sharing-bigquery/'
            )
      );
 
@@ -217,7 +217,7 @@ CREATE OR REPLACE ICEBERG TABLE driver
    CATALOG='catalog_integration'   -- The catalog where the table will reside
    EXTERNAL_VOLUME='gcs_volume'    -- The external volume for table data
    BASE_LOCATION=''                -- Optional: Subdirectory within the storage location
-   METADATA_FILE_PATH='driver/metadata/v1730762887.metadata.json'; -- Path to the existing metadata file
+   METADATA_FILE_PATH='driver/metadata/v1741294463.metadata.json'; -- Path to the existing metadata file
 
 
 -- Step 22:
@@ -235,7 +235,7 @@ SELECT COUNT(*) FROM driver;
 
 -- Now that you are linked, you can try the following
 -- Insert a record into the BigQuery table:
-INSERT INTO `blmt_dataset.driver`
+INSERT INTO `iceberg_dataset.driver`
 (driver_id, driver_name, driver_mobile_number, driver_license_number, driver_email_address,
 driver_dob, driver_ach_routing_number, driver_ach_account_number)
 VALUES (0, 'New Driver', 'xxx-xxx-xxxx', 'driver_license_number', 'driver_email_address',
@@ -246,6 +246,6 @@ CURRENT_DATE(), 'driver_ach_routing_number','driver_ach_account_number');
 SELECT * FROM driver WHERE driver_id = 0;
 
 
-– You will not see the new record
+-- You will not see the new record
 -- You first need to tell BigQuery to export the latest metadata (Step 8).
 -- Update the metadata used by Snowflake (Step 21) pointing to the latest JSON file

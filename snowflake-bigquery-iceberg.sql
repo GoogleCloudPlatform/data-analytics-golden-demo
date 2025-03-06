@@ -21,7 +21,7 @@ CREATE OR REPLACE DATABASE ICEBERG_DATABASE;
 -- Create a bucket to hold your BigLake Managed Table
 -- Open: https://console.cloud.google.com/storage/browser
 -- Click the Create Bucket button
--- Enter your bucket name: bigquery-snowflake-sharing (you can choose a different name)
+-- Enter your bucket name: iceberg-sharing-snowflake (you can choose a different name)
 -- Click Next: Use Region: us-central1 <- must match your snowflake region
 -- Click Create at the bottom
 
@@ -35,8 +35,7 @@ CREATE STORAGE INTEGRATION bigquery_integration
   TYPE = EXTERNAL_STAGE
   STORAGE_PROVIDER = 'GCS'
   ENABLED = TRUE
-  STORAGE_ALLOWED_LOCATIONS = ('gcs://bigquery-snowflake-sharing')
-;
+  STORAGE_ALLOWED_LOCATIONS = ('gcs://iceberg-sharing-snowflake');
 
 
 -- Step 6:
@@ -69,7 +68,7 @@ DESC STORAGE INTEGRATION bigquery_integration;
 -- Step 8:
 -- Open your storage account you created
 -- Open: https://console.cloud.google.com/storage/browser
--- Click on: bigquery-snowflake-sharing (or whatever you named it)
+-- Click on: iceberg-sharing-snowflake (or whatever you named it)
 -- Click on Permissions
 -- Click Grant Access
 -- Paste in the service account name (from Snowflake)
@@ -87,14 +86,14 @@ CREATE EXTERNAL VOLUME snowflake_ext_volume
       (
         NAME = 'us-central1'
         STORAGE_PROVIDER = 'GCS'
-        STORAGE_BASE_URL = 'gcs://bigquery-snowflake-sharing/snowflake-volume/'
+        STORAGE_BASE_URL = 'gcs://iceberg-sharing-snowflake/snowflake-volume/'
       )
     ),
     ALLOW_WRITES = TRUE;
 
 -- Step 10:
 -- Describe the volume
-DESCRIBE EXTERNAL VOLUME snowflake_external_volume
+DESCRIBE EXTERNAL VOLUME snowflake_ext_volume
 
 -- Step 11:
 -- Set the current database
@@ -136,7 +135,7 @@ SELECT REPLACE(JSON_EXTRACT_PATH_TEXT(
 -- Step 18:
 -- Open your storage account you created
 -- Open: https://console.cloud.google.com/storage/browser
--- Click on: bigquery-snowflake-sharing (or whatever you named it)
+-- Click on: iceberg-sharing-snowflake (or whatever you named it)
 -- You can now browser the iceberg files
 
 
@@ -152,13 +151,13 @@ CREATE SCHEMA IF NOT EXISTS snowflake_dataset OPTIONS(location = 'us-central1');
 -- Select "Connections to external data sources"
    -- Select "Vertex AI remote models, remote functions and BigLake (Cloud Resource)"
    -- Select region: us-central1
-   -- Enter a name: snowflake-connection (use the for friendly name and description)
+   -- Enter a name: iceberg-connection-snowflake (use the for friendly name and description)
 
 
 -- Step 21:
 -- Expand your project in the left hand panel
 -- Expand external connections
--- Double click on us-central1.snowflake-connection
+-- Double click on us-central1.iceberg-connection-snowflake
 -- Copy the service account id: e.g. bqcx-xxxxxxxxxxxx-s3rf@gcp-sa-bigquery-condel.iam.gserviceaccount.com
 
 
@@ -176,10 +175,10 @@ CREATE SCHEMA IF NOT EXISTS snowflake_dataset OPTIONS(location = 'us-central1');
 -- Step 24:
 -- The uris needs to be from the above Snowflake command
 CREATE OR REPLACE EXTERNAL TABLE `snowflake_dataset.driver`
-WITH CONNECTION `us-central1.snowflake-connection`
+WITH CONNECTION `us-central1.iceberg-connection-snowflake`
 OPTIONS (
   format = "ICEBERG",
-  uris = ["gs://bigquery-snowflake-sharing/snowflake-volume/driver/metadata/00001-2d763c77-df0a-4230-bd52-033877d02c40.metadata.json"]
+  uris = ["gs://iceberg-sharing-snowflake/snowflake-volume/driver/metadata/00001-25a4ee54-8ebc-4551-b013-c3195b01d227.metadata.json"]
 );
 
 
