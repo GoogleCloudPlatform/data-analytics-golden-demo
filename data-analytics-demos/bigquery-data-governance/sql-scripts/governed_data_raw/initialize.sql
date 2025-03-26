@@ -36,9 +36,11 @@ Clean up / Reset script:
 ------------------------------------------------------------------------------------------------------------
 -- Create GenAI / Vertex AI connections
 ------------------------------------------------------------------------------------------------------------
+/*
 CREATE MODEL IF NOT EXISTS `${project_id}.${bigquery_governed_data_raw_dataset}.gemini_pro`
   REMOTE WITH CONNECTION `${project_id}.${multi_region}.vertex-ai`
   OPTIONS (endpoint = 'gemini-pro');
+*/
 
 CREATE MODEL IF NOT EXISTS `${project_id}.${bigquery_governed_data_raw_dataset}.gemini_pro_1_5`
   REMOTE WITH CONNECTION `${project_id}.${multi_region}.vertex-ai`
