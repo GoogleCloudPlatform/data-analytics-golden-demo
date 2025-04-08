@@ -36,19 +36,13 @@ Clean up / Reset script:
 ------------------------------------------------------------------------------------------------------------
 -- Create GenAI / Vertex AI connections
 ------------------------------------------------------------------------------------------------------------
-/*
-CREATE MODEL IF NOT EXISTS `${project_id}.${bigquery_governed_data_raw_dataset}.gemini_pro`
+CREATE MODEL IF NOT EXISTS `${project_id}.${bigquery_governed_data_raw_dataset}.gemini_model`
   REMOTE WITH CONNECTION `${project_id}.${multi_region}.vertex-ai`
-  OPTIONS (endpoint = 'gemini-pro');
-*/
+  OPTIONS (endpoint = 'gemini-2.0-flash');
 
-CREATE MODEL IF NOT EXISTS `${project_id}.${bigquery_governed_data_raw_dataset}.gemini_pro_1_5`
+CREATE MODEL IF NOT EXISTS `${project_id}.${bigquery_governed_data_raw_dataset}.textembedding_model`
   REMOTE WITH CONNECTION `${project_id}.${multi_region}.vertex-ai`
-  OPTIONS (endpoint = 'gemini-1.5-pro-001');
-
-CREATE MODEL IF NOT EXISTS `${project_id}.${bigquery_governed_data_raw_dataset}.google-textembedding`
-  REMOTE WITH CONNECTION `${project_id}.${multi_region}.vertex-ai`
-  OPTIONS (endpoint = 'text-embedding-004');
+  OPTIONS (endpoint = 'text-embedding-005');
 
 
 ------------------------------------------------------------------------------------------------------------

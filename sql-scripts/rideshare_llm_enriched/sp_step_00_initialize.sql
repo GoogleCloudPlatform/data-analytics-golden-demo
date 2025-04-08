@@ -34,16 +34,9 @@
 ------------------------------------------------------------------------------------------------------------
 -- Create link to the LLM
 ------------------------------------------------------------------------------------------------------------
-/*
-CREATE OR REPLACE MODEL `${project_id}.${bigquery_rideshare_llm_enriched_dataset}.cloud_ai_llm_v1`
+CREATE OR REPLACE MODEL `${project_id}.${bigquery_rideshare_llm_enriched_dataset}.gemini_model`
   REMOTE WITH CONNECTION `${project_id}.us.vertex-ai`
-  OPTIONS (REMOTE_SERVICE_TYPE = 'CLOUD_AI_LARGE_LANGUAGE_MODEL_V1');
-*/
-
--- New Syntax for specifying a model version gemini-1.5-pro
-CREATE OR REPLACE MODEL `${project_id}.${bigquery_rideshare_llm_enriched_dataset}.cloud_ai_llm_v1`
-  REMOTE WITH CONNECTION `${project_id}.us.vertex-ai`
-  OPTIONS (endpoint = 'gemini-1.5-pro');
+  OPTIONS (endpoint = 'gemini_model');
 
 ------------------------------------------------------------------------------------------------------------
 -- Create link to the STT model

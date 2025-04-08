@@ -33,7 +33,7 @@ SELECT query.content AS search_string,
                       'customer_profile_data_embedding', -- the column name that contains our embedding (from query above)
                       (
                        SELECT text_embedding, content  -- encode our data to search
-                         FROM ML.GENERATE_TEXT_EMBEDDING(MODEL `${project_id}.${bigquery_governed_data_raw_dataset}.google-textembedding`,
+                         FROM ML.GENERATE_TEXT_EMBEDDING(MODEL `${project_id}.${bigquery_governed_data_raw_dataset}.textembedding_model`,
                                                          (SELECT 'biking'AS content),                                                             
                                                          STRUCT(TRUE AS flatten_json_output, 
                                                                 'SEMANTIC_SIMILARITY' as task_type,

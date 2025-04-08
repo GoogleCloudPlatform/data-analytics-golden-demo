@@ -47,10 +47,10 @@ FROM `${project_id}.${bigquery_rideshare_llm_curated_dataset}.driver`;
 /* We can even use LLMs to generate field names for our database tables.  In this case we want the field to have the business term */
 /* This will return " Customer Since Date - The inception date of the customer relationship" */
 
-/* Uncomment this out.  The model cloud_ai_llm_v1 does not exist at deployment time
+/* Uncomment this out.  The model gemini_model does not exist at deployment time
 SELECT JSON_VALUE(ml_generate_text_result, '$.candidates[0].content.parts[0].text') AS result, 
      ml_generate_text_result
-FROM ML.GENERATE_TEXT(MODEL`${project_id}.${bigquery_rideshare_llm_curated_dataset}.cloud_ai_llm_v1`,
+FROM ML.GENERATE_TEXT(MODEL`${project_id}.${bigquery_rideshare_llm_curated_dataset}.gemini_model`,
      (SELECT
 """
 For the following field name:
@@ -341,10 +341,10 @@ SELECT payment_type.payment_type_description
 */
 
 -- Data Processing (JSON output of an unstructured address)
-/* Uncomment this out.  The model cloud_ai_llm_v1 does not exist at deployment time
+/* Uncomment this out.  The model gemini_model does not exist at deployment time
 SELECT JSON_VALUE(ml_generate_text_result, '$.candidates[0].content.parts[0].text') AS result, 
        ml_generate_text_result
-  FROM ML.GENERATE_TEXT(MODEL`${project_id}.${bigquery_rideshare_llm_curated_dataset}.cloud_ai_llm_v1`,
+  FROM ML.GENERATE_TEXT(MODEL`${project_id}.${bigquery_rideshare_llm_curated_dataset}.gemini_model`,
        (SELECT
 """
 For the following address extract the fields "address line", "city", "state" and "zip code" and return the below JSON format. Avoid using newlines in the output.
@@ -365,7 +365,7 @@ STRUCT(
   -- Data Processing (JSON Array of many address with a "line 2")
   SELECT JSON_VALUE(ml_generate_text_result, '$.candidates[0].content.parts[0].text') AS result, 
          ml_generate_text_result
-    FROM ML.GENERATE_TEXT(MODEL`${project_id}.${bigquery_rideshare_llm_curated_dataset}.cloud_ai_llm_v1`,
+    FROM ML.GENERATE_TEXT(MODEL`${project_id}.${bigquery_rideshare_llm_curated_dataset}.gemini_model`,
          (SELECT
   """
   For the following addresses extract the fields "address line1", "address line2", "city", "state" and "zip code" and return the below JSON array. 

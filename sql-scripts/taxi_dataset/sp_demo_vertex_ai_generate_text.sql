@@ -31,7 +31,7 @@ References:
 
 Clean up / Reset script:
     DROP TABLE IF EXISTS `${project_id}.${bigquery_taxi_dataset}.taxi_trips_cloud_ai_llm`;
-    DROP MODEL IF EXISTS `${project_id}.${bigquery_taxi_dataset}.cloud_ai_llm_v1`;
+    DROP MODEL IF EXISTS `${project_id}.${bigquery_taxi_dataset}.gemini_model`;
 
 - Create the connection
 - Add Vertex AI User to role of connection
@@ -90,17 +90,9 @@ SELECT *
   FROM AssignNames;
 
 
--- Create the model that references Vertex AI gemini-1.5-pro
-/*
-CREATE OR REPLACE MODEL `${project_id}.${bigquery_taxi_dataset}.cloud_ai_llm_v1`
+CREATE OR REPLACE MODEL `${project_id}.${bigquery_taxi_dataset}.gemini_model`
   REMOTE WITH CONNECTION `${project_id}.${bigquery_region}.vertex-ai`
-  OPTIONS (endpoint = 'gemini-1.5-pro');
-*/
-
--- New Syntax for specifying a model version gemini-1.5.pro
-CREATE OR REPLACE MODEL `${project_id}.${bigquery_taxi_dataset}.cloud_ai_llm_v1`
-  REMOTE WITH CONNECTION `${project_id}.${bigquery_region}.vertex-ai`
-  OPTIONS (endpoint = 'gemini-1.5-pro');
+  OPTIONS (endpoint = 'gemini-2.0-flash');
 
   
 CREATE OR REPLACE TABLE `${project_id}.${bigquery_taxi_dataset}.taxi_trips_cloud_ai_llm_result`
@@ -125,7 +117,7 @@ INSERT INTO `${project_id}.${bigquery_taxi_dataset}.taxi_trips_cloud_ai_llm_resu
 SELECT 'GENERATED-REVIEWS', ml_generate_text_result, ml_generate_text_status, prompt
 FROM
   ML.GENERATE_TEXT(
-    MODEL`${project_id}.${bigquery_taxi_dataset}.cloud_ai_llm_v1`,
+    MODEL`${project_id}.${bigquery_taxi_dataset}.gemini_model`,
     (SELECT 'Generate 10 to 25 reviews of taxi drivers which consist of both positive and negative reviews in a JSON format. Valid fields are review_text. JSON:' AS prompt),
     STRUCT(
       0.8 AS temperature,
@@ -192,7 +184,7 @@ EXECUTE IMMEDIATE """
 SELECT *, JSON_VALUE(ml_generate_text_result.candidates[0].content.parts[0].text,'$') AS Sentiment
 FROM
   ML.GENERATE_TEXT(
-    MODEL`${project_id}.${bigquery_taxi_dataset}.cloud_ai_llm_v1`,
+    MODEL`${project_id}.${bigquery_taxi_dataset}.gemini_model`,
     (SELECT CONCAT('Classify the sentiment of the following text as positive or negative. Text: ', PassengerReview, ' Sentiment:') AS prompt,
             RowNumber,
             DriverName,
@@ -219,7 +211,7 @@ UPDATE `${project_id}.${bigquery_taxi_dataset}.taxi_trips_cloud_ai_llm`
         SELECT *, JSON_VALUE(ml_generate_text_result.candidates[0].content.parts[0].text,'$') AS Sentiment
         FROM
           ML.GENERATE_TEXT(
-            MODEL`${project_id}.${bigquery_taxi_dataset}.cloud_ai_llm_v1`,
+            MODEL`${project_id}.${bigquery_taxi_dataset}.gemini_model`,
             (SELECT CONCAT('Classify the sentiment of the following text as positive or negative. Text: ', PassengerReview, ' Sentiment:') AS prompt,
                     RowNumber,
                     DriverName,
@@ -279,7 +271,7 @@ CREATE OR REPLACE FUNCTION `${project_id}.${bigquery_taxi_dataset}.ai_classify`(
    --     ml_generate_text_result AS category  -- Alias the output column as 'category'
       FROM
         ML.GENERATE_TEXT(
-          MODEL`${project_id}.${bigquery_taxi_dataset}.cloud_ai_llm_v1`,
+          MODEL`${project_id}.${bigquery_taxi_dataset}.gemini_model`,
           (
             SELECT
                 CONCAT('Classify "', description, '" in one of the following categories: ', ARRAY_TO_STRING(categories, ', '), '. I only want the category as answer.') AS prompt
@@ -302,7 +294,7 @@ EXECUTE IMMEDIATE """
 SELECT *
 FROM
   ML.GENERATE_TEXT(
-    MODEL`${project_id}.${bigquery_taxi_dataset}.cloud_ai_llm_v1`,
+    MODEL`${project_id}.${bigquery_taxi_dataset}.gemini_model`,
     (SELECT 'What is the answer to the equation: 10 + x + 34 = 100' AS prompt),
     STRUCT(
       0.8 AS temperature,
@@ -315,7 +307,7 @@ EXECUTE IMMEDIATE """
 SELECT *
 FROM
   ML.GENERATE_TEXT(
-    MODEL`${project_id}.${bigquery_taxi_dataset}.cloud_ai_llm_v1`,
+    MODEL`${project_id}.${bigquery_taxi_dataset}.gemini_model`,
     (SELECT 'Extract the following person, location and organization from this text "John Doe lives in New York and works for Acme Corp."' AS prompt),
     STRUCT(
       0.8 AS temperature,
@@ -329,7 +321,7 @@ EXECUTE IMMEDIATE """
 SELECT * 
 FROM
   ML.GENERATE_TEXT(
-    MODEL`${project_id}.${bigquery_taxi_dataset}.cloud_ai_llm_v1`,
+    MODEL`${project_id}.${bigquery_taxi_dataset}.gemini_model`,
     (SELECT 'Extract the technical specifications from the text below in a JSON format. Valid fields are name, network, ram, processor, storage, and color. Text: Google Pixel 7, 5G network, 8GB RAM, Tensor G2 processor, 128GB of storage, Lemongrass JSON:' AS prompt),
     STRUCT(
       0.8 AS temperature,
@@ -347,7 +339,7 @@ EXECUTE IMMEDIATE """
 SELECT *
 FROM
   ML.GENERATE_TEXT(
-    MODEL`${project_id}.${bigquery_taxi_dataset}.cloud_ai_llm_v1`,
+    MODEL`${project_id}.${bigquery_taxi_dataset}.gemini_model`,
     (SELECT 'Extract the items from the following text in a JSON format. Valid fields are name and sentiment. Text: I saw spiderman into the universe at my local movie theater.  I had popcorn and a soda.  I was on the edge of my seat the entire time.  I would rate it 9 out of 10 stars. JSON:' AS prompt),
     STRUCT(
       0.8 AS temperature,
@@ -361,7 +353,7 @@ EXECUTE IMMEDIATE """
 SELECT *
 FROM
   ML.GENERATE_TEXT(
-    MODEL`${project_id}.${bigquery_taxi_dataset}.cloud_ai_llm_v1`,
+    MODEL`${project_id}.${bigquery_taxi_dataset}.gemini_model`,
     (SELECT 'Extract the items from the following text in a JSON format. Valid fields are name and sentiment. Text: I saw the new spiderman movie this weekend and had a great time with my family.  My kids could not stop talking about the movie in the car. JSON:' AS prompt),
     STRUCT(
       0.8 AS temperature,
@@ -379,7 +371,7 @@ EXECUTE IMMEDIATE """
 SELECT *
 FROM
   ML.GENERATE_TEXT(
-    MODEL`${project_id}.${bigquery_taxi_dataset}.cloud_ai_llm_v1`,
+    MODEL`${project_id}.${bigquery_taxi_dataset}.gemini_model`,
     (SELECT 'Extract the nouns from the following sentenance.  My cat likes to fish.' AS prompt),
     STRUCT(
       0.8 AS temperature,
