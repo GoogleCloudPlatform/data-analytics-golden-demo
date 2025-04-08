@@ -36,7 +36,7 @@
 ------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE MODEL `${project_id}.${bigquery_rideshare_llm_enriched_dataset}.gemini_model`
   REMOTE WITH CONNECTION `${project_id}.us.vertex-ai`
-  OPTIONS (endpoint = 'gemini_model');
+  OPTIONS (endpoint = 'gemini-2.0-flash');
 
 ------------------------------------------------------------------------------------------------------------
 -- Create link to the STT model
