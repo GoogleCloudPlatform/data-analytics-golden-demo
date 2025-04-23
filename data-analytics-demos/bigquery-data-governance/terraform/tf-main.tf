@@ -140,7 +140,7 @@ resource "time_sleep" "service_account_api_activation_time_delay" {
 # This step is Skipped when deploying into an existing project (it is assumed a person disabled by hand)
 ####################################################################################
 module "org-policies" {
-  count  = var.environment == "GITHUB_ENVIRONMENT" && var.org_id != "0" ? 1 : 0
+  count  = var.environment == "ARGOLIS_ENVIRONMENT" && var.org_id != "0" ? 1 : 0
   source = "../terraform-modules/org-policies"
 
   # Use Service Account Impersonation for this step. 
