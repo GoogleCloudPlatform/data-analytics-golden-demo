@@ -41,8 +41,7 @@ variable "project_id" {}
 ####################################################################################
 # Organizational Policies 
 ####################################################################################
-# Needed for demo system
-# You can comment out if running locally (also comment out the time delay)
+/*
 resource "google_org_policy_policy" "org_policy_allowed_policy_member_domains" {
   name     = "projects/${var.project_id}/policies/iam.allowedPolicyMemberDomains"
   parent   = "projects/${var.project_id}"
@@ -53,6 +52,7 @@ resource "google_org_policy_policy" "org_policy_allowed_policy_member_domains" {
     }
   }
 }
+*/
 
 ####################################################################################
 # Time Delay for Org Policies
@@ -60,6 +60,7 @@ resource "google_org_policy_policy" "org_policy_allowed_policy_member_domains" {
 # https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep
 # The org policies take some time to proprogate.  
 # If you do not wait the below resource will fail.
+/*
 resource "time_sleep" "time_sleep_org_policies" {
   create_duration = "90s"
 
@@ -67,3 +68,4 @@ resource "time_sleep" "time_sleep_org_policies" {
     google_org_policy_policy.org_policy_allowed_policy_member_domains
   ]
 }
+*/
