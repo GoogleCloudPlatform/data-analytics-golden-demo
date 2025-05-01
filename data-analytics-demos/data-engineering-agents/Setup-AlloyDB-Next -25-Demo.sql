@@ -5117,6 +5117,8 @@ select * from room_rate;
 -- setup AlloyDB for vector embeddings
 /*
 -- One time thing
+Make sure Vertex AI API is enabled.
+Grant the Vertex AI user role to the AlloyDB service account for that project.
 SELECT extversion FROM pg_extension WHERE extname = 'google_ml_integration';
 CREATE EXTENSION IF NOT EXISTS google_ml_integration VERSION '1.2';
 GRANT EXECUTE ON FUNCTION embedding TO postgres;
