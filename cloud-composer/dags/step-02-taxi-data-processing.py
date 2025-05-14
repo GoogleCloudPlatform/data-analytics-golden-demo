@@ -71,12 +71,12 @@ CLUSTER_CONFIG = {
     "master_config": {
         "num_instances": 1,
         "machine_type_uri": "n1-standard-8",
-        "disk_config": {"boot_disk_type": "pd-ssd", "boot_disk_size_gb": 30},
+        "disk_config": {"boot_disk_type": "pd-ssd", "boot_disk_size_gb": 100},
     },
     "worker_config": {
-        "num_instances": 4,
+        "num_instances": 8,
         "machine_type_uri": "n1-standard-8",
-        "disk_config": {"boot_disk_type": "pd-ssd", "boot_disk_size_gb": 30},
+        "disk_config": {"boot_disk_type": "pd-ssd", "boot_disk_size_gb": 100},
     },
     "gce_cluster_config" :{
         "subnetwork_uri" : dataproc_subnet,

@@ -38,7 +38,8 @@ default_args = {
 
 
 raw_bucket_name       = os.environ['ENV_RAW_BUCKET'] 
-gsutil_copy_command   = "gsutil -m cp -r gs://data-analytics-golden-demo/raw-bucket/raw gs://{}/".format(raw_bucket_name)
+#gsutil_copy_command   = "gsutil -m cp -r gs://data-analytics-golden-demo/raw-bucket/raw gs://{}/".format(raw_bucket_name)
+gsutil_copy_command   = "gsutil -m cp -r gs://data-analytics-golden-demo/raw-bucket-v2/raw gs://{}/".format(raw_bucket_name)
 
 
 with airflow.DAG('step-01-taxi-data-download-quick-copy',

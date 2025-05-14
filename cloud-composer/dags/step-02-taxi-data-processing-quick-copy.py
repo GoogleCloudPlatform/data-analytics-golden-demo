@@ -38,7 +38,8 @@ default_args = {
 
 
 processed_bucket_name = os.environ['ENV_PROCESSED_BUCKET'] 
-gsutil_copy_command   = "gsutil -m cp -r gs://data-analytics-golden-demo/processed-bucket/processed gs://{}/".format(processed_bucket_name)
+#gsutil_copy_command   = "gsutil -m cp -r gs://data-analytics-golden-demo/processed-bucket/processed gs://{}/".format(processed_bucket_name)
+gsutil_copy_command   = "gsutil -m cp -r gs://data-analytics-golden-demo/processed-bucket-v2/processed gs://{}/".format(processed_bucket_name)
 
 # Delta Lake
 delta_io_gsutil_copy_command   = "gsutil -m cp -r gs://data-analytics-golden-demo/processed-bucket/delta_io gs://{}/".format(processed_bucket_name)

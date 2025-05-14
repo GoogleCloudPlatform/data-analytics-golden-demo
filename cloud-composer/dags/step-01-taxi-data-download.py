@@ -113,6 +113,20 @@ with airflow.DAG('step-01-taxi-data-download',
                  # Not scheduled, trigger only
                  schedule_interval=None) as dag:
 
+    download_yellow_2025 = PythonOperator(
+        task_id='download_yellow_2025',
+        python_callable= download_and_upload_to_gcs,
+        op_kwargs = { "project" : project_id, 
+                        "raw_bucket_name" : raw_bucket_name, 
+                        "color" : "yellow", 
+                        "year" : "2025", 
+                        "url" : "https://d37ci6vzurychx.cloudfront.net/trip-data/{COLOR}_tripdata_{YEAR}-{MONTH}.parquet",
+                        "max_month" : 2
+                         },
+        execution_timeout=timedelta(minutes=30),
+        dag=dag,
+        )
+    
     download_yellow_2024 = PythonOperator(
         task_id='download_yellow_2024',
         python_callable= download_and_upload_to_gcs,
@@ -121,11 +135,12 @@ with airflow.DAG('step-01-taxi-data-download',
                         "color" : "yellow", 
                         "year" : "2024", 
                         "url" : "https://d37ci6vzurychx.cloudfront.net/trip-data/{COLOR}_tripdata_{YEAR}-{MONTH}.parquet",
-                        "max_month" : 9
+                        "max_month" : 12
                          },
         execution_timeout=timedelta(minutes=30),
         dag=dag,
         )
+    
     download_yellow_2023 = PythonOperator(
         task_id='download_yellow_2023',
         python_callable= download_and_upload_to_gcs,
@@ -140,6 +155,20 @@ with airflow.DAG('step-01-taxi-data-download',
         dag=dag,
         )
 
+    download_green_2025 = PythonOperator(
+        task_id='download_green_2025',
+        python_callable= download_and_upload_to_gcs,
+        op_kwargs = { "project" : project_id, 
+                        "raw_bucket_name" : raw_bucket_name, 
+                        "color" : "green", 
+                        "year" : "2025", 
+                        "url" : "https://d37ci6vzurychx.cloudfront.net/trip-data/{COLOR}_tripdata_{YEAR}-{MONTH}.parquet",
+                        "max_month" : 2
+                         },
+        execution_timeout=timedelta(minutes=30),
+        dag=dag,
+        )
+    
     download_green_2024 = PythonOperator(
         task_id='download_green_2024',
         python_callable= download_and_upload_to_gcs,
@@ -148,11 +177,12 @@ with airflow.DAG('step-01-taxi-data-download',
                         "color" : "green", 
                         "year" : "2024", 
                         "url" : "https://d37ci6vzurychx.cloudfront.net/trip-data/{COLOR}_tripdata_{YEAR}-{MONTH}.parquet",
-                        "max_month" : 9
+                        "max_month" : 12
                          },
         execution_timeout=timedelta(minutes=30),
         dag=dag,
         )
+    
     download_green_2023 = PythonOperator(
         task_id='download_green_2023',
         python_callable= download_and_upload_to_gcs,
@@ -281,7 +311,9 @@ with airflow.DAG('step-01-taxi-data-download',
 
     # Do not do in parallel since the worker node will run out of disk space
     # If you had more workers then yes, run in parallel
-    download_green_2024 >> download_green_2023 >> download_yellow_2024 >> download_yellow_2023 >> \
+    download_green_2025 >> download_yellow_2025 >> \
+        download_green_2024 >> download_yellow_2024 >> \
+        download_green_2023 >> download_yellow_2023 >> \
         download_green_2022 >> download_yellow_2022 >> \
         download_green_2021 >> download_yellow_2021 >> \
         download_green_2020 >> download_yellow_2020 >> \

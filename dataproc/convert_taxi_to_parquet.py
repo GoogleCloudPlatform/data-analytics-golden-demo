@@ -223,6 +223,20 @@ def ConvertTaxiData(sourceYellow, sourceGreen, destination):
     # 2024
     yellow_tripdata_2024_01 = ProcessYellowFile(spark,f"{yellow_path}/2024/yellow_tripdata_2024-01.parquet")
     yellow_tripdata_2024_02 = ProcessYellowFile(spark,f"{yellow_path}/2024/yellow_tripdata_2024-02.parquet")
+    yellow_tripdata_2024_03 = ProcessYellowFile(spark,f"{yellow_path}/2024/yellow_tripdata_2024-03.parquet")
+    yellow_tripdata_2024_04 = ProcessYellowFile(spark,f"{yellow_path}/2024/yellow_tripdata_2024-04.parquet")
+    yellow_tripdata_2024_05 = ProcessYellowFile(spark,f"{yellow_path}/2024/yellow_tripdata_2024-05.parquet")
+    yellow_tripdata_2024_06 = ProcessYellowFile(spark,f"{yellow_path}/2024/yellow_tripdata_2024-06.parquet")
+    yellow_tripdata_2024_07 = ProcessYellowFile(spark,f"{yellow_path}/2024/yellow_tripdata_2024-07.parquet")
+    yellow_tripdata_2024_08 = ProcessYellowFile(spark,f"{yellow_path}/2024/yellow_tripdata_2024-08.parquet")
+    yellow_tripdata_2024_09 = ProcessYellowFile(spark,f"{yellow_path}/2024/yellow_tripdata_2024-09.parquet")
+    yellow_tripdata_2024_10 = ProcessYellowFile(spark,f"{yellow_path}/2024/yellow_tripdata_2024-10.parquet")
+    yellow_tripdata_2024_11 = ProcessYellowFile(spark,f"{yellow_path}/2024/yellow_tripdata_2024-11.parquet")
+    yellow_tripdata_2024_12 = ProcessYellowFile(spark,f"{yellow_path}/2024/yellow_tripdata_2024-12.parquet")
+
+    # 2025
+    yellow_tripdata_2025_01 = ProcessYellowFile(spark,f"{yellow_path}/2025/yellow_tripdata_2025-01.parquet")
+    yellow_tripdata_2025_02 = ProcessYellowFile(spark,f"{yellow_path}/2025/yellow_tripdata_2025-02.parquet")
 
     # Merge everything together (we should have all the same schema now)
     df_yellow_final = yellow_tripdata_2019_01 \
@@ -286,12 +300,24 @@ def ConvertTaxiData(sourceYellow, sourceGreen, destination):
         .union(yellow_tripdata_2023_11) \
         .union(yellow_tripdata_2023_12) \
         .union(yellow_tripdata_2024_01) \
-        .union(yellow_tripdata_2024_02)
+        .union(yellow_tripdata_2024_02) \
+        .union(yellow_tripdata_2024_03) \
+        .union(yellow_tripdata_2024_04) \
+        .union(yellow_tripdata_2024_05) \
+        .union(yellow_tripdata_2024_06) \
+        .union(yellow_tripdata_2024_07) \
+        .union(yellow_tripdata_2024_08) \
+        .union(yellow_tripdata_2024_09) \
+        .union(yellow_tripdata_2024_10) \
+        .union(yellow_tripdata_2024_11) \
+        .union(yellow_tripdata_2024_12) \
+        .union(yellow_tripdata_2025_01) \
+        .union(yellow_tripdata_2025_02)
 
     df_with_partition_cols = df_yellow_final \
         .withColumn("year",  year      (col("Pickup_DateTime"))) \
         .withColumn("month", month     (col("Pickup_DateTime"))) \
-        .filter("Pickup_DateTime >= '2019-01-01' AND Pickup_DateTime <= '2024-02-29'")
+        .filter("Pickup_DateTime >= '2019-01-01' AND Pickup_DateTime <= '2025-02-28'")
 
     # Write as Parquet
     df_with_partition_cols \
@@ -403,6 +429,20 @@ def ConvertTaxiData(sourceYellow, sourceGreen, destination):
     # 2024
     green_tripdata_2024_01 = ProcessGreenFile(spark,f"{green_path}/2024/green_tripdata_2024-01.parquet")
     green_tripdata_2024_02 = ProcessGreenFile(spark,f"{green_path}/2024/green_tripdata_2024-02.parquet")
+    green_tripdata_2024_03 = ProcessGreenFile(spark,f"{green_path}/2024/green_tripdata_2024-03.parquet")
+    green_tripdata_2024_04 = ProcessGreenFile(spark,f"{green_path}/2024/green_tripdata_2024-04.parquet")
+    green_tripdata_2024_05 = ProcessGreenFile(spark,f"{green_path}/2024/green_tripdata_2024-05.parquet")
+    green_tripdata_2024_06 = ProcessGreenFile(spark,f"{green_path}/2024/green_tripdata_2024-06.parquet")
+    green_tripdata_2024_07 = ProcessGreenFile(spark,f"{green_path}/2024/green_tripdata_2024-07.parquet")
+    green_tripdata_2024_08 = ProcessGreenFile(spark,f"{green_path}/2024/green_tripdata_2024-08.parquet")
+    green_tripdata_2024_09 = ProcessGreenFile(spark,f"{green_path}/2024/green_tripdata_2024-09.parquet")
+    green_tripdata_2024_10 = ProcessGreenFile(spark,f"{green_path}/2024/green_tripdata_2024-10.parquet")
+    green_tripdata_2024_11 = ProcessGreenFile(spark,f"{green_path}/2024/green_tripdata_2024-11.parquet")
+    green_tripdata_2024_12 = ProcessGreenFile(spark,f"{green_path}/2024/green_tripdata_2024-12.parquet")
+
+    # 2025
+    green_tripdata_2025_01 = ProcessGreenFile(spark,f"{green_path}/2025/green_tripdata_2025-01.parquet")
+    green_tripdata_2025_02 = ProcessGreenFile(spark,f"{green_path}/2025/green_tripdata_2025-02.parquet")
 
     # Merge everything together (we should have all the same schema now)
     df_green_final = green_tripdata_2019_01 \
@@ -466,12 +506,24 @@ def ConvertTaxiData(sourceYellow, sourceGreen, destination):
         .union(green_tripdata_2023_11) \
         .union(green_tripdata_2023_12) \
         .union(green_tripdata_2024_01) \
-        .union(green_tripdata_2024_02)
+        .union(green_tripdata_2024_02) \
+        .union(green_tripdata_2024_03) \
+        .union(green_tripdata_2024_04) \
+        .union(green_tripdata_2024_05) \
+        .union(green_tripdata_2024_06) \
+        .union(green_tripdata_2024_07) \
+        .union(green_tripdata_2024_08) \
+        .union(green_tripdata_2024_09) \
+        .union(green_tripdata_2024_10) \
+        .union(green_tripdata_2024_11) \
+        .union(green_tripdata_2024_12) \
+        .union(green_tripdata_2025_01) \
+        .union(green_tripdata_2025_02)
 
     df_with_partition_cols = df_green_final \
         .withColumn("year",  year      (col("Pickup_DateTime"))) \
         .withColumn("month", month     (col("Pickup_DateTime"))) \
-        .filter("Pickup_DateTime >= '2019-01-01' AND Pickup_DateTime <= '2024-02-29'")
+        .filter("Pickup_DateTime >= '2019-01-01' AND Pickup_DateTime <= '2025-02-28'")
 
     # Write as Parquet
     df_with_partition_cols \
