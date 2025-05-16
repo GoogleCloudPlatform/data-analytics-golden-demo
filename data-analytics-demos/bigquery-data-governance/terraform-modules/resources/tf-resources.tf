@@ -1076,6 +1076,16 @@ resource "google_storage_bucket_iam_member" "spark_connection_object_admin_code_
 }
 
 
+
+# Grant require metadata role
+resource "google_project_iam_member" "user_bigquery_metadata" {
+  project = var.project_id
+  role    = "roles/bigquery.metadataViewer"
+  member  = "user:${gcp_account_name"
+}
+
+
+
 ####################################################################################
 # Outputs
 ####################################################################################
