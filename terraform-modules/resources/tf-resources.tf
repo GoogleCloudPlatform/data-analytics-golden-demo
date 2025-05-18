@@ -1129,86 +1129,142 @@ resource "google_data_catalog_policy_tag" "data_masking_policy_tag" {
   ]
 }
 
-# REST API (no gcloud or Terraform yet)
-# https://cloud.google.com/bigquery/docs/reference/bigquerydatapolicy/rest/v1beta1/projects.locations.dataPolicies#datamaskingpolicy
-
 # Create a Hash Rule
-resource "null_resource" "deploy_data_masking_sha256" {
-  provisioner "local-exec" {
-    when    = create
-    command = <<EOF
-    curl \
-      --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
-      --header "Accept: application/json" \
-      --header "Content-Type: application/json" \
-      -X POST \
-      https://bigquerydatapolicy.googleapis.com/v1beta1/projects/${var.project_id}/locations/us/dataPolicies?prettyPrint=true \
-      --data \ '{"dataMaskingPolicy":{"predefinedExpression":"SHA256"},"dataPolicyId":"Hash_Rule","dataPolicyType":"DATA_MASKING_POLICY","policyTag":"${google_data_catalog_policy_tag.data_masking_policy_tag.id}"}'
-    EOF
-  }
-  depends_on = [
+#resource "null_resource" "deploy_data_masking_sha256" {
+#  provisioner "local-exec" {
+#    when    = create
+#    command = <<EOF
+#    curl \
+#      --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
+#      --header "Accept: application/json" \
+#      --header "Content-Type: application/json" \
+#      -X POST \
+#      https://bigquerydatapolicy.googleapis.com/v1beta1/projects/${var.project_id}/locations/us/dataPolicies?prettyPrint=true \
+#      --data \ '{"dataMaskingPolicy":{"predefinedExpression":"SHA256"},"dataPolicyId":"Hash_Rule","dataPolicyType":"DATA_MASKING_POLICY","policyTag":"${google_data_catalog_policy_tag.data_masking_policy_tag.id}"}'
+#    EOF
+#  }
+#  depends_on = [
+#    google_data_catalog_policy_tag.data_masking_policy_tag
+#  ]
+#}
+resource "google_bigquery_datapolicy_data_policy" "deploy_data_masking_sha256" {
+  location         = var.bigquery_region
+  data_policy_id  = "Hash_Rule"
+  policy_tag      = google_data_catalog_policy_tag.data_masking_policy_tag.id
+  data_policy_type = "DATA_MASKING_POLICY"
+  data_masking_policy {
+    predefined_expression = "SHA256"
+  	}
+    depends_on = [
     google_data_catalog_policy_tag.data_masking_policy_tag
-  ]
-}
+    ]
+  }
 
 # Create a Nullify Rule
-resource "null_resource" "deploy_data_masking_nullify" {
-  provisioner "local-exec" {
-    when    = create
-    command = <<EOF
-    curl \
-      --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
-      --header "Accept: application/json" \
-      --header "Content-Type: application/json" \
-      -X POST \
-      https://bigquerydatapolicy.googleapis.com/v1beta1/projects/${var.project_id}/locations/us/dataPolicies?prettyPrint=true \
-      --data \ '{"dataMaskingPolicy":{"predefinedExpression":"ALWAYS_NULL"},"dataPolicyId":"Nullify_Rule","dataPolicyType":"DATA_MASKING_POLICY","policyTag":"${google_data_catalog_policy_tag.data_masking_policy_tag.id}"}'
-    EOF
+# resource "null_resource" "deploy_data_masking_nullify" {
+#   provisioner "local-exec" {
+#     when    = create
+#     command = <<EOF
+#     curl \
+#       --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
+#       --header "Accept: application/json" \
+#       --header "Content-Type: application/json" \
+#       -X POST \
+#       https://bigquerydatapolicy.googleapis.com/v1beta1/projects/${var.project_id}/locations/us/dataPolicies?prettyPrint=true \
+#       --data \ '{"dataMaskingPolicy":{"predefinedExpression":"ALWAYS_NULL"},"dataPolicyId":"Nullify_Rule","dataPolicyType":"DATA_MASKING_POLICY","policyTag":"${google_data_catalog_policy_tag.data_masking_policy_tag.id}"}'
+#     EOF
+#   }
+#   depends_on = [
+#     null_resource.deploy_data_masking_sha256
+#   ]
+# }
+resource "google_bigquery_datapolicy_data_policy" "deploy_data_masking_nullify" {
+  location         = var.bigquery_region
+  data_policy_id  = "Nullify_Rule"
+  policy_tag      = google_data_catalog_policy_tag.data_masking_policy_tag.id
+  data_policy_type = "DATA_MASKING_POLICY"
+  data_masking_policy {
+    predefined_expression = "ALWAYS_NULL" 
   }
   depends_on = [
-    null_resource.deploy_data_masking_sha256
+    google_bigquery_datapolicy_data_policy.deploy_data_masking_sha256
   ]
 }
+
 
 # Create a Default-Value Rule
-resource "null_resource" "deploy_data_masking_default_value" {
-  provisioner "local-exec" {
-    when    = create
-    command = <<EOF
-    curl \
-      --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
-      --header "Accept: application/json" \
-      --header "Content-Type: application/json" \
-      -X POST \
-      https://bigquerydatapolicy.googleapis.com/v1beta1/projects/${var.project_id}/locations/us/dataPolicies?prettyPrint=true \
-      --data \ '{"dataMaskingPolicy":{"predefinedExpression":"DEFAULT_MASKING_VALUE"},"dataPolicyId":"DefaultValue_Rule","dataPolicyType":"DATA_MASKING_POLICY","policyTag":"${google_data_catalog_policy_tag.data_masking_policy_tag.id}"}'
-    EOF
+# resource "null_resource" "deploy_data_masking_default_value" {
+#   provisioner "local-exec" {
+#     when    = create
+#     command = <<EOF
+#     curl \
+#       --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
+#       --header "Accept: application/json" \
+#       --header "Content-Type: application/json" \
+#       -X POST \
+#       https://bigquerydatapolicy.googleapis.com/v1beta1/projects/${var.project_id}/locations/us/dataPolicies?prettyPrint=true \
+#       --data \ '{"dataMaskingPolicy":{"predefinedExpression":"DEFAULT_MASKING_VALUE"},"dataPolicyId":"DefaultValue_Rule","dataPolicyType":"DATA_MASKING_POLICY","policyTag":"${google_data_catalog_policy_tag.data_masking_policy_tag.id}"}'
+#     EOF
+#   }
+#   depends_on = [
+#     null_resource.deploy_data_masking_nullify
+#   ]
+# }
+resource "google_bigquery_datapolicy_data_policy" "deploy_data_masking_default_value" {
+  location         = var.bigquery_region
+  data_policy_id  = "DefaultValue_Rule"
+  policy_tag      = google_data_catalog_policy_tag.data_masking_policy_tag.id
+  data_policy_type = "DATA_MASKING_POLICY"
+  data_masking_policy {
+    predefined_expression = "DEFAULT_MASKING_VALUE"
   }
-  depends_on = [
-    null_resource.deploy_data_masking_nullify
+    depends_on = [
+    google_bigquery_datapolicy_data_policy.deploy_data_masking_nullify
   ]
 }
 
+
 # Grant access to the user to the Nullify (you can change during the demo)
-resource "null_resource" "deploy_data_masking_iam_permissions" {
-  provisioner "local-exec" {
-    when    = create
-    command = <<EOT
-    curl \
-      --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
-      --header "Accept: application/json" \
-      --header "Content-Type: application/json" \
-      -X POST \
-      https://bigquerydatapolicy.googleapis.com/v1beta1/projects/${var.project_id}/locations/us/dataPolicies/Nullify_Rule:setIamPolicy?prettyPrint=true \
-      --data \ '{"policy":{"bindings":[{"members":["user:${var.gcp_account_name}"],"role":"roles/bigquerydatapolicy.maskedReader"}]}}'
-    EOT
+# resource "null_resource" "deploy_data_masking_iam_permissions" {
+#   provisioner "local-exec" {
+#     when    = create
+#     command = <<EOT
+#     curl \
+#       --header "Authorization: Bearer $(gcloud auth print-access-token ${var.curl_impersonation})" \
+#       --header "Accept: application/json" \
+#       --header "Content-Type: application/json" \
+#       -X POST \
+#       https://bigquerydatapolicy.googleapis.com/v1beta1/projects/${var.project_id}/locations/us/dataPolicies/Nullify_Rule:setIamPolicy?prettyPrint=true \
+#       --data \ '{"policy":{"bindings":[{"members":["user:${var.gcp_account_name}"],"role":"roles/bigquerydatapolicy.maskedReader"}]}}'
+#     EOT
+#   }
+#   depends_on = [
+#     google_data_catalog_taxonomy.business_critical_taxonomy,
+#     google_data_catalog_policy_tag.data_masking_policy_tag,
+#     null_resource.deploy_data_masking_sha256,
+#     null_resource.deploy_data_masking_nullify,
+#     null_resource.deploy_data_masking_default_value,
+#   ]
+# }
+data "google_iam_policy" "data_policy_iam_for_nullify_rule" { 
+  binding {
+    role = "roles/bigquerydatapolicy.maskedReader"
+    members = [
+      "user:${var.gcp_account_name}",
+    ]
   }
+}
+
+resource "google_bigquery_datapolicy_data_policy_iam_policy" "nullify_rule_iam" {
+  data_policy_id = google_bigquery_datapolicy_data_policy.deploy_data_masking_nullify.data_policy_id
+  policy_data    = data.google_iam_policy.data_policy_iam_for_nullify_rule.policy_data
   depends_on = [
     google_data_catalog_taxonomy.business_critical_taxonomy,
     google_data_catalog_policy_tag.data_masking_policy_tag,
-    null_resource.deploy_data_masking_sha256,
-    null_resource.deploy_data_masking_nullify,
-    null_resource.deploy_data_masking_default_value,
+    google_bigquery_datapolicy_data_policy.deploy_data_masking_sha256,
+    google_bigquery_datapolicy_data_policy.deploy_data_masking_nullify,
+    google_bigquery_datapolicy_data_policy.deploy_data_masking_default_value,
+    data.google_iam_policy.data_policy_iam_for_nullify_rule
   ]
 }
 
