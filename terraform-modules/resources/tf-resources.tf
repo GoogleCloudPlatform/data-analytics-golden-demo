@@ -1259,6 +1259,8 @@ data "google_iam_policy" "data_policy_iam_for_nullify_rule" {
 }
 
 resource "google_bigquery_datapolicy_data_policy_iam_policy" "nullify_rule_iam" {
+  project = var.project_id
+  location         = var.bigquery_region
   data_policy_id = google_bigquery_datapolicy_data_policy.deploy_data_masking_nullify.data_policy_id
   policy_data    = data.google_iam_policy.data_policy_iam_for_nullify_rule.policy_data
   depends_on = [
