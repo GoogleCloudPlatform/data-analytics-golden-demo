@@ -1148,6 +1148,7 @@ resource "google_data_catalog_policy_tag" "data_masking_policy_tag" {
 #  ]
 #}
 resource "google_bigquery_datapolicy_data_policy" "deploy_data_masking_sha256" {
+  project = var.project_id
   location         = var.bigquery_region
   data_policy_id  = "Hash_Rule"
   policy_tag      = google_data_catalog_policy_tag.data_masking_policy_tag.id
@@ -1179,6 +1180,7 @@ resource "google_bigquery_datapolicy_data_policy" "deploy_data_masking_sha256" {
 #   ]
 # }
 resource "google_bigquery_datapolicy_data_policy" "deploy_data_masking_nullify" {
+  project = var.project_id
   location         = var.bigquery_region
   data_policy_id  = "Nullify_Rule"
   policy_tag      = google_data_catalog_policy_tag.data_masking_policy_tag.id
@@ -1211,6 +1213,7 @@ resource "google_bigquery_datapolicy_data_policy" "deploy_data_masking_nullify" 
 #   ]
 # }
 resource "google_bigquery_datapolicy_data_policy" "deploy_data_masking_default_value" {
+  project = var.project_id
   location         = var.bigquery_region
   data_policy_id  = "DefaultValue_Rule"
   policy_tag      = google_data_catalog_policy_tag.data_masking_policy_tag.id
