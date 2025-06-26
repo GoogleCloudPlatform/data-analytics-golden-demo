@@ -222,6 +222,7 @@ Ready to see the agent in action? Here’s how you can run the demo locally:
 
 1. Launch the ADK Developer Web UI:  
    Bash  
+   cd code
    adk web
 
 2. Open the URL provided in your terminal (usually http://127.0.0.1:8000) in your web browser.  
@@ -241,7 +242,7 @@ We encourage you to explore the ADK documentation, try the sample agents, and co
 
 ## **Appendix** 
 
-Here is the full code: [agent.py](agent.py)
+Here is the full code: [agent.py](../code/anonymizer-agent/agent.py)
 
 ![Users no geom interaction example](images/users_no_geom.png)
 
