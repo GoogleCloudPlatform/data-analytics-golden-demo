@@ -51,6 +51,10 @@
 # gcloud auth login
 # gcloud auth application-default login
 
+# You might need to run this if you are switching Orgs
+# gcloud config set project REPLACE-ME-WITH-PROJECT-ID-IN-YOUR-ORG
+# gcloud auth application-default set-quota-project REPLACE-ME-WITH-PROJECT-ID-IN-YOUR-ORG
+
 # Get the account name who logged in above 
 gcp_account_name=$(gcloud auth list --filter=status:ACTIVE --format="value(account)")
 
