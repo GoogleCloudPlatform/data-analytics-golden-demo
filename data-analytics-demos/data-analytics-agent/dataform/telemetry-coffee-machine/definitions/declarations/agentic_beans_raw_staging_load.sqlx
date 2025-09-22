@@ -1,0 +1,6 @@
+config {
+  type: "declaration",
+  database: "${project_id}",
+  schema: "${bigquery_agentic_beans_raw_staging_load_dataset}",
+  name: "telemetry_coffee_machine",
+}
