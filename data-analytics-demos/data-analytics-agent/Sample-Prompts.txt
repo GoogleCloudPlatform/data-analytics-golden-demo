@@ -1,0 +1,509 @@
+----------------------------------------------------------------------------------------------------
+-- GLOBAL NOTES
+----------------------------------------------------------------------------------------------------
+- You can ask to be "transfer to the coordinator" if a sub-agent gets stuck thinking it can do something it cannot.
+- You can always say "Try again" if something fails
+- You can say "Hello" if an agentic workflow seems stuck thinking.
+- Creating new Sessions works best since there is so much going on in this agent.  Prompts need a lot of fine tuning.
+- You can say things like:
+    - The first one [when the agent asks you a question]
+    - The last one
+    - Can you look it up?  (have the agent do some thinking and find something for you like if it ask "what table?")
+- Be prepared for the agent to get confused.  If your session is too long with too much context it can get confused.
+- If you add any tables you need to add them to the vector search by calling: CALL `data_analytics_agent_metadata.refresh_vector_metadata`();
+    - This can take a long time to run (15 minutes)
+
+----------------------------------------------------------------------------------------------------
+-- AI Generate Bool
+----------------------------------------------------------------------------------------------------
+VERIFIED:
+Which products contain coffee?
+    - FOLLOW UP: Just show me the names
+    -> Note: Sometimes this triggers the data catalog agent.
+
+VERIFIED:
+Do any product images have latte art?
+    -> ISSUE: Sometimes the signed url does not work (something to do with the LLM formatting items).
+              This is not an issue with the agent, just the UI showing the markdown.  So, you can click on several to see which
+              images you can view.
+
+VERIFIED:
+Do any product category images have drinks that look chilly?
+Do any product category images have cold coffee drinks?
+
+
+ENHANCEMENT - I can take the user's prompt and optomize it for the AI.GENERATE_BOOL (remove unncessary words like show columns "A", "B", etc...)
+
+----------------------------------------------------------------------------------------------------
+-- AI Forecast
+----------------------------------------------------------------------------------------------------
+VERIFIED:
+For The Daily Grind truck will we run out of any ingredients in the next 2 hours?
+    - FOLLOW UP: Which ingredients should I restock first?
+    - FOLLOW UP: Show me the ingredients names.
+        - OR: Show me the products that use these ingredients. (no ingredient per product table)
+
+VERIFIED:
+For The Daily Grind truck will we run out of any ingredients in the next 2 hours?
+
+VERIFIED:
+For The Daily Grind truck will we run out of Whole Dairy Milk in the next 2 hours?
+
+VERIFIED:
+For truck 10 forecast the ingredients for the next 2 hours.
+    - FOLLOW UP: Will I run out (hit zero) for any ingredients?
+    - FOLLOW UP: Which ingredients should I restock first?
+    - FOLLOW UP: Show me the ingredients names.
+
+VERIFIED:
+Forecast the number of people walking by the truck Mocha Mover for the next 2 hours.
+    - FOLLOW UP: What is the peak time for people walking by?
+
+VERIFIED:
+Forecast the brew pressure bar for truck Bean Machine for the next 2 hours.
+
+VERIFIED:
+Predict the grinder motor RPM for machine 1 for the next 3 hours. Will it fall below a critical threshold of 1500?
+
+VERIFIED:
+Forecast the current quantity value for ingredient 'Coffee Beans' on The Jolt Wagon for the next hour.
+    - FOLLOW UP: What are the last 5 records
+    - FOLLOW UP: How many people will be walking by the truck at the time?
+    - FOLLOW UP: Do you think we have enough Coffee Beans for that foot traffic? (Transfers back to main agent)
+        - AGENT: To make a final decision, you would need to estimate how many grams of coffee beans are used per customer. With that information, you can use this table to see if your inventory is likely to meet the demand from the predicted foot traffic.
+            - HUMAN: Each customer uses about 79 grams.
+
+
+IDEAS (not tested):
+    - Predict when ingredient 'Milk' will run out for 'The Daily Grind' truck, assuming current consumption rates.
+    - Forecast the remaining stock of 'Paper Cups' (unit_of_measure='count') across all trucks for the next 24 hours.
+    - Forecast the number of people in the queue for truck 'Mocha Mover' for the next 3 hours. What is the busiest 30-minute interval?
+    - Predict the foot traffic count nearby for all trucks for tomorrow, broken down by truck.
+    - Forecast the AI detection confidence score for camera 'Z' for the next 1 hour.
+
+----------------------------------------------------------------------------------------------------
+-- BigQuery: Vector Search
+----------------------------------------------------------------------------------------------------
+VERIFIED:
+How much did the customer Gale buy?  Ask me if you find more than one customer ask me to select the correct one.
+How much did Gale spend on Ciber brews?
+Can you look up the products that are related to coffee and see how much Gale spent?
+
+
+VERIFIED:
+Did the customer Guacharaca buy any Cyber Brews?
+    - FOLLOW UP: How much did they spend?
+    - FOLLOW UP: Can you look up the products that contain coffee and do the query again.
+    -> This should lookup 'Guacharaca' and find 'Guacharaca Esencia' and look up 'Cyber Brews' and return 'Cyber Brew'
+
+VERIFIED:
+How much did the customer Gale buy?  Ask me if you find more than one customer to select the correct one.
+    - FOLLOW UP: How much did Gale spend on Ciber brews?
+    - FOLLOW UP: Can you look up the products that are related to coffee and see how much Gale spent?
+
+VERIFIED: 
+Latte (misspelled name) -> What latees products do I sell?
+
+VERIFIED: 
+Latte (misspelled name) -> How much in sales did I do for Latees for July 2025?
+    - FOLLOW UP: Show me the SQL.
+
+
+----------------------------------------------------------------------------------------------------
+-- BigQuery: NL2SQL
+----------------------------------------------------------------------------------------------------
+** Dataset: agentic_beans_curated **
+VERIFIED: 
+Prompt: "What is the total revenue for each product category for the current year up to now?"
+Explanation: This requires joining order_detail with product_category and summing order_detail_total, filtered by order_header_id (from order_header) and order_header_timestamp for the current year up to the current time.
+
+VERIFIED: 
+Prompt: "Show me the top 5 customers by their total spend for all historical data up to the current moment, including their names and email addresses."
+Explanation: This queries the customer table directly, which contains customer_total_spend. It sorts by this column in descending order and limits the results. The 'up to the current moment' constraint is implicitly handled as customer_total_spend is a cumulative value.
+
+VERIFIED: 
+Prompt: "List the average brew pressure and boiler temperature for each coffee machine for the last 30 days up to today."
+Explanation: This queries telemetry_coffee_machine, filters by telemetry_timestamp for the last 30 days and aggregates by machine_id.
+
+VERIFIED: 
+Prompt: "Which ingredient had the lowest average current quantity value across all trucks yesterday, excluding replenishment events?"
+Explanation: This involves joining telemetry_inventory with ingredient, filtering for event_type != 'replenished' and telemetry_timestamp for yesterday, then averaging current_quantity_value and grouping by ingredient_name.
+
+VERIFIED: 
+Prompt: "Show me the product names and their categories for all products currently listed."
+Explanation: This is a simple join between product and product_category to display names.
+
+VERIFIED: 
+Prompt: "For the month of July in the current year, which truck had the highest total orders?"
+Explanation: Joins order_header and truck, filters by order_header_timestamp for July of the current year, counts orders per truck_name, and orders results.
+
+
+** Dataset: nyc_taxi_curated **
+NOTE: We do not have up to date data, so this challenges the LLM.
+
+VERIFIED: 
+Prompt: "What is the total number of taxi trips for each borough for the most recent month available in the data?"
+Explanation: This involves joining taxi_trips with location on PULocationID (pickup location), finding the MAX(Pickup_DateTime) to determine the latest month, filtering by that month, and then counting trips grouped by borough.
+
+VERIFIED: 
+Prompt: "Show me the average fare amount for each payment type, for the latest full year available in the dataset."
+Explanation: Join taxi_trips with payment_type, determine the latest full year from Pickup_DateTime, filter by that year, then calculate the AVG(Fare_Amount) grouped by Payment_Type_Description.
+
+VERIFIED: 
+Prompt: "List the top 5 zones with the highest total tip amounts for the last 90 days of available data."
+Explanation: Join taxi_trips with location, filter Pickup_DateTime for the last 90 days from the latest record, sum Tip_Amount, and group by zone.
+
+VERIFIED: 
+Prompt: "How many trips used a 'credit card' payment type in the most recent quarter available?"
+Explanation: Join taxi_trips with payment_type, filter Payment_Type_Description = 'Credit card', determine the latest quarter from Pickup_DateTime, and count trips.
+
+VERIFIED: 
+Prompt: "What is the distribution of trip distances for trips with a 'Standard rate', for Jan 2025?"
+Explanation: Join taxi_trips with rate_code, filter for Rate_Code_Description = 'Standard rate' and Jan 2025, and then group or categorize Trip_Distance into bins (e.g., 0-1 mile, 1-5 miles, 5+ miles) to show distribution.
+
+
+----------------------------------------------------------------------------------------------------
+-- Business Glossary
+----------------------------------------------------------------------------------------------------
+VERIFIED: 
+1. Listing Glossaries
+"List all available business glossaries."
+"Show me the names of all the glossaries."
+
+VERIFIED:
+2. Creating a Glossary
+"Create a new business glossary called 'My New Glossary' with a description 'This glossary will store terms for my new data project'."
+"I want to set up a glossary. Let's call it 'Data Catalog Terms' and describe it as 'Definitions for common data catalog concepts'."
+
+VERIFIED:
+3. Getting Glossary Details
+"Get details for the business glossary agentic beans raw."
+"Show me the full information for glossary 'Corporate Strategy and Governance'."
+
+VERIFIED:
+4. Deleting a Glossary (Prompts and Recursivly Deletes every term and category.)
+Delete the business glossary My New Glossary,
+Remove glossary Data Catalog Terms.
+
+VERIFIED:
+5. Listing Categories in a Glossary and Terms in a Category
+List all categories in glossary 'agentic-beans-raw'.
+Show me the terms within the 'Corporate Strategy and Governance' category.
+
+VERIFIED:
+6. Creating a Category
+In glossary 'agentic-beans-raw', create a new category named 'Data Quality Metrics' with the ID 'data-quality-metrics' and the description 'Terms related to data quality measurements and rules'.
+Add a category 'Security Policies' to the glossary.
+
+VERIFIED:
+7. Getting Category Details
+Get details for the category 'Core Operations and Assets' in glossary 'agentic-beans-raw'.
+Show me the description of the 'Foot Traffic' category within the 'agentic-beans-raw' glossary.
+
+VERIFIED:
+8. Deleting a Category 
+Show me the categories.
+Delete the first one.
+
+VERIFIED:
+9. Listing Terms in a Glossary/Category
+List all terms in glossary agentic beans raw.
+Show me all business terms in the 'Core Operations and Assets' category of the agentic beans raw glossary.
+What are the terms related to 'Change management' in the 'Corporate Strategy and Governance' glossary?
+
+VERIFIED:
+10. Creating a Term
+Create a new term in glossary 'agentic-beans-raw' called 'Demo Term', with ID 'demo-term', and description 'The percentage of customers who return over a period of time', under the category 'Core Operations and Assets'.
+
+VERIFIED: Works on 2nd turn.
+11. Getting Term Details
+Get details for the term 'Demo Term' in glossary 'agentic-beans-raw'.
+"Show me the description for the term 'Crisis management' in the 'Corporate Strategy and Governance' glossary."
+
+VERIFIED:
+12. Updating a Term
+Update the term 'Foot Traffic' in glossary 'agentic-beans-raw'. Change its description to 'The number of people walking by a coffee truck or specific location, indicating potential customer flow'.
+Modify term 'Machine Uptime' in 'agentic-beans-raw' glossary to have a new display name 'Machine Operational Time'.
+
+VERIFIED:
+Define Espresso using my glossary.
+- look in all glossaries
+
+VERIFIED:
+What glossary terms do I have?
+
+VERIFIED:
+Show me my business glossaries
+- Delete the first one
+
+VERIFIED:
+Delete business glossary "Agentic Beans Glossary"
+
+
+----------------------------------------------------------------------------------------------------
+-- Conversational Analytics
+----------------------------------------------------------------------------------------------------
+
+
+----------------------------------------------------------------------------------------------------
+-- Data Eng Agent
+----------------------------------------------------------------------------------------------------
+VERIFIED: Create a pipeline named "Taxi Pipeline 01" that makes the fields (borough, zone and service_zone) all uppercase in the location table 
+of the taxi dataset and saves it to a new table named "location_uppercase" in the taxi dataset dataset.
+
+VERIFIED:
+Create a BigQuery pipeline named "DA Pipeline 01".
+For the customer's table in agentic curated dataset create a copy of the table and name it "customer_01".
+Set the customer name to uppercase.
+NOTE: This creates a "dataform" dataset.  We can update the prompt to be more specific or apply best practives to Data Eng Agent.
+
+VERIFIED (Step 1):  
+Create a new BigQuery pipeline named 'Sales Data Pipeline 01'. 
+I want to generate a denormalized sales table within the agentic_beans_curated dataset. 
+This table should combine data from the following tables and include the specified fields:
+- From order_header: order_header_id, order_header_timestamp, truck_id, customer_id, order_neighborhood, order_header_total, payment_method
+- From order_detail: order_detail_id, truck_menu_id, order_quantity, product_id, product_category_id, price, order_detail_total
+- From customer: customer_name, customer_email, country_code, customer_total_spend
+- From product: product_name, product_description
+- From product_category: product_category_name, product_category_description
+- From truck: truck_name, truck_license_plate
+
+VERIFIED (Step 2):
+Modify the BigQuery pipeline named 'Sales Data Pipeline 01' to make the truck name uppercase.
+
+
+VERIFIED:  
+Create a Dataform workspace named "Demo Dataform 01" in a new repo named "Demo-Dataform-01".
+For the table telemetry coffee machine in dataset agentic beans raw staging load create
+a copy of the table named "demo_dataform_01" and set the field last error description to "demo_dataform_01".
+
+
+VERIFIED: (You can also use the same workspace/pipeline as above to modify it)
+Modify the Dataform workspace named "Demo Dataform 01" in repo named "Demo-Dataform-01".
+For the table telemetry_coffee_machine in dataset agentic_beans_raw_staging_load create
+a copy of the table named "demo_dataform_01" and set the field last_error_description to "modified_demo_dataform_01".
+
+
+You -> Build your own prompts to do create your own data pipelines!!!
+
+----------------------------------------------------------------------------------------------------
+-- Data Eng Agent - Autonomous
+----------------------------------------------------------------------------------------------------
+VERIFIED:
+reset demo
+
+VERIFIED:
+Autonomously correct this dataform pipeline:
+repository_name: "agentic-beans-repo"
+workspace_name:  "telemetry-coffee-machine-auto"
+data_quality_scan_name: "telemetry-coffee-machine-staging-load-dq"
+
+    -> This can fail and state something like "llm as a judge" deemed the Data Eng Agent not completing the task successfully.
+    -> You can try again.
+
+Example Output of Data Eng Agent - Autonomous
+    -- Generated Prompt sent to determine the Data Quality Fix Required --
+    
+    There is a broken data engineering pipeline that needs correction.
+    I have the below column(s) that have failed a data quality check.
+    The data quality check is using regular expressions to test for data integrity.
+    For each column listed, please generate short, direct, and actionable prompts for a data engineering agent to correct the ETL process. 
+
+    **Workflow for each column:
+    1. **Analyze `bad_values` and `RegEx` (expected good format):** 
+    * Examine the provided `<value>` entries within `<invalid-values-for-water_reservoir_level_percent>` and compare them against the `RegEx` (which defines the expected good format). 
+    * Identify distinct patterns of invalid data and determine the necessary correction action for each. 
+    
+    2. **Derive Exact Match Regular Expressions and Correction Actions:** 
+    * For each *type of correction* required for a column (e.g., removing a suffix, or scaling a number), identify all specific bad data patterns that 
+    necessitate that correction. * Create a regular expression that precisely matches these invalid data patterns. 
+    * This regex **must** be an "exact match" with "no optional lengths" (i.e., use `\d{n}` or `.` without `+` or `*`). 
+    * If multiple distinct fixed-length patterns for a column require the *same correction action*, combine their individual exact-match regexes using the `|` (OR) operator within a non-capturing group `(?:...)`. 
+      Example: `(?:\d{2}\.\d{1}%|\d{2}\.\d{2}%)`. 
+    * Determine the specific correction action: * If the bad values contain a suffix (e.g., `%`, `° Celsius`, ` Liters`) that is not allowed by the `RegEx` for the column, 
+      the action is "remove the 'SUFFIX' suffix". * If the bad values are decimal numbers (e.g., `0.XXXX`) that *match* a pattern like `0\.\d{4}` or `0\.\d{3}` *and* the
+      column name strongly implies a percentage (e.g., `_percent`, `_pct`) *and* the `RegEx` (expected good format) implies a number that *should* be between 0-100
+      (e.g., `^\d+(\.\d{1,2})?$`), the action is "multiply by 100". 
+    * (You can extend these rules for other common data quality issues as needed in future iterations.) 
+    
+    3. **Formulate Correction Prompt(s):** 
+    * For each unique combination of a derived exact-match regex and its corresponding correction action, construct a separate prompt for the data engineering agent.
+      **Example Output Prompt Format (note multiple lines for a single column if different issues or fix types arise):** 
+        - Correct column 'item_cost' by testing for '(?:\$\d{3}\.\d{2}|\$\d{2}\.\d{2})' and remove the '$' character. 
+        - Correct column 'inventory_status' by testing for 'QTY-\d{4}' and remove the 'QTY-' prefix. 
+        - Correct column 'sensor_humidity_reading' by testing for '\d{2}\.\d{1}%' and remove the '%' character. 
+        - Correct column 'water_level_pct' by testing for '0\.\d{4}' and multiply by 100. 
+        - Correct column 'temperature_kelvin' by testing for '(?:\d{3}K|\d{2}K)' and remove the 'K' suffix. **Here is the data in XML format for analysis:** 
+          
+    <data-for-correction>       
+        <column-boiler_temperature_celsius>           
+            Column Name: boiler_temperature_celsius 
+            RegEx: {"regex":"^\\d+(\\.\\d+)?$"}
+            <invalid-values-for-boiler_temperature_celsius>
+                <value>95.2° Celsius</value> 
+                <value>94.19° Celsius</value>
+                <value>95.94° Celsius</value>
+                <value>92.18° Celsius</value> 
+            </invalid-values-for-boiler_temperature_celsius> 
+        </column-boiler_temperature_celsius>
+
+        <column-water_reservoir_level_percent> 
+            Column Name: water_reservoir_level_percent 
+            RegEx: {"regex":"^\\d+(\\.\\d{1,2})?$"} 
+            <invalid-values-for-water_reservoir_level_percent>
+                <value>0.5721</value>
+                <value>0.7274</value>
+                <value>77.17%</value>
+                <value>70.36%</value>
+                <value>77.3%</value>
+                <value>61.78%</value>
+                <value>0.6516</value>
+                <value>0.6707</value>
+            </invalid-values-for-water_reservoir_level_percent>
+        </column-water_reservoir_level_percent>
+    </data-for-correction>
+
+
+    -- Generated Prompt sent to Data Eng Agent --
+    
+    Correct column 'boiler_temperature_celsius' by testing for '(?:\d{2}\.\d{1}° Celsius|\d{2}\.\d{2}° Celsius)' and remove the '° Celsius' suffix.
+    Correct column 'water_reservoir_level_percent' by testing for '(?:\d{2}\.\d{2}%|\d{2}\.\d{1}%)' and remove the '%' character. 
+    Correct column 'water_reservoir_level_percent' by testing for '0\.\d{4}' and multiply by 100.
+
+
+----------------------------------------------------------------------------------------------------
+-- Dataform
+----------------------------------------------------------------------------------------------------
+
+
+----------------------------------------------------------------------------------------------------
+-- Dataplex: Data Catalog Search
+----------------------------------------------------------------------------------------------------
+VERIFIED: What tables have customer information?
+VERIFIED: What pub/sub do I have?
+
+
+----------------------------------------------------------------------------------------------------
+-- Dataplex: Data Discovery
+----------------------------------------------------------------------------------------------------
+VERIFIED: What data discovery exist on my tables in my data bucket?
+    -> The agent will prompt you for the bucket name (copy the 'data' one)
+
+
+----------------------------------------------------------------------------------------------------
+-- Dataplex: Data Goverance
+----------------------------------------------------------------------------------------------------
+What aspect tags are on my table ????
+
+
+----------------------------------------------------------------------------------------------------
+-- Dataplex: Data Insights
+----------------------------------------------------------------------------------------------------
+VERIFIED: What data insights exist on my tables in my raw dataset?
+    -> The agent will prompt you for the name of the 'raw' dataset.
+
+
+----------------------------------------------------------------------------------------------------
+-- Dataplex: Data Profiles
+----------------------------------------------------------------------------------------------------
+VERIFIED: 
+Create a data profile scan:
+data_profile_scan_name: "product-category-01"
+data_profile_display_name: "Product Category 01"
+bigquery_dataset_name: "agentic_beans_curated"
+bigquery_table_name: "product_category"
+    -> The agent will NOT figure out the proper table names with dashes (for that try "Create a scan workflow" below)
+    -> You can change 01 to 02, etc.... to run over and over.
+
+VERIFIED: 
+What data profile scans exist for my customer table?
+
+VERIFIED: 
+Show me the data profile summary on the product category table in my curated dataset.
+
+
+
+Needs Testing:
+- scan summary???
+
+What data profiles exist on my tables in my raw dataset?
+
+Create a data profile scan for every table in my agentic_beans_raw dataset.
+ - are they done?
+ - now create a data quality scan for each table.
+
+show me all my data profiles for my customer table in the raw dataset
+- show me the results of the scan
+
+
+----------------------------------------------------------------------------------------------------
+-- Dataplex: Data Profiles -> Custom Workflows (to demo this you need the prompt 'Create a scan workflow')
+----------------------------------------------------------------------------------------------------
+VERIFIED: 
+Create a scan workflow:
+data_profile_scan_name: "truck-menu-01"
+data_profile_display_name: "Truck Menu 01"
+bigquery_dataset_name: "agentic beans curated"
+bigquery_table_name: "truck menu"
+    -> This will prompt you for demoing the different type of custom agents.
+    -> You can change 01 to 02, etc.... to run over and over.
+
+
+----------------------------------------------------------------------------------------------------
+-- Dataplex: Data Quality
+----------------------------------------------------------------------------------------------------
+VERIFIED: 
+What data quality scans exist on my tables in my raw dataset?
+
+VERIFIED: 
+Create a data quality scan on the product category table in the curated dataset using the product-category-01 scan.
+    -> Uses a data profile scan to use the generated rules.
+    -> You need to run the "Create a data profile scan:" prompt before this one!
+
+VERIFIED: 
+Show me a summary of my data quality on the product category table in the curated dataset.
+
+VERIFIED: 
+Delete the data quality scan on the product category table in the curated dataset.
+    -> This will delete all the scan jobs and then the scan itself (saves you lots of work)
+    -> This works for data insights, data profiling, data discovery, knowledge engine scans.
+
+
+
+----------------------------------------------------------------------------------------------------
+-- Google Search
+----------------------------------------------------------------------------------------------------
+
+
+----------------------------------------------------------------------------------------------------
+-- Knowledge Engine
+----------------------------------------------------------------------------------------------------
+- LONG: Create an knowledge engine scan on my agentic raw dataset. 
+- TALK: Create a data insight scan on every table in my curated dataset.
+
+VERIFIED:
+What knowledge engine exist on my raw dataset? 
+    - FOLLOW UP: Show me the first scan.
+
+VERIFIED:
+Tell me my knowledge engines for every dataset?
+
+VERIFIED:
+Create an knowledge engine scan on my raw dataset and name it 'demo-scan-raw-01'.
+    - FOLLOW UP: Show me the scan summary.
+
+----------------------------------------------------------------------------------------------------
+-- Knowledge Engine Business Glossary
+----------------------------------------------------------------------------------------------------
+VERIFIED:
+Create a business glossary on my agentic raw dataset based upon my knowledge scan.
+    -> This can take a long time, you might have to ask "Are you done"  
+    -> If it fails stating there are many scans, you can say "Use the most recent one"
+    -> This will create
+        - A glossary
+        - Categories for each of the terms created by the knowledge scan
+        - Create each term under each category
+    -> You can open this link: https://console.cloud.google.com/dataplex/dp-glossaries
+
+
+Create a business glossary from my knowledge scan for my agentic_beans_raw_staging_load dataset.

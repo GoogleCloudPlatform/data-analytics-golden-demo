@@ -1,0 +1,152 @@
+##########################################################################################
+# Deploy Help
+##########################################################################################
+
+adk deploy cloud_run --help
+
+Options:
+  --project TEXT                  Required. Google Cloud project to deploy the agent. When absent, default project from gcloud config is used.
+  --region TEXT                   Required. Google Cloud region to deploy the agent. When absent, gcloud run deploy will prompt later.
+  --service_name TEXT             Optional. The service name to use in Cloud Run (default: 'adk-default-service-name').
+  --app_name TEXT                 Optional. App name of the ADK API server (default: the folder name of the AGENT source code).
+  --port INTEGER                  Optional. The port of the server
+  --allow_origins TEXT            Optional. Any additional origins to allow for CORS.
+  --log_level [debug|info|warning|error|critical]
+                                  Optional. Set the logging level
+  --trace_to_cloud                Optional. Whether to enable cloud trace for telemetry.
+  --reload / --no-reload          Optional. Whether to enable auto reload for server. Not supported for Cloud Run.
+  --with_ui                       Optional. Deploy ADK Web UI if set. (default: deploy ADK API server only)
+  --verbosity [debug|info|warning|error|critical]
+                                  Deprecated. Use --log_level instead.
+  --temp_folder TEXT              Optional. Temp folder for the generated Cloud Run source files (default: a timestamped folder in the
+                                  system temp directory).
+  --adk_version TEXT              Optional. The ADK version used in Cloud Run deployment. (default: the version in the dev environment)
+                                  [default: 1.5.0]
+  --eval_storage_uri TEXT         Optional. The evals storage URI to store agent evals, supported URIs: gs://<bucket name>.
+  --session_service_uri TEXT      Optional. The URI of the session service. - Use 'agentengine://<agent_engine_resource_id>' to connect
+                                  to Agent Engine sessions. - Use 'sqlite://<path_to_sqlite_file>' to connect to a SQLite DB. - See
+                                  https://docs.sqlalchemy.org/en/20/core/engines.html#backend-specific-urls for more details on
+                                  supported database URIs.
+  --artifact_service_uri TEXT     Optional. The URI of the artifact service, supported URIs: gs://<bucket name> for GCS artifact
+                                  service.
+  --eval_storage_uri TEXT         Optional. The evals storage URI to store agent evals, supported URIs: gs://<bucket name>.
+  --memory_service_uri TEXT       Optional. The URI of the memory service. - Use 'rag://<rag_corpus_id>' to connect to Vertex AI Rag
+                                  Memory Service. - Use 'agentengine://<agent_engine_resource_id>' to connect to Vertex AI Memory Bank
+                                  Service. e.g. agentengine://12345
+  --session_db_url TEXT           Deprecated. Use --session_service_uri instead.
+  --artifact_storage_uri TEXT     Deprecated. Use --artifact_service_uri instead.
+  --help                          Show this message and exit.
+
+
+
+##########################################################################################
+# APIs to Enable
+##########################################################################################
+gcloud services enable cloudbuild.googleapis.com
+gcloud services enable artifactregistry.googleapis.com
+gcloud services enable cloudbuild.googleapis.com
+gcloud services enable run.googleapis.com
+
+gcloud config set project ${project_id}
+gcloud auth application-default set-quota-project ${project_id}
+
+GRANT vertex ai user to the Cloud Run service account
+
+
+##########################################################################################
+# Security Roles for Cloud Run Service Account
+##########################################################################################
+BigQuery Metadata Viewer
+Cloud Build Service Account
+Editor
+Storage Object Viewer
+Vertex AI User
+
+
+##########################################################################################
+# To Run
+##########################################################################################
+source .venv/bin/activate
+npm run serve --backend=http://localhost:8000
+
+source .venv/bin/activate
+adk api_server --allow_origins=http://localhost:4200 --host=0.0.0.0
+
+##########################################################################################
+# Deploy
+##########################################################################################
+
+source .venv/bin/activate
+
+export GOOGLE_GENAI_USE_VERTEXAI=True                   # We will use the Vertex AI endpoint and not the aistudio one
+export GOOGLE_CLOUD_PROJECT="${project_id}"  # Project of Vertex and Cloud Run
+export GOOGLE_CLOUD_LOCATION="us-central1"              # Region to deploy
+export AGENT_PATH="./data_analytics_agent"              # Directory name
+export SERVICE_NAME="data-analytics-agent-service-10"   # You can change on each deployment for A/B testing
+export APP_NAME="data_analytics_agent"                  # This needs to the directory name
+
+adk deploy cloud_run \
+--project=$GOOGLE_CLOUD_PROJECT \
+--region=$GOOGLE_CLOUD_LOCATION \
+--service_name=$SERVICE_NAME \
+--app_name=$APP_NAME \
+--with_ui \
+$AGENT_PATH
+
+##########################################################################################
+# NOTE: You need to get the Cloud Run URL
+##########################################################################################
+export APP_URL="https://data-analytics-agent-01-1056656055943.us-central1.run.app"
+export TOKEN=$(gcloud auth print-identity-token)
+curl -X GET -H "Authorization: Bearer $TOKEN" $APP_URL/list-apps
+
+
+
+curl -X POST -H "Authorization: Bearer $TOKEN" \
+    "http://127.0.0.1:55420/apps/trs/users/user/sessions/2a39af2f-5c7e-432b-8cae-59d9a9b468d2" \
+    -H "Content-Type: application/json" \
+    -d '{"state": {"preferred_language": "English", "visit_count": 0}}'
+
+
+curl -X POST -H "Authorization: Bearer $TOKEN" \
+    $APP_URL/apps/data_analytics_agent/users/adam_p/sessions/session_01 \
+    -H "Content-Type: application/json" \
+    -d '{"state": {"preferred_language": "English", "visit_count": 0}}'
+
+curl -X POST -H "Authorization: Bearer $TOKEN" \
+    $APP_URL/run_sse \
+    -H "Content-Type: application/json" \
+    -d '{
+    "app_name": "data_analytics_agent",
+    "user_id": "adam_p",
+    "session_id": "session_01",
+    "new_message": {
+        "role": "user",
+        "parts": [{
+        "text": "What is the capital of Florida?"
+        }]
+    },
+    "streaming": false
+    }'    
+
+curl -X POST -H "Authorization: Bearer $TOKEN" \
+    $APP_URL/apps/data_analytics_agent/users/adam_p/sessions/session_02 \
+    -H "Content-Type: application/json" \
+    -d '{"state": {"preferred_language": "English", "visit_count": 0}}'
+
+curl -X POST -H "Authorization: Bearer $TOKEN" \
+    $APP_URL/run_sse \
+    -H "Content-Type: application/json" \
+    -d '{
+    "app_name": "data_analytics_agent",
+    "user_id": "adam_p",
+    "session_id": "session_02",
+    "new_message": {
+        "role": "user",
+        "parts": [{
+        "text": "Count the taxi trips by year."
+        }]
+    },
+    "streaming": false
+    }'    
+

@@ -1,0 +1,9 @@
+For Google Search to work you need to do the following:
+1. Go here: https://programmablesearchengine.google.com/controlpanel/create
+2. Enter a name and select "Search Entire Web"
+3. Copy the CSE Id (you can edit it and copy the "Search engine ID" which is the GOOGLE_CSE_ID)
+4. Create a file named "cse-key.txt" and paste the key in it.
+
+The Terraform will pick up the key from "cse-key.txt".
+You can also update the cloud run directly (there is an environment variable), 
+but that would get overwritten on each deployment.

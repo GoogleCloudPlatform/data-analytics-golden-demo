@@ -1,0 +1,723 @@
+####################################################################################
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+####################################################################################
+import os
+import json
+import re
+# Removed `time` as `asyncio.sleep` will be used where polling is needed
+# Removed `requests.exceptions.HTTPError` as `httpx` exceptions are used
+# import asyncio # New: # import asyncio for async operations
+import logging
+
+import data_analytics_agent.rest_api_helper as rest_api_helper # Assuming this is your async version
+import data_analytics_agent.gemini.gemini_helper as gemini_helper # Assuming this is async-compatible
+# These helpers are not directly called in this file, but might be imported by the agent for its own internal logic.
+# Keeping imports as they were.
+# import data_analytics_agent.dataform.dataform as dataform_helper 
+# import data_analytics_agent.dataplex.data_quality as data_quality_helper
+# import data_analytics_agent.bigquery.run_bigquery_sql as run_bigquery_sql_helper 
+
+logger = logging.getLogger(__name__)
+
+
+datadiscovery_agent_instruction="""You are a specialist **Data Discovery and Registration Agent**. Your unique and powerful function is to scan unstructured or semi-structured files (like CSVs) in Google Cloud Storage (GCS) and automatically register them as queryable **BigLake tables** in BigQuery. You are the bridge that makes data in a data lake easily accessible for SQL analysis.
+
+**Your Operational Playbooks (Workflows):**
+
+Your operations are defined by clear, sequential workflows. You must follow these steps precisely to successfully discover and register data.
+
+**Workflow 1: Discovering and Registering a New GCS Bucket**
+
+This is your main workflow. Use this when a user asks to "scan my GCS bucket," "make the files in `my-bucket` available in BigQuery," or "create a BigLake table for my storage data."
+
+1.  **Gather Information:** You require the following four pieces of information from the user. You must ask for any missing details:
+    *   `gcs_bucket_name`: The name of the Google Cloud Storage bucket containing the data files. **Verify this by calling `list_gcs_buckets()` and checking if the bucket exists. Do not proceed if the bucket is not found.**
+    *   `biglake_connection_name`: The **full resource name** of the BigLake connection that grants BigQuery access to GCS. If the user doesn't know this, you cannot proceed and must ask them to find it in the Google Cloud Console.
+    *   `data_discovery_scan_name`: A short, unique name for the scan job (e.g., `discover-my-bucket-files`).
+    *   `display_name`: A user-friendly name for the scan (e.g., "Discovery Scan for My Bucket").
+
+2.  **Step 1: Create the Scan Definition:**
+    *   Call `create_data_discovery_scan(...)` with all the gathered information.
+    *   This tool is idempotent; it checks for the existence of the scan first. If it already exists, it will report success, and you can proceed. If it's new, it will create the scan definition.
+
+3.  **Step 2: Start the Discovery Job:**
+    *   Call `start_data_discovery_scan(data_discovery_scan_name=...)`.
+    *   Inform the user that you have started the discovery process and it may take some time depending on the number of files.
+    *   **Crucially, you must capture the full `job.name` from the results of this tool.** This long resource path is required for monitoring.
+
+4.  **Step 3: Monitor the Job to Completion:**
+    *   You are responsible for monitoring the job until it finishes.
+    *   Use the `job.name` from the previous step and call `get_data_discovery_scan_state(data_discovery_scan_job_name=...)`.
+    *   The `state` will likely be "RUNNING" or "PENDING".
+    *   You must **poll this tool periodically (e.g., every 15-30 seconds by calling the `wait_for_seconds` tool)** until the `state` becomes "SUCCEEDED", "FAILED", or "CANCELLED".
+    *   Report the final status. If it succeeded, tell the user: "The data discovery scan has completed successfully. New BigLake tables representing the files in your GCS bucket should now be available in BigQuery for querying."
+
+**Workflow 2: Re-running an Existing Discovery Scan**
+
+Use this workflow when a user wants to refresh the BigLake tables because new files have been added to the GCS bucket. For example: "re-scan my bucket" or "run the `discover-my-bucket-files` scan again."
+
+1.  **Gather Information:** You only need the `data_discovery_scan_name`.
+2.  **Verify Existence:** Call `exists_data_discovery_scan(data_discovery_scan_name=...)` to ensure it's a valid scan. If it returns `false`, inform the user the scan doesn't exist and ask if they'd like to create it (which would trigger Workflow 1).
+3.  **Start and Monitor:** If the scan exists, proceed directly to **Step 2 and Step 3** of **Workflow 1** (Start the Discovery Job and Monitor the Job to Completion).
+
+**Workflow 3: Listing All Discovery Scans**
+
+Use this for simple discovery questions like, "what discovery scans are configured?" or "list all my GCS scans."
+
+1.  **Execute:** Call the `get_data_discovery_scans()` tool.
+2.  **Present Results:** Summarize the information clearly. For each scan in the `dataScans` list, present its `displayName` and the target GCS bucket found in the `data.resource` field.
+
+**Workflow 4: Listing Available Scans for a GCS bucket**
+
+Use this for simple discovery questions like, "what data discovery scans exist on GCS" or "list all my discovery scans on my tables for bucket."
+
+1.  **Execute:** Verify the bucket name by calling the tool `list_gcs_buckets`. Do not trust the user input, look it up.
+2.  **Execute:** Call the tool  `get_data_discovery_scans_for_bucket` with the `gcs_bucket_name`.
+3.  **Present Results:** Do not just dump the JSON. Summarize the results for the user. For each scan in the `dataScans` list, present the bucket name passed to the tool, `name`, `displayName` and `description`.
+
+**Workflow 5: Deleting a Data Discovery Scan**
+
+Use this when a user says, "delete the discovery scan for `my-bucket`" or "remove `my-discovery-scan`."
+
+1.  **Gather Information:** You need the `data_discovery_scan_name`.
+2.  **Step 1: List Associated Jobs:**
+    *   Call `list_data_discovery_scan_jobs(data_discovery_scan_name=...)`.
+    *   Inform the user if there are existing jobs that need to be deleted first.
+3.  **Step 2: Delete All Associated Jobs:**
+    *   Iterate through the `jobs` list obtained in the previous step.
+    *   For each job, call `delete_data_discovery_scan_job(data_discovery_scan_job_name=job['name'])`.
+    *   Inform the user about the deletion of each job.
+    *   Handle cases where a job deletion might fail.
+4.  **Step 3: Delete the Scan Definition:**
+    *   Once all associated jobs are successfully deleted, call `delete_data_discovery_scan(data_discovery_scan_name=...)`.
+    *   Inform the user that the scan definition is being deleted.
+5.  **Report Final Status:** Report the final status to the user, confirming successful deletion of the scan and all its jobs, or any issues encountered.
+
+**Workflow 6: Listing Data Discovery Scan Jobs for a Specific Scan**
+
+Use this for discovery questions like, "what jobs ran for `my-discovery-scan`?" or "show me the runs for the GCS discovery on `my-bucket`."
+
+1.  **Gather Information:** You need the `data_discovery_scan_name`.
+2.  **Execute:** Call `list_data_discovery_scan_jobs(data_discovery_scan_name=...)`.
+3.  **Present Results:** Do not just dump the JSON. Summarize the results for the user. For each job, present its `name`, `state`, `createTime`, `startTime`, and `endTime`.
+
+**Workflow 7: Getting Detailed Results of a Data Discovery Scan Job**
+
+Use this when a user asks, "show me the detailed results of discovery job `job_name`" or "what did the last bucket scan find?"
+
+1.  **Gather Information:** You need the full `data_discovery_scan_job_name`.
+2.  **Execute:** Call `get_data_discovery_scan_job_full_details(data_discovery_scan_job_name=...)`.
+3.  **Present Results:**
+    *   Check the `state` of the job from the results. If not "SUCCEEDED," inform the user that detailed results may not be available yet.
+    *   If `SUCCEEDED`, clearly summarize the `dataDiscoveryResult`. This would typically include counts of tables created, files processed, errors, etc.
+    *   Avoid raw JSON dumping; present the key insights in a readable format.
+
+**General Principles:**
+
+*   **Explain Your Purpose:** Your function is unique. Clearly explain what you do. "I can scan a GCS bucket to automatically create BigLake tables, which lets you query your files directly from BigQuery using standard SQL."
+*   **Manage Prerequisites:** The `biglake_connection_name` is a hard requirement. You cannot guess it. Politely but firmly insist that the user provides this information.
+*   **Handle Job Names Carefully:** You must distinguish between the short `data_discovery_scan_name` and the long `data_discovery_scan_job_name` returned by the `start...` tool. Use the correct name for the correct tool.
+*   **Deletion Pre-requisites:** When deleting a `data_discovery_scan` *definition*, all its associated `data_discovery_scan_job`s must be deleted first. The agent should handle this automatically as part of Workflow 5.
+"""
+
+
+def list_gcs_buckets() -> dict: # Changed to def
+    """
+    Lists all Google Cloud Storage (GCS) buckets in the current project.
+
+    Returns:
+        dict: A dictionary containing the status and a list of GCS bucket names.
+        {
+            "status": "success" or "failed",
+            "tool_name": "list_gcs_buckets",
+            "query": None,
+            "messages": ["List of messages during processing"],
+            "results": {
+                "buckets": [ "bucket_name_1", "bucket_name_2", ... ]
+            }
+        }
+    """
+    project_id = os.getenv("AGENT_ENV_PROJECT_ID")
+    messages = []
+    # Google Cloud Storage JSON API endpoint for listing buckets
+    # https://cloud.google.com/storage/docs/json_api/v1/buckets/list
+    url = f"https://storage.googleapis.com/storage/v1/b?project={project_id}"
+
+    try:
+        json_result = rest_api_helper.rest_api_helper(url, "GET", None) # Added await
+        messages.append("Successfully retrieved list of GCS buckets from the API.")
+
+        buckets = [item['name'] for item in json_result.get("items", [])]
+
+        messages.append(f"Found {len(buckets)} GCS buckets.")
+
+        return {
+            "status": "success",
+            "tool_name": "list_gcs_buckets",
+            "query": None,
+            "messages": messages,
+            "results": {"buckets": buckets}
+        }
+    except Exception as e:
+        messages.append(f"An error occurred while listing GCS buckets: {e}")
+        return {
+            "status": "failed",
+            "tool_name": "list_gcs_buckets",
+            "query": None,
+            "messages": messages,
+            "results": None
+        }
+
+
+def get_data_discovery_scans() -> dict: # Changed to def
+    """
+    Lists all Dataplex data discovery scans in the configured region.
+
+    This function specifically filters the results to include only scans of
+    type 'DATA_DISCOVERY'.
+
+    Returns:
+        dict: A dictionary containing the status and the list of data discovery scans.
+    """
+    project_id = os.getenv("AGENT_ENV_PROJECT_ID")
+    dataplex_region = os.getenv("AGENT_ENV_DATAPLEX_REGION")
+    messages = []
+    url = f"https://dataplex.googleapis.com/v1/projects/{project_id}/locations/{dataplex_region}/dataScans"
+
+    try:
+        json_result = rest_api_helper.rest_api_helper(url, "GET", None) # Added await
+        messages.append("Successfully retrieved list of all data scans from the API.")
+
+        all_scans = json_result.get("dataScans", [])
+        discovery_scans_only = [
+            scan for scan in all_scans if scan.get("type") == "DATA_DISCOVERY"
+        ]
+        messages.append(f"Filtered results. Found {len(discovery_scans_only)} data discovery scans.")
+
+        filtered_results = {"dataScans": discovery_scans_only}
+
+        return {
+            "status": "success",
+            "tool_name": "get_data_discovery_scans",
+            "query": None,
+            "messages": messages,
+            "results": filtered_results
+        }
+    except Exception as e:
+        messages.append(f"An error occurred while listing data discovery scans: {e}")
+        return {
+            "status": "failed",
+            "tool_name": "get_data_discovery_scans",
+            "query": None,
+            "messages": messages,
+            "results": None
+        }
+
+
+def get_data_discovery_scans_for_bucket(gcs_bucket_name:str) -> dict: # Changed to def
+    """
+    Lists all Dataplex data discovery scan attached to the table.
+
+    This function specifically filters the results to include only scans of
+    type 'DATA_DISCOVERY' and assigned to the dataset id/name and table name.
+
+    Args:
+        gcs_bucket_name (str): The name of the GCS bucket to scan (e.g., 'my-bucket').
+
+    Returns:
+        dict: A dictionary containing the status and the list of data discovery scans.
+        {
+            "status": "success" or "failed",
+            "tool_name": "get_data_discovery_scans_for_bucket",
+            "query": None,
+            "messages": ["List of messages during processing"],
+            "results": {
+                "dataScans": [ ... list of scan objects of type data_discovery ... ]
+            }
+        }
+    """
+    project_id = os.getenv("AGENT_ENV_PROJECT_ID")
+    dataplex_region = os.getenv("AGENT_ENV_DATAPLEX_REGION")
+    messages = []
+
+    # The URL to list all data scans in the specified project and region.
+    url = f"https://dataplex.googleapis.com/v1/projects/{project_id}/locations/{dataplex_region}/dataScans"
+
+    try:
+        # Call the REST API to get the list of all existing data scans
+        json_result = rest_api_helper.rest_api_helper(url, "GET", None) # Added await
+        messages.append("Successfully retrieved list of all data scans from the API.")
+
+        # Filter the returned scans to only include those of type 'DATA_discovery'
+        all_scans = json_result.get("dataScans", [])
+
+        # Using a list comprehension for a concise filter
+        discovery_scans_only = []
+
+        for item in all_scans:
+            if item.get("type") == "DATA_DISCOVERY" and \
+               item.get("data", {}).get("resource").lower() == f"//storage.googleapis.com/projects/{project_id}/buckets/{gcs_bucket_name}".lower():
+                discovery_scans_only.append(item)
+            
+        messages.append(f"Filtered results. Found {len(discovery_scans_only)} data discovery scans for bucket {gcs_bucket_name}.")
+
+        # Create the final results payload with the filtered list
+        filtered_results = {"dataScans": discovery_scans_only}
+
+        return {
+            "status": "success",
+            "tool_name": "get_data_discovery_scans_for_bucket",
+            "query": None,
+            "messages": messages,
+            "results": filtered_results
+        }
+    except Exception as e:
+        messages.append(f"An error occurred while listing data discovery scans: {e}")
+        return {
+            "status": "failed",
+            "tool_name": "get_data_discovery_scans_for_bucket",
+            "query": None,
+            "messages": messages,
+            "results": None
+        }
+
+
+def exists_data_discovery_scan(data_discovery_scan_name: str) -> dict: # Changed to def
+    """
+    Checks if a Dataplex data discovery scan already exists.
+
+    Args:
+        data_discovery_scan_name (str): The short name/ID of the data discovery scan.
+
+    Returns:
+        dict: A dictionary containing the status and a boolean result.
+    """
+    project_id = os.getenv("AGENT_ENV_PROJECT_ID")
+    dataplex_region = os.getenv("AGENT_ENV_DATAPLEX_REGION")
+
+    list_result = get_data_discovery_scans() # Added await
+    messages = list_result.get("messages", [])
+
+    if list_result["status"] == "failed":
+        return list_result
+
+    try:
+        scan_exists = False
+        full_scan_name_to_find = f"projects/{project_id}/locations/{dataplex_region}/dataScans/{data_discovery_scan_name}"
+
+        for item in list_result.get("results", {}).get("dataScans", []):
+            if item.get("name") == full_scan_name_to_find:
+                scan_exists = True
+                messages.append(f"Found matching data discovery scan: '{data_discovery_scan_name}'.")
+                break
+        
+        if not scan_exists:
+            messages.append(f"Data discovery scan '{data_discovery_scan_name}' does not exist.")
+
+        return {
+            "status": "success",
+            "tool_name": "exists_data_discovery_scan",
+            "query": None,
+            "messages": messages,
+            "results": {"exists": scan_exists}
+        }
+    except Exception as e:
+        messages.append(f"An unexpected error occurred while processing scan list: {e}")
+        return {
+            "status": "failed",
+            "tool_name": "exists_data_discovery_scan",
+            "query": None,
+            "messages": messages,
+            "results": None
+        }
+
+
+def create_data_discovery_scan(data_discovery_scan_name: str, display_name: str, gcs_bucket_name: str, biglake_connection_name: str) -> dict: # Changed to def
+    """
+    Creates a new Dataplex data discovery scan for a GCS bucket to create BigLake tables.
+
+    Args:
+        data_discovery_scan_name (str): The short name/ID for the new scan.
+        display_name (str): The user-friendly display name for the scan.
+        gcs_bucket_name (str): The name of the GCS bucket to scan (e.g., 'my-bucket').
+        biglake_connection_name (str): The full resource name of the BigLake connection.
+                                      e.g., "projects/.../locations/.../connections/..."
+
+    Returns:
+        dict: A dictionary containing the status and results of the operation.
+    """
+    project_id = os.getenv("AGENT_ENV_PROJECT_ID")
+    dataplex_region = os.getenv("AGENT_ENV_DATAPLEX_REGION")
+    
+    existence_check = exists_data_discovery_scan(data_discovery_scan_name) # Added await
+    messages = existence_check.get("messages", [])
+    
+    if existence_check["status"] == "failed":
+        return existence_check
+
+    if existence_check["results"]["exists"]:
+        full_scan_name = f"projects/{project_id}/locations/{dataplex_region}/dataScans/{data_discovery_scan_name}"
+        return {
+            "status": "success",
+            "tool_name": "create_data_discovery_scan",
+            "query": None,
+            "messages": messages,
+            "results": {"name": full_scan_name, "created": False}
+        }
+
+    messages.append(f"Creating Data Discovery Scan '{data_discovery_scan_name}'.")
+    url = f"https://dataplex.googleapis.com/v1/projects/{project_id}/locations/{dataplex_region}/dataScans?dataScanId={data_discovery_scan_name}"
+    gcs_resource_path = f"//storage.googleapis.com/projects/{project_id}/buckets/{gcs_bucket_name}"
+
+    request_body = {
+        "displayName": display_name,
+        "type": "DATA_DISCOVERY",
+        "data": {"resource": gcs_resource_path},
+        "dataDiscoverySpec": {
+            "storageConfig": {
+                "csvOptions": {"delimiter": ",", "headerRows": 1}
+            },
+            "bigqueryPublishingConfig": {
+                "connection": biglake_connection_name,
+                "tableType": "BIGLAKE"
+            }
+        }
+    }
+
+    try:
+        json_result = rest_api_helper.rest_api_helper(url, "POST", request_body) # Added await
+        messages.append(f"Successfully initiated Data Discovery Scan creation for '{data_discovery_scan_name}'.")
+        return {
+            "status": "success",
+            "tool_name": "create_data_discovery_scan",
+            "query": None,
+            "messages": messages,
+            "results": json_result
+        }
+    except Exception as e:
+        messages.append(f"An error occurred while creating the data discovery scan: {e}")
+        return {
+            "status": "failed",
+            "tool_name": "create_data_discovery_scan",
+            "query": None,
+            "messages": messages,
+            "results": None
+        }
+
+
+def start_data_discovery_scan(data_discovery_scan_name: str) -> dict: # Changed to def
+    """
+    Triggers a run of an existing Dataplex data discovery scan.
+
+    Args:
+        data_discovery_scan_name (str): The short name/ID of the scan to run.
+
+    Returns:
+        dict: A dictionary containing the status and the job information.
+    """
+    project_id = os.getenv("AGENT_ENV_PROJECT_ID")
+    dataplex_region = os.getenv("AGENT_ENV_DATAPLEX_REGION")
+    messages = []
+    url = f"https://dataplex.googleapis.com/v1/projects/{project_id}/locations/{dataplex_region}/dataScans/{data_discovery_scan_name}:run"
+    
+    try:
+        messages.append(f"Attempting to run Data Discovery Scan '{data_discovery_scan_name}'.")
+        json_result = rest_api_helper.rest_api_helper(url, "POST", {}) # Added await
+        job_info = json_result.get("job", {})
+        messages.append(f"Successfully started job: {job_info.get('name')} - State: {job_info.get('state')}")
+        return {
+            "status": "success",
+            "tool_name": "start_data_discovery_scan",
+            "query": None,
+            "messages": messages,
+            "results": json_result
+        }
+    except Exception as e:
+        messages.append(f"An error occurred while starting the data discovery scan: {e}")
+        return {
+            "status": "failed",
+            "tool_name": "start_data_discovery_scan",
+            "query": None,
+            "messages": messages,
+            "results": None
+        }
+
+
+def get_data_discovery_scan_state(data_discovery_scan_job_name: str) -> dict: # Changed to def
+    """
+    Gets the current state of a running data discovery scan job.
+
+    Args:
+        data_discovery_scan_job_name (str): The full resource name of the scan job, e.g., 
+                                          "projects/.../locations/.../dataScans/.../jobs/...".
+    """
+    messages = []
+    url = f"https://dataplex.googleapis.com/v1/{data_discovery_scan_job_name}"
+    
+    try:
+        json_result = rest_api_helper.rest_api_helper(url, "GET", None) # Added await
+        state = json_result.get("state", "UNKNOWN")
+        messages.append(f"Job '{data_discovery_scan_job_name}' is in state: {state}")
+        
+        return {
+            "status": "success",
+            "tool_name": "get_data_discovery_scan_state",
+            "query": None,
+            "messages": messages,
+            "results": {"state": state}
+        }
+    except Exception as e:
+        messages.append(f"An error occurred while getting the data discovery scan job state: {e}")
+        return {
+            "status": "failed",
+            "tool_name": "get_data_discovery_scan_state",
+            "query": None,
+            "messages": messages,
+            "results": None
+        }
+
+def list_data_discovery_scan_jobs(data_discovery_scan_name: str) -> dict: # Changed to def
+    """
+    Lists all data discovery scan jobs associated with a specific data discovery scan.
+
+    Args:
+        data_discovery_scan_name (str): The short name/ID of the data discovery scan.
+
+    Returns:
+        dict: A dictionary containing the status and the list of data discovery scan jobs.
+        {
+            "status": "success" or "failed",
+            "tool_name": "list_data_discovery_scan_jobs",
+            "query": None,
+            "messages": ["List of messages during processing"],
+            "results": {
+                "jobs": [ ... list of scan job objects ... ]
+            }
+        }
+    """
+    project_id = os.getenv("AGENT_ENV_PROJECT_ID")
+    dataplex_region = os.getenv("AGENT_ENV_DATAPLEX_REGION")
+    messages = []
+
+    # API endpoint to list jobs for a specific data scan.
+    url = f"https://dataplex.googleapis.com/v1/projects/{project_id}/locations/{dataplex_region}/dataScans/{data_discovery_scan_name}/jobs"
+
+    try:
+        messages.append(f"Attempting to list jobs for Data Discovery Scan '{data_discovery_scan_name}'.")
+        json_result = rest_api_helper.rest_api_helper(url, "GET", None) # Added await
+        
+        jobs = json_result.get("dataScanJobs", [])
+        messages.append(f"Successfully retrieved {len(jobs)} jobs for scan '{data_discovery_scan_name}'.")
+
+        return {
+            "status": "success",
+            "tool_name": "list_data_discovery_scan_jobs",
+            "query": None,
+            "messages": messages,
+            "results": {"jobs": jobs}
+        }
+    except Exception as e:
+        messages.append(f"An error occurred while listing data discovery scan jobs: {e}")
+        return {
+            "status": "failed",
+            "tool_name": "list_data_discovery_scan_jobs",
+            "query": None,
+            "messages": messages,
+            "results": None
+        }
+
+
+def delete_data_discovery_scan_job(data_discovery_scan_job_name: str) -> dict: # Changed to def
+    """
+    Deletes a specific Dataplex data discovery scan job.
+
+    Args:
+        data_discovery_scan_job_name (str): The full resource name of the scan job, e.g.,
+                                          "projects/.../locations/.../dataScans/.../jobs/...".
+
+    Returns:
+        dict: A dictionary containing the status of the operation.
+        {
+            "status": "success" or "failed",
+            "tool_name": "delete_data_discovery_scan_job",
+            "query": None,
+            "messages": ["List of messages during processing"],
+            "results": {} # Empty dictionary on success
+        }
+    """
+    messages = []
+    
+    # The URL for deleting a job is the job's full resource path.
+    url = f"https://dataplex.googleapis.com/v1/{data_discovery_scan_job_name}"
+    
+    try:
+        messages.append(f"Attempting to delete Data Discovery Scan job: '{data_discovery_scan_job_name}'.")
+        # DELETE operation typically returns an empty response or an Operation object
+        rest_api_helper.rest_api_helper(url, "DELETE", None) # Added await
+        messages.append(f"Successfully deleted Data Discovery Scan job: '{data_discovery_scan_job_name}'.")
+        return {
+            "status": "success",
+            "tool_name": "delete_data_discovery_scan_job",
+            "query": None,
+            "messages": messages,
+            "results": {}
+        }
+    except Exception as e:
+        messages.append(f"An error occurred while deleting data discovery scan job '{data_discovery_scan_job_name}': {e}")
+        return {
+            "status": "failed",
+            "tool_name": "delete_data_discovery_scan_job",
+            "query": None,
+            "messages": messages,
+            "results": None
+        }
+
+
+def delete_data_discovery_scan(data_discovery_scan_name: str) -> dict: # Changed to def
+    """
+    Deletes a specific Dataplex data discovery scan definition.
+    This operation only succeeds if there are no associated scan jobs.
+    The agent's workflow should ensure jobs are deleted first.
+
+    Args:
+        data_discovery_scan_name (str): The short name/ID of the data discovery scan to delete.
+
+    Returns:
+        dict: A dictionary containing the status of the operation.
+        {
+            "status": "success" or "failed",
+            "tool_name": "delete_data_discovery_scan",
+            "query": None,
+            "messages": ["List of messages during processing"],
+            "results": {} # Empty dictionary on success
+        }
+    """
+    project_id = os.getenv("AGENT_ENV_PROJECT_ID")
+    dataplex_region = os.getenv("AGENT_ENV_DATAPLEX_REGION")
+    messages = []
+
+    # The URL for deleting a data scan.
+    # We do NOT use 'force=true' here, as per requirements that jobs should be deleted first.
+    url = f"https://dataplex.googleapis.com/v1/projects/{project_id}/locations/{dataplex_region}/dataScans/{data_discovery_scan_name}"
+
+    try:
+        messages.append(f"Attempting to delete Data Discovery Scan definition: '{data_discovery_scan_name}'.")
+        # DELETE operation typically returns an empty response or an Operation object
+        rest_api_helper.rest_api_helper(url, "DELETE", None) # Added await
+        messages.append(f"Successfully deleted Data Discovery Scan definition: '{data_discovery_scan_name}'.")
+        return {
+            "status": "success",
+            "tool_name": "delete_data_discovery_scan",
+            "query": None,
+            "messages": messages,
+            "results": {}
+        }
+    except Exception as e:
+        messages.append(f"An error occurred while deleting data discovery scan definition '{data_discovery_scan_name}': {e}")
+        return {
+            "status": "failed",
+            "tool_name": "delete_data_discovery_scan",
+            "query": None,
+            "messages": messages,
+            "results": None
+        }
+
+
+def get_data_discovery_scan_job_full_details(data_discovery_scan_job_name: str) -> dict: # Changed to def
+    """
+    Fetches the full details of a specific Dataplex data discovery scan job,
+    including the complete data discovery results.
+
+    Args:
+        data_discovery_scan_job_name (str): The full resource name of the scan job, e.g., 
+                                          "projects/.../locations/.../dataScans/.../jobs/...".
+
+    Returns:
+        dict: A dictionary containing the status and the full job details.
+        {
+            "status": "success" or "failed",
+            "tool_name": "get_data_discovery_scan_job_full_details",
+            "query": None,
+            "messages": ["List of messages during processing"],
+            "results": {
+                "job": {
+                    "name": "projects/.../locations/.../dataScans/.../jobs/...",
+                    "uid": "...",
+                    "createTime": "...",
+                    "startTime": "...",
+                    "state": "SUCCEEDED",
+                    "dataDiscoveryResult": { ... full discovery payload ... }
+                    // ... other job attributes
+                }
+            }
+        }
+    """
+    messages = []
+    
+    project_id = os.getenv("AGENT_ENV_PROJECT_ID")
+    dataplex_region = os.getenv("AGENT_ENV_DATAPLEX_REGION")
+
+    # Parse the incoming data_discovery_scan_job_name to extract scan_id and job_id.
+    # This allows us to reconstruct the URL using the correct project_id (alphanumeric)
+    # and dataplex_region from environment variables.
+    # Example job_name format: projects/PROJECT_NUMBER/locations/LOCATION/dataScans/SCAN_ID/jobs/JOB_ID
+    match = re.match(r"projects/[^/]+/locations/[^/]+/dataScans/([^/]+)/jobs/([^/]+)", data_discovery_scan_job_name)
+    
+    if not match:
+        messages.append(f"Invalid data_discovery_scan_job_name format: {data_discovery_scan_job_name}")
+        return {
+            "status": "failed",
+            "tool_name": "get_data_discovery_scan_job_full_details",
+            "query": None,
+            "messages": messages,
+            "results": None
+        }
+    
+    scan_id = match.group(1)
+    job_id = match.group(2)
+
+    # Reconstruct the URL using the correct project_id and region from env vars
+    # and include the '?view=FULL' parameter to get the full discovery results.
+    url = f"https://dataplex.googleapis.com/v1/projects/{project_id}/locations/{dataplex_region}/dataScans/{scan_id}/jobs/{job_id}?view=FULL"
+    
+    try:
+        messages.append(f"Attempting to retrieve full data discovery job details for: {data_discovery_scan_job_name} with view=FULL.")
+        json_result = rest_api_helper.rest_api_helper(url, "GET", None) # Added await
+        
+        # Check if dataDiscoveryResult is present, which indicates a successful full fetch for a completed job.
+        if not json_result.get("dataDiscoveryResult"):
+            job_state = json_result.get("state")
+            if job_state and job_state != "SUCCEEDED":
+                messages.append(f"Job state is '{job_state}'. Full data discovery results are typically available only for 'SUCCEEDED' jobs.")
+            else:
+                messages.append("Data discovery results are not present in the job details. This might indicate an incomplete or failed discovery.")
+        
+        messages.append(f"Successfully retrieved full job details for '{data_discovery_scan_job_name}'.")
+        return {
+            "status": "success",
+            "tool_name": "get_data_discovery_scan_job_full_details",
+            "query": None,
+            "messages": messages,
+            "results": {"job": json_result}
+        }
+    except Exception as e:
+        messages.append(f"An error occurred while retrieving full data discovery job details: {e}")
+        return {
+            "status": "failed",
+            "tool_name": "get_data_discovery_scan_job_full_details",
+            "query": None,
+            "messages": messages,
+            "results": None
+        }

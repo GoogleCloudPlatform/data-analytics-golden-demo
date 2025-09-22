@@ -1,0 +1,30 @@
+config {
+  type: "incremental",
+  database: "${project_id}",
+  schema: "${bigquery_agentic_beans_raw_dataset}",
+  name: "telemetry_coffee_machine",
+  bigquery: {
+    clusterBy: ["machine_id", "telemetry_timestamp"]
+  }
+}
+
+SELECT
+  telemetry_coffee_machine_id,
+  telemetry_load_id,
+  CAST(machine_id AS INTEGER) AS machine_id,
+  CAST(truck_id AS INTEGER) AS truck_id,
+  CAST(telemetry_timestamp AS TIMESTAMP) AS telemetry_timestamp,
+  CAST(boiler_temperature_celsius AS NUMERIC) AS boiler_temperature_celsius,
+  CAST(brew_pressure_bar AS NUMERIC) AS brew_pressure_bar,
+  CAST(water_flow_rate_ml_per_sec AS NUMERIC) AS water_flow_rate_ml_per_sec,
+  CAST(grinder_motor_rpm AS INTEGER) AS grinder_motor_rpm,
+  CAST(grinder_motor_torque_nm AS NUMERIC) AS grinder_motor_torque_nm,
+  CAST(water_reservoir_level_percent AS NUMERIC) AS water_reservoir_level_percent,
+  CAST(bean_hopper_level_grams AS NUMERIC) AS bean_hopper_level_grams,
+  CAST(total_brew_cycles_counter AS INTEGER) AS total_brew_cycles_counter,
+  last_error_code,
+  last_error_description,
+  CAST(power_consumption_watts AS NUMERIC) AS power_consumption_watts,
+  cleaning_cycle_status
+FROM
+  $${ref("${bigquery_agentic_beans_raw_staging_load_dataset}", "telemetry_coffee_machine")}
