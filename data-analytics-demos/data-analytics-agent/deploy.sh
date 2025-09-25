@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ####################################################################################
-# Copyright 2022 Google LLC
+# Copyright 2025 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,25 +22,13 @@
 #         This will create a new GCP project in Terraform
 # TO RUN: "source deploy.sh"
 ####################################################################################
-# 
 #
-# This script will then run the terraform script
-# This script will deploy DAGs, dag data, pyspark and trigger the run-all-dag
-# This script needs an admin login so that the project and a service account can be created in the terraform script
-#
-# NOTE: If you do not want to install this software, then run build and run the Dockerfile in this directory
-# You would run "source deploy-use-docker.sh" "(after you have built the docker image, see the Dockerfile for instructions)
-
-# NOTE: If the command prompt prompts you to install/upgrade a service, press Ctrl+C and then run the two sudo commands below (beta/kubectrl).
-#       For some reason this just happens occasionally....
-
 # Required software (cloud shell has this installed):
 #   - gcloud
 #   - gcloud beta (sudo gcloud components install beta)
 #   - terraform
 #   - .jq (command line JSON parser)
 #   - curl
-#   - [NO LONGER NEEDED AS OF 12/2022 - kept of reference] kubectrl (sudo gcloud components install kubectl) to Trigger the Airflow 2 DAG (This is not installed on Cloud Shell by default)
 #
 # Author: Adam Paternostro
 # Terraform for Google: https://registry.terraform.io/providers/hashicorp/google/latest/docs
@@ -50,10 +38,6 @@
 #      These command are not needed when running from a Cloud Shell
 # gcloud auth login
 # gcloud auth application-default login
-
-# You might need to run this if you are switching Orgs
-# gcloud config set project REPLACE-ME-WITH-PROJECT-ID-IN-YOUR-ORG
-# gcloud auth application-default set-quota-project REPLACE-ME-WITH-PROJECT-ID-IN-YOUR-ORG
 
 # Get the account name who logged in above 
 gcp_account_name=$(gcloud auth list --filter=status:ACTIVE --format="value(account)")
@@ -70,7 +54,7 @@ then
 else
   org_id_length=$(echo -n "${org_id}" | wc -m)
   org_id_length_int=$(expr ${org_id_length} + 0)
-  if [ ${org_id_length_int} != 12 ]
+  if [ ${org_id_length_int} -gt 13 ]
   then
     echo "You have more than one org id, please manually enter the correct one."
     echo "Your org id will be in the format of xxxxxxxxxxxx"
@@ -109,51 +93,6 @@ echo "*********************************************************"
 read -p "Press [Enter] key if all the above items are set (gcp_account_name, org_id, billing_account). If not press Ctrl+C ..."
 echo "*********************************************************"
 
-shared_demo_project_id="mySharedProject"
-aws_omni_biglake_s3_bucket="myS3Bucket"
-azure_omni_biglake_adls_name="myAzureADLSGen2Account"
-
-if [[ $gcp_account_name == *"altostrat"* ]]; 
-then
-  echo "You are deploying to Argolis.  Additional information is required."
-
-  # Read the values for Argolis (or get from environment variables [during local development])
-  echo "Please enter the following values (or leave them blank):"
-  echo "Open this link: http://go/argolis-values to get their values."
-
-  if [[ -z "${ENV_SHARED_DEMO_PROJECT_ID}" ]]; then
-    read -p "Please enter [shared_demo_project_id]:" shared_demo_project_id
-  else
-    shared_demo_project_id=${ENV_SHARED_DEMO_PROJECT_ID} 
-    echo "Read environment variable [ENV_SHARED_DEMO_PROJECT_ID]: ${shared_demo_project_id}"
-  fi
-
-  if [[ -z "${ENV_AWS_OMNI_BIGLAKE_S3_BUCKET}" ]]; then
-    read -p "Please enter [aws_omni_biglake_s3_bucket]:" aws_omni_biglake_s3_bucket
-  else
-    aws_omni_biglake_s3_bucket=${ENV_AWS_OMNI_BIGLAKE_S3_BUCKET} 
-    echo "Read environment variable [ENV_AWS_OMNI_BIGLAKE_S3_BUCKET]: ${aws_omni_biglake_s3_bucket}"
-  fi  
-
-  if [[ -z "${ENV_AZURE_OMNI_BIGLAKE_ADLS_NAME}" ]]; then
-    read -p "Please enter [azure_omni_biglake_adls_name]:" azure_omni_biglake_adls_name
-  else
-    azure_omni_biglake_adls_name=${ENV_AZURE_OMNI_BIGLAKE_ADLS_NAME} 
-    echo "Read environment variable [ENV_AZURE_OMNI_BIGLAKE_ADLS_NAME]: ${azure_omni_biglake_adls_name}"
-  fi  
-
-  # if they are blank then use defaults
-  if [ -z "${shared_demo_project_id}" ]; then
-    shared_demo_project_id="mySharedProject"
-  fi 
-  if [ -z "${aws_omni_biglake_s3_bucket}" ]; then
-    aws_omni_biglake_s3_bucket="myS3Bucket"
-  fi 
-  if [ -z "${azure_omni_biglake_adls_name}" ]; then
-    azure_omni_biglake_adls_name="myAzureADLSGen2Account"
-  fi   
-fi
-
 
 ####################################################################################
 # Deploy Terraform
@@ -170,20 +109,25 @@ terraform init
 # Validate
 terraform validate
 
-echo "terraform apply -var=\"gcp_account_name=${gcp_account_name}\" -var=\"org_id=${org_id}\" -var=\"billing_account=${billing_account}\" -var=\"project_id=data-analytics-demo\" -var=\"shared_demo_project_id=${shared_demo_project_id}\" -var=\"aws_omni_biglake_s3_bucket=${aws_omni_biglake_s3_bucket}\" -var=\"azure_omni_biglake_adls_name=${azure_omni_biglake_adls_name}\""
+start=$(date)
+
+echo "terraform apply -var=\"gcp_account_name=${gcp_account_name}\" -var=\"org_id=${org_id}\" -var=\"billing_account=${billing_account}\" -var=\"project_id=data-analytics-agent\""
 
 # Run the Terraform Apply
-terraform apply \
+terraform apply -auto-approve \
   -var="gcp_account_name=${gcp_account_name}" \
   -var="org_id=${org_id}" \
   -var="billing_account=${billing_account}" \
-  -var="project_id=data-analytics-demo" \
-  -var="shared_demo_project_id=${shared_demo_project_id}" \
-  -var="aws_omni_biglake_s3_bucket=${aws_omni_biglake_s3_bucket}" \
-  -var="azure_omni_biglake_adls_name=${azure_omni_biglake_adls_name}"
+  -var="project_id=data-analytics-agent"
 
 terraform_exit_code=$?
 echo "Terraform exit code: ${terraform_exit_code}"
+
+echo "Terraform Times"
+stop=$(date)
+echo "Start time: ${start}"
+echo "Stop  time: ${stop}"
+echo ""
 
 if [ $terraform_exit_code -eq 0 ]
 then
@@ -213,41 +157,46 @@ then
     gsutil cp terraform.tfstate "gs://${terraform_output_bucket}/terraform/state/"
   fi
 
-  # Copy the EMPTY org policies over the existing one
-  # Run Terraform apply again to then revert the org policies back to "inherit from parent"
-  if [ -f "../terraform-modules/org-policies/tf-org-policies-original.txt" ]; then
-    echo "The Org Policies file has already been replaced"
-  else
-    echo "Replacing the Org Policies file and revoking the policy exceptions used during the deployment"
-    mv ../terraform-modules/org-policies/tf-org-policies.tf ../terraform-modules/org-policies/tf-org-policies-original.txt
-    cp ../terraform-modules/org-policies-destroy/tf-org-policies.tf ../terraform-modules/org-policies/tf-org-policies.tf
+  # # Copy the EMPTY org policies over the existing one
+  # # Run Terraform apply again to then revert the org policies back to "inherit from parent"
+  # if [ -f "../terraform-modules/org-policies/tf-org-policies-original.txt" ]; then
+  #   echo "The Org Policies file has already been replaced"
+  # else
+  #   echo "Replacing the Org Policies file and revoking the policy exceptions used during the deployment"
+  #   mv ../terraform-modules/org-policies/tf-org-policies.tf ../terraform-modules/org-policies/tf-org-policies-original.txt
+  #   cp ../terraform-modules/org-policies-destroy/tf-org-policies.tf ../terraform-modules/org-policies/tf-org-policies.tf
 
-    # Run the Terraform Apply (to destroy the org policies)
-    terraform apply -auto-approve \
-      -var="gcp_account_name=${gcp_account_name}" \
-      -var="org_id=${org_id}" \
-      -var="billing_account=${billing_account}" \
-      -var="project_id=data-analytics-demo" \
-      -var="shared_demo_project_id=${shared_demo_project_id}" \
-      -var="aws_omni_biglake_s3_bucket=${aws_omni_biglake_s3_bucket}" \
-      -var="azure_omni_biglake_adls_name=${azure_omni_biglake_adls_name}"
+  #   echo "Start Terraform (Org Policies Revoke)"
+  #   echo $(date)
+  #   echo ""
 
-    # NOTE: To deploy for BQ OMNI you need to also include there arguments to the terraform apply
-    #  -var="shared_demo_project_id=mySharedProject" \
-    #  -var="aws_omni_biglake_s3_bucket=myS3Bucket" \
-    #  -var="azure_omni_biglake_adls_name=myAzureADLSGen2StorageAccount"  
+  #   start=$(date)
 
-    # Move the files back so Git does not check in the wrong file
-    # Also, if we do another deployment we want to disable the policies so we do not interfere with the deployment
-    # and then re-enable them.
-    rm ../terraform-modules/org-policies/tf-org-policies.tf
-    mv ../terraform-modules/org-policies/tf-org-policies-original.txt ../terraform-modules/org-policies/tf-org-policies.tf
-  fi  
+  #   # Run the Terraform Apply (to destroy the org policies)
+  #   terraform apply -auto-approve \
+  #     -var="gcp_account_name=${gcp_account_name}" \
+  #     -var="org_id=${org_id}" \
+  #     -var="billing_account=${billing_account}" \
+  #     -var="project_id=data-analytics-agent"
+
+  #   # Move the files back so Git does not check in the wrong file
+  #   # Also, if we do another deployment we want to disable the policies so we do not interfere with the deployment
+  #   # and then re-enable them.
+  #   rm ../terraform-modules/org-policies/tf-org-policies.tf
+  #   mv ../terraform-modules/org-policies/tf-org-policies-original.txt ../terraform-modules/org-policies/tf-org-policies.tf
+
+  #   echo "Terraform Times"
+  #   stop=$(date)
+  #   echo "Start time: ${start}"
+  #   echo "Stop  time: ${stop}"
+  #   echo ""
+
+  # fi  
 fi
 
 cd ..
 
-echo "terraform apply -var=\"gcp_account_name=${gcp_account_name}\" -var=\"org_id=${org_id}\" -var=\"billing_account=${billing_account}\" -var=\"project_id=data-analytics-demo\" -var=\"shared_demo_project_id=${shared_demo_project_id}\" -var=\"aws_omni_biglake_s3_bucket=${aws_omni_biglake_s3_bucket}\" -var=\"azure_omni_biglake_adls_name=${azure_omni_biglake_adls_name}\""
+echo "terraform apply -var=\"gcp_account_name=${gcp_account_name}\" -var=\"org_id=${org_id}\" -var=\"billing_account=${billing_account}\" -var=\"project_id=data-analytics-agent\""
 
 echo "*********************************************************"
 echo "Done"

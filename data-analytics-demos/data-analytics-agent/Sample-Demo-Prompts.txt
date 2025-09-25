@@ -1,0 +1,35 @@
+----------------------------------------------------------------------------------------------------
+-- Data Eng Agent - Autonomous
+----------------------------------------------------------------------------------------------------
+Autonomously correct this dataform pipeline:
+repository_name: "agentic-beans-repo"
+workspace_name:  "telemetry-coffee-machine-auto"
+data_quality_scan_name: "telemetry-coffee-machine-staging-load-dq"
+
+
+----------------------------------------------------------------------------------------------------
+-- Knowledge Engine - Vector Embeddings
+----------------------------------------------------------------------------------------------------
+- LONG: Create an knowledge engine scan on my agentic raw dataset. 
+- TALK: Create a data insight scan on every table in my curated dataset.
+
+How much did the customer Gale buy?  Ask me if you find more than one customer ask me to select the correct one.
+How much did Gale spend on Ciber brews?
+Can you look up the products that are related to coffee and see how much Gale spent?
+
+
+----------------------------------------------------------------------------------------------------
+-- AI Forecast
+----------------------------------------------------------------------------------------------------
+For The Daily Grind truck will we run out of any ingredients in the next 2 hours?
+    - FOLLOW UP: Which ingredients should I restock first?
+    - FOLLOW UP: Show me the ingredients names.
+        - OR: Show me the products that use these ingredients. (no ingredient per product table)
+
+
+----------------------------------------------------------------------------------------------------
+-- AI Generate Bool
+----------------------------------------------------------------------------------------------------
+Do any product images have latte art?
+
+Do any product category images have drinks that look chilly?
