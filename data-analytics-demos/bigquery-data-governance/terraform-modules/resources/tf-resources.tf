@@ -1076,7 +1076,9 @@ resource "google_storage_bucket_iam_member" "spark_connection_object_admin_code_
 }
 
 
-
+####################################################################################
+# Additional Dataplex Permissions
+####################################################################################
 # Grant require metadata role
 resource "google_project_iam_member" "user_bigquery_metadata" {
   project = var.project_id
@@ -1084,6 +1086,46 @@ resource "google_project_iam_member" "user_bigquery_metadata" {
   member  = "user:${var.gcp_account_name}"
 }
 
+# Grant dataplex admin
+resource "google_project_iam_member" "user_dataplex_admin" {
+  project = var.project_id
+  role    = "roles/dataplex.admin"
+  member  = "user:${var.gcp_account_name}"
+  depends_on = [google_project_iam_member.user_bigquery_metadata]
+}
+
+# Grant aspect type owner
+resource "google_project_iam_member" "user_aspect_type_owner" {
+  project = var.project_id
+  role    = "roles/dataplex.aspectTypeOwner"
+  member  = "user:${var.gcp_account_name}"
+  depends_on = [google_project_iam_member.user_dataplex_admin]
+}
+
+
+####################################################################################
+# Upload Dataplex Oracle
+####################################################################################
+resource "google_storage_bucket_object" "metadata_import_golden_demo" {
+  name        = "oracle-export-metadata/metadata_import_golden_demo.json"
+  content = templatefile("../sample-data/metadata_import_golden_demo.json", 
+  { 
+    project_id = var.project_id
+    governed_data_code_bucket = var.governed_data_code_bucket
+  })
+  bucket      = var.governed_data_code_bucket
+  depends_on = [ google_storage_bucket.google_storage_bucket_governed_data_code_bucket ]
+}
+
+resource "google_storage_bucket_object" "oracle-metadata-import-golden-demo" {
+  name        = "oracle-exports/oracle-metadata-import-golden-demo.jsonl"
+  content = templatefile("../sample-data/oracle-metadata-import-golden-demo.jsonl", 
+  { 
+    project_id = var.project_id
+  })
+  bucket      = var.governed_data_code_bucket
+  depends_on = [ google_storage_bucket.google_storage_bucket_governed_data_code_bucket ]
+}
 
 
 ####################################################################################
