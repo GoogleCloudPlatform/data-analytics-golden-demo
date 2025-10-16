@@ -101,6 +101,7 @@ resource "local_file" "local_file_colab_enterprise_notebooks" {
     governed_data_scan_bucket = var.governed_data_scan_bucket
     dataflow_staging_bucket = var.dataflow_staging_bucket
     dataflow_service_account = var.dataflow_service_account
+    dataplex_location = "global"
     }
   )
 }

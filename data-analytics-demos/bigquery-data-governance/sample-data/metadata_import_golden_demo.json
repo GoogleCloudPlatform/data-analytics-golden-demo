@@ -1,29 +1,29 @@
 {
-type: 'IMPORT',
-import_spec: {
-source_storage_uri: 'gs://${governed_data_code_bucket}/oracle-exports/',
-scope: {
-  entryGroups: [
-    'projects/${project_id}/locations/global/entryGroups/oracle'
-  ],
-  entry_types: [
-    'projects/${project_id}/locations/global/entryTypes/oracle-instance',
-    'projects/${project_id}/locations/global/entryTypes/oracle-database',
-    'projects/${project_id}/locations/global/entryTypes/oracle-schema',
-    'projects/${project_id}/locations/global/entryTypes/oracle-table',
-    'projects/${project_id}/locations/global/entryTypes/oracle-view'
-  ],
-  aspect_types: [
-    'projects/${project_id}/locations/global/aspectTypes/oracle-instance',
-    'projects/${project_id}/locations/global/aspectTypes/oracle-schema',
-    'projects/${project_id}/locations/global/aspectTypes/oracle-database',
-    'projects/${project_id}/locations/global/aspectTypes/oracle-table',
-    'projects/${project_id}/locations/global/aspectTypes/oracle-view',
-    'projects/dataplex-types/locations/global/aspectTypes/schema'
-  ]
+  "type": "IMPORT",
+  "import_spec": {
+    "source_storage_uri": "gs://${governed_data_code_bucket}/oracle-exports/",
+    "scope": {
+      "entryGroups": [
+        "projects/${project_id}/locations/global/entryGroups/oracle"
+      ],
+      "entry_types": [
+        "projects/${project_id}/locations/global/entryTypes/oracle-instance",
+        "projects/${project_id}/locations/global/entryTypes/oracle-database",
+        "projects/${project_id}/locations/global/entryTypes/oracle-schema",
+        "projects/${project_id}/locations/global/entryTypes/oracle-table",
+        "projects/${project_id}/locations/global/entryTypes/oracle-view"
+      ],
+      "aspect_types": [
+        "projects/${project_id}/locations/global/aspectTypes/oracle-instance",
+        "projects/${project_id}/locations/global/aspectTypes/oracle-schema",
+        "projects/${project_id}/locations/global/aspectTypes/oracle-database",
+        "projects/${project_id}/locations/global/aspectTypes/oracle-table",
+        "projects/${project_id}/locations/global/aspectTypes/oracle-view",
+        "projects/dataplex-types/locations/global/aspectTypes/schema"
+      ]
     },
-entry_sync_mode: 'FULL',
-aspect_sync_mode: 'INCREMENTAL',
-log_level: 'DEBUG'
+    "entry_sync_mode": "FULL",
+    "aspect_sync_mode": "INCREMENTAL",
+    "log_level": "DEBUG"
   }
 }
