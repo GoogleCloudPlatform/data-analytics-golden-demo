@@ -1129,6 +1129,22 @@ resource "google_storage_bucket_object" "oracle-metadata-import-golden-demo" {
 
 
 ####################################################################################
+# DLP Service account
+####################################################################################
+#------------------------------------------------------------------------------------------------
+# Force the DLP service account to get created (only created on first use)
+#------------------------------------------------------------------------------------------------
+resource "google_project_service_identity" "service_identity_dlp" {
+  project = var.project_id
+  service = "dlp.googleapis.com"
+}
+
+#resource "time_sleep" "service_identity_dataform_time_delay" {
+#  depends_on      = [google_project_service_identity.service_identity_dlp]
+#  create_duration = "30s"
+#}
+
+####################################################################################
 # Outputs
 ####################################################################################
 output "dataflow_service_account" {
