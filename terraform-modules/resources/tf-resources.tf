@@ -717,7 +717,7 @@ resource "google_composer_environment" "composer_env" {
   config {
 
     software_config {
-      image_version = "composer-2.10.2-airflow-2.10.2" # the latest version is broke
+      image_version = "composer-2.15.0-airflow-2.10.5"
       #image_version = data.google_composer_image_versions.latest_image.image_versions[0].image_version_id
 
       # Upgrading this failed as well same unhealthy error

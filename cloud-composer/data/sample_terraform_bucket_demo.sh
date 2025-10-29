@@ -37,35 +37,44 @@ else
   exit 0
 fi
 
+
 ####################################################################################
-# Install Terraform (do not change)
+# Install Terraform (Robust Method for Automated Environments)
 ####################################################################################
-# https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli
 echo "BEGIN: Terraform Install"
 
-STR=$(which terraform)
-SUB='terraform'
-echo "STR=${STR}"
-if [[ "$STR" == *"$SUB"* ]]; then
-  echo "Terraform is installed, skipping..."
+# Check if terraform is already in the PATH
+if command -v terraform &> /dev/null; then
+    echo "Terraform is already installed at $(which terraform)"
 else
-  sudo apt-get update -y && sudo apt-get install -y gnupg software-properties-common
+    echo "Terraform not found, proceeding with installation."
+    
+    # Install dependencies needed for this installation method
+    sudo apt-get update -y && sudo apt-get install -y wget unzip
 
-  wget -O- https://apt.releases.hashicorp.com/gpg | \
-  gpg --dearmor | \
-  sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg
+    # Define the Terraform version and architecture
+    TERRAFORM_VERSION="1.13.4" # You can update this version as needed
+    CPU_ARCH=$(dpkg --print-architecture)
 
-  gpg --no-default-keyring \
-  --keyring /usr/share/keyrings/hashicorp-archive-keyring.gpg \
-  --fingerprint
+    # Download the specified Terraform binary
+    echo "Downloading Terraform v${TERRAFORM_VERSION} for ${CPU_ARCH}..."
+    wget "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_${CPU_ARCH}.zip"
 
-  echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] \
-  https://apt.releases.hashicorp.com $(lsb_release -cs) main" | \
-  sudo tee /etc/apt/sources.list.d/hashicorp.list
+    # Unzip and install the binary
+    unzip "terraform_${TERRAFORM_VERSION}_linux_${CPU_ARCH}.zip"
+    sudo mv terraform /usr/local/bin/
 
-  sudo apt update -y
+    # Clean up the downloaded zip file
+    rm "terraform_${TERRAFORM_VERSION}_linux_${CPU_ARCH}.zip"
 
-  sudo apt-get install terraform -y
+    # Verify the installation
+    if command -v terraform &> /dev/null; then
+        echo "Terraform installed successfully!"
+        terraform --version
+    else
+        echo "Terraform installation failed!"
+        exit 1
+    fi
 fi
 
 echo "END: Terraform Install"
