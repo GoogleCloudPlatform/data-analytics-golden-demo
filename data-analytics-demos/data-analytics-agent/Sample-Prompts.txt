@@ -38,32 +38,29 @@ ENHANCEMENT - I can take the user's prompt and optomize it for the AI.GENERATE_B
 -- AI Forecast
 ----------------------------------------------------------------------------------------------------
 VERIFIED:
-For The Daily Grind truck will we run out of any ingredients in the next 2 hours?
+For The Daily Grind truck will we run out of any ingredients in the next 15 minutes?
     - FOLLOW UP: Which ingredients should I restock first?
     - FOLLOW UP: Show me the ingredients names.
         - OR: Show me the products that use these ingredients. (no ingredient per product table)
 
 VERIFIED:
-For The Daily Grind truck will we run out of any ingredients in the next 2 hours?
+For The Daily Grind truck will we run out of Whole Dairy Milk in the next 15 minutes?
 
 VERIFIED:
-For The Daily Grind truck will we run out of Whole Dairy Milk in the next 2 hours?
-
-VERIFIED:
-For truck 10 forecast the ingredients for the next 2 hours.
+For truck 10 forecast the ingredients for the next 15 minutes.
     - FOLLOW UP: Will I run out (hit zero) for any ingredients?
     - FOLLOW UP: Which ingredients should I restock first?
     - FOLLOW UP: Show me the ingredients names.
 
 VERIFIED:
-Forecast the number of people walking by the truck Mocha Mover for the next 2 hours.
+Forecast the number of people walking by the truck Mocha Mover for the next 15 minutes.
     - FOLLOW UP: What is the peak time for people walking by?
 
 VERIFIED:
-Forecast the brew pressure bar for truck Bean Machine for the next 2 hours.
+Forecast the brew pressure bar for truck Bean Machine for the next 15 minutes.
 
 VERIFIED:
-Predict the grinder motor RPM for machine 1 for the next 3 hours. Will it fall below a critical threshold of 1500?
+Predict the grinder motor RPM for machine 1 for the next 15 minutes. Will it fall below a critical threshold of 1500?
 
 VERIFIED:
 Forecast the current quantity value for ingredient 'Coffee Beans' on The Jolt Wagon for the next hour.
@@ -95,11 +92,6 @@ Did the customer Guacharaca buy any Cyber Brews?
     - FOLLOW UP: How much did they spend?
     - FOLLOW UP: Can you look up the products that contain coffee and do the query again.
     -> This should lookup 'Guacharaca' and find 'Guacharaca Esencia' and look up 'Cyber Brews' and return 'Cyber Brew'
-
-VERIFIED:
-How much did the customer Gale buy?  Ask me if you find more than one customer to select the correct one.
-    - FOLLOW UP: How much did Gale spend on Ciber brews?
-    - FOLLOW UP: Can you look up the products that are related to coffee and see how much Gale spent?
 
 VERIFIED: 
 Latte (misspelled name) -> What latees products do I sell?
@@ -182,23 +174,23 @@ VERIFIED:
 
 VERIFIED:
 4. Deleting a Glossary (Prompts and Recursivly Deletes every term and category.)
-Delete the business glossary My New Glossary,
+Delete the business glossary My New Glossary.
 Remove glossary Data Catalog Terms.
 
 VERIFIED:
-5. Listing Categories in a Glossary and Terms in a Category
-List all categories in glossary 'agentic-beans-raw'.
-Show me the terms within the 'Corporate Strategy and Governance' category.
+5. Listing Categories in a Agentic Beans Raw Glossary
+List all categories in glossary 'agentic-beans-raw-glossary'.
+Show me the terms within the 'Corporate Strategy and Governance' category. (you will need to replace the 'Corporate Strategy and Governance')
 
 VERIFIED:
 6. Creating a Category
-In glossary 'agentic-beans-raw', create a new category named 'Data Quality Metrics' with the ID 'data-quality-metrics' and the description 'Terms related to data quality measurements and rules'.
+In glossary 'agentic-beans-raw-glossary', create a new category named 'Data Quality Metrics' with the ID 'data-quality-metrics' and the description 'Terms related to data quality measurements and rules'.
 Add a category 'Security Policies' to the glossary.
 
 VERIFIED:
 7. Getting Category Details
-Get details for the category 'Core Operations and Assets' in glossary 'agentic-beans-raw'.
-Show me the description of the 'Foot Traffic' category within the 'agentic-beans-raw' glossary.
+Get details for the category 'Core Operations and Assets' in glossary 'agentic-beans-raw-glossary'.
+Show me the description of the 'Foot Traffic' category within the 'agentic-beans-raw-glossary' glossary.
 
 VERIFIED:
 8. Deleting a Category 
@@ -213,17 +205,17 @@ What are the terms related to 'Change management' in the 'Corporate Strategy and
 
 VERIFIED:
 10. Creating a Term
-Create a new term in glossary 'agentic-beans-raw' called 'Demo Term', with ID 'demo-term', and description 'The percentage of customers who return over a period of time', under the category 'Core Operations and Assets'.
+Create a new term in glossary 'agentic-beans-raw-glossary' called 'Demo Term', with ID 'demo-term', and description 'The percentage of customers who return over a period of time', under the category 'Core Operations and Assets'.
 
 VERIFIED: Works on 2nd turn.
 11. Getting Term Details
-Get details for the term 'Demo Term' in glossary 'agentic-beans-raw'.
+Get details for the term 'Demo Term' in glossary 'agentic-beans-raw-glossary'.
 "Show me the description for the term 'Crisis management' in the 'Corporate Strategy and Governance' glossary."
 
 VERIFIED:
 12. Updating a Term
-Update the term 'Foot Traffic' in glossary 'agentic-beans-raw'. Change its description to 'The number of people walking by a coffee truck or specific location, indicating potential customer flow'.
-Modify term 'Machine Uptime' in 'agentic-beans-raw' glossary to have a new display name 'Machine Operational Time'.
+Update the term 'Foot Traffic' in glossary 'agentic-beans-raw-glossary'. Change its description to 'The number of people walking by a coffee truck or specific location, indicating potential customer flow'.
+Modify term 'Machine Uptime' in 'agentic-beans-raw-glossary' glossary to have a new display name 'Machine Operational Time'.
 
 VERIFIED:
 Define Espresso using my glossary.
@@ -243,12 +235,19 @@ Delete business glossary "Agentic Beans Glossary"
 ----------------------------------------------------------------------------------------------------
 -- Conversational Analytics
 ----------------------------------------------------------------------------------------------------
+VERIFIED:
+Create a conversational analytics agent named ca-agent-999.
+I want to use the taxi_trips, payment_type, rate_code, trip_type, vendor and location tables.
+You can use the nyc_taxi_curated dataset for this.
+
+VERIFIED:
+Using the conversational analytics model ca-agent-999, count the taxi trips by payment type for 2025.
 
 
 ----------------------------------------------------------------------------------------------------
 -- Data Eng Agent
 ----------------------------------------------------------------------------------------------------
-VERIFIED: Create a pipeline named "Taxi Pipeline 01" that makes the fields (borough, zone and service_zone) all uppercase in the location table 
+VERIFIED: Create a pipeline named "Taxi Pipeline 099" that makes the fields (borough, zone and service_zone) all uppercase in the location table 
 of the taxi dataset and saves it to a new table named "location_uppercase" in the taxi dataset dataset.
 
 VERIFIED:
@@ -407,6 +406,9 @@ VERIFIED: What data insights exist on my tables in my raw dataset?
 -- Dataplex: Data Profiles
 ----------------------------------------------------------------------------------------------------
 VERIFIED: 
+create a data profile scan on the customer table in the agentic curated dataset
+
+VERIFIED: 
 Create a data profile scan:
 data_profile_scan_name: "product-category-01"
 data_profile_display_name: "Product Category 01"
@@ -437,33 +439,20 @@ show me all my data profiles for my customer table in the raw dataset
 
 
 ----------------------------------------------------------------------------------------------------
--- Dataplex: Data Profiles -> Custom Workflows (to demo this you need the prompt 'Create a scan workflow')
-----------------------------------------------------------------------------------------------------
-VERIFIED: 
-Create a scan workflow:
-data_profile_scan_name: "truck-menu-01"
-data_profile_display_name: "Truck Menu 01"
-bigquery_dataset_name: "agentic beans curated"
-bigquery_table_name: "truck menu"
-    -> This will prompt you for demoing the different type of custom agents.
-    -> You can change 01 to 02, etc.... to run over and over.
-
-
-----------------------------------------------------------------------------------------------------
 -- Dataplex: Data Quality
 ----------------------------------------------------------------------------------------------------
-VERIFIED: 
+x VERIFIED: 
 What data quality scans exist on my tables in my raw dataset?
 
-VERIFIED: 
+x VERIFIED: 
 Create a data quality scan on the product category table in the curated dataset using the product-category-01 scan.
     -> Uses a data profile scan to use the generated rules.
     -> You need to run the "Create a data profile scan:" prompt before this one!
 
-VERIFIED: 
+x VERIFIED: 
 Show me a summary of my data quality on the product category table in the curated dataset.
 
-VERIFIED: 
+x VERIFIED: 
 Delete the data quality scan on the product category table in the curated dataset.
     -> This will delete all the scan jobs and then the scan itself (saves you lots of work)
     -> This works for data insights, data profiling, data discovery, knowledge engine scans.
@@ -496,6 +485,8 @@ Create an knowledge engine scan on my raw dataset and name it 'demo-scan-raw-01'
 -- Knowledge Engine Business Glossary
 ----------------------------------------------------------------------------------------------------
 VERIFIED:
+create a business glossary based upon my knowledge engine scan agentic-beans-curated-knowledge-scan
+
 Create a business glossary on my agentic raw dataset based upon my knowledge scan.
     -> This can take a long time, you might have to ask "Are you done"  
     -> If it fails stating there are many scans, you can say "Use the most recent one"

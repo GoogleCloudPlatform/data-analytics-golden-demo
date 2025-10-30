@@ -33,3 +33,18 @@ For The Daily Grind truck will we run out of any ingredients in the next 2 hours
 Do any product images have latte art?
 
 Do any product category images have drinks that look chilly?
+
+
+-- Data Quality
+Create data quality rules on the customer table in the agentic curated dataset.  Use the data profile scan named: customer data profile scan.
+
+-- Data Discovery
+-> you need to upload some csv files or copy them!
+create a data discovery scan on bucket data-analytics-agent-data-sbhulzik using connection projects/data-analytics-agent-sbhulzik/locations/us-central1/connections/biglake-connection
+
+Thought
+Okay, here's the deal. I'm back at it, trying to get this data discovery scan up and running. Last time, I totally messed up on the biglake_connection_name. Turns out I was using the wrong format. The error message was pretty clear: it had to be the full resource path. So, I’ve gone back and made the necessary adjustments, making sure that the biglake_connection_name is correctly formatted now as projects/data-analytics-agent-sbhulzik/locations/us-central1/connections/biglake-connection.
+
+This is a fresh start, a new attempt. So, I need to follow Workflow 1, starting from the top.
+
+First, I need to call parse_create_and_run_data_discovery_scan_params to process the prompt I'm providing. Then, I need to make the transition over to CreateAndRunDataDiscovery_Agent. Hopefully, with the connection name fixed, this tim

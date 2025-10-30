@@ -1,0 +1,9 @@
+# requirements.in
+
+google-adk==1.16.0
+json-stream==2.3.3
+tenacity==8.5.0
+
+# Add greenlet explicitly because it's a platform-specific
+# dependency of sqlalchemy, which is required by google-adk.
+greenlet

@@ -217,6 +217,11 @@ resource "google_project_service" "service-dataproc" {
   service = "dataproc.googleapis.com"
 }
 
+resource "google_project_service" "service-eventarc" {
+  project = var.project_id
+  service = "eventarc.googleapis.com"
+}
+
 resource "google_project_service" "service-datacatalog" {
   project = var.project_id
   service = "datacatalog.googleapis.com"
@@ -267,12 +272,12 @@ resource "google_project_service" "service-bigquerydatapolicy" {
   service = "bigquerydatapolicy.googleapis.com"
 }
 
-/*
+
 resource "google_project_service" "service-cloudfunctions" {
   project = var.project_id
   service = "cloudfunctions.googleapis.com"
 }
-*/
+
 
 resource "google_project_service" "service-vision" {
   project = var.project_id

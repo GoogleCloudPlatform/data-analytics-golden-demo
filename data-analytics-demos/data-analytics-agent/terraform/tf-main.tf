@@ -401,6 +401,31 @@ module "deploy-notebooks-module-deploy" {
 
 
 
+
+####################################################################################
+# Deploy Cloud Function
+####################################################################################
+module "cloud-function" {
+  
+  
+  source = "../terraform-modules/cloud-function" # Adjust the path to your cloud function module
+  providers = { google = google.service_principal_impersonation }
+  project_id = local.local_project_id
+  multi_region = var.multi_region
+  cloud_run_region                 = var.cloud_run_region
+  function_entry_point = var.function_entry_point
+  project_number = var.project_number
+  dataform_region = var.dataform_region
+  cloud_run_service_data_analytics_agent_api = module.agent.cloud_run_service_data_analytics_agent_api
+  
+  depends_on = [
+    module.project,             # Assuming a 'project' module sets up the GCP project
+    module.apis-batch-enable, 
+    module.agent, 
+  ]
+}
+
+
 ####################################################################################
 # Outputs (Gather from sub-modules)
 # Not really needed, but are outputted for viewing

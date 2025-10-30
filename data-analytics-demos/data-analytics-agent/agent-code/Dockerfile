@@ -41,7 +41,7 @@ ENV GOOGLE_CLOUD_LOCATION=${cloud_run_region}
 # Copy agent - Start
 COPY "agents/data_analytics_agent/" "/app/agents/data_analytics_agent/"
 COPY "requirements.txt" "/app/requirements.txt"
-RUN pip install -r "/app/requirements.txt"
+RUN pip install --require-hashes -r "/app/requirements.txt"
 # Copy agent - End
 
 EXPOSE 8000

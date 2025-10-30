@@ -329,7 +329,7 @@ resource "google_project_iam_member" "data_analytics_agent_sa_vertex_user" {
 # Data Catalog Search
 resource "google_project_iam_member" "data_analytics_agent_sa_dataplex_catalog" {
   project = var.project_id
-  role    = "roles/dataplex.catalogViewer"
+  role    = "roles/dataplex.admin"
   member  = "serviceAccount:${google_service_account.data_analytics_agent_service_account.email}"
 
   depends_on = [
@@ -356,6 +356,17 @@ resource "google_project_iam_member" "data_analytics_agent_sa_ca_agent_creator" 
 
   depends_on = [
     google_project_iam_member.data_analytics_agent_sa_ca_agent_owner
+  ]
+}
+
+# Conversational Analytics individualUser
+resource "google_project_iam_member" "data_analytics_agent_sa_ca_individualUser" {
+  project = var.project_id
+  role    = "roles/cloudaicompanion.individualUser"
+  member  = "serviceAccount:${google_service_account.data_analytics_agent_service_account.email}"
+
+  depends_on = [
+    google_project_iam_member.data_analytics_agent_sa_ca_agent_creator
   ]
 }
 
@@ -433,6 +444,7 @@ resource "google_cloud_run_v2_service" "cloud_run_service_data_analytics_agent_a
 
   template {
     service_account = google_service_account.data_analytics_agent_service_account.email
+    timeout = "900s"    
     containers {
       image = "${var.cloud_run_region}-docker.pkg.dev/${var.project_id}/cloud-run-source-deploy/data-analytics-agent"
       ports {

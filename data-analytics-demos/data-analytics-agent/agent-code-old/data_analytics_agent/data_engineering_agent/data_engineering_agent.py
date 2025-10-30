@@ -62,7 +62,7 @@ def call_bigquery_data_engineering_agent(repository_name: str, workspace_name: s
 
     # The global endpoint for the Gemini Data Analytics service.
     # NOTE: Do not take a hard dependency on this REST API call, it will be changing in the future!
-    # agent_project_id = "governed-data-1pqzajgatl" # This does not have to be in the same project: This is hardcoded to an allow list project.
+    #agent_project_id = "governed-data-1pqzajgatl" # This does not have to be in the same project: This is hardcoded to an allow list project.
     agent_project_id = project_id
     url = f"https://geminidataanalytics.googleapis.com/v1alpha1/projects/{agent_project_id}/locations/global:run"
 

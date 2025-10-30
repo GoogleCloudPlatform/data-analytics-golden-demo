@@ -288,6 +288,41 @@ variable "cloud_run_region" {
   }
 }
 
+variable "function_name" {
+  description = "The desired name for the Cloud Function."
+  type        = string
+  default     = "fix-bqpipeline" # Make sure this is unique if deploying multiple functions
+}
+
+variable "function_entry_point" {
+  description = "The entry point function name in your source code."
+  type        = string
+  default     = "hello_pubsub"
+}
+
+variable "runtime" {
+  description = "The runtime for the Cloud Function (e.g., nodejs16, python39)."
+  type        = string
+  default     = "python313"
+}
+
+variable "source_directory" {
+  description = "Path to the directory containing Cloud Function source code relative to the module."
+  type        = string
+  # IMPORTANT: This default is a placeholder. You MUST adjust this path
+  # to correctly point to your cloud function source code directory
+  # relative to the location of the `cloud-function` module.
+  default     = "../cloud-function"
+}
+
+variable "bucket_name_for_function_source" {
+  description = "The name of the GCS bucket to store Cloud Function source code. This must be globally unique."
+  type        = string
+  # IMPORTANT: Change this to a UNIQUE bucket name.
+  # A good practice is to include the project ID and a random suffix.
+  default     = "your-project-id-cloud-functions-source" 
+}
+
 
 ########################################################################################################
 # Some deployments target different environments

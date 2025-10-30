@@ -38,3 +38,4 @@ rm -r ./terraform-modules/colab-deployment-create-files/notebooks_base64
 rm -r ./agent-code-zip
 rm -r ./dataform-deploy
 rm data-analytics-agent.zip
+rm -r ./agent-code-zip
