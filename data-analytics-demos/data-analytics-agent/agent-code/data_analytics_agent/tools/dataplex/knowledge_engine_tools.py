@@ -288,8 +288,8 @@ async def create_knowledge_engine_scan(knowledge_engine_scan_name: str, knowledg
             "trigger": {
                 "onDemand": {} }
                 },
-        "type": "KNOWLEDGE_ENGINE",
-        "knowledgeEngineSpec": {}
+        "type": "DATA_DOCUMENTATION",
+        "dataDocumentationSpec": {}
     }
 
 
