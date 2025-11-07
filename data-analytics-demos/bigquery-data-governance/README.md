@@ -1,78 +1,104 @@
 # BigQuery Data Governance
 
-"BigQuery Data Governance" powered by Google Cloud's Dataplex, gives you a clear picture of your data. It helps you understand what your data is like and how different pieces of data connect across your Google Cloud environment, including BigQuery. In this demo, you'll see how easy it is to find your data, track its journey, and learn important details about it using Dataplex's features.
+*Master your data universe with unified, intelligent governance powered by Dataplex.*
 
+<table>
+<tr>
+<td width="50%">
 
-## Demo Cost and Usage
+<!-- This image should be in your demo's images subfolder -->
+<img src="images/Lineage.png" alt="Data Governance Lineage Diagram">
+</a>
+</td>
+<td width="50%">
+This demo provides a hands-on deep dive into establishing robust data governance. Learn to automatically discover, profile, and secure your data, ensuring trust and clarity from raw ingestion to curated insights across your entire data estate.
+<br/><br/>
+You'll see how easy it is to find your data, track its journey, and understand its statistical profile using Dataplex's powerful features integrated directly within BigQuery.
+<br/><br/>
+<b>Key Features:</b>
+<ul>
+  <li><b>End-to-End Data Lineage:</b> Trace data from its source, through Spark and BigQuery transformations, to its final destination.</li>
+  <li><b>Automated Data Profiling & Quality:</b> Automatically scan tables to understand data distributions and enforce data quality rules.</li>
+  <li><b>Sensitive Data Discovery (DLP):</b> Identify and classify PII and other sensitive information within your data warehouse.</li>
+  <li><b>Unified Catalog & Aspect-Based Governance:</b> Create a rich, searchable catalog with custom metadata (Aspects) to tag and organize all your data assets.</li>
+</ul>
+<br/>
+<a href="#notebook-deep-dive"><b>Explore the Notebooks Below &darr;</b></a>
+</td>
+</tr>
+</table>
 
-* **Idle Cost:** ~$1/day. Minimize by deleting the Colab Runtime and recreating when needed.
-* **Notebook Execution:** ~$1 per run for GenAI and BigQuery notebooks. Costs scale with data volume.
-
-**Usage Notes:**
-
-* Notebooks use the latest Gemini models using JSON output.  Output may vary with model updates.  For production, pin to specific versions.
-* Connect to the "colab-enterprise-runtime" within Colab.
+---
 
 ## Notebook Deep Dive
 
-Each notebook demonstrates a key aspect of the solution.  Explore them below:
-
-Here is the markdown table based on the provided "Table of Contents: Demo Contents (slide 1 of 2)" and "Table of Contents: Demo Contents (slide 2 of 2)":
+Each notebook provides a step-by-step guide to a specific governance capability. Run them in order for a complete end-to-end experience.
 
 | Title                                                 | Description                                                                                                                                                                                                                            | Technology                                                    | Video | Link                                                       |
 |-------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------|-------|------------------------------------------------------------|
-| Spark Data Lineage                                    | Shows how to use Dataproc (Spark) to create Data Lineage that can be seen.                                                                                                                                                             | Dataproc, Data Lineage                                        | [Link](https://storage.googleapis.com/data-analytics-golden-demo/colab-videos/Spark-Data-Lineage.mp4)  | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/data-analytics-demos/bigquery-data-governance/colab-enterprise/01-Spark-Data-Lineage.ipynb)                 |
-| Data Profiling                                        | Automatically generate statistical profiles for each BigQuery table, providing key insights into your data's characteristics.                                                                                                        | BigQuery, Dataplex                                            | [Link](https://storage.googleapis.com/data-analytics-golden-demo/colab-videos/Data-Profile.mp4)  | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/data-analytics-demos/bigquery-data-governance/colab-enterprise/02-Data-Profile.ipynb)                 |
-| Data Insights                                         | Use GenAI to automatically explore each BigQuery table and create sample queries to understand data patterns and quality.                                                                                                            | BigQuery, Dataplex                                            | [Link](https://storage.googleapis.com/data-analytics-golden-demo/colab-videos/Data-Insights.mp4)  | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/data-analytics-demos/bigquery-data-governance/colab-enterprise/03-Data-Insights.ipynb)                 |
-| Data Governance                                       | Master the process of creating and managing a comprehensive data governance model, including custom entries and associating aspect types to tables/columns. Learn how a data governance model is established in our demo, showcasing the underlying setup. | BigQuery, Dataplex                                            | [Link](https://storage.googleapis.com/data-analytics-golden-demo/colab-videos/Data-Governance.mp4)  | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/data-analytics-demos/bigquery-data-governance/colab-enterprise/04-Data-Governance.ipynb)                 |
-| Data Quality                                          | Set up data quality checks using your Data Profiling results. Create data quality jobs for each table based upon the profiling.                                                                                                      | BigQuery, Dataplex                                            | [Link](https://storage.googleapis.com/data-analytics-golden-demo/colab-videos/Data-Quality.mp4)  | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/data-analytics-demos/bigquery-data-governance/colab-enterprise/05-Data-Quality.ipynb)                 |
-| Data Discovery Scan                                   | Set up a discovery scan that will create BigLake tables when scanning a storage account for CSV files.                                                                                                                               | Dataplex, BigQuery,  Cloud Storage                            | [Link](https://storage.googleapis.com/data-analytics-golden-demo/colab-videos/Data-Discovery-Scan.mp4)  | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/data-analytics-demos/bigquery-data-governance/colab-enterprise/06-Data-Discovery-Scan.ipynb)                 |
-| Sensitive Data Protection (DLP)                       | Setup a SDP scan that will detect sensitive information and send the results to a new BigQuery table to be reviewed.                                                                                                                 | Sensitive Data Protection, BigQuery                           | [Link](https://storage.googleapis.com/data-analytics-golden-demo/colab-videos/Sensitive-Data-Protection-Scan.mp4)  | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/data-analytics-demos/bigquery-data-governance/colab-enterprise/07-Sensitive-Data-Protection-Scan.ipynb)                 |
-| Column Level and Row Level Security & Data Masking    | Demonstrate policy tags for column level security and data masking at a manager and employee level as well as a separate user.  Also, applies row level security.                                                                         | BigQuery, Policy Tags                                         | [Link](https://storage.googleapis.com/data-analytics-golden-demo/colab-videos/Row-Column-Security-Data-Masking.mp4)  | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/data-analytics-demos/bigquery-data-governance/colab-enterprise/08-Row-Column-Security-Data-Masking.ipynb)                 |
-| Automated Data Governance (Aspect Tags)               | Automatically create Aspect Tags  for PII and other data elements using Gemini and the sensitive data protection scan.  Customers can start to automate their data governance using LLMs.  (I actually used this approach to build this demo, it was a lot of tedious work that was automated.) | Sensitive Data Protection, BigQuery, Gemini, Aspect Tags      | [Link](https://storage.googleapis.com/data-analytics-golden-demo/colab-videos/Automated-Aspect-Data-Governance.mp4)  | [Link](https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/data-analytics-demos/bigquery-data-governance/colab-enterprise/09-Automated-Aspect-Data-Governance.ipynb)               |
+| Spark Data Lineage                                    | Shows how to use Dataproc (Spark) to create Data Lineage that can be seen.                                                                                                                                                             | Dataproc, Data Lineage                                        | [Link](https://storage.googleapis.com/data-analytics-golden-demo/colab-videos/Spark-Data-Lineage.mp4)  | [Link](colab-enterprise/01-Spark-Data-Lineage.ipynb)       |
+| Data Profiling                                        | Automatically generate statistical profiles for each BigQuery table, providing key insights into your data's characteristics.                                                                                                        | BigQuery, Dataplex                                            | [Link](https://storage.googleapis.com/data-analytics-golden-demo/colab-videos/Data-Profile.mp4)  | [Link](colab-enterprise/02-Data-Profile.ipynb)             |
+| Data Insights                                         | Use GenAI to automatically explore each BigQuery table and create sample queries to understand data patterns and quality.                                                                                                            | BigQuery, Dataplex                                            | [Link](https://storage.googleapis.com/data-analytics-golden-demo/colab-videos/Data-Insights.mp4)  | [Link](colab-enterprise/03-Data-Insights.ipynb)            |
+| Data Governance                                       | Master the process of creating and managing a comprehensive data governance model, including custom entries and associating aspect types to tables/columns. Learn how a data governance model is established in our demo, showcasing the underlying setup. | BigQuery, Dataplex                                            | [Link](https://storage.googleapis.com/data-analytics-golden-demo/colab-videos/Data-Governance.mp4)  | [Link](colab-enterprise/04-Data-Governance.ipynb)          |
+| Data Quality                                          | Set up data quality checks using your Data Profiling results. Create data quality jobs for each table based upon the profiling.                                                                                                      | BigQuery, Dataplex                                            | [Link](https://storage.googleapis.com/data-analytics-golden-demo/colab-videos/Data-Quality.mp4)  | [Link](colab-enterprise/05-Data-Quality.ipynb)             |
+| Data Discovery Scan                                   | Set up a discovery scan that will create BigLake tables when scanning a storage account for CSV files.                                                                                                                               | Dataplex, BigQuery,  Cloud Storage                            | [Link](https://storage.googleapis.com/data-analytics-golden-demo/colab-videos/Data-Discovery-Scan.mp4)  | [Link](colab-enterprise/06-Data-Discovery-Scan.ipynb)      |
+| Sensitive Data Protection (DLP)                       | Setup a SDP scan that will detect sensitive information and send the results to a new BigQuery table to be reviewed.                                                                                                                 | Sensitive Data Protection, BigQuery                           | [Link](https://storage.googleapis.com/data-analytics-golden-demo/colab-videos/Sensitive-Data-Protection-Scan.mp4)  | [Link](colab-enterprise/07-Sensitive-Data-Protection-Scan.ipynb) |
+| Column Level and Row Level Security & Data Masking    | Demonstrate policy tags for column level security and data masking at a manager and employee level as well as a separate user.  Also, applies row level security.                                                                         | BigQuery, Policy Tags                                         | [Link](https://storage.googleapis.com/data-analytics-golden-demo/colab-videos/Row-Column-Security-Data-Masking.mp4)  | [Link](colab-enterprise/08-Row-Column-Security-Data-Masking.ipynb) |
+| Automated Data Governance (Aspect Tags)               | Automatically create Aspect Tags for PII and other data elements using Gemini and the sensitive data protection scan. Customers can start to automate their data governance using LLMs.                                                 | Sensitive Data Protection, BigQuery, Gemini, Aspect Tags      | [Link](https://storage.googleapis.com/data-analytics-golden-demo/colab-videos/Automated-Aspect-Data-Governance.mp4)  | [Link](colab-enterprise/09-Automated-Aspect-Data-Governance.ipynb) |
 
+---
 
-## How to deploy
-The are two options to deploy the demo depending on your access privilages to your cloud organization
+## How to Deploy
+
+There are two options to deploy the demo, depending on your access privileges to your Google Cloud organization.
 
 ### Require Permissions to Deploy (2 Options)
-1. Elevated Privileges - Org Level
-   - **The following IAM roles are required to deploy the solution**
-      - Prerequisite:  Billing Account User (to create the project with billing)
-   - To deploy the code you will:
+1. **Elevated Privileges - Org Level**
+   - **The following IAM roles are required to deploy the solution:**
+      - Prerequisite: `Billing Account User` (to create the project with billing)
+   - **To deploy the code you will:**
       - Run ```source deploy.sh```
 
-2. Owner Project Privileges - Typically Requires Assistance from IT
-   - **The following items are required to deploy the solution**
-      - Prerequisite: You will need a project created for you (IT can do this for you)
-      - Prerequisite: You will need to be an Owner (IAM role) of the project to run the below script
-   - To deploy the code you will
-      - Update the hard coded values in ```deploy-use-existing-project-non-org-admin.sh```
+2. **Owner Project Privileges - Typically Requires Assistance from IT**
+   - **The following items are required to deploy the solution:**
+      - Prerequisite: You will need a project created for you (IT can do this for you).
+      - Prerequisite: You will need to be an `Owner` (IAM role) of the project to run the below script.
+   - **To deploy the code you will:**
+      - Update the hard-coded values in `deploy-use-existing-project-non-org-admin.sh`
       - Run ```source deploy-use-existing-project-non-org-admin.sh```
-
 
 ### Using your Local machine (Assuming Linux based)
 1. Install Git (might already be installed)
 2. Install Curl (might already be installed)
-3. Install "jq" (might already be installed) - https://jqlang.github.io/jq/download/
-4. Install Google Cloud CLI (gcloud) - https://cloud.google.com/sdk/docs/install
+3. Install `jq` (might already be installed) - https://jqlang.github.io/jq/download/
+4. Install Google Cloud CLI (`gcloud`) - https://cloud.google.com/sdk/docs/install
 5. Install Terraform - https://developer.hashicorp.com/terraform/install
-6. Login:
+6. Login:   
    ```
    gcloud auth login
    gcloud auth application-default login
    ```
-7. Type: ```git clone https://github.com/GoogleCloudPlatform/governed-data```
-8. Switch the prompt to the directory: ```cd governed-data```
-9. Run the deployment script
-   - If using Elevated Privileges
-      - Run ```source deploy.sh```
-   - If using Owner Project Privileges
-      - Update the hard coded values in ```deploy-use-existing-project-non-org-admin.sh```
-      - Run ```source deploy-use-existing-project-non-org-admin.sh```
-10. Authorize the login (a popup will appear)
-11. Follow the prompts: Answer “Yes” for the Terraform approval.
+7. Clone the repository:
+   ```
+   git clone https://github.com/GoogleCloudPlatform/data-analytics-golden-demo.git
+   ```
+8. Switch to the demo directory:
+   ```
+   cd data-analytics-golden-demo/data-analytics-demos/bigquery-data-governance
+   ```
+9. Run the deployment script based on your permission level:
+   #### If using Elevated Privileges:
+   ```
+   source deploy.sh
+   ```
 
+   #### If using Owner Project Privileges:
+   - First, update the hard-coded values in the script
+   ```
+   source deploy-use-existing-project-non-org-admin.sh
+   ```
+10. Authorize the login when a popup appears in your browser.
+11. Follow the prompts in your terminal: Answer “Yes” for the Terraform approval.
 
 ### To deploy through a Google Cloud Compute VM
 1. Create a new Compute VM with a Public IP address or Internet access on a Private IP
@@ -87,8 +113,8 @@ The are two options to deploy the demo depending on your access privilages to yo
    sudo apt install git
    git config --global user.name "FirstName LastName"
    git config --global user.email "your@email-address.com"
-   git clone https://github.com/GoogleCloudPlatform/governed-data
-   cd governed-data/
+   git clone https://github.com/GoogleCloudPlatform/data-analytics-golden-demo
+   cd data-analytics-golden-demo/
    sudo apt-get install apt-transport-https ca-certificates gnupg curl
    sudo apt-get install jq
    gcloud auth login

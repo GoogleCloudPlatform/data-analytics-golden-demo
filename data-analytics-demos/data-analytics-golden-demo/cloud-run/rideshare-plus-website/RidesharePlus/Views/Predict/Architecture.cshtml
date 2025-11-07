@@ -1,0 +1,64 @@
+@{
+    ViewData["Title"] = "Architecture";
+}
+
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">@ViewData["Title"]</h1>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Predict Architecture</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div>
+                        <ul>
+                            <li>The architecture consists of three zones: raw, enriched and curated.</li>
+                            <li>The raw zone contains data in Json, Csv, Parquet files and uses BigLake tables to read directly from storage.</li>
+                            <li>The enriched zone transforms the various file formats into Apache Iceberg format and utilizes Spark stored procedures in BigQuery along with BigLake Metastore.</li>
+                            <li>The curated zone ingests the data directly into BigQuery to advantage of BigSearch along with additional partitioning and clustering.</li>
+                            <li>Images are processed by using an Object Table along with a remote Cloud Function to extract objects, labels, landmarks and logos from the images.</li>
+                            <li>The images along with the data is used to train a ML model which can predict the highest value pickup locations for drivers.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">&nbsp;</div>
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">AI Lakehouse</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div>
+                        <img src="/images/rideshare-predict.png" width="1000px" alt="AI Lakehouse">
+                    </div>
+                </div>
+                <br/>
+                <div class="row">
+                    <div>
+                        <img src="/images/rideshare-predict-zones.png" width="1000px" alt="AI Lakehouse">
+                    </div>
+                </div>                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script lang="javascript">
+
+    $(document).ready(function () {
+        submenuPredict = $("#submenuPredict");
+        submenuPredict.addClass("show");
+    }); //$(document).ready
+
+</script>

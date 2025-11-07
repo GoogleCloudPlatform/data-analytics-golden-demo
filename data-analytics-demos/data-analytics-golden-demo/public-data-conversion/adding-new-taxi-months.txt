@@ -1,0 +1,4 @@
+Update the following:
+-   ./dataplex/dataquality/dataplex_data_quality_taxi.yaml
+-   ./composer/dags/step-01-taxi-data-download.py
+-   ./dataproc/convert_taxi_to_parquet.py

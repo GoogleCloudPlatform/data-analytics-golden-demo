@@ -1,1 +1,0 @@
-Contains the Taxi Pickup and Dropoff location.  The raw data on the taxi website is CSV, but the CSV has commas and quotes in the data which can cause load issues.

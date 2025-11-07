@@ -1,0 +1,117 @@
+﻿@model RidesharePlus.Models.LLMConfigureViewModel
+@{
+    ViewData["Title"] = "LLM Configure";
+}
+
+
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">@ViewData["Title"]</h1>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Instructions to configure Looker</h6>
+            </div>
+            <div class="card-body">
+                @using (Html.BeginForm("ConfigureSet", "LLM", FormMethod.Post))
+                {
+                    <div class="row">
+                        <div class="col-md-9">
+                            <ul>
+                                <li>Watch a quick video setup on <a href="https://youtu.be/-ka9ya_KJAc" target="_blank">YouTube</a> or follow the below instructions.</li>                                
+                            </ul>
+                            <br/>
+                            <ol>
+                                <li>Clone this report: <a href="https://lookerstudio.google.com/s/hqMdgEDE-Yo"
+                                        target="_blank">click
+                                        here</a></li>
+                                <li>Click the 3 dots in the top right and select "Make a copy"</li>
+                                <li>Click "Copy Report"</li>
+                                <li>Click "Resouce" menu then "Manage added data sources"</li>
+
+                                <br />
+                                <li>Click "Edit" under Actions title - for the 1<sup>st</sup> data source
+                                    (looker_customer_review)</li>
+                                <li>Click "@Html.Raw(Model.ProjectId)" (or enter the Project Id) under Project title
+                                </li>
+                                <li>Click "@Html.Raw(Model.DatasetName)" under Dataset title</li>
+                                <li>Click "@Html.Raw(Model.LookerCustomerReview)" under Table title</li>
+                                <li>Click "Reconnect"</li>
+                                <li>Click "Apply" - there should be no field changes</li>
+                                <li>Click "Done" - in top right</li>
+
+                                <br />
+                                <li>Click "Edit" under Actions title - for the 2<sup>nd</sup> data source
+                                    (looker_customer)</li>
+                                <li>Click "@Html.Raw(Model.ProjectId)" (or enter the Project Id) under Project title
+                                </li>
+                                <li>Click "@Html.Raw(Model.DatasetName)" under Dataset title</li>
+                                <li>Click "@Html.Raw(Model.LookerCustomer)" under Table title</li>
+                                <li>Click "Reconnect"</li>
+                                <li>Click "Apply" - there should be no field changes</li>
+                                <li>Click "Done" - in top right</li>
+
+                                <br />
+                                <li>Click "Edit" under Actions title - for the 31<sup>rd</sup> data source
+                                    (looker_driver)</li>
+                                <li>Click "@Html.Raw(Model.ProjectId)" (or enter the Project Id) under Project title
+                                </li>
+                                <li>Click "@Html.Raw(Model.DatasetName)" under Dataset title</li>
+                                <li>Click "@Html.Raw(Model.LookerDriver)" under Table title</li>
+                                <li>Click "Reconnect"</li>
+                                <li>Click "Apply" - there should be no field changes</li>
+                                <li>Click "Done" - in top right</li>
+                                <br />
+
+                                <li>Click "Close" - in top right</li>
+                                <li>Check report - it should have data if you have run a prediction</li>
+                                <li>Go to File menu | Embed report (enable embedding)</li>
+                                <li>Click Embed URL</li>
+                                <li>Copy the link (e.g.
+                                    https://lookerstudio.google.com/embed/reporting/e5f638c8-4440-4a3c-be4c-38f95f1a285e/page/wmQFD)
+                                </li>
+                                <li>Paste the link below</li>
+                                <li>Click Submit</li>
+                            </ol>
+                        </div>
+
+                    </div>
+                    <div class="row">&nbsp;</div>
+                    <h5>Looker Embed Url:</h5>
+                    <div class="row">&nbsp;</div>
+
+                    <div class="row">
+                        <div class="col-md-2">@Html.LabelFor(m => m.LookerEmbedUrl)</div>
+                        <div class="col-md-8">
+                            @Html.TextBoxFor(m => m.LookerEmbedUrl, new { style = "width:100%", @maxlength = "200",
+                        @class="form-control", autocomplete="off"})
+                        </div>
+                    </div>
+
+                    <div class="row">&nbsp;</div>
+
+                    <div class="row">
+                        <div class="col-4">
+
+                        </div>
+                        <div class="col-8">
+                            <button type="submit" class="btn btn-primary mx-auto"
+                                style="text-align:center">Submit</button>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<script lang="javascript">
+
+    $(document).ready(function () {
+        submenuLLM = $("#submenuLLM");
+        submenuLLM.addClass("show");
+    }); //$(document).ready
+
+</script>

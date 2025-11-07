@@ -1,0 +1,124 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - RidesharePlus</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/RidesharePlus.styles.css" asp-append-version="true" />
+    
+     <style>
+        body {
+            Overflow-y: scroll;
+            Overflow-x: hidden;
+        }
+    </style>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>    
+</head>
+
+<body>
+   
+    <nav class="navbar navbar-expand-md bg-light shadow-sm">
+        <div class="container-fluid">
+            <a href="/Home/Index" class="navbar-brand abs" href="/" style="font-weight:500;color:#1a73e8;">Rideshare Plus</a>
+            <button class="navbar-toggler ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNavbar">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="navbar-collapse collapse" id="collapseNavbar">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                         <img src="/images/cloud-logo.svg" height="32" width=139 alt="" />
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row flex-nowrap">
+            <div class="col-auto col-md-3 col-xl-2 px-sm-2 px-0 bg-light">
+                <div class="d-flex flex-column align-items-center align-items-sm-start px-3 pt-2 text-white min-vh-100">                    
+                    <ul class="nav nav-pills flex-column mb-sm-auto mb-0 align-items-center align-items-sm-start" id="menu">
+                        <li class="nav-item">
+                            <a href="/Home/DemoOverview" class="nav-link align-middle px-0">
+                                <i class="fs-4 bi-house"></i> <span class="ms-1 d-none d-sm-inline">Demo Overview</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#submenuPredict" data-bs-toggle="collapse" class="nav-link px-0 align-middle">
+                                <i class="fs-4 bi-grid"></i> <span class="ms-1 d-none d-sm-inline">Predict</span> </a>
+                                <ul class="collapse nav flex-column ms-1" id="submenuPredict" data-bs-parent="#menu">
+                                <li class="w-100" style="margin-left:20px">
+                                    <a href="/Predict/Index" class="nav-link px-0"> <span class="d-none d-sm-inline">Demo</span></a>
+                                </li>
+                                <li class="w-100" style="margin-left:20px">
+                                    <a href="/Predict/Visualize" class="nav-link px-0"> <span class="d-none d-sm-inline">Visualize</span></a>
+                                </li>
+                                <li class="w-100" style="margin-left:20px">
+                                    <a href="/Predict/Architecture" class="nav-link px-0"> <span class="d-none d-sm-inline">Architecture</span></a>
+                                </li>                                
+                                <li class="w-100" style="margin-left:20px">
+                                    <a href="/Predict/Configure" class="nav-link px-0"> <span class="d-none d-sm-inline">Configure</span></a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li>
+                            <a href="#submenuStreaming" data-bs-toggle="collapse" class="nav-link px-0 align-middle">
+                                <i class="fs-4 bi-grid"></i> <span class="ms-1 d-none d-sm-inline">Streaming</span> </a>
+                                <ul class="collapse nav flex-column ms-1" id="submenuStreaming" data-bs-parent="#menu">
+                                <li class="w-100" style="margin-left:20px">
+                                    <a href="/Streaming/Index" class="nav-link px-0"> <span class="d-none d-sm-inline">Demo</span></a>
+                                </li>
+                                <li class="w-100" style="margin-left:20px">
+                                    <a href="/Streaming/Architecture" class="nav-link px-0"> <span class="d-none d-sm-inline">Architecture</span></a>
+                                </li>                                       
+                            </ul>
+                        </li>
+                        <li>
+                            <a href="#submenuLLM" data-bs-toggle="collapse" class="nav-link px-0 align-middle">
+                                <i class="fs-4 bi-grid"></i> <span class="ms-1 d-none d-sm-inline">Large Learning Model</span> </a>
+                                <ul class="collapse nav flex-column ms-1" id="submenuLLM" data-bs-parent="#menu">
+                                <li class="w-100" style="margin-left:20px">
+                                    <a href="/LLM/Employee-Profile" class="nav-link px-0"> <span class="d-none d-sm-inline">Employee Profile</span></a>
+                                </li>
+                                <li class="w-100" style="margin-left:20px">
+                                    <a href="/LLM/Employee-Reviews" class="nav-link px-0"> <span class="d-none d-sm-inline">Employee Reviews</span></a>
+                                </li>
+                                <li class="w-100" style="margin-left:20px">
+                                    <a href="/LLM/Customer-Profile" class="nav-link px-0"> <span class="d-none d-sm-inline">Customer Profile</span></a>
+                                </li>
+                                <li class="w-100" style="margin-left:20px">
+                                    <a href="/LLM/Customer-Reviews" class="nav-link px-0"> <span class="d-none d-sm-inline">Customer Reviews</span></a>
+                                </li>
+                                <li class="w-100" style="margin-left:20px">
+                                    <a href="/LLM/Architecture" class="nav-link px-0"> <span class="d-none d-sm-inline">Architecture</span></a>
+                                </li>                                 
+                                <li class="w-100" style="margin-left:20px">
+                                    <a href="/LLM/Configure" class="nav-link px-0"> <span class="d-none d-sm-inline">Looker Studio</span></a>
+                                </li>                                                                                                                                   
+                            </ul>
+                        </li>                                              
+                    </ul> 
+                </div>
+            </div>
+            <div class="col py-3">
+            <main role="main">
+                @RenderBody()
+            </main> 
+            </div>    
+        </div>
+    </div>
+
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+
+    </body>
+</html>

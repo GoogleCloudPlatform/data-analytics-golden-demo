@@ -1,0 +1,1 @@
+gs://${bucket_name}/delta_io/rideshare_trips/Rideshare_Vendor_Id=2/Pickup_Date=2021-12-01/part-00004-0c280354-a13c-4b5b-9808-666ea0bcd49e.c000.snappy.parquet

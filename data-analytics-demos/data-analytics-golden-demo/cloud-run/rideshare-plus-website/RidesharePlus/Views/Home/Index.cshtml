@@ -1,0 +1,115 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+    Layout="";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - RidesharePlus</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/RidesharePlus.styles.css" asp-append-version="true" />
+
+</head>
+<body>
+
+<div class="row">
+    <div class="row" style="height: 300px;">
+        <div class="col-1"></div>
+        <div class="col-3">
+            <h1 style="font-size:40px; padding-top:250px;">
+                <div style="text-color:black">Google's Data Cloud is</div>
+                <div id="googletext" style="color:rgb(79, 79, 235);display:inline;align:left">S</div><div id="blink" style="color:rgb(79, 79, 235);display:inline;">|</div>
+                <br />
+                <br />
+                <p style="font-size:25px;text-color:rgb(214, 214, 214)">Welcome to the World’s most advanced Rideshare
+                    Company</p>
+                <a href="/Home/DemoOverview" type="button" class="btn btn-primary btn-lg" >Get started</a>
+            </h1>
+        </div>
+
+        <div class="col-8" style="text-align: left;">
+            <br/>
+            <br/>
+            <img width="1100" height="658" src="/images/World.png">
+        </div>
+    </div>
+</div>
+
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+</body>
+
+  <script lang="javascript">
+        var googletext_div = 0;
+        var array_index = 0;
+
+        const textArray = [
+        "S","Si","Sim","Simp","Simpl",
+        "Simple","Simple","Simple","Simple","Simple",
+        "Simple","Simple","Simple","Simple","Simple",
+        "Simple","Simple","Simple","Simple","Simple",
+        "Simple","Simple","Simple","Simple","Simple",
+        "Simpl","Simp","Sim","Si","S",
+        "L","Li","Lim","Limi","Limit","Limitl","Limitle","Limitles",
+        "Limitless","Limitless","Limitless","Limitless","Limitless",
+        "Limitless","Limitless","Limitless","Limitless","Limitless",
+        "Limitless","Limitless","Limitless","Limitless","Limitless",
+        "Limitless","Limitless","Limitless","Limitless","Limitless",
+        "Limitles","Limitle","Limitl","Limit","Limi","Lim","Li","L",
+        "I","In","Int","Inte","Intel","Intell","Intelli","Intellig","Intellige","Intelligen",
+        "Intelligent","Intelligent","Intelligent","Intelligent","Intelligent",
+        "Intelligent","Intelligent","Intelligent","Intelligent","Intelligent",
+        "Intelligent","Intelligent","Intelligent","Intelligent","Intelligent",
+        "Intelligent","Intelligent","Intelligent","Intelligent","Intelligent",
+        "Intelligen","Intellige","Intellig","Intelli","Intell","Intel","Inte","Int","In","I"
+        ];
+        
+
+        function googleText() {
+            try {
+                googletext_div.text(textArray[array_index]);
+                array_index = array_index + 1;
+                if (array_index == textArray.length) 
+                {
+                    array_index = 0;
+                }
+            } catch (exception) {
+                console.log("googleText: exception: " + exception.toString());
+            }
+        } // googleText
+
+
+        $(document).ready(function () {
+            googletext_div = $("#googletext");
+
+            var timer = 0;
+            const interval = setInterval(function () {
+                googleText();
+            }, 125);
+
+
+            var blink = document.getElementById('blink');
+            setInterval(function() {
+                blink.style.opacity = (blink.style.opacity == 0 ? 1 : 0);
+            }, 530);
+
+
+        }); //$(document).ready
+
+    </script>
+</div>
+</div>
+
+</html>
+
+
+

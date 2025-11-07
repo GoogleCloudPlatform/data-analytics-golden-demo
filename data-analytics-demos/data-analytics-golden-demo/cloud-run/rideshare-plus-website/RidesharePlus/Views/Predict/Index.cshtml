@@ -1,0 +1,115 @@
+﻿@model RidesharePlus.Models.PredictViewModel
+@{
+    ViewData["Title"] = "Predict High Value Pickup Locations";
+}
+
+
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">@ViewData["Title"]</h1>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Predict Demo</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div>
+This demo will allow you to select the distance a rideshare driver is willing to drive along with the ability to simulate different weather conditions.  Once you click the Predict button, BigQuery will take the parameters and pass them to our ML model which will score each of our 265 pickup locations to determine the highest potential fares.  The ML model utilizes image recognition to count the number of people at each pickup location and identifies people within the image that have luggage who might be traveling.  The model also uses historical weather data from a public data source and historical trip data. Finally, the model uses the current time of day and time of year to score the results.
+<br/>&nbsp;<br/>
+When the data is scored, you will be navigated to the Configure menu item to configure Looker.  After entering the Embed URL you will then be navigated to the Visualize screen.  The configuration only needs to be set up when running the demo for the first time.  After the initial setup, you will be navigated directly to the Visualize screen. The Visualize screen will show the top pick-up locations along with the recent number of pickups (streaming data).  This would allow the drivers to quickly see the best location along with their current active number of trips.
+<br/>&nbsp;<br/>
+In order to see the real time streaming data please ensure that the sample-dataflow-start-streaming-job Airflow job is running.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">&nbsp;</div>
+
+@using (Html.BeginForm("PredictSet", "Predict", FormMethod.Post))
+{
+    <div class="row">
+    <div class="col-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Simulation</h6>
+            </div>
+            <div class="card-body">
+
+                <div class="row">
+
+                    <div class="col-3">
+                        Select Distance:
+                    </div>
+
+                    <div class="col-9">
+                        @Html.RadioButtonFor(m => m.RideDistance, "short", new { @class="btn-check", @id="btn-check-1"})
+                        <label class="btn btn-outline-primary" for="btn-check-1">Short</label>
+
+                        @Html.RadioButtonFor(m => m.RideDistance, "medium", new { @class="btn-check", @id="btn-check-2"})
+                        <label class="btn btn-outline-primary" for="btn-check-2">Medium</label>
+
+                        @Html.RadioButtonFor(m => m.RideDistance, "long", new { @class="btn-check", @id="btn-check-3"})
+                        <label class="btn btn-outline-primary" for="btn-check-3">Long</label>
+                    </div>
+                </div>
+
+                <br/>
+
+                <div class="row">
+
+                    <div class="col-3">
+                        Select Weather Conditions:
+                    </div>
+
+                    <div class="col-9">
+                        
+                        @Html.RadioButtonFor(m => m.SimulateWeather, "snow", new { @class="btn-check", @id="btn-check-4"})
+                        <label class="btn btn-outline-primary" for="btn-check-4">Snowing</label>
+
+                        @Html.RadioButtonFor(m => m.SimulateWeather, "rain", new { @class="btn-check", @id="btn-check-5"})
+                        <label class="btn btn-outline-primary" for="btn-check-5">Raining</label>
+                    </div>
+                </div>
+                <br/>
+            </div>
+
+            <div class="row">
+                <div class="col-3">
+                    &nbsp;
+                </div>
+                <div class="col-9" style="text-align:left">
+                    <button id="submitButton" type="submit" class="btn btn-primary mx-auto">Predict</button>
+                </div>
+            </div>
+            <br/>
+        </div>
+    </div>
+</div>
+}
+
+
+
+<script lang="javascript">
+
+    $(document).ready(function () {
+        submenuPredict = $("#submenuPredict");
+        submenuPredict.addClass("show");
+    }); //$(document).ready
+
+    $("form").submit(function(){
+        button = $("#submitButton");
+        button.prop("disabled",true);
+        button.removeClass("btn-primary");
+        button.addClass("btn-secondary");
+        button.html("Calculating best pickup locations...");
+        $("body").css("cursor", "progress");
+    });
+
+
+</script>

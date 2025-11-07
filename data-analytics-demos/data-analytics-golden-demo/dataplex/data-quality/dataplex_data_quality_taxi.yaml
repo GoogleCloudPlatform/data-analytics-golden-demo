@@ -1,0 +1,299 @@
+####################################################################################
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#     https://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+####################################################################################
+
+# Summary: Performs a validation check on the Taxi Trips table.
+#          This highlights just a few features of data quality, see the links for all the features
+#
+#          The results will then be placed on a Tag Template on the Table in Data Catalog.
+#          This way users can see the results in the cloud console.
+#
+# References:
+#   https://github.com/GoogleCloudPlatform/cloud-data-quality/tree/main/docs/examples
+#   https://cloud.google.com/dataplex/docs/check-data-quality
+
+############################################################
+# The row filter is for 2022 (1 month) so the check does not run too long during a demo
+# You have to define a NONE row filter
+############################################################
+row_filters:
+  NONE:
+    filter_sql_expr: |-
+      PartitionDate = '2023-09-01'
+  YELLOW_TAXI:
+    filter_sql_expr: |-
+      TaxiCompany = 'Yellow' and PartitionDate = '2023-09-01'
+  GREEN_TAXI:
+    filter_sql_expr: |-
+      TaxiCompany = 'Green' and PartitionDate = '2023-09-01'
+
+
+############################################################
+# Rule dimensions are optional but allow you to aggregate reporting.
+############################################################
+rule_dimensions:
+  - consistency
+  - correctness
+  - duplication
+  - completeness
+  - conformance
+  - integrity
+
+
+############################################################
+# Rules can be shared across tables or columns.
+############################################################
+rules:
+  NO_DUPLICATES_IN_COLUMN_GROUPS:
+    rule_type: CUSTOM_SQL_STATEMENT
+    dimension: duplication
+    params:
+      custom_sql_arguments:
+        - column_names
+      custom_sql_statement: |-
+        select a.*
+        from data a
+        inner join (
+        select
+        $column_names
+        from data
+        group by $column_names
+        having count(*) > 1
+        ) duplicates
+        using ($column_names)
+
+  VALUE_ZERO_OR_POSITIVE:
+    rule_type: CUSTOM_SQL_EXPR
+    dimension: correctness
+    params:
+      custom_sql_expr: |-
+        $column >= 0
+
+  VALID_VENDOR_ID:
+    rule_type: REGEX
+    dimension: integrity
+    params:
+      pattern: |-
+        [1-2]{1}
+
+  VALID_LOCATION_ID:
+    rule_type: REGEX
+    dimension: integrity
+    params:
+      pattern: |-
+        [0-9]{1,3}
+
+  VALID_TAXI_COMPANY:
+   rule_type: CUSTOM_SQL_EXPR
+   dimension: integrity
+   params:
+     custom_sql_expr: |-
+      $column in ('Green', 'Yellow')
+
+  VALID_NOT_NULL:
+   rule_type: CUSTOM_SQL_EXPR
+   dimension: integrity
+   params:
+     custom_sql_expr: |-
+      $column is not null
+
+  VALID_YES_OR_NO:
+   rule_type: CUSTOM_SQL_EXPR
+   dimension: integrity
+   params:
+     custom_sql_expr: |-
+      $column in ('Y', 'N')
+
+  VALID_RATE_CODE:
+   rule_type: CUSTOM_SQL_EXPR
+   dimension: integrity
+   params:
+     custom_sql_expr: |-
+      $column BETWEEN 1 AND 6
+
+  VALID_PAYMENT_TYPE:
+   rule_type: CUSTOM_SQL_EXPR
+   dimension: integrity
+   params:
+     custom_sql_expr: |-
+      $column BETWEEN 1 AND 5
+
+  VALID_TRIP_TYPE_ID:
+    rule_type: REGEX
+    dimension: integrity
+    params:
+      pattern: |-
+        [1-2]{1}
+
+
+############################################################
+# Rule bindings associate rules to {table, column}
+############################################################
+rule_bindings:
+  TAXI_COMPANY_VALID:
+    entity_uri: dataplex://projects/${project_id}/locations/${dataplex_region}/lakes/taxi-data-lake-${random_extension}/zones/taxi-curated-zone-${random_extension}/entities/taxi_trips
+    column_id: TaxiCompany
+    row_filter_id: NONE
+    rule_ids:
+      - VALID_TAXI_COMPANY
+
+  TAXI_PICKUP_DATETIME_VALID:
+    entity_uri: dataplex://projects/${project_id}/locations/${dataplex_region}/lakes/taxi-data-lake-${random_extension}/zones/taxi-curated-zone-${random_extension}/entities/taxi_trips
+    column_id: Pickup_DateTime
+    row_filter_id: NONE
+    rule_ids:
+      - VALID_NOT_NULL
+
+  TAXI_DROPOFF_DATETIME_VALID:
+    entity_uri: dataplex://projects/${project_id}/locations/${dataplex_region}/lakes/taxi-data-lake-${random_extension}/zones/taxi-curated-zone-${random_extension}/entities/taxi_trips
+    column_id: Dropoff_DateTime
+    row_filter_id: NONE
+    rule_ids:
+      - VALID_NOT_NULL
+
+  TAXI_STOTE_AND_FORWARD_VALID:
+    entity_uri: dataplex://projects/${project_id}/locations/${dataplex_region}/lakes/taxi-data-lake-${random_extension}/zones/taxi-curated-zone-${random_extension}/entities/taxi_trips
+    column_id: Store_And_Forward
+    row_filter_id: YELLOW_TAXI
+    rule_ids:
+      - VALID_YES_OR_NO
+
+  TAXI_RATE_CODE_ID_VALID:
+    entity_uri: dataplex://projects/${project_id}/locations/${dataplex_region}/lakes/taxi-data-lake-${random_extension}/zones/taxi-curated-zone-${random_extension}/entities/taxi_trips
+    column_id: Rate_Code_Id
+    row_filter_id: YELLOW_TAXI
+    rule_ids:
+      - VALID_RATE_CODE
+
+  TAXI_VALID_VENDOR_ID:
+    entity_uri: dataplex://projects/${project_id}/locations/${dataplex_region}/lakes/taxi-data-lake-${random_extension}/zones/taxi-curated-zone-${random_extension}/entities/taxi_trips
+    column_id: Vendor_Id
+    row_filter_id: NONE
+    rule_ids:
+      - VALID_VENDOR_ID
+
+  TAXI_LOCATION_PU_VALID:
+    entity_uri: dataplex://projects/${project_id}/locations/${dataplex_region}/lakes/taxi-data-lake-${random_extension}/zones/taxi-curated-zone-${random_extension}/entities/taxi_trips
+    column_id: PULocationID
+    row_filter_id: NONE
+    rule_ids:
+      - VALID_LOCATION_ID
+
+  TAXI_LOCATION_DO_VALID:
+    entity_uri: dataplex://projects/${project_id}/locations/${dataplex_region}/lakes/taxi-data-lake-${random_extension}/zones/taxi-curated-zone-${random_extension}/entities/taxi_trips
+    column_id: DOLocationID
+    row_filter_id: NONE
+    rule_ids:
+      - VALID_LOCATION_ID
+
+  TAXI_PASSENGER_COUNT_VALID:
+    entity_uri: dataplex://projects/${project_id}/locations/${dataplex_region}/lakes/taxi-data-lake-${random_extension}/zones/taxi-curated-zone-${random_extension}/entities/taxi_trips
+    column_id: Passenger_Count
+    row_filter_id: NONE
+    rule_ids:
+      - VALUE_ZERO_OR_POSITIVE
+
+  TAXI_TRIP_DISTANCE_VALID:
+    entity_uri: dataplex://projects/${project_id}/locations/${dataplex_region}/lakes/taxi-data-lake-${random_extension}/zones/taxi-curated-zone-${random_extension}/entities/taxi_trips
+    column_id: Trip_Distance
+    row_filter_id: NONE
+    rule_ids:
+      - VALUE_ZERO_OR_POSITIVE
+
+  TAXI_FARE_AMOUNT_VALID:
+    entity_uri: dataplex://projects/${project_id}/locations/${dataplex_region}/lakes/taxi-data-lake-${random_extension}/zones/taxi-curated-zone-${random_extension}/entities/taxi_trips
+    column_id: Fare_Amount
+    row_filter_id: NONE
+    rule_ids:
+      - VALUE_ZERO_OR_POSITIVE
+
+  TAXI_SURCHARGE_VALID:
+    entity_uri: dataplex://projects/${project_id}/locations/${dataplex_region}/lakes/taxi-data-lake-${random_extension}/zones/taxi-curated-zone-${random_extension}/entities/taxi_trips
+    column_id: Surcharge
+    row_filter_id: NONE
+    rule_ids:
+      - VALUE_ZERO_OR_POSITIVE
+
+  TAXI_MTA_TAX_VALID:
+    entity_uri: dataplex://projects/${project_id}/locations/${dataplex_region}/lakes/taxi-data-lake-${random_extension}/zones/taxi-curated-zone-${random_extension}/entities/taxi_trips
+    column_id: MTA_Tax
+    row_filter_id: NONE
+    rule_ids:
+      - VALUE_ZERO_OR_POSITIVE
+
+  TAXI_TIP_AMOUNT_VALID:
+    entity_uri: dataplex://projects/${project_id}/locations/${dataplex_region}/lakes/taxi-data-lake-${random_extension}/zones/taxi-curated-zone-${random_extension}/entities/taxi_trips
+    column_id: Tip_Amount
+    row_filter_id: NONE
+    rule_ids:
+      - VALUE_ZERO_OR_POSITIVE
+
+  TAXI_TOLLS_AMOUNT_VALID:
+    entity_uri: dataplex://projects/${project_id}/locations/${dataplex_region}/lakes/taxi-data-lake-${random_extension}/zones/taxi-curated-zone-${random_extension}/entities/taxi_trips
+    column_id: Tolls_Amount
+    row_filter_id: NONE
+    rule_ids:
+      - VALUE_ZERO_OR_POSITIVE
+
+  TAXI_IMPROVEMENT_SURCHARGE_VALID:
+    entity_uri: dataplex://projects/${project_id}/locations/${dataplex_region}/lakes/taxi-data-lake-${random_extension}/zones/taxi-curated-zone-${random_extension}/entities/taxi_trips
+    column_id: Improvement_Surcharge
+    row_filter_id: NONE
+    rule_ids:
+      - VALUE_ZERO_OR_POSITIVE
+
+  TAXI_AMOUNT_VALID:
+    entity_uri: dataplex://projects/${project_id}/locations/${dataplex_region}/lakes/taxi-data-lake-${random_extension}/zones/taxi-curated-zone-${random_extension}/entities/taxi_trips
+    column_id: Total_Amount
+    row_filter_id: NONE
+    rule_ids:
+      - VALUE_ZERO_OR_POSITIVE
+
+  TAXI_PAYMENT_TYPE_ID_VALID:
+    entity_uri: dataplex://projects/${project_id}/locations/${dataplex_region}/lakes/taxi-data-lake-${random_extension}/zones/taxi-curated-zone-${random_extension}/entities/taxi_trips
+    column_id: Payment_Type_Id
+    row_filter_id: YELLOW_TAXI
+    rule_ids:
+      - VALID_PAYMENT_TYPE
+
+  TAXI_CONGESTION_SURCHARGE_VALID:
+    entity_uri: dataplex://projects/${project_id}/locations/${dataplex_region}/lakes/taxi-data-lake-${random_extension}/zones/taxi-curated-zone-${random_extension}/entities/taxi_trips
+    column_id: Congestion_Surcharge
+    row_filter_id: YELLOW_TAXI
+    rule_ids:
+      - VALUE_ZERO_OR_POSITIVE
+
+  TAXI_TRIP_TYPE_VALID:
+    entity_uri: dataplex://projects/${project_id}/locations/${dataplex_region}/lakes/taxi-data-lake-${random_extension}/zones/taxi-curated-zone-${random_extension}/entities/taxi_trips
+    column_id: Trip_Type
+    row_filter_id: YELLOW_TAXI
+    rule_ids:
+      - VALID_TRIP_TYPE_ID
+
+  TAXI_EHAIL_FEE_VALID:
+    entity_uri: dataplex://projects/${project_id}/locations/${dataplex_region}/lakes/taxi-data-lake-${random_extension}/zones/taxi-curated-zone-${random_extension}/entities/taxi_trips
+    column_id: Ehail_Fee
+    row_filter_id: GREEN_TAXI
+    rule_ids:
+      - VALUE_ZERO_OR_POSITIVE
+
+#  TAXI_TRIPS_UNIQUE:
+#    entity_uri: dataplex://projects/${project_id}/locations/${dataplex_region}/lakes/taxi-data-lake-${random_extension}/zones/taxi-curated-zone-${random_extension}/entities/taxi_trips
+#    column_id: Pickup_DateTime
+#    row_filter_id: NONE
+#    incremental_time_filter_column_id: Pickup_DateTime
+#    rule_ids:
+#      - NO_DUPLICATES_IN_COLUMN_GROUPS:
+#          column_names: "Pickup_DateTime"

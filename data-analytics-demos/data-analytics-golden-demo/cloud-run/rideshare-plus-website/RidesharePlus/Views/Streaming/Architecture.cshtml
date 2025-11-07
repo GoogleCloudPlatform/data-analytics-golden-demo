@@ -1,0 +1,58 @@
+@{
+    ViewData["Title"] = "Architecture";
+}
+
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">@ViewData["Title"]</h1>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Streaming Architecture</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div>
+                        <ul>
+                            <li>The architecture consists of three zones: raw, enriched and curated.</li>
+                            <li>The trip data is received into Pub/Sub in realtime.</li>
+                            <li>Dataflow streams the data directly into the BigQuery raw zone.</li>
+                            <li>The enriched zone then computes/matches the begin and end trip times.  Our data consists of a events during a trip so we have an initial event (pickup) and then events during the trip and finally a drop off.  The query has to rank/partition the data to compute the trip duration.</li>
+                            <li>The curated zone then has a view that queries the enriched zone so the data can be displayed on this website.</li>
+                            <li>A REST API call is used to query this site which invokes a BigQuery SQL statement to reteive the data for the past one hour.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">&nbsp;</div>
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">AI Lakehouse</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div>
+                        <img src="/images/rideshare-predict.png" width="1000px" alt="AI Lakehouse">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script lang="javascript">
+
+    $(document).ready(function () {
+        submenuStreaming = $("#submenuStreaming");
+        submenuStreaming.addClass("show");
+    }); //$(document).ready
+
+</script>

@@ -1,0 +1,21 @@
+﻿@model RidesharePlus.Models.LLMVisualizeViewModel
+@{
+    ViewData["Title"] = "Customer Profile";
+}
+
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">@ViewData["Title"]</h1>
+</div>
+
+<div id="divReport">
+    <iframe style="overflow:hidden;height:800px;width:100%" src="@Html.Raw(Model.LookerEmbedUrl)" frameborder="0" style="border:0" allowfullscreen></iframe>
+</div>
+
+<script lang="javascript">
+
+    $(document).ready(function () {
+        submenuLLM = $("#submenuLLM");
+        submenuLLM.addClass("show");
+    }); //$(document).ready
+
+</script>

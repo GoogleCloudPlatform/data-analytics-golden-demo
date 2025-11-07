@@ -405,7 +405,7 @@ resource "google_project_iam_member" "bq_connection_dataplex_region_iam_object_v
 ####################################################################################
 # https://cloud.google.com/vertex-ai/docs/reference/rest/v1beta1/projects.locations.notebookRuntimeTemplates
 # NOTE: If you want a "when = destroy" example TF please see: 
-#       https://github.com/GoogleCloudPlatform/data-analytics-golden-demo/blob/main/cloud-composer/data/terraform/dataplex/terraform.tf#L147
+#       https://github.com/GoogleCloudPlatform/data-analytics-demos/data-analytics-golden-demo/blob/main/cloud-composer/data/terraform/dataplex/terraform.tf#L147
 resource "null_resource" "colab_runtime_template" {
   provisioner "local-exec" {
     when    = create

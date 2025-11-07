@@ -1,0 +1,41 @@
+/*##################################################################################
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+# 
+#     https://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+###################################################################################*/
+
+/* Second step in the pipeline.
+Creates a view based on the last step result.
+Aggregated query based on the taxi_parsed_data */
+ 
+config {
+ type: "view",
+ schema: "dataform_demo",
+ description: "grouped data by ride id",
+ tags: ["views"]
+}
+ 
+SELECT *,
+       date(start_time) as start_ride_date,
+       extract(hour from start_time) as start_ride_hour,
+       date(end_time) as end_ride_date,
+       extract(hour from end_time) as end_ride_hour,
+       TIMESTAMP_DIFF(end_time, start_time, second)/60 as ride_time_minutes,
+       fhoffa.x.random_int(1,5) as payment_type_id
+ FROM (SELECT ride_id,
+              min(timestamp) start_time,
+              max(timestamp) end_time,
+              max(meter_reading) meter_cost,
+              max(passenger_count) passenger_count
+              from ${ref("taxi_parsed_data")}
+       GROUP BY 1)

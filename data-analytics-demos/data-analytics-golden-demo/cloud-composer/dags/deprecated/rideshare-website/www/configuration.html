@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+    <meta name="generator" content="Hugo 0.108.0">
+    <title>Rideshare Plus - Configuration</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
+        integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.min.js"
+        integrity="sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V"
+        crossorigin="anonymous"></script>
+
+    <script src="https://code.jquery.com/jquery-3.6.3.min.js"
+        integrity="sha384-Ft/vb48LwsAEtgltj7o+6vtS2esTU9PCpDqcXs4OCVQFZu5BqprHtUCZ4kjK+bpE"
+        crossorigin="anonymous"></script>
+
+    <meta name="theme-color" content="#712cf9">
+
+
+    <style>
+        .bd-placeholder-img {
+            font-size: 1.125rem;
+            text-anchor: middle;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            user-select: none;
+        }
+
+        @media (min-width: 768px) {
+            .bd-placeholder-img-lg {
+                font-size: 3.5rem;
+            }
+        }
+
+        .b-example-divider {
+            height: 3rem;
+            background-color: rgba(0, 0, 0, .1);
+            border: solid rgba(0, 0, 0, .15);
+            border-width: 1px 0;
+            box-shadow: inset 0 .5em 1.5em rgba(0, 0, 0, .1), inset 0 .125em .5em rgba(0, 0, 0, .15);
+        }
+
+        .b-example-vr {
+            flex-shrink: 0;
+            width: 1.5rem;
+            height: 100vh;
+        }
+
+        .bi {
+            vertical-align: -.125em;
+            fill: currentColor;
+        }
+
+        .nav-scroller {
+            position: relative;
+            z-index: 2;
+            height: 2.75rem;
+            overflow-y: hidden;
+        }
+
+        .nav-scroller .nav {
+            display: flex;
+            flex-wrap: nowrap;
+            padding-bottom: 1rem;
+            margin-top: -1px;
+            overflow-x: auto;
+            text-align: center;
+            white-space: nowrap;
+            -webkit-overflow-scrolling: touch;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
+        <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3 fs-6" href="index.html">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Rideshare Plus</a>
+        <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse"
+            data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false"
+            aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="navbar-nav">
+            <div class="nav-item text-nowrap">
+                <a class="nav-link px-3" href="#">Sign out</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="container-fluid">
+        <div class="row">
+            <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+                <div class="position-sticky pt-3 sidebar-sticky">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" aria-current="page" href="predict.html">
+                                <span data-feather="home" class="align-text-bottom"></span>
+                                Predict
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="realtime.html">
+                                <span data-feather="bar-chart-2" class="align-text-bottom"></span>
+                                Realtime Trips
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="reports.html">
+                                <span data-feather="bar-chart-2" class="align-text-bottom"></span>
+                                Visualize Prediction
+                            </a>
+                        </li>
+                    </ul>
+
+                    <h6
+                        class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
+                        <span>Admin</span>
+                        <a class="link-secondary" href="#" aria-label="Add a new report">
+                            <span data-feather="plus-circle" class="align-text-bottom"></span>
+                        </a>
+                    </h6>
+                    <ul class="nav flex-column mb-2">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="configuration.html">
+                                <span data-feather="file-text" class="align-text-bottom"></span>
+                                Configuration
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div
+                    class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Configuration</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <div class="btn-group me-2">
+                            <button type="button" class="btn btn-sm btn-outline-secondary">Share</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary">Export</button>
+                        </div>
+                    </div>
+                </div>
+
+                <h5>Instructions to configure Looker</h5>
+                <div class="row">
+                    <div class="col-md-9">
+                        <ol>
+                            <li>Clone this report: <a href="https://lookerstudio.google.com/s/tChBejkZotg" target="_blank">click here</a></li>
+                            <li>Click the 3 dots in the top right and select "Make a copy"</li>
+                            <li>Click "Copy Report"</li>
+                            <li>Click "Resouce" menu then "Manage added data sources"</li>
+                            <li>Click "Edit" under Actions title</li>
+                            <li>Click "${project_id}" (or enter the Project Id) under Project title</li>
+                            <li>Click "rideshare_lakehouse_curated" under Dataset title</li>
+                            <li>Click "looker_high_value_rides" under Table title</li>
+                            <li>Click "Reconnect"</li>
+                            <li>Click "Apply" - there should be no field changes</li>
+                            <li>Click "Done" - in top right</li>
+                            <li>Click "Close" - in top right</li>
+                            <li>Check report - it should have data if you have run a prediction</li>
+                            <li>Go to File menu | Embed report (enable embedding)</li>
+                            <li>Click Embed URL</li>
+                            <li>Copy the link (e.g. https://lookerstudio.google.com/embed/reporting/e5f638c8-4440-4a3c-be4c-38f95f1a285e/page/wmQFD)</li>
+                            <li>Paste the link below</li>
+                            <li>Click Submit</li>
+                        </ol>
+                    </div>
+                </div>
+                <div class="row">&nbsp;</div>
+
+
+                <h5>Looker Embed Url:</h5>
+                <div class="row">&nbsp;</div>
+
+                <div class="row">
+                    <div class="col-md-2">Embed URL:</div>
+                    <div class="col-md-8">
+                        <input style="width:100%" id="inputLookerEmbedUrl" type="text" value="">               
+                    </div>
+                </div>
+
+                <div class="row">&nbsp;</div>
+
+               
+                <div class="row">
+                    <div class="col-md-2"></div>
+                    <div class="col-md-3" id="divSubmit">
+                        <div><button type="button" class="btn btn-primary" onclick="javascrpt:submit();">
+                               Submit
+                            </button></div>
+                    </div>
+                    <div class="col-md-3" style="display:none;" id="divViewPredictions">
+                        <div><button type="button" class="btn btn-success"
+                                onclick="javascript:window.location.assign('reports.html');">
+                                View Embedded Looker Dashboard
+                            </button></div>
+                    </div>
+                    <div class="col-md-3" style="display:none;" id="divProcessing">
+                        <div class="spinner-border" role="status">
+                            <span class="sr-only"></span>
+                        </div>
+                    </div>
+
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+<script lang="javascript">
+    var inputLookerEmbedUrl = null;
+    var divProcessing = null;
+    var divSubmit = null;
+    var divViewPredictions = null;
+
+
+    function submit() {
+        try {
+            divProcessing.show();
+            divSubmit.hide();
+            looker_url = inputLookerEmbedUrl.val();
+            //alert(looker_url)
+
+            var serviceURL = "${demo_rest_api_service_uri}";
+            var jsonData = {
+                mode: "save_configuration",
+                looker_url: looker_url
+            };
+
+            $.ajax({
+                type: "POST",
+                url: serviceURL,
+                data: JSON.stringify(jsonData),
+                contentType: "application/json",
+                dataType: "json",
+                crossDomain: true,
+                success: successFunc,
+                error: errorFunc
+            });
+
+        } catch (exception) {
+            alert(exception);
+        }
+    } // submit
+
+
+    function successFunc(data, status) {
+        try {
+            divProcessing.hide();
+            if (status == "success") {
+                //alert("The values have been predicted");
+                // window.location.assign('reports.html');
+                divViewPredictions.show();
+            }
+            else {
+                alert("Could call submit");
+                divSubmit.show();
+            }
+        } catch (exception) {
+            alert(exception);
+        }
+    } // successFunc
+
+
+    function errorFunc() {
+        try {
+            divProcessing.hide();
+            divSubmit.show();
+            alert("Could not call the cloud function.  Please reload the page and try again.");
+        } catch (exception) {
+            alert(exception);
+        }
+    } // errorFunc
+
+
+
+
+    function loadConfig() {
+        try {
+            var serviceURL = "${demo_rest_api_service_uri}";
+            var jsonData = {
+                mode: "get_configuration"
+            };
+
+            $.ajax({
+                type: "POST",
+                url: serviceURL,
+                data: JSON.stringify(jsonData),
+                contentType: "application/json",
+                dataType: "json",
+                crossDomain: true,
+                success: successFunc_loadConfig,
+                error: errorFunc_loadConfig
+            });
+
+        } catch (exception) {
+            alert(exception);
+        }
+    } // submit
+
+
+    function successFunc_loadConfig(data, status) {
+        try {
+            if (status == "success") {
+                inputLookerEmbedUrl.val(data.data[0].looker_url);
+            }
+            else {
+                alert("Could call LoadConfig");
+            }
+        } catch (exception) {
+            alert(exception);
+        }
+    } // successFunc_loadConfig
+
+
+    function errorFunc_loadConfig() {
+        try {
+            alert("Could not call the cloud function.  Please reload the page and try again.");
+        } catch (exception) {
+            alert(exception);
+        }
+    } // errorFunc_loadConfig
+
+
+    $(document).ready(function () {
+        inputLookerEmbedUrl = $("#inputLookerEmbedUrl");
+        divProcessing = $("#divProcessing");
+        divSubmit = $("#divSubmit");
+        divViewPredictions = $("#divViewPredictions");
+        loadConfig();
+    }); //$(document).ready
+
+</script>
+
+</html>
