@@ -281,7 +281,9 @@ cryptography==46.0.1 \
     --hash=sha256:f7de12fa0eee6234de9a9ce0ffcfa6ce97361db7a50b09b65c63ac58e5f22fc7 \
     --hash=sha256:f9b55038b5c6c47559aa33626d8ecd092f354e23de3c6975e4bb205df128a2a0 \
     --hash=sha256:fd4b5e2ee4e60425711ec65c33add4e7a626adef79d66f62ba0acfd493af282d
-    # via authlib
+    # via
+    #   authlib
+    #   pyjwt
 docstring-parser==0.17.0 \
     --hash=sha256:583de4a309722b3315439bb31d64ba3eebada841f2e2cee23b99df001434c912 \
     --hash=sha256:cf2569abd23dce8099b300f9b4fa8191e9582dda731fd533daf54c4551658708
@@ -534,7 +536,9 @@ greenlet==3.2.4 \
     --hash=sha256:e37ab26028f12dbb0ff65f29a8d3d44a765c61e729647bf2ddfbbed621726f01 \
     --hash=sha256:f10fd42b5ee276335863712fa3da6608e93f70629c631bf77145021600abc23c \
     --hash=sha256:f28588772bb5fb869a8eb331374ec06f24a83a9c25bfa1f38b6993afe9c1e968
-    # via -r requirements.in
+    # via
+    #   -r requirements.in
+    #   sqlalchemy
 grpc-google-iam-v1==0.14.2 \
     --hash=sha256:a3171468459770907926d56a440b2bb643eec1d7ba215f48f3ecece42b4d8351 \
     --hash=sha256:b3e1fc387a1a329e41672197d0ace9de22c78dd7d215048c4c78712073f7bd20
@@ -838,9 +842,9 @@ markupsafe==3.0.3 \
     --hash=sha256:f9e130248f4462aaa8e2552d547f36ddadbeaa573879158d721bbd33dfe4743a \
     --hash=sha256:fed51ac40f757d41b7c48425901843666a6677e3e8eb0abcff09e4ba6e664f50
     # via mako
-mcp==1.14.1 \
-    --hash=sha256:31c4406182ba15e8f30a513042719c3f0a38c615e76188ee5a736aaa89e20134 \
-    --hash=sha256:3b7a479e8e5cbf5361bdc1da8bc6d500d795dc3aff44b44077a363a7f7e945a4
+mcp==1.23.0 \
+    --hash=sha256:5a645cf111ed329f4619f2629a3f15d9aabd7adc2ea09d600d31467b51ecb64f \
+    --hash=sha256:84e0c29316d0a8cf0affd196fd000487ac512aa3f771b63b2ea864e22961772b
     # via google-adk
 numpy==2.3.3 \
     --hash=sha256:067e3d7159a5d8f8a0b46ee11148fc35ca9b21f61e3c49fbd0a027450e65a33b \
@@ -1161,6 +1165,10 @@ pydantic-core==2.33.2 \
 pydantic-settings==2.10.1 \
     --hash=sha256:06f0062169818d0f5524420a360d632d5857b83cffd4d42fe29597807a1614ee \
     --hash=sha256:a60952460b99cf661dc25c29c0ef171721f98bfcb52ef8d9ea4c943d7c8cc796
+    # via mcp
+pyjwt[crypto]==2.10.1 \
+    --hash=sha256:3cc5772eb20009233caf06e9d8a0577824723b44e6648ee0a2aedb6cf9381953 \
+    --hash=sha256:dcdd193e30abefd5debf142f9adfcdd2b58004e644f25406ffaebd50bd98dacb
     # via mcp
 pyparsing==3.2.5 \
     --hash=sha256:2df8d5b7b2802ef88e8d016a2eb9c7aeaa923529cd251ed0fe4608275d4105b6 \
@@ -1566,6 +1574,7 @@ typing-extensions==4.15.0 \
     #   google-cloud-aiplatform
     #   google-genai
     #   grpcio
+    #   mcp
     #   opentelemetry-api
     #   opentelemetry-exporter-otlp-proto-http
     #   opentelemetry-resourcedetector-gcp
@@ -1579,6 +1588,7 @@ typing-inspection==0.4.1 \
     --hash=sha256:389055682238f53b04f7badcb49b989835495a96700ced5dab2d8feae4b26f51 \
     --hash=sha256:6ae134cc0203c33377d43188d4064e9b357dba58cff3185f22924610e70a9d28
     # via
+    #   mcp
     #   pydantic
     #   pydantic-settings
 tzlocal==5.3.1 \
