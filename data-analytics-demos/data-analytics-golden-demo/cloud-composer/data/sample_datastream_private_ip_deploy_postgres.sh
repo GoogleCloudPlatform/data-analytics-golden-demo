@@ -18,7 +18,9 @@
 # https://cloud.google.com/sql/docs/postgres/db-versions
 
 
-# Parameters
+# ==============================================================================
+# 1. Variables from Airflow
+# ==============================================================================
 PROJECT_ID="{{ params.project_id }}"
 PROJECT_NUMBER="{{ params.project_number }}"
 ROOT_PASSWORD="{{ params.root_password }}"
@@ -33,14 +35,21 @@ DATASTREAM_REGION="{{ params.datastream_region }}"
 CODE_BUCKET_NAME="{{ params.code_bucket_name }}"
 CLOUD_SQL_ZONE="{{ params.cloud_sql_zone }}"
 
-# REMOVED: Unnecessary gcloud installation (Composer has this pre-installed)
 
-# https://cloud.google.com/sdk/gcloud/reference/sql/instances/create
+# ==============================================================================
+# 2. Create the Cloud SQL Instance
+# ==============================================================================
+# This will take about 5-10 minutes to complete
+# - --network: Turns on Peering (for BigQuery)
+# - --enable-private-service-connect: Turns on PSC (for postgres-client machine & Datastream)
+# - --allowed-psc-projects: Authorization (so you can connect immediately)
+
+echo "Creating Cloud SQL Instance: ${INSTANCE}..."
 gcloud sql instances create "${INSTANCE}" \
+    --project="${PROJECT_ID}" \
     --database-version=${DATABASE_VERSION} \
     --cpu=${CPU} \
     --memory=${MEMORY} \
-    --project="${PROJECT_ID}" \
     --region=${CLOUD_SQL_REGION} \
     --root-password="${ROOT_PASSWORD}" \
     --no-assign-ip \
@@ -51,27 +60,28 @@ gcloud sql instances create "${INSTANCE}" \
     --enable-google-private-path \
     --maintenance-window-day=SAT \
     --maintenance-window-hour=1 \
-    --database-flags=cloudsql.logical_decoding=on
+    --database-flags=cloudsql.logical_decoding=on \
+    --enable-private-service-connect \
+    --allowed-psc-projects="${PROJECT_ID}"
 
 
-# Get ip address (of this node)
-cloudsql_ip_address=$(gcloud sql instances list --filter="NAME=${INSTANCE}" --project="${PROJECT_ID}" --format="value(PRIVATE_ADDRESS)")
+# ==============================================================================
+# 3. Create the specific 'demodb' database inside the instance
+# ==============================================================================
+echo "Creating database ${DATABASE_NAME}..."
+gcloud sql databases create "${DATABASE_NAME}" \
+    --instance="${INSTANCE}" \
+    --project="${PROJECT_ID}"
 
 
-# Write out so we can read in via Python
-echo ${cloudsql_ip_address} > /home/airflow/gcs/data/postgres_private_ip_address.txt
+# ==============================================================================
+# 4. Create the Postgres Client VM
+# ==============================================================================
+# Note: I moved the complex installation logic INTO the startup script.
+# You will not need to run manual install commands when you SSH in.
 
-
-# Create the database
-gcloud sql databases create ${DATABASE_NAME} --instance="${INSTANCE}" --project="${PROJECT_ID}"
-
-
-# We need a script that will be run on the SQL reverse proxy VM
-sed "s/REPLACE_DB_ADDR/${cloudsql_ip_address}/g" /home/airflow/gcs/data/cloud_sql_reverse_proxy_template.sh > /home/airflow/gcs/data/cloud_sql_reverse_proxy.sh
-gsutil cp /home/airflow/gcs/data/cloud_sql_reverse_proxy.sh gs://${CODE_BUCKET_NAME}/vm-startup-scripts/cloud_sql_reverse_proxy.sh
-
-# Create the reverse proxy machine
-gcloud compute instances create sql-reverse-proxy \
+echo "Creating Postgres Client VM..."
+gcloud compute instances create postgres-client \
     --project="${PROJECT_ID}" \
     --zone=${CLOUD_SQL_ZONE} \
     --machine-type=e2-small \
@@ -79,35 +89,90 @@ gcloud compute instances create sql-reverse-proxy \
     --maintenance-policy=MIGRATE \
     --provisioning-model=STANDARD \
     --service-account=${PROJECT_NUMBER}-compute@developer.gserviceaccount.com \
-    --scopes=https://www.googleapis.com/auth/devstorage.read_only,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring.write,https://www.googleapis.com/auth/servicecontrol,https://www.googleapis.com/auth/service.management.readonly,https://www.googleapis.com/auth/trace.append \
-    --create-disk=auto-delete=yes,boot=yes,device-name=sql-reverse-proxy,image=projects/debian-cloud/global/images/debian-11-bullseye-v20230411,mode=rw,size=10,type=projects/${PROJECT_ID}/zones/${CLOUD_SQL_ZONE}/diskTypes/pd-balanced \
+    --scopes=https://www.googleapis.com/auth/cloud-platform \
+    --create-disk=auto-delete=yes,boot=yes,device-name=postgres-client,image=projects/debian-cloud/global/images/debian-11-bullseye-v20230411,mode=rw,size=10,type=projects/${PROJECT_ID}/zones/${CLOUD_SQL_ZONE}/diskTypes/pd-balanced \
     --shielded-secure-boot \
     --shielded-vtpm \
     --shielded-integrity-monitoring \
     --tags=ssh-firewall-tag \
     --reservation-affinity=any \
-    --metadata=enable-oslogin=true,startup-script-url=gs://${CODE_BUCKET_NAME}/vm-startup-scripts/cloud_sql_reverse_proxy.sh
+    --metadata=startup-script='#! /bin/bash
+# Install Postgres Client automatically on startup using official Repo
+sudo apt-get install wget ca-certificates -y
+wget -O- https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor | sudo tee /etc/apt/keyrings/EXAMPLE.gpg > /dev/null
+sudo sh -c "echo deb http://apt.postgresql.org/pub/repos/apt/ focal-pgdg main >> /etc/apt/sources.list.d/pgdg.list"
+sudo apt-get update -y
+sudo apt-get install postgresql-client -y
+echo "Postgres client installed."
+'
 
-reverse_proxy_vm_ip_address=$(gcloud compute instances list --filter="NAME=sql-reverse-proxy" --project="${PROJECT_ID}" --format="value(INTERNAL_IP)")
 
-# We can read this file to create the connection for Datastream
-# Datastream needs to point to the reverse proxy
-echo "reverse_proxy_vm_ip_address: ${reverse_proxy_vm_ip_address}"
-echo ${reverse_proxy_vm_ip_address} > /home/airflow/gcs/data/reverse_proxy_vm_ip_address.txt
+# ==============================================================================
+# 5. Get the Service Attachment URL (The address of the "Producer")
+# ==============================================================================
+# We need this to tell the Endpoint where to point.
+export SERVICE_ATTACHMENT_LINK=$(gcloud sql instances describe "${INSTANCE}" \
+    --project="${PROJECT_ID}" \
+    --format="value(pscServiceAttachmentLink)")
+
+echo "Service Attachment: ${SERVICE_ATTACHMENT_LINK}"
 
 
-# Install postgresql client (you must do this, this is not done since it can take a while and the automation might break)
-echo '############## How to connect to the Cloud SQL "##############'
-echo 'In the Cloud Console go to Compute Engine -> VM Instances'
-echo 'For this sql-reverse-proxy VM click SSH -> Open in Browser Window'
-echo 'Run the bolow command (only needed to do once)'
-echo "sudo apt-get install wget ca-certificates -y"
-echo "wget -O- https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor | sudo tee /etc/apt/keyrings/EXAMPLE.gpg > /dev/null"
-echo "sudo sh -c 'echo deb http://apt.postgresql.org/pub/repos/apt/ focal-pgdg main >> /etc/apt/sources.list.d/pgdg.list'"
-echo "sudo apt-get update -y"
-echo "sudo apt-get install postgresql-client -y"
+# ==============================================================================
+# 6. Reserve a specific IP in the compute-subnet (e.g., 10.1.0.50)
+# ==============================================================================
+export DB_LOCAL_IP="10.1.0.50"
 
-echo "To connect and run SQL commands use this:"
-echo "psql --host=${cloudsql_ip_address} --user=postgres --password" -d demodb
-echo "<<ENTER PASSWORD>>"
-echo "SELECT * FROM entries;"
+echo "Reserving IP ${DB_LOCAL_IP}..."
+gcloud compute addresses create "postgres-local-ip" \
+    --region="${CLOUD_SQL_REGION}" \
+    --subnet="compute-subnet" \
+    --addresses="${DB_LOCAL_IP}" \
+    --project="${PROJECT_ID}"
+
+
+# ==============================================================================
+# 7. Create the Forwarding Rule (The Endpoint)
+# ==============================================================================
+# This maps 10.1.0.50 -> The Cloud SQL Instance
+
+echo "Creating PSC Endpoint..."
+gcloud compute forwarding-rules create "postgres-endpoint" \
+    --region="${CLOUD_SQL_REGION}" \
+    --network="vpc-main" \
+    --address="postgres-local-ip" \
+    --target-service-attachment="${SERVICE_ATTACHMENT_LINK}" \
+    --project="${PROJECT_ID}"
+
+
+# ==============================================================================
+# PART C: Output Instructions
+# ==============================================================================
+
+echo ""
+echo "################################################################"
+echo "           INFRASTRUCTURE SETUP COMPLETE"
+echo "################################################################"
+echo ""
+echo "1. CONNECTION DETAILS:"
+echo "   - Endpoint IP: ${DB_LOCAL_IP}"
+echo "   - Database: ${DATABASE_NAME}"
+echo "   - Password: ${ROOT_PASSWORD}"
+echo ""
+echo "2. HOW TO CONNECT:"
+echo "   Go to Compute Engine -> VM Instances -> postgres-client -> SSH"
+echo ""
+echo "   (Wait 60 seconds for the startup script to finish installing psql)"
+echo ""
+echo "   Run:"
+echo "   psql --host=${DB_LOCAL_IP} --user=postgres --password -d ${DATABASE_NAME}"
+echo ""
+echo "################################################################"
+
+# ==============================================================================
+# Manual Delete Instructions
+# ==============================================================================
+# gcloud compute forwarding-rules delete postgres-endpoint --region="${CLOUD_SQL_REGION}" --project="${PROJECT_ID}" --quiet
+# gcloud compute addresses delete "postgres-local-ip" --region="${CLOUD_SQL_REGION}" --project="${PROJECT_ID}" --quiet
+# gcloud compute instances delete postgres-client --zone="${CLOUD_SQL_ZONE}" --project="${PROJECT_ID}" --quiet 
+# gcloud sql instances delete "${INSTANCE}" --project="${PROJECT_ID}" --quiet

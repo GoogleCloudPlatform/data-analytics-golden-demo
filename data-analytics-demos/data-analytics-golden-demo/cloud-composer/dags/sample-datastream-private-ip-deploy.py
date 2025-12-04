@@ -75,10 +75,7 @@ params_list = {
 # Set the datastream replication items
 def run_postgres_sql(database_password):
     print("start run_postgres_sql")
-    ipAddress = Path('/home/airflow/gcs/data/postgres_private_ip_address.txt').read_text()
-    ipAddress = ipAddress.replace("\n", "")
-    print("ipAddress:", ipAddress)
-
+    ipAddress = "10.1.0.50"
     database_name = "demodb"
     postgres_user = "postgres"
 

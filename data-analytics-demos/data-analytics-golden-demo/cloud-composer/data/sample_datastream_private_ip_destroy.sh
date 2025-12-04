@@ -25,76 +25,41 @@ INSTANCE="postgres-private-ip"
 CLOUD_SQL_REGION="{{ params.cloud_sql_region }}"
 CLOUD_SQL_ZONE="{{ params.cloud_sql_zone }}"
 
+export ATTACHMENT_NAME="datastream-attachment"
+export CONNECTION_NAME="cloud-sql-private-connect"
+export NEW_SUBNET_NAME="datastream-subnet"
 
-echo "PROJECT_ID: ${PROJECT_ID}"
-echo "DATASTREAM_REGION: ${DATASTREAM_REGION}"
 
-# Delete the stream
-gcloud datastream streams delete datastream-demo-private-ip-stream \
-    --location="${DATASTREAM_REGION}" \
-    --project="${PROJECT_ID}" \
-    --quiet
-
-echo "Sleep 180 - incase datastream needs a minute to stop the stream"
+gcloud datastream streams delete datastream-demo-private-ip-stream --location="${DATASTREAM_REGION}" --project="${PROJECT_ID}" --quiet
+echo "Sleep 180"
 sleep 180
 
+# You need to wait for the stream to be deleted before deleting the connection profiles
+gcloud datastream connection-profiles delete bigquery-private-ip-connection --location="${DATASTREAM_REGION}" --project="${PROJECT_ID}" --quiet
 
-# Delete the connection
-gcloud datastream connection-profiles delete postgres-private-ip-connection \
-    --location=${DATASTREAM_REGION} \
-    --project="${PROJECT_ID}" \
-    --quiet
+gcloud datastream connection-profiles delete postgres-private-ip-connection --location="${DATASTREAM_REGION}" --project="${PROJECT_ID}" --quiet
 
+gcloud datastream private-connections delete "${CONNECTION_NAME}" --location="${DATASTREAM_REGION}" --project="${PROJECT_ID}" --force --quiet
+echo "Sleep 600"
+sleep 600
 
-# Delete the connection
-gcloud datastream connection-profiles delete bigquery-private-ip-connection \
-    --location=${DATASTREAM_REGION} \
-    --project="${PROJECT_ID}" \
-    --quiet
+# You need to wait for the connection to be deleted before deleting the network attachment
+gcloud compute network-attachments delete "${ATTACHMENT_NAME}" --region="${DATASTREAM_REGION}" --project="${PROJECT_ID}" --quiet
 
-# Delete the private connectivity
-# This will fail due to nested resources.  You can re-run the deploy DAG and it works, so I leave the connection for now.
-gcloud datastream private-connections delete cloud-sql-private-connect \
-    --location=${DATASTREAM_REGION} \
-    --project="${PROJECT_ID}" \
-    --quiet
+gcloud compute firewall-rules delete allow-datastream-ingress --project="${PROJECT_ID}" --quiet
 
-# Delete the postgres database
-gcloud sql instances delete "${INSTANCE}" \
-    --project="${PROJECT_ID}" \
-    --quiet
+gcloud compute networks subnets delete "${NEW_SUBNET_NAME}" --region="${DATASTREAM_REGION}" --project="${PROJECT_ID}" --quiet
 
+gcloud compute forwarding-rules delete postgres-endpoint --region="${CLOUD_SQL_REGION}" --project="${PROJECT_ID}" --quiet
+
+gcloud compute addresses delete "postgres-local-ip" --region="${CLOUD_SQL_REGION}" --project="${PROJECT_ID}" --quiet
+
+gcloud compute instances delete postgres-client --zone="${CLOUD_SQL_ZONE}" --project="${PROJECT_ID}" --quiet 
+
+gcloud sql instances delete "${INSTANCE}" --project="${PROJECT_ID}" --quiet
 
 # Delete the BigQuery Dataset
 bq rm -r -f --dataset ${PROJECT_ID}:datastream_private_ip_public
-
-
-# *** NOTE: THIS HAS BEEN MOVED TO TERRAFORM *** -> The rules are left in place and are not deleted
-# Delete the firewall rule for the SQL Proxy
-# gcloud compute firewall-rules delete cloud-sql-ssh-firewall-rule \
-#     --project="${PROJECT_ID}" \
-#     --quiet
-
-
-# Delete the SQL Reverse Proxy VM
-gcloud compute instances delete sql-reverse-proxy \
-    --project="${PROJECT_ID}" \
-    --zone="${CLOUD_SQL_ZONE}" \
-    --quiet
-
-
-# *** NOTE: THIS HAS BEEN MOVED TO TERRAFORM *** -> The rules are left in place and are not deleted
-# Delete the firewall rules
-# gcloud compute firewall-rules delete datastream-ingress-rule \
-#     --project="${PROJECT_ID}" \
-#     --quiet
-
-
-# *** NOTE: THIS HAS BEEN MOVED TO TERRAFORM *** -> The rules are left in place and are not deleted
-# Delete the firewall rules
-# gcloud compute firewall-rules delete datastream-egress-rule \
-#    --project="${PROJECT_ID}" \
-#    --quiet
 
 # Reset the CDC file:
 rm /home/airflow/gcs/data/datastream-private-ip-generate-data.json
