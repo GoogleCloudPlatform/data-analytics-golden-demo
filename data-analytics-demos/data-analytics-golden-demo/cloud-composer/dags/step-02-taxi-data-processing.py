@@ -97,7 +97,7 @@ with DAG(
     default_args=default_args,
     start_date=datetime(2021, 1, 1),
     # Not scheduled, trigger only
-    schedule_interval=None,
+    schedule=None,
     catchup=False,
 ) as dag:
     # Create cluster

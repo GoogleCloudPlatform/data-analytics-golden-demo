@@ -28,9 +28,10 @@ import sys
 import os
 import logging
 import airflow
-from airflow.operators import bash_operator
+# UPDATED: Import directly from the new locations
+from airflow.operators.bash import BashOperator
+from airflow.operators.python import PythonOperator
 from airflow.utils import trigger_rule
-from airflow.operators.python_operator import PythonOperator
 import json
 from pathlib import Path
 import psycopg2
@@ -68,10 +69,11 @@ with airflow.DAG('sample-datastream-private-ip-destroy',
                  # Add the Composer "Data" directory which will hold the SQL/Bash scripts for deployment
                  template_searchpath=['/home/airflow/gcs/data'],
                  # Not scheduled, trigger only
-                 schedule_interval=None) as dag:
+                 schedule=None) as dag:
 
     # Create the Postgres Instance and Database
-    datastream_private_ip_destroy = bash_operator.BashOperator(
+    # UPDATED: Use BashOperator class directly
+    datastream_private_ip_destroy = BashOperator(
           task_id='datastream_private_ip_destroy',
           bash_command='sample_datastream_private_ip_destroy.sh',
           params=params_list,

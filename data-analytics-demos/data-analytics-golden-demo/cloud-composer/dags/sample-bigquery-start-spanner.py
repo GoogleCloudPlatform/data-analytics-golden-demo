@@ -30,9 +30,10 @@ import sys
 import os
 import logging
 import airflow
-from airflow.operators import bash_operator
+# UPDATED: Import directly from the new locations
+from airflow.operators.bash import BashOperator
 from airflow.utils import trigger_rule
-from airflow.operators.python_operator import PythonOperator
+from airflow.operators.python import PythonOperator
 import google.auth
 import google.auth.transport.requests
 from airflow.providers.google.cloud.operators.bigquery import BigQueryInsertJobOperator
@@ -236,20 +237,21 @@ with airflow.DAG('sample-bigquery-start-spanner',
                  # Add the Composer "Data" directory which will hold the SQL/Bash scripts for deployment
                  template_searchpath=['/home/airflow/gcs/data'],
                  # Not scheduled, trigger only
-                 schedule_interval=None) as dag:
+                 schedule=None) as dag:
 
     # NOTE: The service account of the Composer worker node must have access to run these commands
     # Access to create a data transfer and access to BQ to create a dataset
     # Access to spanner is required
 
     # Create Spanner Instance
-    gcloud_create_spanner_instance = bash_operator.BashOperator(
+    # UPDATED: Use BashOperator class directly
+    gcloud_create_spanner_instance = BashOperator(
         task_id="gcloud_create_spanner_instance",
         bash_command=gcloud_create_spanner_instance,
     )
 
     # Create Spanner Database
-    gcloud_create_spanner_database = bash_operator.BashOperator(
+    gcloud_create_spanner_database = BashOperator(
         task_id="gcloud_create_spanner_database",
         bash_command=gcloud_create_spanner_database,
     )
@@ -284,19 +286,19 @@ with airflow.DAG('sample-bigquery-start-spanner',
     )
 
     # Delete all records from the spanner table (to avoid dups)
-    truncate_spanner_table = bash_operator.BashOperator(
+    truncate_spanner_table = BashOperator(
         task_id="truncate_spanner_table",
         bash_command=gcloud_truncate_table,
     )
 
     # Run a Dataflow job that will import the data to spanner (this can take a few minutes to run)
-    dataflow_load_spanner_table = bash_operator.BashOperator(
+    dataflow_load_spanner_table = BashOperator(
         task_id="dataflow_load_spanner_table",
         bash_command=gcloud_load_weather_table,
     )
 
     # Setup a BigQuery federated query connection so we can query BQ and Spanner using a single SQL command
-    create_spanner_connection = bash_operator.BashOperator(
+    create_spanner_connection = BashOperator(
           task_id='create_spanner_connection',
           bash_command='bash_create_spanner_connection.sh',
           params=params_list,

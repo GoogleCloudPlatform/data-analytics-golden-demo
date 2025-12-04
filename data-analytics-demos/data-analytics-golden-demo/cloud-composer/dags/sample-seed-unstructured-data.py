@@ -27,12 +27,12 @@ import sys
 import os
 import logging
 import airflow
-from airflow.operators import bash_operator
+# UPDATED: Import directly from the new locations
+from airflow.operators.bash import BashOperator
 from airflow.utils import trigger_rule
-from airflow.operators.python_operator import PythonOperator
+from airflow.operators.python import PythonOperator
 import google.auth
 import google.auth.transport.requests
-from airflow.contrib.operators import bigquery_operator
 from airflow.providers.google.cloud.transfers.local_to_gcs import LocalFilesystemToGCSOperator
 import json
 
@@ -47,7 +47,7 @@ default_args = {
     'dagrun_timeout' : timedelta(minutes=60),
 }
 
-project_id            = os.environ['ENV_PROJECT_ID'] 
+project_id        = os.environ['ENV_PROJECT_ID'] 
 raw_bucket_name   = os.environ['ENV_RAW_BUCKET'] 
 code_bucket_name  = os.environ['ENV_CODE_BUCKET'] 
 
@@ -64,12 +64,13 @@ with airflow.DAG('sample-seed-unstructured-data',
                  # Add the Composer "Data" directory which will hold the SQL/Bash scripts for deployment
                  template_searchpath=['/home/airflow/gcs/data'],
                  # Not scheduled, trigger only
-                 schedule_interval=None) as dag:
+                 schedule=None) as dag:
 
     # NOTE: The service account of the Composer worker node must have access to run these commands
 
     # Setup a BigQuery federated query connection so we can query BQ and Spanner using a single SQL command
-    seed_unstructured_data = bash_operator.BashOperator(
+    # UPDATED: Use BashOperator class directly
+    seed_unstructured_data = BashOperator(
           task_id='seed_unstructured_data',
           bash_command='bash_seed_unstructured_data.sh',
           params=params_list,

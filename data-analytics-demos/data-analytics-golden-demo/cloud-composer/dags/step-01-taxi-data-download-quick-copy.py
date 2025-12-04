@@ -21,7 +21,8 @@
 from datetime import datetime, timedelta
 import os
 import airflow
-from airflow.operators import bash_operator
+# UPDATED: Import directly from the new location
+from airflow.operators.bash import BashOperator
 from airflow.utils import trigger_rule
 
 
@@ -46,9 +47,10 @@ with airflow.DAG('step-01-taxi-data-download-quick-copy',
                  default_args=default_args,
                  start_date=datetime(2021, 1, 1),
                  # Not scheduled, trigger only
-                 schedule_interval=None) as dag:
+                 schedule=None) as dag:
 
-    gsutil_copy_command_task = bash_operator.BashOperator(
+    # UPDATED: Use BashOperator class directly
+    gsutil_copy_command_task = BashOperator(
         task_id="gsutil_copy_command_task",
         bash_command=gsutil_copy_command,
     )

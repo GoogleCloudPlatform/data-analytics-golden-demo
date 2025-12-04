@@ -29,7 +29,8 @@ import airflow
 from airflow.utils import trigger_rule
 from airflow.providers.google.cloud.operators.bigquery import BigQueryInsertJobOperator
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
-from airflow.operators import bash_operator
+# UPDATED: Import directly from the new location
+from airflow.operators.bash import BashOperator
 
 default_args = {
     'owner': 'airflow',
@@ -55,15 +56,16 @@ with airflow.DAG('sample-rideshare-llm-hydrate-data',
                  default_args=default_args,
                  start_date=datetime(2021, 1, 1),
                  # Not scheduled, trigger only
-                 schedule_interval=None) as dag:
+                 schedule=None) as dag:
 
     # Copy data
-    copy_rideshare_llm_data = bash_operator.BashOperator(
+    # UPDATED: Use BashOperator class directly
+    copy_rideshare_llm_data = BashOperator(
         task_id="copy_rideshare_llm_data",
         bash_command=gsutil_copy_data,
     )
     # Copy audios
-    copy_rideshare_audios = bash_operator.BashOperator(
+    copy_rideshare_audios = BashOperator(
         task_id="copy_rideshare_audios",
         bash_command=gsutil_copy_audios,
     )

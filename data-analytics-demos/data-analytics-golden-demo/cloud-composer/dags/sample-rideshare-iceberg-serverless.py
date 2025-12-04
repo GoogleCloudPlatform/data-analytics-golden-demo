@@ -34,7 +34,7 @@ import logging
 import airflow
 from datetime import datetime, timedelta
 from airflow import models
-from airflow.providers.google.cloud.operators.dataproc import (DataprocCreateBatchOperator, DataprocDeleteBatchOperator, DataprocGetBatchOperator, DataprocListBatchesOperator)
+from airflow.providers.google.cloud.operators.dataproc import DataprocCreateBatchOperator
 
 default_args = {
     'owner': 'airflow',
@@ -106,7 +106,7 @@ with airflow.DAG('sample-rideshare-iceberg-serverless',
                  default_args=default_args,
                  start_date=datetime(2021, 1, 1),
                  # Not scheduled, trigger only
-                 schedule_interval=None) as dag:
+                 schedule=None) as dag:
 
     # Create serverless batch
     # https://airflow.apache.org/docs/apache-airflow-providers-google/stable/operators/cloud/dataproc.html#create-a-batch

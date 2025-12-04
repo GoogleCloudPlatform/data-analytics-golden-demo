@@ -28,9 +28,10 @@ import sys
 import os
 import logging
 import airflow
-from airflow.operators import bash_operator
+# UPDATED: Import directly from the new locations
+from airflow.operators.bash import BashOperator
+from airflow.operators.python import PythonOperator
 from airflow.utils import trigger_rule
-from airflow.operators.python_operator import PythonOperator
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 import json
 from pathlib import Path
@@ -161,12 +162,13 @@ with airflow.DAG('sample-datastream-private-ip-deploy',
                  # Add the Composer "Data" directory which will hold the SQL/Bash scripts for deployment
                  template_searchpath=['/home/airflow/gcs/data'],
                  # Not scheduled, trigger only
-                 schedule_interval=None) as dag:
+                 schedule=None) as dag:
 
     # NOTE: The service account of the Composer worker node must have access to run these commands
 
     # Create the Postgres Instance and Database
-    create_datastream_postgres_database_task = bash_operator.BashOperator(
+    # UPDATED: Use BashOperator class directly
+    create_datastream_postgres_database_task = BashOperator(
           task_id='create_datastream_postgres_database_task',
           bash_command='sample_datastream_private_ip_deploy_postgres.sh',
           params=params_list,
@@ -181,7 +183,7 @@ with airflow.DAG('sample-datastream-private-ip-deploy',
         )    
 
     # Configure datastream
-    bash_create_datastream_task = bash_operator.BashOperator(
+    bash_create_datastream_task = BashOperator(
           task_id='bash_create_datastream_task',
           bash_command='sample_datastream_private_ip_deploy_datastream.sh',
           params=params_list,

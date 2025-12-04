@@ -27,12 +27,14 @@ import sys
 import os
 import logging
 import airflow
-from airflow.operators import bash_operator
+# UPDATED: Import directly from the new locations
+from airflow.operators.bash import BashOperator
 from airflow.utils import trigger_rule
-from airflow.operators.python_operator import PythonOperator
+from airflow.operators.python import PythonOperator
 import google.auth
 import google.auth.transport.requests
-from airflow.contrib.operators import bigquery_operator
+# Unused and removed in Airflow 3
+# from airflow.contrib.operators import bigquery_operator
 from airflow.providers.google.cloud.transfers.local_to_gcs import LocalFilesystemToGCSOperator
 import json
 
@@ -78,12 +80,13 @@ with airflow.DAG('sample-dataplex-dataprofile-ridehshare-llm',
                  # Add the Composer "Data" directory which will hold the SQL/Bash scripts for deployment
                  template_searchpath=['/home/airflow/gcs/data'],
                  # Not scheduled, trigger only
-                 schedule_interval=None) as dag:
+                 schedule=None) as dag:
 
     # NOTE: The service account of the Composer worker node must have access to run these commands
 
     # Setup a BigQuery federated query connection so we can query BQ and Spanner using a single SQL command
-    dataplex_data_profile = bash_operator.BashOperator(
+    # UPDATED: Use BashOperator class directly
+    dataplex_data_profile = BashOperator(
           task_id='bash_dataplex_dataprofile_ridehshare_llm',
           bash_command='bash_dataplex_dataprofile_ridehshare_llm.sh',
           params=params_list,

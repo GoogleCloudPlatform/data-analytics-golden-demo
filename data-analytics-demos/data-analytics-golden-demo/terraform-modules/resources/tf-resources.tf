@@ -616,15 +616,15 @@ resource "google_dataproc_cluster" "mycluster" {
 
 
 ####################################################################################
-# Composer 2
+# Composer 3
 ####################################################################################
 # Cloud Composer v2 API Service Agent Extension
 # The below does not overwrite at the Org level like GCP docs: https://cloud.google.com/composer/docs/composer-2/create-environments#terraform
-resource "google_project_iam_member" "cloudcomposer_account_service_agent_v2_ext" {
-  project = var.project_id
-  role    = "roles/composer.ServiceAgentV2Ext"
-  member  = "serviceAccount:service-${var.project_number}@cloudcomposer-accounts.iam.gserviceaccount.com"
-}
+#resource "google_project_iam_member" "cloudcomposer_account_service_agent_v2_ext" {
+#  project = var.project_id
+#  role    = "roles/composer.ServiceAgentV2Ext"
+#  member  = "serviceAccount:service-${var.project_number}@cloudcomposer-accounts.iam.gserviceaccount.com"
+#}
 
 
 # Cloud Composer API Service Agent
@@ -634,7 +634,7 @@ resource "google_project_iam_member" "cloudcomposer_account_service_agent" {
   member  = "serviceAccount:service-${var.project_number}@cloudcomposer-accounts.iam.gserviceaccount.com"
 
   depends_on = [
-    google_project_iam_member.cloudcomposer_account_service_agent_v2_ext
+#    google_project_iam_member.cloudcomposer_account_service_agent_v2_ext
   ]
 }
 
@@ -711,13 +711,13 @@ data "google_composer_image_versions" "latest_image" {
 
 resource "google_composer_environment" "composer_env" {
   project = var.project_id
-  name    = "data-analytics-demo-composer-2"
+  name    = "data-analytics-demo-composer-3"
   region  = var.composer_region
 
   config {
 
     software_config {
-      image_version = "composer-2.15.0-airflow-2.10.5"
+      image_version = "composer-3-airflow-3.1.0-build.2"
       #image_version = data.google_composer_image_versions.latest_image.image_versions[0].image_version_id
 
       # Upgrading this failed as well same unhealthy error
@@ -785,7 +785,7 @@ resource "google_composer_environment" "composer_env" {
     workloads_config {
       scheduler {
         cpu        = 1
-        memory_gb  = 1
+        memory_gb  = 2
         storage_gb = 1
         count      = 1
       }
@@ -811,13 +811,11 @@ resource "google_composer_environment" "composer_env" {
       service_account = google_service_account.composer_service_account.name
     }
 
-    private_environment_config {
-      enable_private_endpoint = true
-    }
+    enable_private_environment = true
   }
 
   depends_on = [
-    google_project_iam_member.cloudcomposer_account_service_agent_v2_ext,
+#    google_project_iam_member.cloudcomposer_account_service_agent_v2_ext,
     google_project_iam_member.cloudcomposer_account_service_agent,
     google_compute_subnetwork.composer_subnet,
     google_service_account.composer_service_account,
@@ -2257,7 +2255,7 @@ resource "google_project_service_identity" "service_identity_bigquery_data_trans
   project = var.project_id
   service = "bigquerydatatransfer.googleapis.com"
   depends_on = [
-    google_project_iam_member.cloudcomposer_account_service_agent_v2_ext,
+#    google_project_iam_member.cloudcomposer_account_service_agent_v2_ext,
     google_project_iam_member.cloudcomposer_account_service_agent,
     google_service_account.composer_service_account
   ]
@@ -2999,9 +2997,9 @@ output "dataproc_service_account" {
   value = google_service_account.dataproc_service_account.email
 }
 
-output "cloudcomposer_account_service_agent_v2_ext" {
-  value = google_project_iam_member.cloudcomposer_account_service_agent_v2_ext.member
-}
+#output "cloudcomposer_account_service_agent_v2_ext" {
+#  value = google_project_iam_member.cloudcomposer_account_service_agent_v2_ext.member
+#}
 
 output "composer_subnet" {
   value = google_compute_subnetwork.composer_subnet.name

@@ -26,8 +26,9 @@ from datetime import datetime, timedelta
 import os
 import json
 import airflow
-from airflow.operators import bash_operator
-from airflow.operators.python_operator import PythonOperator
+# UPDATED: Import directly from the new locations
+from airflow.operators.bash import BashOperator
+from airflow.operators.python import PythonOperator
 
 
 ####################################################################################
@@ -67,14 +68,14 @@ if "destroy" in os.path.basename(__file__):
     is_deploy_or_destroy = "destroy"
     dag_display_name = dag_prefix_name + "-destroy"
     terraform_destroy = "-destroy" # parameter to terraform script
-    schedule_interval=timedelta(minutes=15)
+    schedule=timedelta(minutes=15)
 else:
     env_run_bash_deploy="true"
     terraform_bash_script_deploy = terraform_bash_file
     terraform_bash_script_destroy = "echo 'Skiping Destroy'"
     is_deploy_or_destroy = "deploy"
     dag_display_name = dag_prefix_name + "-deploy"
-    schedule_interval=None
+    schedule=None
 
 
 params_list = { 
@@ -168,12 +169,13 @@ with airflow.DAG(dag_display_name,
                  # Add the Composer "Data" directory which will hold the SQL/Bash scripts for deployment
                  template_searchpath=['/home/airflow/gcs/data'],
                  # Either run manually or every 15 minutes (for auto delete)
-                 schedule_interval=schedule_interval) as dag:
+                 schedule=schedule) as dag:
 
     # NOTE: The Composer Service Account will Impersonate the Terraform service account
 
     # This will deploy the Terraform code if this DAG ends with "-deploy"
-    execute_terraform_deploy = bash_operator.BashOperator(
+    # UPDATED: Use BashOperator class directly
+    execute_terraform_deploy = BashOperator(
         task_id='execute_terraform_deploy',
         bash_command=terraform_bash_file,
         params=params_list,
@@ -202,7 +204,7 @@ with airflow.DAG(dag_display_name,
         ) 
     
     # This will delete the deployment if this DAG ends with "-destroy" and delete_environment = True (time to delete has passed)
-    execute_terraform_destroy = bash_operator.BashOperator(
+    execute_terraform_destroy = BashOperator(
         task_id='execute_terraform_destroy',
         bash_command=terraform_bash_file,
         params=params_list,

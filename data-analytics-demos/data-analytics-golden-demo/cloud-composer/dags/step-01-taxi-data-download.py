@@ -25,11 +25,9 @@ import sys
 import os
 import logging
 import airflow
-#from airflow.operators import bash_operator
-#from airflow.contrib.operators import dataproc_operator
 from airflow.utils import trigger_rule
-#from airflow.contrib.operators import bigquery_operator
-from airflow.operators.python_operator import PythonOperator
+# UPDATED: Import directly from the new location
+from airflow.operators.python import PythonOperator
 
 
 default_args = {
@@ -111,7 +109,7 @@ with airflow.DAG('step-01-taxi-data-download',
                  default_args=default_args,
                  start_date=datetime(2021, 1, 1),
                  # Not scheduled, trigger only
-                 schedule_interval=None) as dag:
+                 schedule=None) as dag:
 
     download_yellow_2025 = PythonOperator(
         task_id='download_yellow_2025',

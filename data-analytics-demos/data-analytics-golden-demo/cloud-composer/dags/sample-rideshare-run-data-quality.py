@@ -36,9 +36,10 @@ import json
 import time
 
 import airflow
-from airflow.operators import bash_operator
+# UPDATED: Import directly from the new locations
+from airflow.operators.bash import BashOperator
 from airflow.utils import trigger_rule
-from airflow.operators.python_operator import PythonOperator
+from airflow.operators.python import PythonOperator
 
 from airflow.providers.google.cloud.operators.bigquery import BigQueryCreateEmptyDatasetOperator
 from airflow.providers.google.cloud.operators.dataplex import DataplexCreateTaskOperator
@@ -407,7 +408,7 @@ with airflow.DAG('sample-rideshare-run-data-quality',
                  # Add the Composer "Data" directory which will hold the SQL/Bash scripts for deployment
                  template_searchpath=['/home/airflow/gcs/data'],
                  # Not scheduled, trigger only
-                 schedule_interval=None) as dag:
+                 schedule=None) as dag:
 
     # NOTE: The service account of the Composer worker node must have access to run these commands
 

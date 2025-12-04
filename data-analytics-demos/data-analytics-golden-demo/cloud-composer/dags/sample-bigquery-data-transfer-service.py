@@ -27,9 +27,10 @@
 
 # [START dag]
 from datetime import datetime, timedelta
-from airflow.operators import bash_operator
+# UPDATED: Import directly from the new locations
+from airflow.operators.bash import BashOperator
+from airflow.operators.python import PythonOperator
 from airflow.utils import trigger_rule
-from airflow.operators.python_operator import PythonOperator
 import requests
 import sys
 import os
@@ -151,24 +152,25 @@ with airflow.DAG('sample-bigquery-data-transfer-service',
                  # Add the Composer "Data" directory which will hold the SQL scripts for deployment
                  template_searchpath=['/home/airflow/gcs/data'],
                  # Not scheduled, trigger only
-                 schedule_interval=None) as dag:
+                 schedule=None) as dag:
 
     # NOTE: The service account of the Composer worker node must have access to run these commands
     # Access to create a data transfer and access to BQ to create a dataset
 
     # Show some BQ commands
-    bq_create_dataset = bash_operator.BashOperator(
+    # UPDATED: Use BashOperator class directly
+    bq_create_dataset = BashOperator(
         task_id="bq_create_dataset",
         bash_command=bq_create_dataset_command,
     )
 
-    bq_copy_dataset = bash_operator.BashOperator(
+    bq_copy_dataset = BashOperator(
         task_id="bq_copy_dataset",
         bash_command=bq_copy_dataset_command,
     )
 
     # Does not work since JQ is not installed and did not want to install
-    #bq_start_transfer = bash_operator.BashOperator(
+    #bq_start_transfer = BashOperator(
     #    task_id="bq_start_transfer",
     #    bash_command=bq_start_transfer_command,
     #)

@@ -60,7 +60,7 @@ with airflow.DAG('run-all-dags',
                  # Add the Composer "Data" directory which will hold the SQL scripts for deployment
                  template_searchpath=['/home/airflow/gcs/data'],
                  # Not scheduled, trigger only
-                 schedule_interval='@once') as dag:
+                 schedule='@once') as dag:
 
     step_01_taxi_data_download = TriggerDagRunOperator(
         task_id="step_01_taxi_data_download",

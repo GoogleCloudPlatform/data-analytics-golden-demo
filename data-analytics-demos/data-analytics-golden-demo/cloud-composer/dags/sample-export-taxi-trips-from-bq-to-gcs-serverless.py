@@ -104,7 +104,7 @@ with airflow.DAG('sample-export-taxi-trips-from-bq-to-gcs-serverless',
                  default_args=default_args,
                  start_date=datetime(2021, 1, 1),
                  # Not scheduled, trigger only
-                 schedule_interval=None) as dag:
+                 schedule=None) as dag:
 
     # Create serverless batch
     # https://airflow.apache.org/docs/apache-airflow-providers-google/stable/operators/cloud/dataproc.html#create-a-batch

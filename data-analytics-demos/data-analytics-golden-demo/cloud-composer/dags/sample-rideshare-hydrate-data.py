@@ -19,12 +19,8 @@
 #          the Rideshare Analytics Lakehouse
 
 # [START dag]
-from google.cloud import storage
 from datetime import datetime, timedelta
-import requests
-import sys
 import os
-import logging
 import airflow
 from airflow.utils import trigger_rule
 from airflow.providers.google.cloud.operators.bigquery import BigQueryInsertJobOperator
@@ -66,7 +62,7 @@ with airflow.DAG('sample-rideshare-hydrate-data',
                  default_args=default_args,
                  start_date=datetime(2021, 1, 1),
                  # Not scheduled, trigger only
-                 schedule_interval=None) as dag:
+                 schedule=None) as dag:
 
     rideshare_lakehouse_raw_sp_create_raw_data = BigQueryInsertJobOperator(
         task_id="rideshare_lakehouse_raw_sp_create_raw_data",

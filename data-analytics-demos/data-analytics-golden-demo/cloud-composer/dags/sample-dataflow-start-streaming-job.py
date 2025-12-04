@@ -30,11 +30,11 @@ import os
 import logging
 import json
 import airflow
-from airflow.operators import bash_operator
+# UPDATED: Import directly from the new locations.
 from airflow.utils import trigger_rule
 from airflow.providers.apache.beam.operators.beam import BeamRunPythonPipelineOperator
 from airflow.providers.google.cloud.operators.dataflow import DataflowConfiguration
-from airflow.operators.python_operator import PythonOperator
+from airflow.operators.python import PythonOperator
 
 
 default_args = {
@@ -84,7 +84,7 @@ with airflow.DAG('sample-dataflow-start-streaming-job',
                  # Add the Composer "Data" directory which will hold the SQL scripts for deployment
                  template_searchpath=['/home/airflow/gcs/data'],
                  # Not scheduled, trigger only
-                 schedule_interval=None) as dag:
+                 schedule=None) as dag:
 
 
     # Start Dataflow Python Streaming job

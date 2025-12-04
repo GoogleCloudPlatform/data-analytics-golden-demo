@@ -23,7 +23,8 @@ import os
 from datetime import datetime, timedelta
 import airflow
 from airflow.utils import trigger_rule
-from airflow.operators import bash_operator
+# UPDATED: Import directly from the new location
+from airflow.operators.bash import BashOperator
 
 
 default_args = {
@@ -52,12 +53,13 @@ with airflow.DAG('sample-rideshare-download-images',
                  # Add the Composer "Data" directory which will hold the SQL/Bash scripts for deployment
                  template_searchpath=['/home/airflow/gcs/data'],
                  # Not scheduled, trigger only
-                 schedule_interval=None) as dag:
+                 schedule=None) as dag:
 
     # NOTE: The service account of the Composer worker node must have access to run these commands
 
     # Download images and then upload to the raw lakehouse zone
-    download_and_upload_images = bash_operator.BashOperator(
+    # UPDATED: Use BashOperator class directly
+    download_and_upload_images = BashOperator(
           task_id='download_and_upload_images',
           bash_command='bash_download_rideshare_images.sh',
           params=params_list,

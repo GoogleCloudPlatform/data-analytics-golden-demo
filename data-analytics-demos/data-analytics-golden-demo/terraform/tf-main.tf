@@ -597,9 +597,9 @@ output "dataproc_service_account" {
   value = module.resources.dataproc_service_account
 }
 
-output "cloudcomposer_account_service_agent_v2_ext" {
-  value = module.resources.cloudcomposer_account_service_agent_v2_ext
-}
+#output "cloudcomposer_account_service_agent_v2_ext" {
+#  value = module.resources.cloudcomposer_account_service_agent_v2_ext
+#}
 
 output "composer_subnet" {
   value = module.resources.composer_subnet

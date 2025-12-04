@@ -19,9 +19,10 @@
 
 # [START dag]
 from datetime import datetime, timedelta
-from airflow.operators import bash_operator
+# UPDATED: Import directly from the new locations
+from airflow.operators.bash import BashOperator
+from airflow.operators.python import PythonOperator
 from airflow.utils import trigger_rule
-from airflow.operators.python_operator import PythonOperator
 import requests
 import sys
 import os
@@ -124,7 +125,7 @@ with airflow.DAG('sample-bigquery-stop-spanner',
                  # Add the Composer "Data" directory which will hold the SQL scripts for deployment
                  template_searchpath=['/home/airflow/gcs/data'],
                  # Run every 15 minutes
-                 schedule_interval=timedelta(minutes=15)) as dag:
+                 schedule=timedelta(minutes=15)) as dag:
 
 
     # Delete the Spanner instnace after 4 hours
@@ -138,7 +139,7 @@ with airflow.DAG('sample-bigquery-stop-spanner',
 
     # Delete BigQuery Spanner connection
     """  Should only run if > 4 hours
-    delete_bigquery_connection = bash_operator.BashOperator(
+    delete_bigquery_connection = BashOperator(
          task_id="delete_bigquery_connection",
         bash_command=delete_bigquery_connection,
     )

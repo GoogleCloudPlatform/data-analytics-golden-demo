@@ -19,9 +19,10 @@
 
 # [START dag]
 from datetime import datetime, timedelta
-from airflow.operators import bash_operator
+# UPDATED: Import directly from the new locations
+from airflow.operators.bash import BashOperator
+from airflow.operators.python import PythonOperator
 from airflow.utils import trigger_rule
-from airflow.operators.python_operator import PythonOperator
 import requests
 import sys
 import os
@@ -147,7 +148,7 @@ with airflow.DAG('sample-create-data-fusion',
                  # Add the Composer "Data" directory which will hold the SQL scripts for deployment
                  template_searchpath=['/home/airflow/gcs/data'],
                  # Not scheduled, trigger only
-                 schedule_interval=None) as dag:
+                 schedule=None) as dag:
 
     # NOTE: The service account of the Composer worker node must have access to run these commands
 
