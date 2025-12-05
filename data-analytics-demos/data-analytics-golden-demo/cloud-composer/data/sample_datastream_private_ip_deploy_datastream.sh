@@ -62,22 +62,14 @@ gcloud compute network-attachments create "${ATTACHMENT_NAME}" \
     --producer-accept-list="${PROJECT_ID}" \
     --project="${PROJECT_ID}" 
 
+# Needed so we can get the producer project id
+echo "Sleep 15"
+sleep 15
+
 
 # ==============================================================================
 # 3. Set the producer id
 # ==============================================================================
-#ERROR_OUTPUT=$(gcloud datastream private-connections create ${CONNECTION_NAME} \
-#    --location="${DATASTREAM_REGION}" \
-#    --display-name="${CONNECTION_NAME}" \
-#    --network-attachment="projects/${PROJECT_ID}/regions/${DATASTREAM_REGION}/networkAttachments/${ATTACHMENT_NAME}" \
-#    --project="${PROJECT_ID}" \
-#    --validate-only 2>&1)
-#    
-#export PRODUCER_PROJECT_ID=$(echo "$ERROR_OUTPUT" | grep "tenant_project_id:" | awk '{print $2}')
-#
-#echo "PRODUCER_PROJECT_ID: ${PRODUCER_PROJECT_ID}"
-
-
 echo "Attempting to Validate Connection to find Producer ID..."
 
 # 1. Run the command and capture ALL output (stdout and stderr)
