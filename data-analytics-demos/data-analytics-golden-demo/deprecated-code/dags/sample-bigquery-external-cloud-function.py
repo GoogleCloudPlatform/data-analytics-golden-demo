@@ -124,7 +124,7 @@ deploy_cloud_function= \
 
 
 # Cloud function access to read bucket
-grant_bucket_iam = "gsutil iam ch \"serviceAccount:" + project_id + "@appspot.gserviceaccount.com:objectViewer\" " + processed_bucket_name
+grant_bucket_iam = "gcloud storage buckets add-iam-policy-binding " + processed_bucket_name + " --member=\"serviceAccount:" + project_id + "@appspot.gserviceaccount.com\" --role=\"roles/storage.objectViewer\""
 
 
 # Sample call from project
