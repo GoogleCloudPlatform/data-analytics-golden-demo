@@ -72,8 +72,8 @@ then
   then
     echo "No terraform_output_bucket specified.  Not copying tf-output.json"
   else
-    echo "Copying tf-output.json: gsutil cp tf-output.json gs://${terraform_output_bucket}/terraform/output/"
-    gsutil cp tf-output.json "gs://${terraform_output_bucket}/terraform/output/"
+    echo "Copying tf-output.json: gcloud storage cp tf-output.json gs://${terraform_output_bucket}/terraform/output/"
+    gcloud storage cp tf-output.json "gs://${terraform_output_bucket}/terraform/output/"
   fi
 
   # Copy TF State file - Check to see if the user did not specify an output bucket
@@ -81,8 +81,8 @@ then
   then
     echo "No terraform_output_bucket specified.  Not copying Terraform State file"
   else
-    echo "Copying terraform.tfstate: gsutil cp terraform.tfstate gs://${terraform_output_bucket}/terraform/state/"
-    gsutil cp terraform.tfstate "gs://${terraform_output_bucket}/terraform/state/"
+    echo "Copying terraform.tfstate: gcloud storage cp terraform.tfstate gs://${terraform_output_bucket}/terraform/state/"
+    gcloud storage cp terraform.tfstate "gs://${terraform_output_bucket}/terraform/state/"
   fi
 
 fi

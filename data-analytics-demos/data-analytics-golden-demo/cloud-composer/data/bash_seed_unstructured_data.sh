@@ -31,14 +31,14 @@ RAW_BUCKET_NAME="{{ params.raw_bucket_name }}"
 CODE_BUCKET_NAME="{{ params.code_bucket_name }}"
 
 # Copy sample images from public bucket to the Raw bucket so we can place an object table over them
-gsutil -m cp -r gs://cloud-samples-data/vision  "gs://${RAW_BUCKET_NAME}/biglake-unstructured-data/"
+gcloud storage cp --recursive gs://cloud-samples-data/vision  "gs://${RAW_BUCKET_NAME}/biglake-unstructured-data/"
 
 # Set some meta tags so we can do row level security
-gsutil setmeta -h "x-goog-meta-pii:true"  "gs://${RAW_BUCKET_NAME}/biglake-unstructured-data/vision/face/face_no_surprise.jpg"
-gsutil setmeta -h "x-goog-meta-pii:true"  "gs://${RAW_BUCKET_NAME}/biglake-unstructured-data/vision/pdf_tiff/census2010.pdf"
-gsutil setmeta -h "x-goog-meta-pii:true"  "gs://${RAW_BUCKET_NAME}/biglake-unstructured-data/vision/celebrity_recognition.jpg"
-gsutil setmeta -h "x-goog-meta-pii:true"  "gs://${RAW_BUCKET_NAME}/biglake-unstructured-data/vision/document_parsing/key_value_pairs.pdf"
-gsutil setmeta -h "x-goog-meta-pii:true"  "gs://${RAW_BUCKET_NAME}/biglake-unstructured-data/vision/text/screen.jpg"
+gcloud storage objects update --custom-metadata="pii=true"  "gs://${RAW_BUCKET_NAME}/biglake-unstructured-data/vision/face/face_no_surprise.jpg"
+gcloud storage objects update --custom-metadata="pii=true"  "gs://${RAW_BUCKET_NAME}/biglake-unstructured-data/vision/pdf_tiff/census2010.pdf"
+gcloud storage objects update --custom-metadata="pii=true"  "gs://${RAW_BUCKET_NAME}/biglake-unstructured-data/vision/celebrity_recognition.jpg"
+gcloud storage objects update --custom-metadata="pii=true"  "gs://${RAW_BUCKET_NAME}/biglake-unstructured-data/vision/document_parsing/key_value_pairs.pdf"
+gcloud storage objects update --custom-metadata="pii=true"  "gs://${RAW_BUCKET_NAME}/biglake-unstructured-data/vision/text/screen.jpg"
 
 
 mkdir resnet_50_classification_1
@@ -55,8 +55,8 @@ tar xzf imagenet_mobilenet.tar.gz
 rm imagenet_mobilenet.tar.gz
 cd ..
 
-gsutil cp -r ./resnet_50_classification_1  "gs://${CODE_BUCKET_NAME}/tf-models/"
-gsutil cp -r ./imagenet_mobilenet_v3_small_075_224_feature_vector_5  "gs://${CODE_BUCKET_NAME}/tf-models/"
+gcloud storage cp --recursive ./resnet_50_classification_1  "gs://${CODE_BUCKET_NAME}/tf-models/"
+gcloud storage cp --recursive ./imagenet_mobilenet_v3_small_075_224_feature_vector_5  "gs://${CODE_BUCKET_NAME}/tf-models/"
 
 cd ..
 rm -rf seed_unstructured_data

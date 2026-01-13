@@ -117,7 +117,7 @@ serviceAccount="dataproc-service-account@${project}.iam.gserviceaccount.com"
 rawBucket="raw-${project}-${project_string}"
 processedBucket="processed-${project}-${project_string}"
 
-gsutil cp ./dataproc/export_taxi_data_biglake_storage_api.py gs://${rawBucket}/pyspark-code
+gcloud storage cp ./dataproc/export_taxi_data_biglake_storage_api.py gs://${rawBucket}/pyspark-code
 
 batch=`date +%Y-%m-%d-%H-%M-%S`
 echo "batch: ${batch}"

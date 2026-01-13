@@ -109,7 +109,7 @@ gcloud dataproc clusters create iceberg-cluster \
 # Download Iceberg JAR: https://iceberg.apache.org/releases/
 # https://iceberg.apache.org/spark-quickstart/ (pyspark samples)
 
-gsutil cp ./dataproc/convert_taxi_to_iceberg_data_updates.py gs://${rawBucket}/pyspark-code/convert_taxi_to_iceberg_data_updates.py
+gcloud storage cp ./dataproc/convert_taxi_to_iceberg_data_updates.py gs://${rawBucket}/pyspark-code/convert_taxi_to_iceberg_data_updates.py
 
 gcloud dataproc jobs submit pyspark  \
    --cluster "iceberg-cluster" \
@@ -127,7 +127,7 @@ gcloud dataproc clusters delete iceberg-cluster --region REPLACE-REGION --projec
 """
 REPLACE "s3epuwhxbf" with your unique Id
 
-gsutil cp ./dataproc/convert_taxi_to_iceberg_data_updates.py gs://raw-data-analytics-demo-s3epuwhxbf/pyspark-code
+gcloud storage cp ./dataproc/convert_taxi_to_iceberg_data_updates.py gs://raw-data-analytics-demo-s3epuwhxbf/pyspark-code
 
 gcloud beta dataproc batches submit pyspark \
     --project="data-analytics-demo-s3epuwhxbf" \
