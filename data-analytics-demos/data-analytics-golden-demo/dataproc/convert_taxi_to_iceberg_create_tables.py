@@ -308,7 +308,7 @@ gcloud dataproc clusters create iceberg-cluster \
 # Download Iceberg JAR: https://iceberg.apache.org/releases/
 # https://iceberg.apache.org/spark-quickstart/ (pyspark samples)
 
-gsutil cp ./dataproc/convert_taxi_to_iceberg_create_tables.py gs://${rawBucket}/pyspark-code/convert_taxi_to_iceberg_create_tables.py
+gcloud storage cp ./dataproc/convert_taxi_to_iceberg_create_tables.py gs://${rawBucket}/pyspark-code/convert_taxi_to_iceberg_create_tables.py
 
 gcloud dataproc jobs submit pyspark  \
    --cluster "iceberg-cluster" \

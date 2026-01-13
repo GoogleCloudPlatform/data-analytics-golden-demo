@@ -55,7 +55,7 @@ echo "YAML Replacing: /home/airflow/gcs/data/dataplex_data_quality_taxi.yaml"
 sed "s/DATAPLEX_REGION/${DATAPLEX_REGION}/g" "/home/airflow/gcs/data/dataplex_data_quality_taxi.yaml" > "/home/airflow/gcs/data/dataplex_data_quality_taxi.tmp1"
 sed "s/PROJECT_ID/${PROJECT_ID}/g" "/home/airflow/gcs/data/dataplex_data_quality_taxi.tmp1" > "/home/airflow/gcs/data/dataplex_data_quality_taxi.tmp2"
 sed "s/RANDOM_EXTENSION/${RANDOM_EXTENSION}/g" "/home/airflow/gcs/data/dataplex_data_quality_taxi.tmp2" > "/home/airflow/gcs/data/dataplex_data_quality_taxi.tmp3"
-gsutil cp /home/airflow/gcs/data/dataplex_data_quality_taxi.tmp3 ${YAML_PATH}
+gcloud storage cp /home/airflow/gcs/data/dataplex_data_quality_taxi.tmp3 ${YAML_PATH}
 rm /home/airflow/gcs/data/dataplex_data_quality_taxi.tmp1
 rm /home/airflow/gcs/data/dataplex_data_quality_taxi.tmp2
 rm /home/airflow/gcs/data/dataplex_data_quality_taxi.tmp3

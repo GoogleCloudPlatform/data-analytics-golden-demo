@@ -60,8 +60,8 @@ else
     gcloud auth activate-service-account "${var.deployment_service_account_name}" --key-file="$${GOOGLE_APPLICATION_CREDENTIALS}" --project="${var.project_id}"
     gcloud config set account "${var.deployment_service_account_name}"
 fi  
-gsutil cp ../cloud-composer/dags/step-*.py ${var.composer_dag_bucket}
-gsutil cp ../cloud-composer/dags/sample-dataflow-start-streaming-job.py ${var.composer_dag_bucket}
+gcloud storage cp ../cloud-composer/dags/step-*.py ${var.composer_dag_bucket}
+gcloud storage cp ../cloud-composer/dags/sample-dataflow-start-streaming-job.py ${var.composer_dag_bucket}
 EOF    
   }
 }
@@ -81,7 +81,7 @@ else
     gcloud auth activate-service-account "${var.deployment_service_account_name}" --key-file="$${GOOGLE_APPLICATION_CREDENTIALS}" --project="${var.project_id}"
     gcloud config set account "${var.deployment_service_account_name}"
 fi  
-gsutil cp -r ../cloud-composer/data/* ${replace(var.composer_dag_bucket, "/dags", "/data")}
+gcloud storage cp --recursive ../cloud-composer/data/* ${replace(var.composer_dag_bucket, "/dags", "/data")}
 EOF        
   }
 }
@@ -100,7 +100,7 @@ else
     gcloud auth activate-service-account "${var.deployment_service_account_name}" --key-file="$${GOOGLE_APPLICATION_CREDENTIALS}" --project="${var.project_id}"
     gcloud config set account "${var.deployment_service_account_name}"
 fi  
-gsutil cp ../dataproc/* gs://raw-${var.storage_bucket}/pyspark-code/
+gcloud storage cp ../dataproc/* gs://raw-${var.storage_bucket}/pyspark-code/
 EOF
   }
 }
@@ -121,7 +121,7 @@ else
 fi  
 curl -L https://repo.maven.apache.org/maven2/org/apache/iceberg/iceberg-spark-runtime-3.1_2.12/0.14.0/iceberg-spark-runtime-3.1_2.12-0.14.0.jar   --output iceberg-spark-runtime-3.1_2.12-0.14.0.jar
 curl -L https://github.com/GoogleCloudDataproc/spark-bigquery-connector/releases/download/0.26.0/spark-bigquery-with-dependencies_2.12-0.26.0.jar --output spark-bigquery-with-dependencies_2.12-0.26.0.jar
-gsutil cp *.jar gs://raw-${var.storage_bucket}/pyspark-code/
+gcloud storage cp *.jar gs://raw-${var.storage_bucket}/pyspark-code/
 EOF
   }
 }
@@ -140,7 +140,7 @@ else
     gcloud auth activate-service-account "${var.deployment_service_account_name}" --key-file="$${GOOGLE_APPLICATION_CREDENTIALS}" --project="${var.project_id}"
     gcloud config set account "${var.deployment_service_account_name}"
 fi  
-gsutil cp ../dataflow/* gs://raw-${var.storage_bucket}/dataflow/
+gcloud storage cp ../dataflow/* gs://raw-${var.storage_bucket}/dataflow/
 EOF
   }
 }
@@ -185,7 +185,7 @@ find ../notebooks -type f -name "*.ipynb" -print0 | while IFS= read -r -d '' fil
     sed "s/REPLACE-BUCKET-NAME/processed-${var.storage_bucket}/g" "$${file}" > "$${destFile}.tmp"
     sed "s/REPLACE-PROJECT-ID/${var.project_id}/g" "$${destFile}.tmp" > "$${destFile}"
 done
-gsutil cp ../notebooks-with-substitution/*.ipynb gs://processed-${var.storage_bucket}/notebooks/
+gcloud storage cp ../notebooks-with-substitution/*.ipynb gs://processed-${var.storage_bucket}/notebooks/
 EOF
   }
 }
@@ -213,8 +213,8 @@ find ../bigspark -type f -name "*.py" -print0 | while IFS= read -r -d '' file; d
     sed "s/REPLACE-BUCKET-NAME/raw-${var.storage_bucket}/g" "$${file}" > "$${destFile}.tmp"
     sed "s/REPLACE-PROJECT-ID/${var.project_id}/g" "$${destFile}.tmp" > "$${destFile}"
 done
-gsutil cp ../bigspark-with-substitution/*.py gs://raw-${var.storage_bucket}/bigspark/
-gsutil cp ../bigspark/*.csv gs://raw-${var.storage_bucket}/bigspark/
+gcloud storage cp ../bigspark-with-substitution/*.py gs://raw-${var.storage_bucket}/bigspark/
+gcloud storage cp ../bigspark/*.csv gs://raw-${var.storage_bucket}/bigspark/
 EOF
   }
 }
@@ -243,8 +243,8 @@ find ../sample-data/rideshare_trips/_symlink_format_manifest -type f -name "*" -
     echo "destFile: $${destFile}"
     sed "s/REPLACE-BUCKET-NAME/processed-${var.storage_bucket}/g" "$${file}" > "$${destFile}"
 done
-gsutil cp -r ../sample-data/rideshare_trips-with-substitution/* gs://processed-${var.storage_bucket}/delta_io/rideshare_trips/
-gsutil rm gs://processed-${var.storage_bucket}/delta_io/rideshare_trips/README.md
+gcloud storage cp --recursive ../sample-data/rideshare_trips-with-substitution/* gs://processed-${var.storage_bucket}/delta_io/rideshare_trips/
+gcloud storage rm gs://processed-${var.storage_bucket}/delta_io/rideshare_trips/README.md
 EOF
   }
 }
@@ -303,7 +303,7 @@ else
     gcloud auth activate-service-account "${var.deployment_service_account_name}" --key-file="$${GOOGLE_APPLICATION_CREDENTIALS}" --project="${var.project_id}"
     gcloud config set account "${var.deployment_service_account_name}"
 fi  
-gsutil cp -n ../cloud-composer/dags/* ${var.composer_dag_bucket}
+gcloud storage cp --no-clobber ../cloud-composer/dags/* ${var.composer_dag_bucket}
 
 EOF    
   }
@@ -311,4 +311,3 @@ EOF
     time_sleep.wait_for_airflow_dag_sync
   ]
 }
-
