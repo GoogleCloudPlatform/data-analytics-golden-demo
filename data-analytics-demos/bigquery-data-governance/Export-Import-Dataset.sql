@@ -37,7 +37,7 @@ ORDER BY table_name;
 --------------------------------------------------------------------------------------------------
 -- Copy to public storage account
 -- Must be in Google.com context
-gsutil -m -q cp -r gs://data-analytics-preview/governed-data/Data-Export  gs://data-analytics-golden-demo/governed-data/v1/Data-Export
+gcloud storage cp -r gs://data-analytics-preview/governed-data/Data-Export  gs://data-analytics-golden-demo/governed-data/v1/Data-Export
 
 
 --------------------------------------------------------------------------------------------------

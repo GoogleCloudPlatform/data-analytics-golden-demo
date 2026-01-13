@@ -284,7 +284,7 @@ bq_rideshare_raw_dataset="rideshare_lakehouse_raw"
 rideshare_raw_bucket="rideshare-lakehouse-raw-rexm45tpvr"
 rideshare_enriched_bucket="rideshare-lakehouse-enriched-rexm45tpvr"
 
-gsutil cp ./dataproc/rideshare_iceberg_serverless.py gs://raw-${project_id}/pyspark-code
+gcloud storage cp ./dataproc/rideshare_iceberg_serverless.py gs://raw-${project_id}/pyspark-code
 # This needs to escape (gcloud topic escaping) org.apache.iceberg:iceberg-spark-runtime-3.2_2.12:0.14.1,org.apache.spark:spark-avro_2.12:3.3.1
 
 gcloud beta dataproc batches submit pyspark \
