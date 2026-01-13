@@ -146,7 +146,7 @@ gcloud dataproc clusters create dataproc-cluster \
     --project "${project}"
 
 # Copy script to storage
-gsutil cp ./dataproc/export_taxi_data_from_bq_to_gcs.py gs://${rawBucket}/pyspark-code
+gcloud storage cp ./dataproc/export_taxi_data_from_bq_to_gcs.py gs://${rawBucket}/pyspark-code
 
 # Write to bucket (regional)
 gcloud dataproc jobs submit pyspark  \
@@ -219,7 +219,7 @@ gcloud dataproc clusters delete dataproc-cluster --region REPLACE-REGION --proje
 """
 project_string="s3epuwhxbf"
 
-gsutil cp ./dataproc/export_taxi_data_from_bq_to_gcs.py gs://raw-data-analytics-demo-${project_string}/pyspark-code
+gcloud storage cp ./dataproc/export_taxi_data_from_bq_to_gcs.py gs://raw-data-analytics-demo-${project_string}/pyspark-code
 
 gcloud beta dataproc batches submit pyspark \
     --project="data-analytics-demo-${project_string}" \
