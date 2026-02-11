@@ -2290,207 +2290,225 @@ resource "google_project_iam_member" "iam_member_bigquerydatatransfer_serviceAge
 ####################################################################################
 
 # https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/data_catalog_tag_template
-resource "google_data_catalog_tag_template" "table_dq_tag_template" {
-  project         = var.project_id
-  tag_template_id = "table_dq_tag_template"
-  region          = var.data_catalog_region
-  display_name    = "Data-Quality-Table"
+resource "google_dataplex_aspect_type" "table_dq_aspect_type" {
+  project        = var.project_id
+  location       = var.data_catalog_region
+  aspect_type_id = "table-dq-tag-template"
+  display_name   = "Data-Quality-Table"
 
-  fields {
-    field_id     = "table_name"
-    display_name = "Table Name"
-    type {
-      primitive_type = "STRING"
-    }
-    is_required = true
-  }
-
-  fields {
-    field_id     = "record_count"
-    display_name = "Number of rows in the data asset"
-    type {
-      primitive_type = "DOUBLE"
-    }
-  }
-
-  fields {
-    field_id     = "latest_execution_ts"
-    display_name = "Last Data Quality Run Date"
-    type {
-      primitive_type = "TIMESTAMP"
-    }
-  }
-
-  fields {
-    field_id     = "columns_validated"
-    display_name = "Number of columns validated"
-    type {
-      primitive_type = "DOUBLE"
-    }
-  }
-
-  fields {
-    field_id     = "columns_count"
-    display_name = "Number of columns in data asset"
-    type {
-      primitive_type = "DOUBLE"
-    }
-  }
-
-  fields {
-    field_id     = "success_pct"
-    display_name = "Success Percentage"
-    type {
-      primitive_type = "DOUBLE"
-    }
-  }
-  fields {
-    field_id     = "failed_pct"
-    display_name = "Failed Percentage"
-    type {
-      primitive_type = "DOUBLE"
-    }
-  }
-
-  fields {
-    field_id     = "invocation_id"
-    display_name = "Data Quality Invocation Id"
-    type {
-      primitive_type = "STRING"
-    }
-    is_required = true
-  }
-
-  force_delete = "false"
+  metadata_template = jsonencode({
+    name = "table_dq_template"
+    type = "record"
+    recordFields = [
+      {
+        name  = "table_name"
+        type  = "string"
+        index = 1
+        annotations = {
+          displayName = "Table Name"
+        }
+        constraints = {
+          required = true
+        }
+      },
+      {
+        name  = "record_count"
+        type  = "double"
+        index = 2
+        annotations = {
+          displayName = "Number of rows in the data asset"
+        }
+      },
+      {
+        name  = "latest_execution_ts"
+        type  = "datetime"
+        index = 3
+        annotations = {
+          displayName = "Last Data Quality Run Date"
+        }
+      },
+      {
+        name  = "columns_validated"
+        type  = "double"
+        index = 4
+        annotations = {
+          displayName = "Number of columns validated"
+        }
+      },
+      {
+        name  = "columns_count"
+        type  = "double"
+        index = 5
+        annotations = {
+          displayName = "Number of columns in data asset"
+        }
+      },
+      {
+        name  = "success_pct"
+        type  = "double"
+        index = 6
+        annotations = {
+          displayName = "Success Percentage"
+        }
+      },
+      {
+        name  = "failed_pct"
+        type  = "double"
+        index = 7
+        annotations = {
+          displayName = "Failed Percentage"
+        }
+      },
+      {
+        name  = "invocation_id"
+        type  = "string"
+        index = 8
+        annotations = {
+          displayName = "Data Quality Invocation Id"
+        }
+        constraints = {
+          required = true
+        }
+      }
+    ]
+  })
 }
 
-
-resource "google_data_catalog_tag_template" "column_dq_tag_template" {
+resource "google_dataplex_aspect_type" "column_dq_aspect_type" {
   project         = var.project_id
-  tag_template_id = "column_dq_tag_template"
-  region          = var.data_catalog_region
+  location        = var.data_catalog_region
+  aspect_type_id  = "column-dq-tag-template"
   display_name    = "Data-Quality-Column"
 
+  # The 'fields' block is replaced by 'metadata_template', which uses a JSON schema.
+  metadata_template = jsonencode({
+    name = "column_dq_template"
+    type = "record"
+    recordFields = [
+      {
+        name  = "table_name"
+        type  = "string"
+        index = 1
+        annotations = {
+          displayName = "Table Name"
+        }
+        constraints = {
+          required = true
+        }
+      },
+      {
+        name  = "column_id"
+        type  = "string"
+        index = 2
+        annotations = {
+          displayName = "Column Name"
+        }
+      },
+      {
+        name  = "execution_ts"
+        type  = "datetime" # 'TIMESTAMP' maps to 'datetime'
+        index = 3
+        annotations = {
+          displayName = "Last Run Date"
+        }
+      },
+      {
+        name  = "rule_binding_id"
+        type  = "string"
+        index = 4
+        annotations = {
+          displayName = "Rule Binding"
+        }
+      },
+      {
+        name  = "rule_id"
+        type  = "string"
+        index = 5
+        annotations = {
+          displayName = "Rule Id"
+        }
+      },
+      {
+        name  = "dimension"
+        type  = "string"
+        index = 6
+        annotations = {
+          displayName = "Dimension"
+        }
+      },
+      {
+        name  = "rows_validated"
+        type  = "double"
+        index = 7
+        annotations = {
+          displayName = "Rows Validated"
+        }
+      },
+      {
+        name  = "success_count"
+        type  = "double"
+        index = 8
+        annotations = {
+          displayName = "Success Count"
+        }
+      },
+      {
+        name  = "success_pct"
+        type  = "double"
+        index = 9
+        annotations = {
+          displayName = "Success Percentage"
+        }
+      },
+      {
+        name  = "failed_count"
+        type  = "double"
+        index = 10
+        annotations = {
+          displayName = "Failed Count"
+        }
+      },
+      {
+        name  = "failed_pct"
+        type  = "double"
+        index = 11
+        annotations = {
+          displayName = "Failed Percentage"
+        }
+      },
+      {
+        name  = "null_count"
+        type  = "double"
+        index = 12
+        annotations = {
+          displayName = "Null Count"
+        }
+      },
+      {
+        name  = "null_pct"
+        type  = "double"
+        index = 13
+        annotations = {
+          displayName = "Null Percentage"
+        }
+      },
+      {
+        name  = "invocation_id"
+        type  = "string"
+        index = 14
+        annotations = {
+          displayName = "Invocation Id"
+        }
+        constraints = {
+          required = true
+        }
+      }
+    ]
+  })
 
-  fields {
-    field_id     = "table_name"
-    display_name = "Table Name"
-    type {
-      primitive_type = "STRING"
-    }
-    is_required = true
-  }
-
-  fields {
-    field_id     = "column_id"
-    display_name = "Column Name"
-    type {
-      primitive_type = "STRING"
-    }
-  }
-
-  fields {
-    field_id     = "execution_ts"
-    display_name = "Last Run Date"
-    type {
-      primitive_type = "TIMESTAMP"
-    }
-  }
-
-  fields {
-    field_id     = "rule_binding_id"
-    display_name = "Rule Binding"
-    type {
-      primitive_type = "STRING"
-    }
-  }
-
-  fields {
-    field_id     = "rule_id"
-    display_name = "Rule Id"
-    type {
-      primitive_type = "STRING"
-    }
-  }
-
-  fields {
-    field_id     = "dimension"
-    display_name = "Dimension"
-    type {
-      primitive_type = "STRING"
-    }
-  }
-
-  fields {
-    field_id     = "rows_validated"
-    display_name = "Rows Validated"
-    type {
-      primitive_type = "DOUBLE"
-    }
-  }
-
-  fields {
-    field_id     = "success_count"
-    display_name = "Success Count"
-    type {
-      primitive_type = "DOUBLE"
-    }
-  }
-
-  fields {
-    field_id     = "success_pct"
-    display_name = "Success Percentage"
-    type {
-      primitive_type = "DOUBLE"
-    }
-  }
-
-  fields {
-    field_id     = "failed_count"
-    display_name = "Failed Count"
-    type {
-      primitive_type = "DOUBLE"
-    }
-  }
-
-  fields {
-    field_id     = "failed_pct"
-    display_name = "Failed Percentage"
-    type {
-      primitive_type = "DOUBLE"
-    }
-  }
-
-  fields {
-    field_id     = "null_count"
-    display_name = "Null Count"
-    type {
-      primitive_type = "DOUBLE"
-    }
-  }
-
-  fields {
-    field_id     = "null_pct"
-    display_name = "Null Percentage"
-    type {
-      primitive_type = "DOUBLE"
-    }
-  }
-
-  fields {
-    field_id     = "invocation_id"
-    display_name = "Invocation Id"
-    type {
-      primitive_type = "STRING"
-    }
-    is_required = true
-  }
-
-  force_delete = "false"
-
-  depends_on = [google_data_catalog_tag_template.table_dq_tag_template]
+  # Ensure the dependency is also updated to google_dataplex_aspect_type
+  depends_on = [google_dataplex_aspect_type.table_dq_aspect_type]
 }
-
 
 ####################################################################################
 # Pub/Sub
