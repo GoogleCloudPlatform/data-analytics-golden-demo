@@ -161,6 +161,7 @@ data "archive_file" "function_source_zip" {
   depends_on = [
    local_file.function_main_file,
    local_file.function_requirement_file,
+   google_storage_bucket.function_source_bucket
   ]
 }
 
@@ -168,6 +169,9 @@ resource "google_storage_bucket_object" "function_zip_object" {
   name   = "function-source-${data.archive_file.function_source_zip.output_md5}.zip"
   bucket = google_storage_bucket.function_source_bucket.name
   source = data.archive_file.function_source_zip.output_path
+  depends_on = [
+    data.archive_file.function_source_zip,
+  ]
 }
 
 resource "google_cloudfunctions2_function" "dataform_failure_function" {
