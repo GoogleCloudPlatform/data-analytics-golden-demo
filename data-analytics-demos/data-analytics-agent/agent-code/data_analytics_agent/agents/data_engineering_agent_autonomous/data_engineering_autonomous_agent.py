@@ -973,30 +973,30 @@ class DataEngineeringAutonomousWorkflowAgent(BaseAgent):
                         content=types.Content(role="assistant", parts=[types.Part(text=error_summary)]),
                     )
 
-            # --- VALIDATION ---
-            error_messages = []
-            if not data_quality_scan_name_param:
-                error_messages.append("Missing 'data_quality_scan_name' in prompt.")
-            if not repository_name_param:
-                error_messages.append("Missing 'repository_name' in prompt.")
-            if not workspace_name_param:
-                error_messages.append("Missing 'workspace_name' in prompt.")
-            if not workflow_type_param:
-                error_messages.append("Could not infer 'workflow_type' from prompt. Please specify if it's a 'dataform pipeline' or 'bigquery pipeline'.")
+        # --- VALIDATION ---
+        error_messages = []
+        if not data_quality_scan_name_param:
+            error_messages.append("Missing 'data_quality_scan_name' in prompt.")
+        if not repository_name_param:
+            error_messages.append("Missing 'repository_name' in prompt.")
+        if not workspace_name_param:
+            error_messages.append("Missing 'workspace_name' in prompt.")
+        if not workflow_type_param:
+            error_messages.append("Could not infer 'workflow_type' from prompt. Please specify if it's a 'dataform pipeline' or 'bigquery pipeline'.")
 
-            if error_messages:
-                full_error_msg = f"Failed to parse required parameters from prompt. Errors: {'; '.join(error_messages)}"
-                debug_info = {
-                    "prompt": prompt,
-                    "parsed_params": {
-                        "data_quality_scan_name": data_quality_scan_name_param,
-                        "repository_name": repository_name_param,
-                        "workspace_name": workspace_name_param,
-                        "workflow_type": workflow_type_param,
-                    }
+        if error_messages:
+            full_error_msg = f"Failed to parse required parameters from prompt. Errors: {'; '.join(error_messages)}"
+            debug_info = {
+                "prompt": prompt,
+                "parsed_params": {
+                    "data_quality_scan_name": data_quality_scan_name_param,
+                    "repository_name": repository_name_param,
+                    "workspace_name": workspace_name_param,
+                    "workflow_type": workflow_type_param,
                 }
-                yield _fail_workflow_event(full_error_msg, response, debug_info=debug_info)
-                return
+            }
+            yield _fail_workflow_event(full_error_msg, response, debug_info=debug_info)
+            return
 
         # Initial message
         yield Event(
