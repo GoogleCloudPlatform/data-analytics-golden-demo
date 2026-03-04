@@ -8,4 +8,4 @@ tenacity==8.5.0
 # dependency of sqlalchemy, which is required by google-adk.
 greenlet
 # GitHub Dependent a Bot!  Security issue.
-authlib==1.6.5
+authlib==1.6.7
