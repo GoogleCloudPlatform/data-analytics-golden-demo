@@ -424,6 +424,16 @@ EOF
 }
 
 
+resource "google_project_service_identity" "service_identity_dataplex" {
+  project = var.project_id
+  service = "dataplex.googleapis.com"
+}
+
+resource "time_sleep" "create_service_identity_dataplex" {
+  depends_on      = [ google_project_service_identity.service_identity_dataplex]
+  create_duration = "30s"
+}
+
 
 # Creates the rules for the data quality check
 resource "google_dataplex_datascan" "basic_quality_scan" {
@@ -587,7 +597,8 @@ resource "google_dataplex_datascan" "basic_quality_scan" {
   }
   depends_on = [
     google_bigquery_dataset.google_bigquery_agentic_beans_raw_staging_load_dataset,
-    google_bigquery_table.telemetry_coffee_machine_table
+    google_bigquery_table.telemetry_coffee_machine_table,
+    time_sleep.create_service_identity_dataplex
   ]
 }
 
