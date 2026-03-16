@@ -35,7 +35,7 @@
 ------------------------------------------------------------------------------------------------------------
 CREATE OR REPLACE MODEL `${project_id}.${bigquery_rideshare_llm_curated_dataset}.gemini_model`
   REMOTE WITH CONNECTION `${project_id}.us.vertex-ai`
-  OPTIONS (endpoint = 'gemini-2.0-flash');
+  OPTIONS (endpoint = 'gemini-2.5-flash');
 
 ------------------------------------------------------------------------------------------------------------
 -- Create link to the LLM (embeddings)

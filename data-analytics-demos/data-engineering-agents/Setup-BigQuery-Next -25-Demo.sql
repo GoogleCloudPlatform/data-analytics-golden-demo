@@ -30,7 +30,7 @@ FROM FILES (
 -- Create our GenAI and Vector Embeddings models
 CREATE MODEL IF NOT EXISTS `cleaned_data.gemini_2_0_flash`
   REMOTE WITH CONNECTION `us-central1.vertex-ai`
-  OPTIONS (endpoint = 'gemini-2.0-flash');
+  OPTIONS (endpoint = 'gemini-2.5-flash');
 
 CREATE MODEL IF NOT EXISTS `cleaned_data.text_embedding_005`
   REMOTE WITH CONNECTION `us-central1.vertex-ai`

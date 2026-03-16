@@ -38,7 +38,7 @@ Clean up / Reset script:
 ------------------------------------------------------------------------------------------------------------
 CREATE MODEL IF NOT EXISTS `${project_id}.${bigquery_governed_data_raw_dataset}.gemini_model`
   REMOTE WITH CONNECTION `${project_id}.${multi_region}.vertex-ai`
-  OPTIONS (endpoint = 'gemini-2.0-flash');
+  OPTIONS (endpoint = 'gemini-2.5-flash');
 
 CREATE MODEL IF NOT EXISTS `${project_id}.${bigquery_governed_data_raw_dataset}.textembedding_model`
   REMOTE WITH CONNECTION `${project_id}.${multi_region}.vertex-ai`

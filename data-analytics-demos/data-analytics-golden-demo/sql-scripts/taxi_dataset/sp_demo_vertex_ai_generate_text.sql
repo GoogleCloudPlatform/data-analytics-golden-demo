@@ -92,7 +92,7 @@ SELECT *
 
 CREATE OR REPLACE MODEL `${project_id}.${bigquery_taxi_dataset}.gemini_model`
   REMOTE WITH CONNECTION `${project_id}.${bigquery_region}.vertex-ai`
-  OPTIONS (endpoint = 'gemini-2.0-flash');
+  OPTIONS (endpoint = 'gemini-2.5-flash');
 
   
 CREATE OR REPLACE TABLE `${project_id}.${bigquery_taxi_dataset}.taxi_trips_cloud_ai_llm_result`

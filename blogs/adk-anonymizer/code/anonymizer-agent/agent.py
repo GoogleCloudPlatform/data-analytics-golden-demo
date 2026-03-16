@@ -269,7 +269,7 @@ WORKFLOW:
 
 root_agent = Agent(
     name="anonymous_table_generator",
-    model="gemini-2.0-flash",
+    model="gemini-2.5-flash",
     description=(
         "Agent to generate SQL for creating anonymized versions of existing"
         " BigQuery tables."
