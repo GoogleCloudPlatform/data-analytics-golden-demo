@@ -1,11 +1,11 @@
 # requirements.in
 
-google-adk==1.16.0
+google-adk==1.27.4
 json-stream==2.3.3
-tenacity==8.5.0
+tenacity==9.1.4
 
 # Add greenlet explicitly because it's a platform-specific
 # dependency of sqlalchemy, which is required by google-adk.
 greenlet
 # GitHub Dependent a Bot!  Security issue.
-authlib==1.6.5
+authlib==1.6.9
