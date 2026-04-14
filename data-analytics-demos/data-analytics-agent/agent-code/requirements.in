@@ -1,6 +1,6 @@
 # requirements.in
 
-google-adk==1.27.4
+google-adk==1.28.1
 json-stream==2.3.3
 tenacity==9.1.4
 
