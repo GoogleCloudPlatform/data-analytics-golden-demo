@@ -13,10 +13,16 @@ public class BigQueryService
 
         BigQueryClient client = BigQueryClient.Create(projectId);
 
-        string sql = "CALL `" + projectId + "." + rideshareLakehouseCuratedDataset + ".sp_website_score_data`('" + 
-                rideDistance + "', " + isRaining.ToString() + ", " + isSnowing.ToString() + ", 0, 0);";
+        string sql = $"CALL `{projectId}.{rideshareLakehouseCuratedDataset}.sp_website_score_data`(@rideDistance, @isRaining, @isSnowing, 0, 0);";
 
-        BigQueryResults results = client.ExecuteQuery(sql, null); 
+        var parameters = new[]
+        {
+            new BigQueryParameter("rideDistance", BigQueryDbType.String, rideDistance),
+            new BigQueryParameter("isRaining", BigQueryDbType.Bool, isRaining),
+            new BigQueryParameter("isSnowing", BigQueryDbType.Bool, isSnowing)
+        };
+
+        BigQueryResults results = client.ExecuteQuery(sql, parameters); 
     }
     
 

@@ -82,10 +82,16 @@ def generate_predictions(request: flask.Request) -> flask.Response:
         print("project_id: ", project_id)      
 
         client = bigquery.Client()
-        sql = "CALL `" + project_id + ".rideshare_lakehouse_curated.sp_website_score_data`('" + \
-                ride_distance + "', " + is_raining + ", " + is_snowing + ", 0, 0);"
+        sql = "CALL `" + project_id + ".rideshare_lakehouse_curated.sp_website_score_data`(@ride_distance, @is_raining, @is_snowing, 0, 0);"
+        job_config = bigquery.QueryJobConfig(
+            query_parameters=[
+                bigquery.ScalarQueryParameter("ride_distance", "STRING", ride_distance),
+                bigquery.ScalarQueryParameter("is_raining", "BOOL", str(request_json.get('is_raining', False)).lower() == 'true'),
+                bigquery.ScalarQueryParameter("is_snowing", "BOOL", str(request_json.get('is_snowing', False)).lower() == 'true'),
+            ]
+        )
         print("sql: ", sql)
-        query_job = client.query(sql);
+        query_job = client.query(sql, job_config=job_config)
         results = query_job.result()
         replies = []
         row_dict = { "success" : True}

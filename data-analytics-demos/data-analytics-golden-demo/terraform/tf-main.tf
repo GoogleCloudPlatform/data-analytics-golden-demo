@@ -49,6 +49,10 @@ terraform {
       version               = "5.35.0"
       configuration_aliases = [google.service_principal_impersonation]
     }
+    archive = {
+      source  = "hashicorp/archive"
+      version = "2.8.0"
+    }
   }
 }
 

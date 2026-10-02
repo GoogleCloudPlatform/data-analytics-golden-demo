@@ -16,6 +16,7 @@ terraform/.terraform.lock.hcl
 terraform/terraform.tfstate
 terraform/.terraform.tfstate.lock.info
 terraform/terraform.tfstate.backup
+terraform/previous_state_backup/*
 terraform/tf-output.json
 temp.sql
 datafusion/system/*

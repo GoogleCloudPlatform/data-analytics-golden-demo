@@ -1310,7 +1310,7 @@ resource "google_cloudfunctions_function" "bigquery_external_function" {
   source_archive_bucket        = google_storage_bucket.code_bucket.name
   source_archive_object        = google_storage_bucket_object.bigquery_external_function_zip_upload.name
   trigger_http                 = true
-  ingress_settings             = "ALLOW_ALL"
+  ingress_settings             = "ALLOW_INTERNAL_AND_GCLB"
   https_trigger_security_level = "SECURE_ALWAYS"
   entry_point                  = "bigquery_external_function"
   environment_variables        =  {
@@ -1331,6 +1331,10 @@ resource "google_cloudfunctions_function" "bigquery_external_function" {
 # Cloud Function (Rideshare Plis)
 ####################################################################################
 # Zip the source code
+# NOTE: rideshare_plus_function (demo-rest-api-service) is deprecated and removed.
+# The C# ASP.NET Core 9 RidesharePlus Cloud Run website queries BigQuery directly.
+# Removing this function enforces least privilege by eliminating public ingress and allUsers invocation.
+/*
 data "archive_file" "rideshare_plus_function_zip" {
   type        = "zip"
   source_dir  = "../cloud-functions/rideshare-plus-rest-api"
@@ -1426,6 +1430,7 @@ resource "google_cloud_run_service_iam_binding" "rideshare_plus_function_cloudru
     google_cloudfunctions2_function.rideshare_plus_function
   ]
 }
+*/
 
 
 # Deploy the function (V1)
@@ -1590,9 +1595,6 @@ resource "google_bigquery_dataset_access" "cloud_function_access_bq_rideshare_cu
   user_by_email = "${var.project_number}-compute@developer.gserviceaccount.com"
 
   depends_on = [
-    data.archive_file.rideshare_plus_function_zip,
-    google_storage_bucket_object.rideshare_plus_function_zip_upload,
-    google_cloudfunctions2_function.rideshare_plus_function,
     google_bigquery_dataset.rideshare_lakehouse_curated_dataset
   ]
 }
@@ -1605,9 +1607,6 @@ resource "google_bigquery_dataset_access" "cloud_function_access_bq_rideshare_ra
   user_by_email = "${var.project_number}-compute@developer.gserviceaccount.com"
 
   depends_on = [
-    data.archive_file.rideshare_plus_function_zip,
-    google_storage_bucket_object.rideshare_plus_function_zip_upload,
-    google_cloudfunctions2_function.rideshare_plus_function,
     google_bigquery_dataset.rideshare_lakehouse_raw_dataset
   ]
 }
@@ -1620,9 +1619,6 @@ resource "google_bigquery_dataset_access" "cloud_function_access_bq_taxi_dataset
   user_by_email = "${var.project_number}-compute@developer.gserviceaccount.com"
 
   depends_on = [
-    data.archive_file.rideshare_plus_function_zip,
-    google_storage_bucket_object.rideshare_plus_function_zip_upload,
-    google_cloudfunctions2_function.rideshare_plus_function,
     google_bigquery_dataset.taxi_dataset
   ]
 }
@@ -2896,7 +2892,7 @@ EOF
   depends_on = [
     google_artifact_registry_repository.artifact_registry_cloud_run_deploy,
     google_storage_bucket.code_bucket,
-    google_storage_bucket_object.rideshare_plus_function_zip_upload,
+    google_storage_bucket_object.cloud_run_rideshare_website_archive_upload,
   ]
 }
 
@@ -2943,7 +2939,7 @@ resource "google_cloud_run_service" "cloud_run_service_rideshare_plus_website" {
     google_service_account.cloud_run_rideshare_plus_service_account,
     google_artifact_registry_repository.artifact_registry_cloud_run_deploy,
     google_storage_bucket.code_bucket,
-    google_storage_bucket_object.rideshare_plus_function_zip_upload,
+    google_storage_bucket_object.cloud_run_rideshare_website_archive_upload,
     google_composer_environment.composer_env,
   ]
 }
@@ -2952,26 +2948,39 @@ output "cloud_run_service_rideshare_plus_website_url" {
   value = "${google_cloud_run_service.cloud_run_service_rideshare_plus_website.status[0].url}"
 }
 
-data "google_iam_policy" "cloud_run_service_rideshare_plus_website_noauth" {
-  binding {
-    role = "roles/run.invoker"
-    members = [
-      "allUsers",
-    ]
-  }
+# Ensure the IAP service agent is created for the project
+resource "google_project_service_identity" "service_identity_iap" {
+  provider = google-beta
+  project  = var.project_id
+  service  = "iap.googleapis.com"
 }
 
-# Set the cloud run to allow anonymous access
-resource "google_cloud_run_service_iam_policy" "google_cloud_run_service_iam_policy_noauth" {
+# Grant Cloud Run Invoker to the IAP service agent so IAP can forward requests
+resource "google_cloud_run_service_iam_member" "cloud_run_iap_invoker" {
   location = google_cloud_run_service.cloud_run_service_rideshare_plus_website.location
   project  = google_cloud_run_service.cloud_run_service_rideshare_plus_website.project
   service  = google_cloud_run_service.cloud_run_service_rideshare_plus_website.name
-
-  policy_data = data.google_iam_policy.cloud_run_service_rideshare_plus_website_noauth.policy_data
+  role     = "roles/run.invoker"
+  member   = "serviceAccount:${google_project_service_identity.service_identity_iap.email}"
 
   depends_on = [
-    google_cloud_run_service.cloud_run_service_rideshare_plus_website
-  ]  
+    google_cloud_run_service.cloud_run_service_rideshare_plus_website,
+    google_project_service_identity.service_identity_iap
+  ]
+}
+
+# Enable Direct IAP on Cloud Run and authorize only the deploying GCP user
+resource "null_resource" "enable_cloud_run_iap" {
+  provisioner "local-exec" {
+    when    = create
+    command = "python3 ../cloud-run/setup_iap.py --project-id=\"${var.project_id}\" --region=\"${google_cloud_run_service.cloud_run_service_rideshare_plus_website.location}\" --service-name=\"${google_cloud_run_service.cloud_run_service_rideshare_plus_website.name}\" --gcp-account-name=\"${var.gcp_account_name}\""
+  }
+
+  depends_on = [
+    google_cloud_run_service.cloud_run_service_rideshare_plus_website,
+    google_cloud_run_service_iam_member.cloud_run_iap_invoker,
+    google_project_service_identity.service_identity_iap
+  ]
 }
 
 
@@ -3116,7 +3125,7 @@ output "gcs_rideshare_lakehouse_curated_bucket" {
 }
 
 output "demo_rest_api_service_uri" {
-  value = google_cloudfunctions2_function.rideshare_plus_function.service_config[0].uri
+  value = "" # Deprecated: REST API Cloud Function removed in favor of direct BigQuery queries in RidesharePlus Cloud Run website
 }
 
 output "bigquery_rideshare_llm_raw_dataset" {
