@@ -104,7 +104,7 @@ variable "bigquery_rideshare_llm_curated_dataset" {
   default = "rideshare_llm_curated"
 }
 variable "bigquery_cleanroom_dataset" {
-  type = string
+  type    = string
   default = "nyc_rideshare_data_nyc_rideshare_tables"
 }
 
@@ -634,7 +634,7 @@ resource "google_project_iam_member" "cloudcomposer_account_service_agent" {
   member  = "serviceAccount:service-${var.project_number}@cloudcomposer-accounts.iam.gserviceaccount.com"
 
   depends_on = [
-#    google_project_iam_member.cloudcomposer_account_service_agent_v2_ext
+    #    google_project_iam_member.cloudcomposer_account_service_agent_v2_ext
   ]
 }
 
@@ -706,7 +706,7 @@ resource "google_project_iam_member" "cloudcomposer_act_as" {
 
 #fetching latest available Cloud Composer versions in a region for a given project.
 data "google_composer_image_versions" "latest_image" {
-    region = var.composer_region
+  region = var.composer_region
 }
 
 resource "google_composer_environment" "composer_env" {
@@ -815,7 +815,7 @@ resource "google_composer_environment" "composer_env" {
   }
 
   depends_on = [
-#    google_project_iam_member.cloudcomposer_account_service_agent_v2_ext,
+    #    google_project_iam_member.cloudcomposer_account_service_agent_v2_ext,
     google_project_iam_member.cloudcomposer_account_service_agent,
     google_compute_subnetwork.composer_subnet,
     google_service_account.composer_service_account,
@@ -1146,18 +1146,18 @@ resource "google_data_catalog_policy_tag" "data_masking_policy_tag" {
 #  ]
 #}
 resource "google_bigquery_datapolicy_data_policy" "deploy_data_masking_sha256" {
-  project = var.project_id
+  project          = var.project_id
   location         = var.bigquery_region
-  data_policy_id  = "Hash_Rule"
-  policy_tag      = google_data_catalog_policy_tag.data_masking_policy_tag.id
+  data_policy_id   = "Hash_Rule"
+  policy_tag       = google_data_catalog_policy_tag.data_masking_policy_tag.id
   data_policy_type = "DATA_MASKING_POLICY"
   data_masking_policy {
     predefined_expression = "SHA256"
-  	}
-    depends_on = [
-    google_data_catalog_policy_tag.data_masking_policy_tag
-    ]
   }
+  depends_on = [
+    google_data_catalog_policy_tag.data_masking_policy_tag
+  ]
+}
 
 # Create a Nullify Rule
 # resource "null_resource" "deploy_data_masking_nullify" {
@@ -1178,13 +1178,13 @@ resource "google_bigquery_datapolicy_data_policy" "deploy_data_masking_sha256" {
 #   ]
 # }
 resource "google_bigquery_datapolicy_data_policy" "deploy_data_masking_nullify" {
-  project = var.project_id
+  project          = var.project_id
   location         = var.bigquery_region
-  data_policy_id  = "Nullify_Rule"
-  policy_tag      = google_data_catalog_policy_tag.data_masking_policy_tag.id
+  data_policy_id   = "Nullify_Rule"
+  policy_tag       = google_data_catalog_policy_tag.data_masking_policy_tag.id
   data_policy_type = "DATA_MASKING_POLICY"
   data_masking_policy {
-    predefined_expression = "ALWAYS_NULL" 
+    predefined_expression = "ALWAYS_NULL"
   }
   depends_on = [
     google_bigquery_datapolicy_data_policy.deploy_data_masking_sha256
@@ -1211,15 +1211,15 @@ resource "google_bigquery_datapolicy_data_policy" "deploy_data_masking_nullify" 
 #   ]
 # }
 resource "google_bigquery_datapolicy_data_policy" "deploy_data_masking_default_value" {
-  project = var.project_id
+  project          = var.project_id
   location         = var.bigquery_region
-  data_policy_id  = "DefaultValue_Rule"
-  policy_tag      = google_data_catalog_policy_tag.data_masking_policy_tag.id
+  data_policy_id   = "DefaultValue_Rule"
+  policy_tag       = google_data_catalog_policy_tag.data_masking_policy_tag.id
   data_policy_type = "DATA_MASKING_POLICY"
   data_masking_policy {
     predefined_expression = "DEFAULT_MASKING_VALUE"
   }
-    depends_on = [
+  depends_on = [
     google_bigquery_datapolicy_data_policy.deploy_data_masking_nullify
   ]
 }
@@ -1247,7 +1247,7 @@ resource "google_bigquery_datapolicy_data_policy" "deploy_data_masking_default_v
 #     null_resource.deploy_data_masking_default_value,
 #   ]
 # }
-data "google_iam_policy" "data_policy_iam_for_nullify_rule" { 
+data "google_iam_policy" "data_policy_iam_for_nullify_rule" {
   binding {
     role = "roles/bigquerydatapolicy.maskedReader"
     members = [
@@ -1257,8 +1257,8 @@ data "google_iam_policy" "data_policy_iam_for_nullify_rule" {
 }
 
 resource "google_bigquery_datapolicy_data_policy_iam_policy" "nullify_rule_iam" {
-  project = var.project_id
-  location         = var.bigquery_region
+  project        = var.project_id
+  location       = var.bigquery_region
   data_policy_id = google_bigquery_datapolicy_data_policy.deploy_data_masking_nullify.data_policy_id
   policy_data    = data.google_iam_policy.data_policy_iam_for_nullify_rule.policy_data
   depends_on = [
@@ -1313,10 +1313,10 @@ resource "google_cloudfunctions_function" "bigquery_external_function" {
   ingress_settings             = "ALLOW_INTERNAL_AND_GCLB"
   https_trigger_security_level = "SECURE_ALWAYS"
   entry_point                  = "bigquery_external_function"
-  environment_variables        =  {
-      PROJECT_ID      = var.project_id,
-      ENV_CLOUD_FUNCTION_REGION = var.cloud_function_region
-    }
+  environment_variables = {
+    PROJECT_ID                = var.project_id,
+    ENV_CLOUD_FUNCTION_REGION = var.cloud_function_region
+  }
   # no-allow-unauthenticated ???
   depends_on = [
     google_storage_bucket.code_bucket,
@@ -1328,156 +1328,11 @@ resource "google_cloudfunctions_function" "bigquery_external_function" {
 
 
 ####################################################################################
-# Cloud Function (Rideshare Plis)
+# Cloud Function (Rideshare Plus)
 ####################################################################################
-# Zip the source code
-# NOTE: rideshare_plus_function (demo-rest-api-service) is deprecated and removed.
+# NOTE: The legacy rideshare_plus_function (demo-rest-api-service) has been deprecated and removed.
 # The C# ASP.NET Core 9 RidesharePlus Cloud Run website queries BigQuery directly.
-# Removing this function enforces least privilege by eliminating public ingress and allUsers invocation.
-/*
-data "archive_file" "rideshare_plus_function_zip" {
-  type        = "zip"
-  source_dir  = "../cloud-functions/rideshare-plus-rest-api"
-  output_path = "../cloud-functions/rideshare-plus-rest-api.zip"
 
-  depends_on = [
-    google_storage_bucket.code_bucket
-  ]
-}
-
-# Upload code
-resource "google_storage_bucket_object" "rideshare_plus_function_zip_upload" {
-  name   = "cloud-functions/rideshare-plus-rest-api/rideshare-plus-rest-api.zip"
-  bucket = google_storage_bucket.code_bucket.name
-  source = data.archive_file.rideshare_plus_function_zip.output_path
-
-  depends_on = [
-    google_storage_bucket.code_bucket,
-    data.archive_file.rideshare_plus_function_zip
-  ]
-}
-
-# Deploy the function V2
-resource "google_cloudfunctions2_function" "rideshare_plus_function" {
-  project     = var.project_id
-  location    = var.cloud_function_region
-  name        = "demo-rest-api-service"
-  description = "demo-rest-api-service"
-
-  build_config {
-    runtime     = "python310"
-    entry_point = "entrypoint" # Set the entry point 
-    source {
-      storage_source {
-        bucket = google_storage_bucket.code_bucket.name
-        object = google_storage_bucket_object.rideshare_plus_function_zip_upload.name
-      }
-    }
-  }
-
-  service_config {
-    max_instance_count             = 10
-    min_instance_count             = 1
-    available_memory               = "256M"
-    timeout_seconds                = 60
-    ingress_settings               = "ALLOW_ALL"
-    all_traffic_on_latest_revision = true
-    environment_variables = {
-      PROJECT_ID      = var.project_id,
-      ENV_CODE_BUCKET = "code-${var.storage_bucket}"
-
-    }
-  }
-
-  depends_on = [
-    google_storage_bucket.code_bucket,
-    data.archive_file.rideshare_plus_function_zip,
-    google_storage_bucket_object.rideshare_plus_function_zip_upload
-  ]
-}
-
-
-# IAM entry for all users to invoke the function
-resource "google_cloudfunctions2_function_iam_member" "rideshare_plus_function_invoker" {
-  project        = google_cloudfunctions2_function.rideshare_plus_function.project
-  location       = google_cloudfunctions2_function.rideshare_plus_function.location
-  cloud_function = google_cloudfunctions2_function.rideshare_plus_function.name
-
-  role   = "roles/cloudfunctions.invoker"
-  member = "allUsers"
-
-  depends_on = [
-    google_storage_bucket.code_bucket,
-    data.archive_file.rideshare_plus_function_zip,
-    google_storage_bucket_object.rideshare_plus_function_zip_upload,
-    google_cloudfunctions2_function.rideshare_plus_function
-  ]
-}
-
-# Update the Cloud Run to support allUsers used by Cloud Function V2
-resource "google_cloud_run_service_iam_binding" "rideshare_plus_function_cloudrun" {
-  project  = google_cloudfunctions2_function.rideshare_plus_function.project
-  location = google_cloudfunctions2_function.rideshare_plus_function.location
-  service  = google_cloudfunctions2_function.rideshare_plus_function.name
-
-  role    = "roles/run.invoker"
-  members = ["allUsers"]
-
-  depends_on = [
-    google_storage_bucket.code_bucket,
-    data.archive_file.rideshare_plus_function_zip,
-    google_storage_bucket_object.rideshare_plus_function_zip_upload,
-    google_cloudfunctions2_function.rideshare_plus_function
-  ]
-}
-*/
-
-
-# Deploy the function (V1)
-/*
-resource "google_cloudfunctions_function" "rideshare_plus_function" {
-  project     = var.project_id
-  region      = var.cloud_function_region
-  name        = "demo-rest-api-service"
-  description = "demo-rest-api-service"
-  runtime     = "python310"
-
-  available_memory_mb          = 256
-  source_archive_bucket        = google_storage_bucket.code_bucket.name
-  source_archive_object        = google_storage_bucket_object.rideshare_plus_function_zip_upload.name
-  trigger_http                 = true
-  ingress_settings             = "ALLOW_ALL"
-  https_trigger_security_level = "SECURE_ALWAYS"
-  entry_point                  = "entrypoint"
-
-  environment_variables = {
-    PROJECT_ID = var.project_id
-  }
-
-  depends_on = [ 
-    google_storage_bucket.code_bucket,
-    data.archive_file.rideshare_plus_function_zip,
-    google_storage_bucket_object.rideshare_plus_function_zip_upload
-  ]  
-}
-
-# IAM entry for all users to invoke the function
-resource "google_cloudfunctions_function_iam_member" "rideshare_plus_function_invoker" {
-  project        = var.project_id
-  region         = var.cloud_function_region
-  cloud_function = google_cloudfunctions_function.rideshare_plus_function.name
-
-  role   = "roles/cloudfunctions.invoker"
-  member = "allUsers"
-
-  depends_on = [ 
-    google_storage_bucket.code_bucket,
-    data.archive_file.rideshare_plus_function_zip,
-    google_storage_bucket_object.rideshare_plus_function_zip_upload,
-    google_cloudfunctions_function.rideshare_plus_function
-  ]    
-}
-*/
 
 ####################################################################################
 # BigQuery - Connections (BigLake, Functions, etc)
@@ -2251,7 +2106,7 @@ resource "google_project_service_identity" "service_identity_bigquery_data_trans
   project = var.project_id
   service = "bigquerydatatransfer.googleapis.com"
   depends_on = [
-#    google_project_iam_member.cloudcomposer_account_service_agent_v2_ext,
+    #    google_project_iam_member.cloudcomposer_account_service_agent_v2_ext,
     google_project_iam_member.cloudcomposer_account_service_agent,
     google_service_account.composer_service_account
   ]
@@ -2371,10 +2226,10 @@ resource "google_dataplex_aspect_type" "table_dq_aspect_type" {
 }
 
 resource "google_dataplex_aspect_type" "column_dq_aspect_type" {
-  project         = var.project_id
-  location        = var.data_catalog_region
-  aspect_type_id  = "column-dq-tag-template"
-  display_name    = "Data-Quality-Column"
+  project        = var.project_id
+  location       = var.data_catalog_region
+  aspect_type_id = "column-dq-tag-template"
+  display_name   = "Data-Quality-Column"
 
   # The 'fields' block is replaced by 'metadata_template', which uses a JSON schema.
   metadata_template = jsonencode({
@@ -2800,26 +2655,7 @@ resource "google_artifact_registry_repository" "artifact_registry_cloud_run_depl
 
 # Deploy Cloud Run Web App
 # This is a C# MVC dotnet core application
-# We want cloud build to build an image and deploy to cloud run
-/*
-gcloud_make = f"gcloud builds submit " + \
-        f"--project=\"{project_id}\" " + \
-        f"--pack image=\"{cloud_function_region}-docker.pkg.dev/{project_id}/cloud-run-source-deploy/rideshareplus\" " + \
-        f"gs://{code_bucket_name}/cloud-run/rideshare-plus-website/rideshare-plus-website.zip"
 
-
-gcloud_deploy = f"gcloud run deploy demo-rideshare-plus-website " + \
-        f"--project=\"{project_id}\" " + \
-        f"--image \"{cloud_function_region}-docker.pkg.dev/{project_id}/cloud-run-source-deploy/rideshareplus\" " + \
-        f"--region=\"{cloud_function_region}\" " + \
-        f"--cpu=1 " + \
-        f"--allow-unauthenticated " + \
-        f"--service-account=\"{rideshare_plus_service_account}\" " + \
-        f"--set-env-vars \"ENV_PROJECT_ID={project_id}\" " + \
-        f"--set-env-vars \"ENV_RIDESHARE_LAKEHOUSE_CURATED_DATASET={rideshare_lakehouse_curated_dataset}\" " + \
-        f"--set-env-vars \"ENV_CODE_BUCKET={code_bucket_name}\" " + \
-        f"--set-env-vars \"ENV_RIDESHARE_LLM_CURATED_DATASET={rideshare_llm_curated_dataset}\""
-*/
 /*
 resource "null_resource" "cloudbuild_buildpack_rideshare_plus_image" {
   provisioner "local-exec" {
@@ -2904,26 +2740,26 @@ resource "google_cloud_run_service" "cloud_run_service_rideshare_plus_website" {
 
   template {
     spec {
-      timeout_seconds = 120
+      timeout_seconds      = 120
       service_account_name = google_service_account.cloud_run_rideshare_plus_service_account.email
-      containers { 
+      containers {
         image = "${var.cloud_function_region}-docker.pkg.dev/${var.project_id}/cloud-run-source-deploy/rideshareplus"
         env {
-            name  = "ENV_PROJECT_ID"
-            value = var.project_id
-          }
+          name  = "ENV_PROJECT_ID"
+          value = var.project_id
+        }
         env {
-            name  = "ENV_CODE_BUCKET"
-            value = "code-${var.storage_bucket}"
-          }
+          name  = "ENV_CODE_BUCKET"
+          value = "code-${var.storage_bucket}"
+        }
         env {
-            name  = "ENV_RIDESHARE_LAKEHOUSE_CURATED_DATASET"
-            value = var.bigquery_rideshare_lakehouse_curated_dataset
-          }
+          name  = "ENV_RIDESHARE_LAKEHOUSE_CURATED_DATASET"
+          value = var.bigquery_rideshare_lakehouse_curated_dataset
+        }
         env {
-            name  = "ENV_RIDESHARE_LLM_CURATED_DATASET"
-            value = var.bigquery_rideshare_llm_curated_dataset
-          }
+          name  = "ENV_RIDESHARE_LLM_CURATED_DATASET"
+          value = var.bigquery_rideshare_llm_curated_dataset
+        }
       }
     }
   }
@@ -2945,7 +2781,7 @@ resource "google_cloud_run_service" "cloud_run_service_rideshare_plus_website" {
 }
 
 output "cloud_run_service_rideshare_plus_website_url" {
-  value = "${google_cloud_run_service.cloud_run_service_rideshare_plus_website.status[0].url}"
+  value = google_cloud_run_service.cloud_run_service_rideshare_plus_website.status[0].url
 }
 
 # Ensure the IAP service agent is created for the project

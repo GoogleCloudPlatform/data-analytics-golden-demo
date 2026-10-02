@@ -51,8 +51,8 @@ variable "project_id" {}
 # This fixes this Error: googleapi: Error 400: You can't create a Composer environment due to Organization Policy constraints in the selected project.
 # Policy constraints/compute.requireOsLogin must be disabled., failedPrecondition
 resource "google_org_policy_policy" "org_policy_require_os_login" {
-  name     = "projects/${var.project_id}/policies/compute.requireOsLogin"
-  parent   = "projects/${var.project_id}"
+  name   = "projects/${var.project_id}/policies/compute.requireOsLogin"
+  parent = "projects/${var.project_id}"
 
   spec {
     rules {
@@ -98,19 +98,6 @@ resource "google_org_policy_policy" "org_policy_require_shielded_vm" {
 }
 */
 
-# To deploy the cloud function
-/*
-resource "google_org_policy_policy" "org_policy_allowed_ingress" {
-  name     = "projects/${var.project_id}/policies/run.allowedIngress"
-  parent   = "projects/${var.project_id}"
-
-  spec {
-    rules {
-      allow_all = "TRUE"
-    }
-  }
-}
-*/
 
 # To set service accounts (since sometimes they cause a voliation)
 /*
@@ -129,8 +116,8 @@ resource "google_org_policy_policy" "org_policy_allowed_policy_member_domains" {
 
 # For Datastream to create the peer network
 resource "google_org_policy_policy" "org_policy_allowed_vpc_peering" {
-  name     = "projects/${var.project_id}/policies/compute.restrictVpcPeering"
-  parent   = "projects/${var.project_id}"
+  name   = "projects/${var.project_id}/policies/compute.restrictVpcPeering"
+  parent = "projects/${var.project_id}"
 
   spec {
     rules {

@@ -53,15 +53,19 @@ artifactregistry.googleapis.com
 gcloud builds submit \
 --project ${PROJECT_ID} \
 --pack image=us-central1-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/rideshareplus \
-/Users/paternostro/cloud-run-app/RidesharePlus
+./RidesharePlus
 
+# Deploy to Cloud Run (secured via IAP, no public/unauthenticated access)
 gcloud run deploy demo-rideshare-plus-website \
 --project ${PROJECT_ID} \
 --image us-central1-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/rideshareplus \
 --region us-central1 \
 --cpu=1 \
---allow-unauthenticated \
+--no-allow-unauthenticated \
 --set-env-vars "KEY1=${PROJECT_ID}" \
 --set-env-vars "KEY2=VALUE2" \
 --set-env-vars "KEY3=VALUE3"
+
+# Secure the service with Identity-Aware Proxy (IAP):
+./cloud-run/setup-iap.sh ${PROJECT_ID} us-central1 demo-rideshare-plus-website ${GCP_ACCOUNT_NAME}
 ```

@@ -64,7 +64,7 @@ gcloud_deploy = f"gcloud run deploy demo-rideshare-plus-website " + \
         f"--image \"{cloud_function_region}-docker.pkg.dev/{project_id}/cloud-run-source-deploy/rideshareplus\" " + \
         f"--region=\"{cloud_function_region}\" " + \
         f"--cpu=1 " + \
-        f"--allow-unauthenticated " + \
+        f"--no-allow-unauthenticated " + \
         f"--service-account=\"{rideshare_plus_service_account}\" " + \
         f"--set-env-vars \"ENV_PROJECT_ID={project_id}\" " + \
         f"--set-env-vars \"ENV_RIDESHARE_LAKEHOUSE_CURATED_DATASET={rideshare_lakehouse_curated_dataset}\" " + \

@@ -45,8 +45,8 @@ variable "project_id" {}
 # This fixes this Error: googleapi: Error 400: You can't create a Composer environment due to Organization Policy constraints in the selected project.
 # Policy constraints/compute.requireOsLogin must be disabled., failedPrecondition
 resource "google_org_policy_policy" "org_policy_require_os_login" {
-  name     = "projects/${var.project_id}/policies/compute.requireOsLogin"
-  parent   = "projects/${var.project_id}"
+  name   = "projects/${var.project_id}/policies/compute.requireOsLogin"
+  parent = "projects/${var.project_id}"
 
   spec {
     rules {
@@ -81,8 +81,8 @@ resource "google_org_policy_policy" "org_policy_require_os_login" {
 # Error: Error waiting for creating Dataproc cluster: Error code 9, message: Constraint constraints/compute.requireShieldedVm violated for project projects/big-query-demo-09. Secure Boot is not enabled in the 'shielded_instance_config' field. 
 # See https://cloud.google.com/resource-manager/docs/organization-policy/org-policy-constraints for more information.
 resource "google_org_policy_policy" "org_policy_require_shielded_vm" {
-  name     = "projects/${var.project_id}/policies/compute.requireShieldedVm"
-  parent   = "projects/${var.project_id}"
+  name   = "projects/${var.project_id}/policies/compute.requireShieldedVm"
+  parent = "projects/${var.project_id}"
 
   spec {
     rules {
@@ -92,22 +92,10 @@ resource "google_org_policy_policy" "org_policy_require_shielded_vm" {
 }
 
 
-resource "google_org_policy_policy" "org_policy_allowed_ingress" {
-  name     = "projects/${var.project_id}/policies/run.allowedIngress"
-  parent   = "projects/${var.project_id}"
-
-  spec {
-    rules {
-      allow_all = "TRUE"
-    }
-  }
-}
-
-
 # To set service accounts (since sometimes they cause a voliation)
 resource "google_org_policy_policy" "org_policy_allowed_policy_member_domains" {
-  name     = "projects/${var.project_id}/policies/iam.allowedPolicyMemberDomains"
-  parent   = "projects/${var.project_id}"
+  name   = "projects/${var.project_id}/policies/iam.allowedPolicyMemberDomains"
+  parent = "projects/${var.project_id}"
 
   spec {
     rules {
@@ -119,8 +107,8 @@ resource "google_org_policy_policy" "org_policy_allowed_policy_member_domains" {
 
 # For Datastream to create the peer network
 resource "google_org_policy_policy" "org_policy_allowed_vpc_peering" {
-  name     = "projects/${var.project_id}/policies/compute.restrictVpcPeering"
-  parent   = "projects/${var.project_id}"
+  name   = "projects/${var.project_id}/policies/compute.restrictVpcPeering"
+  parent = "projects/${var.project_id}"
 
   spec {
     rules {
@@ -142,7 +130,6 @@ resource "time_sleep" "time_sleep_org_policies" {
   depends_on = [
     google_org_policy_policy.org_policy_require_os_login,
     google_org_policy_policy.org_policy_require_shielded_vm,
-    google_org_policy_policy.org_policy_allowed_ingress,
     google_org_policy_policy.org_policy_allowed_policy_member_domains,
     google_org_policy_policy.org_policy_allowed_vpc_peering
   ]

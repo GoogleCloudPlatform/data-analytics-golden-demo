@@ -84,14 +84,8 @@ bq_show_connections= \
     "--format=json " + \
     "biglake-connection > /home/airflow/gcs/data/bq-connection.json"
 
-# Allow accounts from other domains
-change_org_policy= \
-"echo \"name: projects/" + project_id + "/policies/iam.allowedPolicyMemberDomains\" > iam_allowedPolicyMemberDomains.yaml; " + \
-"echo \"spec:\" >> iam_allowedPolicyMemberDomains.yaml; " + \
-"echo \"  rules:\" >> iam_allowedPolicyMemberDomains.yaml; " + \
-"echo \"  - allow_all: true\" >> iam_allowedPolicyMemberDomains.yaml; " + \
-"cat iam_allowedPolicyMemberDomains.yaml;" + \
-"gcloud org-policies --impersonate-service-account \"" + project_id + "@" + project_id + ".iam.gserviceaccount.com" + "\" set-policy iam_allowedPolicyMemberDomains.yaml; "
+# Legacy policy override (removed - domain restrictions are managed via project IAM)
+change_org_policy = "echo 'Legacy policy override removed'"
 
 grant_iam= \
 "serviceAccount=$(cat /home/airflow/gcs/data/serviceAccountId.txt); " + \

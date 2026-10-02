@@ -78,36 +78,9 @@ bq_show_connections= \
     "cloud-function > /home/airflow/gcs/data/bq-connection-cf.json"
 
 
-# Allow accounts from other domains
-change_org_policy_allowedPolicyMemberDomains= \
-"echo \"name: projects/" + project_id + "/policies/iam.allowedPolicyMemberDomains\" > iam_allowedPolicyMemberDomains.yaml; " + \
-"echo \"spec:\" >> iam_allowedPolicyMemberDomains.yaml; " + \
-"echo \"  rules:\" >> iam_allowedPolicyMemberDomains.yaml; " + \
-"echo \"  - allow_all: true\" >> iam_allowedPolicyMemberDomains.yaml; " + \
-"cat iam_allowedPolicyMemberDomains.yaml;" + \
-"gcloud org-policies --impersonate-service-account \"" + project_id + "@" + project_id + ".iam.gserviceaccount.com" + "\" set-policy iam_allowedPolicyMemberDomains.yaml; " 
-
-
-# BigQuery connection service principal access to call function
-grant_iam_function_invoker= \
-"serviceAccount=$(cat /home/airflow/gcs/data/serviceAccountId-cf.txt); " + \
-"echo \"serviceAccount: ${serviceAccount}\" ; " + \
-"gcloud functions add-iam-policy-binding bigquery_external_function " + \
-    "--project=\"" + project_id + "\" " + \
-    "--region=\"REPLACE-REGION\" " + \
-    "--member=\"serviceAccount:${serviceAccount}\" " + \
-    "--role='roles/cloudfunctions.invoker'"
-
-
-#SET: constraints/cloudfunctions.allowedIngressSettings
-#TO: ALLOW_ALL
-change_org_policy_allowedIngressSettings = \
-"echo \"name: projects/" + project_id + "/policies/cloudfunctions.allowedIngressSettings\" > iam_allowedIngressSettings.yaml; " + \
-"echo \"spec:\" >> iam_allowedIngressSettings.yaml; " + \
-"echo \"  rules:\" >> iam_allowedIngressSettings.yaml; " + \
-"echo \"  - allow_all: true\" >> iam_allowedIngressSettings.yaml; " + \
-"cat iam_allowedIngressSettings.yaml;" + \
-"gcloud org-policies --impersonate-service-account \"" + project_id + "@" + project_id + ".iam.gserviceaccount.com" + "\" set-policy iam_allowedIngressSettings.yaml; " 
+# Legacy policy overrides (removed - domain and ingress restrictions are managed by org policy)
+change_org_policy_allowedPolicyMemberDomains = "echo 'Legacy policy override removed'"
+change_org_policy_allowedIngressSettings = "echo 'Legacy policy override removed'"
 
 
 
